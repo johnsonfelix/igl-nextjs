@@ -1,16 +1,19 @@
-// app/api/company/[id]/route.ts
-import prisma from '@/app/prisma';
-import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+import prisma from '@/app/prisma';
 
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
- const { id } = context.params;
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const { id } = params;
+
   try {
     const company = await prisma.company.findUnique({
       where: { id },
       include: {
-        media: true, 
-        location: true,// Include linked media
+        media: true,
+        location: true,
       },
     });
 
