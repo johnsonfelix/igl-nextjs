@@ -1,10 +1,10 @@
 // app/api/company/[id]/route.ts
 import prisma from '@/app/prisma';
 import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const { id } = params;
-
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+ const { id } = context.params;
   try {
     const company = await prisma.company.findUnique({
       where: { id },
