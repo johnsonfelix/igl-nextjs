@@ -3,9 +3,9 @@ import prisma from '@/app/prisma';
 
 export async function GET(
   req: NextRequest,
-  context: { params: { id: string } } // Do NOT destructure here
+  { params }: { params: { id: string } } // Correct way to type the params
 ) {
-  const { id } = context.params;
+  const { id } = params;
 
   try {
     const company = await prisma.company.findUnique({
