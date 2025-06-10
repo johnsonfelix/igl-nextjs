@@ -1,12 +1,11 @@
-import { NextRequest } from 'next/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/prisma';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } } // Use this signature
 ) {
-  const { id } = params;
+  const { id } = context.params;
 
   try {
     const company = await prisma.company.findUnique({
