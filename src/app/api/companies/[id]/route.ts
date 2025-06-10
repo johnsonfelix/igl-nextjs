@@ -1,5 +1,5 @@
 // app/api/company/[id]/route.ts
-import prisma from '@/app/prisma';
+// import prisma from '@/app/prisma';
 import { NextResponse } from 'next/server';
 
 // export async function GET(req: Request, { params }: { params: { id: string } }) {
