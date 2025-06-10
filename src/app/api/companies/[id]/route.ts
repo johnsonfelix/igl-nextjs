@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/prisma';
 
 export async function GET(
-  request: NextRequest,
-  context: { params: { id: string } } // Use this signature
+  req: NextRequest,
+  context: { params: { id: string } } // Do NOT destructure here
 ) {
   const { id } = context.params;
 
