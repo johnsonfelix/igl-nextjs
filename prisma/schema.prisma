@@ -1,0 +1,126 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("POSTGRES_URL")
+  directUrl = env("POSTGRES_URL_NON_POOLING")
+}
+
+model Company {
+  id           String          @id @default(cuid())
+  memberId     String          @unique
+  memberType   String
+  name         String
+  website      String?
+  established  DateTime?
+  size         String?
+  about        String?
+  memberSince  DateTime?
+  location     Location?
+
+  services     Service[]       @relation("CompanyServices")
+  partners     Partner[]       @relation("CompanyPartners")
+  certificates Certificate[]   @relation("CompanyCertificates")
+  media        Media[]         @relation("CompanyMedia")
+  activities   Activity[]      @relation("CompanyActivities")
+
+  user         User?           @relation("UserCompanies", fields: [userId], references: [id])
+  userId       String?
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model Service {
+  id         String     @id @default(cuid())
+  type       String
+  companies  Company[]  @relation("CompanyServices")
+}
+
+model Partner {
+  id         String     @id @default(cuid())
+  name       String
+  type       PartnerType
+  companies  Company[]  @relation("CompanyPartners")
+}
+
+enum PartnerType {
+  AIR
+  SEA
+  RAIL
+  COURIER
+}
+
+model Certificate {
+  id          String     @id @default(cuid())
+  title       String
+  issuedBy    String?
+  issuedDate  DateTime?
+  description String?
+  companies   Company[]  @relation("CompanyCertificates")
+}
+
+model Media {
+  id         String     @id @default(cuid())
+  type       MediaType
+  url        String
+  altText    String?
+  companies  Company[]  @relation("CompanyMedia")
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  LOGO
+}
+
+model Activity {
+  id          String     @id @default(cuid())
+  eventDate   DateTime
+  description String
+  imageUrl    String?
+  companies   Company[]  @relation("CompanyActivities")
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  address   String
+  city      String
+  state     String?
+  country   String
+  zipCode   String?
+  phone     String?
+  fax       String?
+  email     String?
+
+  company   Company  @relation(fields: [companyId], references: [id])
+  companyId String   @unique
+}
+
+model User {
+  id         String     @id @default(cuid())
+  email      String     @unique
+  password   String
+  name       String?
+  role       Role       @default(USER)
+  companies  Company[]  @relation("UserCompanies")
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
