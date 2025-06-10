@@ -1,11 +1,13 @@
-// app/api/company/[id]/route.ts
-import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { notFound } from 'next/navigation';
 
 const prisma = new PrismaClient();
 
-export async function GET(req: NextRequest, context: { params: { id: string } }) {
-  const { id } = context.params;
+export async function GET(req: NextRequest) {
+  const url = new URL(req.url);
+  const pathnameParts = url.pathname.split('/');
+  const id = pathnameParts[pathnameParts.length - 1];
 
   try {
     const company = await prisma.company.findUnique({
