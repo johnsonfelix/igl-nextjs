@@ -124,3 +124,22 @@ enum Role {
   ADMIN
   MODERATOR
 }
+
+model Event {
+  id         String     @id @default(cuid())
+  name       String
+  from       DateTime
+  to         DateTime
+  location   String
+  thumbnail  String
+  EventType  EventType
+  expectedAudience String
+
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+enum EventType {
+  Hot
+  New
+}
