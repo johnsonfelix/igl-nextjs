@@ -3,11 +3,12 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
-) {
-  const { id } = context.params;
+export async function GET(req: NextRequest) {
+  const id = req.nextUrl.pathname.split('/').pop(); // Extract `id` from URL
+
+  if (!id) {
+    return NextResponse.json({ error: 'Missing event ID' }, { status: 400 });
+  }
 
   try {
     const event = await prisma.event.findUnique({
