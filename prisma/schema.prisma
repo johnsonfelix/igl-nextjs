@@ -113,7 +113,7 @@ model User {
   password   String
   name       String?
   role       Role       @default(USER)
-  companies  Company[]  @relation("UserCompanies")
+  companies  Company[]  @relation("UserCompanies")  
 
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
@@ -126,20 +126,114 @@ enum Role {
 }
 
 model Event {
-  id         String     @id @default(cuid())
-  name       String
-  from       DateTime
-  to         DateTime
-  location   String
-  thumbnail  String
-  EventType  EventType
-  expectedAudience String
+  id                String             @id @default(cuid())
+  name              String
+  startDate         DateTime?
+  endDate           DateTime?
+  location          String
+  thumbnail         String
+  eventType         EventType?
+  expectedAudience  String
 
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  descriptions      EventDescription[]
+  sponsors          EventSponsor[]     // Junction table for linking pre-created sponsors
+  sponsorships      Sponsorship[]
+  tickets           EventTicket[]      // Junction table for linking pre-created tickets
+  hotels            EventHotel[]       // Junction table for linking pre-created hotels
+  booths            EventBooth[]       // Junction table for linking pre-created booths
+
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 enum EventType {
   Hot
   New
 }
+
+model EventDescription {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  title     String
+  content   String
+}
+
+model Sponsor {
+  id          String           @id @default(cuid())
+  name        String
+  partnerType String
+  logo        String
+  country     String
+  events      EventSponsor[]   // Events linked via junction
+}
+
+model EventSponsor {
+  id         String    @id @default(cuid())
+  event      Event     @relation(fields: [eventId], references: [id])
+  eventId    String
+  sponsor    Sponsor   @relation(fields: [sponsorId], references: [id])
+  sponsorId  String
+}
+
+model Sponsorship {
+  id          String   @id @default(cuid())
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     String
+
+  name        String
+  description String
+  price       Float
+  available   Boolean   @default(true)
+
+  buyerId     String?   // nullable if not yet purchased
+}
+
+model Ticket {
+  id       String           @id @default(cuid())
+  name     String
+  logo     String
+  price    Float
+  events   EventTicket[]    // Events linked via junction
+}
+
+model EventTicket {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  ticket    Ticket   @relation(fields: [ticketId], references: [id])
+  ticketId  String
+}
+
+model Hotel {
+  id         String           @id @default(cuid())
+  hotelName  String
+  roomType   String
+  price      Float
+  events     EventHotel[]     // Events linked via junction
+}
+
+model EventHotel {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  hotel     Hotel    @relation(fields: [hotelId], references: [id])
+  hotelId   String
+}
+
+model Booth {
+  id         String           @id @default(cuid())
+  boothName  String
+  image      String
+  price      Float
+  events     EventBooth[]     // Events linked via junction
+}
+
+model EventBooth {
+  id        String   @id @default(cuid())
+  event     Event    @relation(fields: [eventId], references: [id])
+  eventId   String
+  booth     Booth    @relation(fields: [boothId], references: [id])
+  boothId   String
+}
+
