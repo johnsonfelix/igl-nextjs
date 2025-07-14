@@ -40,6 +40,7 @@ model Company {
   updatedAt    DateTime        @updatedAt
 }
 
+
 model Service {
   id         String     @id @default(cuid())
   type       String
@@ -134,106 +135,119 @@ model Event {
   thumbnail         String
   eventType         EventType?
   expectedAudience  String
+  description       String?
 
-  descriptions      EventDescription[]
-  sponsors          EventSponsor[]     // Junction table for linking pre-created sponsors
-  sponsorships      Sponsorship[]
-  tickets           EventTicket[]      // Junction table for linking pre-created tickets
-  hotels            EventHotel[]       // Junction table for linking pre-created hotels
-  booths            EventBooth[]       // Junction table for linking pre-created booths
+  booths            Booth[]
+  hotels            Hotel[]
+  tickets           Ticket[]
+  sponsorTypes      SponsorType[]
+  agendaItems       AgendaItem[]
+  venue             Venue[]
 
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 }
+
 
 enum EventType {
   Hot
   New
 }
 
-model EventDescription {
-  id        String   @id @default(cuid())
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  title     String
-  content   String
-}
-
-model Sponsor {
-  id          String           @id @default(cuid())
-  name        String
-  partnerType String
-  logo        String
-  country     String
-  events      EventSponsor[]   // Events linked via junction
-}
-
-model EventSponsor {
-  id         String    @id @default(cuid())
-  event      Event     @relation(fields: [eventId], references: [id])
-  eventId    String
-  sponsor    Sponsor   @relation(fields: [sponsorId], references: [id])
-  sponsorId  String
-}
-
-model Sponsorship {
-  id          String   @id @default(cuid())
-  event       Event    @relation(fields: [eventId], references: [id])
-  eventId     String
-
-  name        String
-  description String
-  price       Float
-  available   Boolean   @default(true)
-
-  buyerId     String?   // nullable if not yet purchased
+model SponsorType {
+  id          String         @id @default(cuid())
+  name        String         @unique
+  image       String? 
+  description String?
+  price       String?
+  eventId     String?        // make it optional to allow SponsorTypes to exist without being tied to an event immediately
+  event       Event?         @relation(fields: [eventId], references: [id])
 }
 
 model Ticket {
-  id       String           @id @default(cuid())
+  id       String   @id @default(cuid())
   name     String
   logo     String
   price    Float
-  events   EventTicket[]    // Events linked via junction
-}
-
-model EventTicket {
-  id        String   @id @default(cuid())
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  ticket    Ticket   @relation(fields: [ticketId], references: [id])
-  ticketId  String
+  description String?
+  eventId  String?
+  event    Event?    @relation(fields: [eventId], references: [id])
 }
 
 model Hotel {
-  id         String           @id @default(cuid())
+  id         String      @id @default(cuid())
   hotelName  String
-  roomType   String
-  price      Float
-  events     EventHotel[]     // Events linked via junction
+  address    String?
+  contact    String?
+  eventId    String?
+  event      Event?       @relation(fields: [eventId], references: [id])
+  roomTypes  RoomType[]
 }
 
-model EventHotel {
-  id        String   @id @default(cuid())
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  hotel     Hotel    @relation(fields: [hotelId], references: [id])
-  hotelId   String
+model RoomType {
+  id             String   @id @default(cuid())
+  hotelId        String
+  hotel          Hotel    @relation(fields: [hotelId], references: [id])
+  roomType       String   // e.g., Deluxe, Suite, Standard
+  price          Float
+  availableRooms Int      // number of rooms available
+  maxOccupancy   Int      // maximum persons per room
+  amenities      String?  // comma-separated or JSON
+  image          String?  // optional room image
 }
 
 model Booth {
-  id         String           @id @default(cuid())
-  boothName  String
+  id         String   @id @default(cuid())
+  name       String
   image      String
   price      Float
-  events     EventBooth[]     // Events linked via junction
+  description String?
+  eventId    String?
+  event      Event?    @relation(fields: [eventId], references: [id])
 }
 
-model EventBooth {
-  id        String   @id @default(cuid())
-  event     Event    @relation(fields: [eventId], references: [id])
-  eventId   String
-  booth     Booth    @relation(fields: [boothId], references: [id])
-  boothId   String
+model AgendaItem {
+  id          String   @id @default(cuid())
+  date        DateTime
+  startTime   String
+  endTime     String
+  title       String
+  description String?
+  event       Event    @relation(fields: [eventId], references: [id])
+  eventId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
+
+model Venue {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  imageUrls       String[] // for gallery
+  closestAirport  String?
+  publicTransport String?
+  nearbyPlaces    String?  // e.g., "Beach, Mall, Museum"
+  event           Event    @relation(fields: [eventId], references: [id])
+  eventId         String   @unique
+}
+
+model Inquiry {
+  id          String   @id @default(cuid())
+  name        String
+  email       String
+  phone       String?
+  placeFrom   String
+  placeTo     String
+  cargoType   String
+  transportMode transportMode
+  description String
+  createdAt   DateTime @default(now())
+}
+
+enum transportMode {
+  AIR
+  SEA
+  LAND
+}
+
 
