@@ -11,7 +11,7 @@ export async function GET() {
         booths: true,
         hotels: true,
         tickets: true,
-        sponsorTypes: true, // ✅ include sponsorTypes in GET response
+        sponsorTypes: true,
       },
     });
     return NextResponse.json(events);

@@ -142,7 +142,7 @@ model Event {
   tickets           Ticket[]
   sponsorTypes      SponsorType[]
   agendaItems       AgendaItem[]
-  venue             Venue[]
+  venue             Venue?
 
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
@@ -210,8 +210,8 @@ model Booth {
 model AgendaItem {
   id          String   @id @default(cuid())
   date        DateTime
-  startTime   String
-  endTime     String
+  startTime   DateTime
+  endTime     DateTime
   title       String
   description String?
   event       Event    @relation(fields: [eventId], references: [id])

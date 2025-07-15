@@ -4,14 +4,17 @@ import prisma from "@/app/lib/prisma";
 // ✅ GET all agenda items for an event
 export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const eventId = pathnameParts[pathnameParts.length - 1];
+    const eventId = req.nextUrl.pathname.split("/")[3]; // correct extraction
+
+    if (!eventId) {
+      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
+    }
 
     const agendaItems = await prisma.agendaItem.findMany({
       where: { eventId },
-      orderBy: { date: "asc" },
+      orderBy: { startTime: "asc" },
     });
+
     return NextResponse.json(agendaItems);
   } catch (error) {
     console.error("[AGENDA_GET]", error);
@@ -22,30 +25,54 @@ export async function GET(req: NextRequest) {
 // ✅ CREATE agenda item for an event
 export async function POST(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const eventId = pathnameParts[pathnameParts.length - 1];
+    const eventId = req.nextUrl.pathname.split("/")[3];
+
+    if (!eventId) {
+      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
+    }
 
     const body = await req.json();
-    const { date, startTime, endTime, title, description } = body;
+    console.log("Request body:", body);
 
-    if (!date || !startTime || !endTime || !title) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    const { title, description, startTime, endTime } = body;
+
+    if (
+      typeof title !== "string" ||
+      typeof startTime !== "string" ||
+      typeof endTime !== "string" ||
+      !title.trim() ||
+      !startTime.trim() ||
+      !endTime.trim()
+    ) {
+      return NextResponse.json({ error: "Missing or invalid required fields" }, { status: 400 });
     }
+
+    const parsedStartTime = new Date(startTime);
+    const parsedEndTime = new Date(endTime);
+
+    if (isNaN(parsedStartTime.getTime()) || isNaN(parsedEndTime.getTime())) {
+      return NextResponse.json({ error: "Invalid date or time format provided" }, { status: 400 });
+    }
+
+    // Autogenerate date from startTime
+    const parsedDate = new Date(parsedStartTime.toISOString().split("T")[0]);
 
     const agendaItem = await prisma.agendaItem.create({
       data: {
-        date: new Date(date),
-        startTime,
-        endTime,
         title,
+        date: parsedDate,
         description: description || null,
+        startTime: parsedStartTime,
+        endTime: parsedEndTime,
         eventId,
       },
     });
+
     return NextResponse.json(agendaItem);
   } catch (error) {
     console.error("[AGENDA_POST]", error);
     return NextResponse.json({ error: "Failed to create agenda item" }, { status: 500 });
   }
 }
+
+

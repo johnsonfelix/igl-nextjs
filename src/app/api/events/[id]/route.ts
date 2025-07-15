@@ -3,12 +3,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
+// Helper to extract eventId from URL
+function extractEventId(req: NextRequest): string | null {
+  try {
+    const pathname = new URL(req.url).pathname;
+    const parts = pathname.split("/");
+    // Adjust if your route structure changes
+    const eventId = parts[parts.length - 1];
+    if (!eventId || eventId === "events") return null; // prevent returning "events" as ID
+    console.log('eventId');
+    console.log(eventId);
+    return eventId;
+  } catch (error) {
+    console.error("[extractEventId]", error);
+    return null;
+  }
+}
+
 // ✅ GET single event
 export async function GET(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const eventId = pathnameParts[pathnameParts.length - 1];
+    const eventId = extractEventId(req);
+    if (!eventId) {
+      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
+    }
 
     const event = await prisma.event.findUnique({
       where: { id: eventId },
@@ -21,6 +39,7 @@ export async function GET(req: NextRequest) {
         venue: true,
       },
     });
+
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
@@ -34,9 +53,10 @@ export async function GET(req: NextRequest) {
 // ✅ UPDATE single event
 export async function PUT(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const eventId = pathnameParts[pathnameParts.length - 1];
+    const eventId = extractEventId(req);
+    if (!eventId) {
+      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
+    }
 
     const body = await req.json();
     const {
@@ -58,13 +78,12 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Clear existing sponsorTypes
+    // Clear sponsorTypes if reassigning
     await prisma.sponsorType.updateMany({
       where: { eventId },
       data: { eventId: null },
     });
 
-    // Update event
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
       data: {
@@ -82,7 +101,6 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    // Reattach sponsorTypes
     if (sponsorTypes.length > 0) {
       await prisma.sponsorType.updateMany({
         where: { id: { in: sponsorTypes } },
@@ -90,7 +108,6 @@ export async function PUT(req: NextRequest) {
       });
     }
 
-    // Refetch with attachments
     const refetchedEvent = await prisma.event.findUnique({
       where: { id: updatedEvent.id },
       include: {
@@ -98,6 +115,8 @@ export async function PUT(req: NextRequest) {
         hotels: true,
         tickets: true,
         sponsorTypes: true,
+        agendaItems: true,
+        venue: true,
       },
     });
 
@@ -111,13 +130,15 @@ export async function PUT(req: NextRequest) {
 // ✅ DELETE single event
 export async function DELETE(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const eventId = pathnameParts[pathnameParts.length - 1];
+    const eventId = extractEventId(req);
+    if (!eventId) {
+      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
+    }
 
     await prisma.event.delete({
       where: { id: eventId },
     });
+
     return new NextResponse(null, { status: 204 });
   } catch (error) {
     console.error("[EVENT_DELETE]", error);
