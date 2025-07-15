@@ -17,9 +17,10 @@ export default function EventViewPage() {
   const [event, setEvent] = useState<any>(null);
   const [agendaItems, setAgendaItems] = useState<any[]>([]);
   const [venue, setVenue] = useState<any>(null);
-  const [isVenueSheetOpen, setIsVenueSheetOpen] = useState(false);
 
+  const [isVenueSheetOpen, setIsVenueSheetOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+
   const [agendaForm, setAgendaForm] = useState({
     date: "",
     startTime: "",
@@ -27,6 +28,7 @@ export default function EventViewPage() {
     title: "",
     description: "",
   });
+
   const [venueForm, setVenueForm] = useState({
     name: "",
     description: "",
@@ -92,11 +94,23 @@ export default function EventViewPage() {
   const handleCreateAgenda = async () => {
     setCreatingAgenda(true);
     try {
+      const { date, startTime, endTime, title, description } = agendaForm;
+      const startDateTime = new Date(`${date}T${startTime}`);
+      const endDateTime = new Date(`${date}T${endTime}`);
+
+      const payload = {
+        title,
+        description,
+        startTime: startDateTime.toISOString(),
+        endTime: endDateTime.toISOString(),
+      };
+
       const res = await fetch(`/api/events/${eventId}/agenda`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(agendaForm),
+        body: JSON.stringify(payload),
       });
+
       if (res.ok) {
         await fetchAgendaItems();
         setAgendaForm({
@@ -132,14 +146,7 @@ export default function EventViewPage() {
 
       if (res.ok) {
         await fetchVenue();
-        setVenueForm({
-          name: "",
-          description: "",
-          imageUrls: "",
-          closestAirport: "",
-          publicTransport: "",
-          nearbyPlaces: "",
-        });
+        setIsVenueSheetOpen(false);
       } else {
         console.error(await res.json());
       }
@@ -150,19 +157,34 @@ export default function EventViewPage() {
     }
   };
 
-  useEffect(() => {
-  if (isVenueSheetOpen && venue) {
-    setVenueForm({
-      name: venue.name || "",
-      description: venue.description || "",
-      imageUrls: venue.imageUrls?.join(", ") || "",
-      closestAirport: venue.closestAirport || "",
-      publicTransport: venue.publicTransport || "",
-      nearbyPlaces: venue.nearbyPlaces || "",
-    });
-  }
-}, [isVenueSheetOpen, venue]);
+  const handleDeleteAgenda = async (agendaId: string) => {
+    if (!confirm("Are you sure you want to delete this agenda item?")) return;
+    try {
+      const res = await fetch(`/api/events/${eventId}/agenda/${agendaId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        await fetchAgendaItems();
+      } else {
+        console.error(await res.json());
+      }
+    } catch (error) {
+      console.error("Error deleting agenda item:", error);
+    }
+  };
 
+  useEffect(() => {
+    if (isVenueSheetOpen && venue) {
+      setVenueForm({
+        name: venue.name || "",
+        description: venue.description || "",
+        imageUrls: venue.imageUrls?.join(", ") || "",
+        closestAirport: venue.closestAirport || "",
+        publicTransport: venue.publicTransport || "",
+        nearbyPlaces: venue.nearbyPlaces || "",
+      });
+    }
+  }, [isVenueSheetOpen, venue]);
 
   useEffect(() => {
     fetchEvent();
@@ -178,30 +200,12 @@ export default function EventViewPage() {
     );
   }
 
-  const handleDeleteAgenda = async (agendaId: string) => {
-  if (!confirm("Are you sure you want to delete this agenda item?")) return;
-  try {
-    const res = await fetch(`/api/events/${eventId}/agenda/${agendaId}`, {
-      method: "DELETE",
-    });
-    if (res.ok) {
-      await fetchAgendaItems();
-    } else {
-      console.error(await res.json());
-    }
-  } catch (error) {
-    console.error("Error deleting agenda item:", error);
-  }
-};
-
-
   if (!event) {
     return <div className="text-center text-gray-500">Event not found</div>;
   }
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
-      {/* Event Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">{event.name}</h1>
         <Button onClick={() => router.push(`/admin/events/edit?id=${eventId}`)}>
@@ -215,7 +219,8 @@ export default function EventViewPage() {
         <div>
           <p><strong>Location:</strong> {event.location}</p>
           <p className="text-gray-600">
-            {event.startDate?.split("T")[0] ?? "No start date"} - {event.endDate?.split("T")[0] ?? "No end date"}
+            {event.startDate?.split("T")[0] ?? "No start date"} -{" "}
+            {event.endDate?.split("T")[0] ?? "No end date"}
           </p>
           <p><strong>Type:</strong> {event.eventType}</p>
           <p><strong>Expected Audience:</strong> {event.expectedAudience}</p>
@@ -229,16 +234,17 @@ export default function EventViewPage() {
         )}
       </div>
 
-      {/* Attachments */}
       <div className="space-y-2">
         <h2 className="text-xl font-semibold">Attachments</h2>
         {["booths", "hotels", "tickets", "sponsorTypes"].map((key) => (
           <div key={key}>
-            <h3 className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}</h3>
+            <h3 className="font-medium">
+              {key.charAt(0).toUpperCase() + key.slice(1)}
+            </h3>
             {event[key]?.length > 0 ? (
               <ul className="list-disc list-inside text-gray-700">
                 {event[key].map((item: any) => (
-                  <li key={item.id}>{item.name || item.hotelName}</li>
+                  <li key={item.id}>{item.name || item.hotelName || "Unnamed"}</li>
                 ))}
               </ul>
             ) : (
@@ -248,7 +254,6 @@ export default function EventViewPage() {
         ))}
       </div>
 
-      {/* Agenda Section */}
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold">Agenda</h2>
@@ -260,7 +265,6 @@ export default function EventViewPage() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full sm:w-[400px] p-6">
               <h2 className="text-lg font-semibold mb-4">Create Agenda Item</h2>
-              {/* Agenda Form */}
               <div className="space-y-4">
                 {[
                   { label: "Date", type: "date", name: "date" },
@@ -271,7 +275,6 @@ export default function EventViewPage() {
                   <div key={field.name}>
                     <Label>{field.label}</Label>
                     <Input
-                      className="text-2xl text-gray-900"
                       type={field.type}
                       placeholder={field.placeholder}
                       value={agendaForm[field.name as keyof typeof agendaForm]}
@@ -284,13 +287,14 @@ export default function EventViewPage() {
                 <div>
                   <Label>Description</Label>
                   <Textarea
-                    className="text-2xl text-gray-900"
                     placeholder="Agenda Description"
                     value={agendaForm.description}
-                    onChange={(e) => setAgendaForm({ ...agendaForm, description: e.target.value })}
+                    onChange={(e) =>
+                      setAgendaForm({ ...agendaForm, description: e.target.value })
+                    }
                   />
                 </div>
-                <Button onClick={handleCreateAgenda} disabled={creatingAgenda} className="w-full text-gray-900">
+                <Button onClick={handleCreateAgenda} disabled={creatingAgenda} className="w-full">
                   {creatingAgenda ? (
                     <>
                       <Loader2 className="animate-spin mr-2 h-4 w-4" /> Creating...
@@ -303,173 +307,151 @@ export default function EventViewPage() {
             </SheetContent>
           </Sheet>
         </div>
-        {agendaItems.length > 0 ? (
-  <ul className="space-y-2">
-    {agendaItems.map((item) => (
-      <li key={item.id} className="p-4 bg-white rounded shadow-sm flex justify-between items-start">
-        <div>
-          <p className="font-medium">{item.title}</p>
-          <p className="text-sm text-gray-600">{item.description}</p>
-          <p className="text-sm text-gray-500">
-            {item.date.split("T")[0]} | {item.startTime} - {item.endTime}
-          </p>
-        </div>
-        <Button
-          variant="destructive"
-          size="sm"
-          onClick={() => handleDeleteAgenda(item.id)}
-        >
-          Delete
-        </Button>
-      </li>
-    ))}
-  </ul>
-) : (
-  <p className="text-sm text-gray-500">No agenda items yet.</p>
-)}
 
+        {agendaItems.length > 0 ? (
+          <ul className="space-y-2">
+            {agendaItems.map((item) => (
+              <li
+                key={item.id}
+                className="p-4 bg-white rounded shadow-sm flex justify-between items-start"
+              >
+                <div>
+                  <p className="font-medium">{item.title}</p>
+                  <p className="text-sm text-gray-600">{item.description}</p>
+                  <p className="text-sm text-gray-500">
+                    {item.startTime?.split("T")[0]} |{" "}
+                    {item.startTime?.split("T")[1]?.substring(0, 5)} -{" "}
+                    {item.endTime?.split("T")[1]?.substring(0, 5)}
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDeleteAgenda(item.id)}
+                >
+                  Delete
+                </Button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-sm text-gray-500">No agenda items yet.</p>
+        )}
       </div>
 
-      {/* Venue Section */}
-      {!venue ? (
-        <div className="space-y-2">
+      <div className="space-y-4">
+        <div className="flex justify-between items-center">
+          <h2 className="text-xl font-semibold">Venue</h2>
           <Sheet open={isVenueSheetOpen} onOpenChange={setIsVenueSheetOpen}>
-  <SheetTrigger asChild>
-    <Button variant="outline" className="gap-2">
-      <Plus size={16} /> Edit Venue
-    </Button>
-  </SheetTrigger>
-  <SheetContent side="right" className="w-full sm:w-[400px] p-6 overflow-auto">
-    <h2 className="text-lg font-semibold mb-4">Edit Venue</h2>
-
-    {/* Venue Form */}
-    <div className="space-y-4">
-      {[
-        { label: "Venue Name", name: "name", placeholder: "Venue name" },
-        { label: "Description", name: "description", placeholder: "Venue description", textarea: true },
-        { label: "Image URLs (comma separated)", name: "imageUrls", placeholder: "https://..., https://...", textarea: true },
-        { label: "Closest Airport", name: "closestAirport", placeholder: "E.g. JFK Airport" },
-        { label: "Public Transport", name: "publicTransport", placeholder: "E.g. Metro Station" },
-        { label: "Nearby Places", name: "nearbyPlaces", placeholder: "Beach, Mall, Park" },
-      ].map((field) => (
-        <div key={field.name}>
-          <Label>{field.label}</Label>
-          {field.textarea ? (
-            <Textarea
-              placeholder={field.placeholder}
-              value={venueForm[field.name as keyof typeof venueForm]}
-              onChange={(e) =>
-                setVenueForm({ ...venueForm, [field.name]: e.target.value })
-              }
-            />
-          ) : (
-            <Input
-             className="text-gray-900"
-              placeholder={field.placeholder}
-              value={venueForm[field.name as keyof typeof venueForm]}
-              onChange={(e) =>
-                setVenueForm({ ...venueForm, [field.name]: e.target.value })
-              }
-            />
-          )}
+            <SheetTrigger asChild>
+              <Button variant="outline" className="gap-2">
+                <Plus size={16} /> {venue ? "Edit Venue" : "Add Venue"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-[400px] p-6 overflow-auto">
+              <h2 className="text-lg font-semibold mb-4">
+                {venue ? "Edit Venue" : "Add Venue"}
+              </h2>
+              <div className="space-y-4">
+                {[
+                  { label: "Venue Name", name: "name", placeholder: "Venue name" },
+                  {
+                    label: "Description",
+                    name: "description",
+                    placeholder: "Venue description",
+                    textarea: true,
+                  },
+                  {
+                    label: "Image URLs (comma separated)",
+                    name: "imageUrls",
+                    placeholder: "https://..., https://...",
+                    textarea: true,
+                  },
+                  {
+                    label: "Closest Airport",
+                    name: "closestAirport",
+                    placeholder: "E.g. JFK Airport",
+                  },
+                  {
+                    label: "Public Transport",
+                    name: "publicTransport",
+                    placeholder: "E.g. Metro Station",
+                  },
+                  {
+                    label: "Nearby Places",
+                    name: "nearbyPlaces",
+                    placeholder: "Beach, Mall, Park",
+                  },
+                ].map((field) => (
+                  <div key={field.name}>
+                    <Label>{field.label}</Label>
+                    {field.textarea ? (
+                      <Textarea
+                        placeholder={field.placeholder}
+                        value={venueForm[field.name as keyof typeof venueForm]}
+                        onChange={(e) =>
+                          setVenueForm({ ...venueForm, [field.name]: e.target.value })
+                        }
+                      />
+                    ) : (
+                      <Input
+                        placeholder={field.placeholder}
+                        value={venueForm[field.name as keyof typeof venueForm]}
+                        onChange={(e) =>
+                          setVenueForm({ ...venueForm, [field.name]: e.target.value })
+                        }
+                      />
+                    )}
+                  </div>
+                ))}
+                <Button onClick={handleSaveVenue} disabled={savingVenue} className="w-full">
+                  {savingVenue ? (
+                    <>
+                      <Loader2 className="animate-spin mr-2 h-4 w-4" /> Saving...
+                    </>
+                  ) : (
+                    "Save Venue"
+                  )}
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
-      ))}
-      <Button onClick={handleSaveVenue} disabled={savingVenue} className="w-full text-gray-900">
-        {savingVenue ? (
+
+        {venue ? (
           <>
-            <Loader2 className="animate-spin mr-2 h-4 w-4 text-gray-900" /> Saving...
+            <p className="text-gray-700">{venue.name}</p>
+            <p className="text-gray-500">{venue.description}</p>
+            <div className="grid grid-cols-2 gap-2">
+              {venue.imageUrls?.length > 0 ? (
+                venue.imageUrls.map((url: string) => (
+                  <img
+                    key={url}
+                    src={url}
+                    alt="Venue"
+                    className="rounded w-full h-40 object-cover"
+                  />
+                ))
+              ) : (
+                <p className="text-sm text-gray-500 col-span-2">No venue images added.</p>
+              )}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <p>
+                <strong>Closest Airport:</strong> {venue.closestAirport || "N/A"}
+              </p>
+              <p>
+                <strong>Public Transport:</strong> {venue.publicTransport || "N/A"}
+              </p>
+              <p>
+                <strong>Nearby Places:</strong> {venue.nearbyPlaces || "N/A"}
+              </p>
+            </div>
           </>
         ) : (
-          "Update Venue"
+          <p className="text-sm text-gray-500">No venue details yet.</p>
         )}
-      </Button>
-    </div>
-  </SheetContent>
-</Sheet>
-
-        </div>
-      ) : (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl font-semibold">Venue</h2>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" className="gap-2">
-                  <Plus size={16} /> Edit Venue
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:w-[400px] p-6 overflow-auto">
-                <h2 className="text-lg font-semibold mb-4">Edit Venue</h2>
-                {/* Reuse venue form for edit */}
-                <div className="space-y-4">
-                  {[
-                    { label: "Venue Name", name: "name", placeholder: "Venue name" },
-                    { label: "Description", name: "description", placeholder: "Venue description", textarea: true },
-                    { label: "Image URLs (comma separated)", name: "imageUrls", placeholder: "https://..., https://...", textarea: true },
-                    { label: "Closest Airport", name: "closestAirport", placeholder: "E.g. JFK Airport" },
-                    { label: "Public Transport", name: "publicTransport", placeholder: "E.g. Metro Station" },
-                    { label: "Nearby Places", name: "nearbyPlaces", placeholder: "Beach, Mall, Park" },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <Label>{field.label}</Label>
-                      {field.textarea ? (
-                        <Textarea
-                        className="text-gray-900"
-                          placeholder={field.placeholder}
-                          value={venueForm[field.name as keyof typeof venueForm]}
-                          onChange={(e) =>
-                            setVenueForm({ ...venueForm, [field.name]: e.target.value })
-                          }
-                        />
-                      ) : (
-                        <Input
-                        className="text-gray-900"
-                          placeholder={field.placeholder}
-                          value={venueForm[field.name as keyof typeof venueForm]}
-                          onChange={(e) =>
-                            setVenueForm({ ...venueForm, [field.name]: e.target.value })
-                          }
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <Button onClick={handleSaveVenue} disabled={savingVenue} className="w-full text-gray-900">
-                    {savingVenue ? (
-                      <>
-                        <Loader2 className="animate-spin mr-2 h-4 w-4" /> Saving...
-                      </>
-                    ) : (
-                      "Update Venue"
-                    )}
-                  </Button>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
-
-          <p className="text-gray-700">{venue.name}</p>
-          <p className="text-gray-500">{venue.description}</p>
-          <div className="grid grid-cols-2 gap-2">
-            {venue.imageUrls?.length > 0 ? (
-              venue.imageUrls.map((url: string) => (
-                <img
-                  key={url}
-                  src={url}
-                  alt="Venue"
-                  className="rounded w-full h-40 object-cover"
-                />
-              ))
-            ) : (
-              <p className="text-sm text-gray-500 col-span-2">No venue images added.</p>
-            )}
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-            <p><strong>Closest Airport:</strong> {venue.closestAirport || "N/A"}</p>
-            <p><strong>Public Transport:</strong> {venue.publicTransport || "N/A"}</p>
-            <p><strong>Nearby Places:</strong> {venue.nearbyPlaces || "N/A"}</p>
-          </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
