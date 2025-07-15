@@ -6,7 +6,7 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Button } from "@/app/components/ui/button";
 import { Textarea } from "@/app/components/ui/textarea";
-import { Checkbox } from "@radix-ui/react-checkbox";
+import { Checkbox } from "@/app/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Plus, Loader2, ChevronDown, Calendar } from "lucide-react";
 
@@ -236,7 +236,7 @@ export default function EventFormPage() {
           </div>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="gap-2">
+              <Button variant="outline" className="gap-2 text-gray-900">
                 <Plus size={16} />
                 Manage Attachments
               </Button>

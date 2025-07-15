@@ -217,9 +217,9 @@ export default function EventViewPage() {
       {/* Event Header */}
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">{event.name}</h1>
-        <Button onClick={() => router.push(`/admin/events/edit?id=${eventId}`)}>
+        {/* <Button onClick={() => router.push(`/admin/events/edit?id=${eventId}`)}>
           Edit Event
-        </Button>
+        </Button> */}
       </div>
 
       <p className="text-gray-600">{event.description}</p>
@@ -352,7 +352,7 @@ export default function EventViewPage() {
   </SheetTrigger>
 
   <SheetContent side="right" className="w-full sm:w-[400px] p-6 overflow-auto">
-    <h2 className="text-lg font-semibold mb-4">{venue ? "Edit Venue" : "Add Venue"}</h2>
+    <h2 className="text-lg font-semibold mb-4 text-gray-900">{venue ? "Edit Venue" : "Add Venue"}</h2>
     <div className="space-y-4">
       {[
         { label: "Venue Name", name: "name" },
@@ -366,12 +366,14 @@ export default function EventViewPage() {
           <Label>{field.label}</Label>
           {field.textarea ? (
             <Textarea
+              className="text-gray-900"
               placeholder={field.label}
               value={venueForm[field.name as keyof typeof venueForm]}
               onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
             />
           ) : (
             <Input
+              className="text-gray-900"
               placeholder={field.label}
               value={venueForm[field.name as keyof typeof venueForm]}
               onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
@@ -379,7 +381,7 @@ export default function EventViewPage() {
           )}
         </div>
       ))}
-      <Button onClick={handleSaveVenue} disabled={savingVenue} className="w-full">
+      <Button onClick={handleSaveVenue} disabled={savingVenue} className="w-full text-gray-900">
         {savingVenue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
         {venue ? "Update Venue" : "Add Venue"}
       </Button>
