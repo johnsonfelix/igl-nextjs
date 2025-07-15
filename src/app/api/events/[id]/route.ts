@@ -17,8 +17,6 @@ export async function GET(req: NextRequest) {
         hotels: true,
         tickets: true,
         sponsorTypes: true,
-        agendaItems: true,
-        venue: true,
       },
     });
     if (!event) {
