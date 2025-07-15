@@ -180,6 +180,7 @@ model Hotel {
   address    String?
   contact    String?
   eventId    String?
+  image      String?
   event      Event?       @relation(fields: [eventId], references: [id])
   roomTypes  RoomType[]
 }
