@@ -78,12 +78,6 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Clear sponsorTypes if reassigning
-    await prisma.sponsorType.updateMany({
-      where: { eventId },
-      data: { eventId: null },
-    });
-
     const updatedEvent = await prisma.event.update({
       where: { id: eventId },
       data: {
@@ -95,21 +89,19 @@ export async function PUT(req: NextRequest) {
         thumbnail: thumbnail || null,
         eventType,
         expectedAudience: expectedAudience || null,
-        booths: { set: booths.map((id: string) => ({ id })) },
-        hotels: { set: hotels.map((id: string) => ({ id })) },
-        tickets: { set: tickets.map((id: string) => ({ id })) },
+        booths: {
+          set: booths.map((id: string) => ({ id })),
+        },
+        hotels: {
+          set: hotels.map((id: string) => ({ id })),
+        },
+        tickets: {
+          set: tickets.map((id: string) => ({ id })),
+        },
+        sponsorTypes: {
+          set: sponsorTypes.map((id: string) => ({ id })),
+        },
       },
-    });
-
-    if (sponsorTypes.length > 0) {
-      await prisma.sponsorType.updateMany({
-        where: { id: { in: sponsorTypes } },
-        data: { eventId: updatedEvent.id },
-      });
-    }
-
-    const refetchedEvent = await prisma.event.findUnique({
-      where: { id: updatedEvent.id },
       include: {
         booths: true,
         hotels: true,
@@ -120,12 +112,13 @@ export async function PUT(req: NextRequest) {
       },
     });
 
-    return NextResponse.json(refetchedEvent);
+    return NextResponse.json(updatedEvent);
   } catch (error) {
     console.error("[EVENT_PUT]", error);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
+
 
 // ✅ DELETE single event
 export async function DELETE(req: NextRequest) {

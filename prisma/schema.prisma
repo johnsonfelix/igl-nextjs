@@ -137,10 +137,11 @@ model Event {
   expectedAudience  String
   description       String?
 
-  booths            Booth[]
-  hotels            Hotel[]
-  tickets           Ticket[]
-  sponsorTypes      SponsorType[]
+  booths            Booth[]        @relation("EventBooths")
+  hotels            Hotel[]        @relation("EventHotels")
+  tickets           Ticket[]       @relation("EventTickets")
+  sponsorTypes      SponsorType[]  @relation("EventSponsorTypes")
+
   agendaItems       AgendaItem[]
   venue             Venue?
 
@@ -160,18 +161,18 @@ model SponsorType {
   image       String? 
   description String?
   price       String?
-  eventId     String?        // make it optional to allow SponsorTypes to exist without being tied to an event immediately
-  event       Event?         @relation(fields: [eventId], references: [id])
+
+  events      Event[]        @relation("EventSponsorTypes")
 }
 
 model Ticket {
-  id       String   @id @default(cuid())
-  name     String
-  logo     String
-  price    Float
+  id          String   @id @default(cuid())
+  name        String
+  logo        String
+  price       Float
   description String?
-  eventId  String?
-  event    Event?    @relation(fields: [eventId], references: [id])
+
+  events      Event[]  @relation("EventTickets")
 }
 
 model Hotel {
@@ -179,10 +180,10 @@ model Hotel {
   hotelName  String
   address    String?
   contact    String?
-  eventId    String?
   image      String?
-  event      Event?       @relation(fields: [eventId], references: [id])
   roomTypes  RoomType[]
+
+  events     Event[]     @relation("EventHotels")
 }
 
 model RoomType {
@@ -198,13 +199,13 @@ model RoomType {
 }
 
 model Booth {
-  id         String   @id @default(cuid())
-  name       String
-  image      String
-  price      Float
+  id          String   @id @default(cuid())
+  name        String
+  image       String
+  price       Float
   description String?
-  eventId    String?
-  event      Event?    @relation(fields: [eventId], references: [id])
+
+  events      Event[]  @relation("EventBooths")
 }
 
 model AgendaItem {

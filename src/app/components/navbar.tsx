@@ -9,10 +9,7 @@ import { Button } from "@/app/components/ui/button";
 const navItems = [
   { name: "Dashboard", href: "/admin/dashboard" },
   { name: "Events", href: "/events" },
-  { name: "Sponsors", href: "/admin/sponsors" },
-  { name: "Booths", href: "/admin/booths" },
-  { name: "Hotels", href: "/admin/hotels" },
-  { name: "Tickets", href: "/admin/tickets" },
+  { name: "Admin", href: "/admin/sponsors" },
 ];
 
 export default function Navbar() {
@@ -30,16 +27,17 @@ export default function Navbar() {
         <nav className="hidden md:flex space-x-4">
           {navItems.map((item) => (
             <Link
-              key={item.href}
-              href={item.href}
-              className={`text-sm px-3 py-2 rounded-md transition ${
-                pathname === item.href
-                  ? "bg-primary text-white"
-                  : "text-gray-700 hover:bg-gray-100"
-              }`}
-            >
-              {item.name}
-            </Link>
+  key={item.href}
+  href={item.href}
+  className={`text-sm px-3 py-2 rounded-md transition ${
+    pathname === item.href
+      ? "bg-[#2563EB] text-white"
+      : "text-gray-700 hover:bg-gray-100"
+  }`}
+>
+  {item.name}
+</Link>
+
           ))}
         </nav>
 
@@ -61,17 +59,17 @@ export default function Navbar() {
           <nav className="flex flex-col space-y-1 p-4">
             {navItems.map((item) => (
               <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={`block px-3 py-2 rounded-md transition ${
-                  pathname === item.href
-                    ? "bg-primary text-white"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-              >
-                {item.name}
-              </Link>
+  key={item.href}
+  href={item.href}
+  className={`text-sm px-3 py-2 rounded-md transition ${
+    pathname === item.href
+      ? "bg-[#2563EB] text-white"
+      : "text-gray-700 hover:bg-gray-100"
+  }`}
+>
+  {item.name}
+</Link>
+
             ))}
           </nav>
         </div>

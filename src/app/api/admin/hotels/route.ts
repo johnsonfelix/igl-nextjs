@@ -23,6 +23,7 @@ export async function POST(req: Request) {
     const hotel = await prisma.hotel.create({
       data: {
         hotelName: body.hotelName,
+        image: body.image,
         address: body.address || null,
         contact: body.contact || null,
         eventId: body.eventId?.trim() || null,

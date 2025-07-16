@@ -17,12 +17,15 @@ export default function HotelsPage() {
   const [roomFormOpen, setRoomFormOpen] = useState(false);
   const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
   const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     hotelName: "",
     address: "",
     contact: "",
     eventId: "",
+    image: "",
   });
+
   const [roomFormData, setRoomFormData] = useState({
     roomType: "",
     price: "",
@@ -65,7 +68,13 @@ export default function HotelsPage() {
         }),
       });
 
-      setFormData({ hotelName: "", address: "", contact: "", eventId: "" });
+      setFormData({
+        hotelName: "",
+        address: "",
+        contact: "",
+        eventId: "",
+        image: "",
+      });
       setEditingId(null);
       setFormOpen(false);
       fetchHotels();
@@ -90,6 +99,7 @@ export default function HotelsPage() {
       address: hotel.address || "",
       contact: hotel.contact || "",
       eventId: hotel.eventId || "",
+      image: hotel.image || "",
     });
     setEditingId(hotel.id);
     setFormOpen(true);
@@ -189,7 +199,7 @@ export default function HotelsPage() {
                 { key: "hotelName", label: "Hotel Name" },
                 { key: "address", label: "Address" },
                 { key: "contact", label: "Contact" },
-                { key: "eventId", label: "Event ID (optional)" },
+                { key: "image", label: "Image URL (optional)" },
               ].map(({ key, label }) => (
                 <div key={key}>
                   <Label>{label}</Label>
@@ -225,55 +235,58 @@ export default function HotelsPage() {
           {hotels.map((hotel) => (
             <Card key={hotel.id} className="border">
               <CardContent className="p-4 space-y-2">
+                {hotel.image && (
+                  <img
+                    src={hotel.image}
+                    alt={hotel.hotelName}
+                    className="w-full h-40 object-cover rounded-md"
+                  />
+                )}
                 <h3 className="font-semibold text-lg">{hotel.hotelName}</h3>
                 <p className="text-sm text-gray-500">{hotel.address || "No address"}</p>
                 <p className="text-sm text-gray-500">{hotel.contact || "No contact"}</p>
-                {/* <p className="text-xs text-gray-400">
-                  Event ID: {hotel.eventId || "Unassigned"}
-                </p> */}
 
-                {/* RoomTypes */}
-<div className="pt-2 space-y-2">
-  <h4 className="text-sm font-semibold">Room Types</h4>
-  {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
-    hotel.roomTypes.map((room: any) => (
-      <div
-        key={room.id}
-        className="border rounded p-2 flex justify-between items-center text-sm"
-      >
-        <div>
-          <div className="font-semibold">{room.roomType} - ${room.price}</div>
-          <div className="text-xs text-gray-500">
-            Available: {room.availableRooms} | Max: {room.maxOccupancy}
-          </div>
-          {room.amenities && (
-            <div className="text-xs text-gray-400">
-              Amenities: {room.amenities}
-            </div>
-          )}
-        </div>
-        <div className="flex gap-1">
-          <Button
-            variant="outline"
-            onClick={() => openRoomForm(hotel.id, room)}
-          >
-            <Edit size={14} />
-          </Button>
-          <Button
-            variant="outline"
-            className="text-red-600 hover:bg-red-50"
-            onClick={() => handleRoomDelete(room.id)}
-          >
-            <Trash2 size={14} />
-          </Button>
-        </div>
-      </div>
-    ))
-  ) : (
-    <p className="text-xs text-gray-400">No room types added.</p>
-  )}
-</div>
-
+                {/* Room Types */}
+                <div className="pt-2 space-y-2">
+                  <h4 className="text-sm font-semibold">Room Types</h4>
+                  {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
+                    hotel.roomTypes.map((room: any) => (
+                      <div
+                        key={room.id}
+                        className="border rounded p-2 flex justify-between items-center text-sm"
+                      >
+                        <div>
+                          <div className="font-semibold">{room.roomType} - ${room.price}</div>
+                          <div className="text-xs text-gray-500">
+                            Available: {room.availableRooms} | Max: {room.maxOccupancy}
+                          </div>
+                          {room.amenities && (
+                            <div className="text-xs text-gray-400">
+                              Amenities: {room.amenities}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            onClick={() => openRoomForm(hotel.id, room)}
+                          >
+                            <Edit size={14} />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="text-red-600 hover:bg-red-50"
+                            onClick={() => handleRoomDelete(room.id)}
+                          >
+                            <Trash2 size={14} />
+                          </Button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-xs text-gray-400">No room types added.</p>
+                  )}
+                </div>
 
                 <div className="flex gap-2 pt-2">
                   <Button
@@ -305,7 +318,7 @@ export default function HotelsPage() {
         </div>
       )}
 
-      {/* RoomType Form */}
+      {/* Room Form */}
       <Sheet open={roomFormOpen} onOpenChange={setRoomFormOpen}>
         <SheetContent side="right" className="w-full sm:w-[420px] bg-white text-gray-900">
           <div className="p-4 space-y-4">
