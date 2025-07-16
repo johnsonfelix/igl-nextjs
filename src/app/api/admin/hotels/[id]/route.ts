@@ -39,7 +39,6 @@ export async function PUT(req: NextRequest) {
         address: body.address || null,
         contact: body.contact || null,
         image:body.image || null,
-        eventId: body.eventId?.trim() || null,
       },
     });
 

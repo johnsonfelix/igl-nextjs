@@ -35,7 +35,7 @@ export async function PUT(req: NextRequest) {
 
     const booth = await prisma.booth.update({
       where: { id },
-      data: { name, price, image },
+      data: { name, price: parseFloat(price), image },
     });
 
     return NextResponse.json(booth);

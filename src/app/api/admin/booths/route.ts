@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
         price: parseFloat(price),
         image,
         description: description || null,
-        eventId: eventId?.trim() === "" ? null : eventId,
       },
     });
 

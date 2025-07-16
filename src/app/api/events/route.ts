@@ -1,5 +1,7 @@
+// app/api/events/route.ts
+
 import { PrismaClient } from '@prisma/client';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
@@ -22,7 +24,7 @@ export async function GET() {
 }
 
 // ✅ CREATE event
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
@@ -37,24 +39,23 @@ export async function POST(req: Request) {
       booths = [],
       hotels = [],
       tickets = [],
-      sponsorTypes = [], // ✅ receive sponsorType IDs
+      sponsorTypes = [], // sponsorType IDs
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
-      return new NextResponse('Missing required fields', { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // ✅ Create event first
     const event = await prisma.event.create({
       data: {
         name,
-        description,
+        description: description || null,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        thumbnail,
+        thumbnail: thumbnail || null,
         eventType,
-        expectedAudience,
+        expectedAudience: expectedAudience || null,
         booths: {
           connect: booths.map((id: string) => ({ id })),
         },
@@ -64,6 +65,9 @@ export async function POST(req: Request) {
         tickets: {
           connect: tickets.map((id: string) => ({ id })),
         },
+        sponsorTypes: {
+          connect: sponsorTypes.map((id: string) => ({ id })),
+        },
       },
       include: {
         booths: true,
@@ -73,34 +77,15 @@ export async function POST(req: Request) {
       },
     });
 
-    // ✅ Attach sponsorTypes by updating their eventId
-    if (sponsorTypes.length > 0) {
-      await prisma.sponsorType.updateMany({
-        where: { id: { in: sponsorTypes } },
-        data: { eventId: event.id },
-      });
-    }
-
-    // ✅ Fetch updated event with sponsorTypes included
-    const updatedEvent = await prisma.event.findUnique({
-      where: { id: event.id },
-      include: {
-        booths: true,
-        hotels: true,
-        tickets: true,
-        sponsorTypes: true,
-      },
-    });
-
-    return NextResponse.json(updatedEvent);
+    return NextResponse.json(event);
   } catch (error) {
     console.error('[EVENTS_POST]', error);
-    return new NextResponse('Internal error', { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
 
 // ✅ UPDATE event
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const {
@@ -120,27 +105,20 @@ export async function PUT(req: Request) {
     } = body;
 
     if (!id || !name || !startDate || !endDate || !location) {
-      return new NextResponse('Missing required fields', { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    // ✅ Clear previous sponsorType attachments for this event
-    await prisma.sponsorType.updateMany({
-      where: { eventId: id },
-      data: { eventId: null },
-    });
-
-    // ✅ Update the event with new data and attachments
     const updatedEvent = await prisma.event.update({
       where: { id },
       data: {
         name,
-        description,
+        description: description || null,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        thumbnail,
+        thumbnail: thumbnail || null,
         eventType,
-        expectedAudience,
+        expectedAudience: expectedAudience || null,
         booths: {
           set: booths.map((id: string) => ({ id })),
         },
@@ -150,6 +128,9 @@ export async function PUT(req: Request) {
         tickets: {
           set: tickets.map((id: string) => ({ id })),
         },
+        sponsorTypes: {
+          set: sponsorTypes.map((id: string) => ({ id })),
+        },
       },
       include: {
         booths: true,
@@ -159,28 +140,9 @@ export async function PUT(req: Request) {
       },
     });
 
-    // ✅ Attach sponsorTypes by updating their eventId
-    if (sponsorTypes.length > 0) {
-      await prisma.sponsorType.updateMany({
-        where: { id: { in: sponsorTypes } },
-        data: { eventId: updatedEvent.id },
-      });
-    }
-
-    // ✅ Fetch updated event with sponsorTypes included
-    const refetchedEvent = await prisma.event.findUnique({
-      where: { id: updatedEvent.id },
-      include: {
-        booths: true,
-        hotels: true,
-        tickets: true,
-        sponsorTypes: true,
-      },
-    });
-
-    return NextResponse.json(refetchedEvent);
+    return NextResponse.json(updatedEvent);
   } catch (error) {
     console.error('[EVENTS_PUT]', error);
-    return new NextResponse('Internal error', { status: 500 });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
