@@ -11,11 +11,11 @@ frontend:
           cat <<EOF > .env.production
           POSTGRES_URL="$POSTGRES_URL"
           POSTGRES_URL_NON_POOLING="$POSTGRES_URL_NON_POOLING"
-          JWT_SECRET="$JWT_SECRET"          
+          JWT_SECRET="$JWT_SECRET" 
+          DATABASE_URL="$DATABASE_URL"         
           EOF
         # Optionally export vars for process.env at build step
         - export $(grep -v '^#' .env.production | xargs)
-        - npx prisma generate
         - npm run build
   artifacts:
     baseDirectory: .next
