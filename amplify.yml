@@ -15,6 +15,7 @@ frontend:
           EOF
         # Optionally export vars for process.env at build step
         - export $(grep -v '^#' .env.production | xargs)
+        - npx prisma generate
         - npm run build
   artifacts:
     baseDirectory: .next
