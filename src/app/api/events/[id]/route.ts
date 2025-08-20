@@ -1,7 +1,8 @@
-// app/api/events/[id]/route.ts
+import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from 'next/server';
 
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/app/lib/prisma";
+const prisma = new PrismaClient();
+
 
 // Helper to extract eventId from URL
 function extractEventId(req: NextRequest): string | null {
@@ -20,7 +21,7 @@ function extractEventId(req: NextRequest): string | null {
   }
 }
 
-// ✅ GET single event
+
 export async function GET(req: NextRequest) {
   try {
     const eventId = extractEventId(req);
@@ -31,10 +32,36 @@ export async function GET(req: NextRequest) {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        booths: true,
-        hotels: true,
-        tickets: true,
-        sponsorTypes: true,
+        booths: {
+      include: {
+        subTypes: {
+          where: { eventId },  
+        }
+      }
+    },
+    boothSubTypes: true,
+         hotels: {
+          include: {
+            roomTypes: {
+              // For each room type, include the related EventRoomType record,
+              // but only the one that matches the current event.
+              include: {
+                eventRoomTypes: {
+                  where: {
+                    eventId: eventId,
+                  },
+                },
+              },
+            },
+          },
+        },
+        eventTickets: { include: { ticket: true } },  
+        eventSponsorTypes: { include: { sponsorType: true } },
+        eventRoomTypes: {
+                where: {
+                  eventId: eventId,
+                },
+              },
         agendaItems: true,
         venue: true,
       },
@@ -50,14 +77,9 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ✅ UPDATE single event
-export async function PUT(req: NextRequest) {
+// ✅ CREATE event
+export async function POST(req: NextRequest) {
   try {
-    const eventId = extractEventId(req);
-    if (!eventId) {
-      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
-    }
-
     const body = await req.json();
     const {
       name,
@@ -68,73 +90,145 @@ export async function PUT(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],
-      hotels = [],
-      tickets = [],
-      sponsorTypes = [],
+      booths = [],         
+      hotels = [],       
+      tickets = [],        
+      sponsorTypes = [],    
+      roomTypes = [], 
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
-    const updatedEvent = await prisma.event.update({
-      where: { id: eventId },
+    const event = await prisma.event.create({
       data: {
         name,
         description: description || null,
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        thumbnail: thumbnail || null,
+        thumbnail: thumbnail || "",
         eventType,
-        expectedAudience: expectedAudience || null,
+        expectedAudience: expectedAudience || "",
+
+        booths: {
+          connect: booths.map((id: string) => ({ id })),
+        },
+        hotels: {
+          connect: hotels.map((id: string) => ({ id })),
+        },
+        eventTickets: {
+          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            ticket: { connect: { id } },
+            quantity: quantity || 1,
+          })),
+        },
+        eventSponsorTypes: {
+          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            sponsorType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
+        },
+        eventRoomTypes: {
+  create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+    roomType: { connect: { id } },
+    quantity: quantity || 1,
+  })),
+},
+      },
+      include: {
+        booths: true,
+        hotels: true,
+        eventTickets: { include: { ticket: true } },
+        eventSponsorTypes: { include: { sponsorType: true } },
+      },
+    });
+
+    return NextResponse.json(event);
+  } catch (error) {
+    console.error('[EVENTS_POST]', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+  }
+}
+
+// ✅ UPDATE event
+export async function PUT(req: NextRequest) {
+  try {
+    const body = await req.json();    
+    console.log('Update event body:', body);
+    const {
+      id,
+      name,
+      startDate,
+      endDate,
+      location,
+      thumbnail,
+      eventType,
+      expectedAudience,
+      description,
+      booths = [],         // array of booth IDs
+      hotels = [],         // array of hotel IDs
+      tickets = [],        // array of { id: string, quantity: number }
+      sponsorTypes = [],   // array of { id: string, quantity: number }
+      roomTypes = [],
+    } = body;
+
+    if (!id || !name || !startDate || !endDate || !location) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const updatedEvent = await prisma.event.update({
+      where: { id },
+      data: {
+        name,
+        description: description || null,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        location,
+        thumbnail: thumbnail || "",
+        eventType,
+        expectedAudience: expectedAudience || "",
+
         booths: {
           set: booths.map((id: string) => ({ id })),
         },
         hotels: {
           set: hotels.map((id: string) => ({ id })),
         },
-        tickets: {
-          set: tickets.map((id: string) => ({ id })),
+        eventTickets: {
+          deleteMany: {},
+          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            ticket: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
-        sponsorTypes: {
-          set: sponsorTypes.map((id: string) => ({ id })),
+        eventSponsorTypes: {
+          deleteMany: {},
+          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            sponsorType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
+        eventRoomTypes: {
+  deleteMany: {}, // remove existing
+  create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+    roomType: { connect: { id } },
+    quantity: quantity || 1,
+  })),
+},
       },
       include: {
         booths: true,
         hotels: true,
-        tickets: true,
-        sponsorTypes: true,
-        agendaItems: true,
-        venue: true,
+        eventTickets: { include: { ticket: true } },
+        eventSponsorTypes: { include: { sponsorType: true } },
       },
     });
 
     return NextResponse.json(updatedEvent);
   } catch (error) {
-    console.error("[EVENT_PUT]", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
-  }
-}
-
-
-// ✅ DELETE single event
-export async function DELETE(req: NextRequest) {
-  try {
-    const eventId = extractEventId(req);
-    if (!eventId) {
-      return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
-    }
-
-    await prisma.event.delete({
-      where: { id: eventId },
-    });
-
-    return new NextResponse(null, { status: 204 });
-  } catch (error) {
-    console.error("[EVENT_DELETE]", error);
-    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+    console.error('[EVENTS_PUT]', error);
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

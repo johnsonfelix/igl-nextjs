@@ -38,7 +38,12 @@ export default function BoothsPage() {
     fetchBooths();
   }, []);
 
+
   const handleSubmit = async () => {
+    if (!formData.name || !formData.price || !formData.image) {
+    alert("Please fill out all fields before saving.");
+    return;
+  }
     try {
       if (editingId) {
         await fetch(`/api/admin/booths/${editingId}`, {
@@ -152,7 +157,7 @@ export default function BoothsPage() {
         )}
       </div>
 
-      <Button className="w-full mt-2" onClick={handleSubmit}>
+      <Button variant="primary" onClick={handleSubmit}>
         {editingId ? "Update booth" : "Save booth"}
       </Button>
     </div>

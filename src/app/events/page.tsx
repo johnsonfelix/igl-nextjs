@@ -94,9 +94,9 @@ export default function EventsPage() {
                       </Button>
                     </Link>
                     <Button
-                      variant="destructive"
-                      size="sm"
-                      className="flex-1"
+                      variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:bg-red-50"
                       onClick={() => handleDelete(event.id)}
                       disabled={deletingId === event.id}
                     >

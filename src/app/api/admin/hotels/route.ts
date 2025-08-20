@@ -26,6 +26,8 @@ export async function POST(req: Request) {
         image: body.image,
         address: body.address || null,
         contact: body.contact || null,
+        contactPerson: body.contactPerson || null,
+        email: body.email || null,
       },
     });
     return NextResponse.json(hotel);

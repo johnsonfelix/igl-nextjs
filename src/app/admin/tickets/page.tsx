@@ -39,6 +39,11 @@ export default function TicketsPage() {
   }, []);
 
   const handleSubmit = async () => {
+
+    if (!formData.name || !formData.price || !formData.logo) {
+    alert("Please fill out all fields before saving.");
+    return;
+  }
   try {
     const url = editingId
       ? `/api/admin/tickets/${editingId}`
@@ -164,7 +169,7 @@ export default function TicketsPage() {
         )}
       </div>
 
-      <Button className="w-full mt-2" onClick={handleSubmit}>
+      <Button  variant="primary" onClick={handleSubmit}>
         {editingId ? "Update ticket" : "Save ticket"}
       </Button>
     </div>

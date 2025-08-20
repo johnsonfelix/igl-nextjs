@@ -1,5 +1,3 @@
-// app/api/events/route.ts
-
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -12,8 +10,17 @@ export async function GET() {
       include: {
         booths: true,
         hotels: true,
-        tickets: true,
-        sponsorTypes: true,
+        eventTickets: {
+          include: { ticket: true },
+        },
+        eventSponsorTypes: {
+          include: { sponsorType: true },
+        },
+        eventRoomTypes: {
+          include: { roomType: true },
+        },
+        agendaItems: true,
+        venue: true,
       },
     });
     return NextResponse.json(events);
@@ -36,10 +43,11 @@ export async function POST(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],
-      hotels = [],
-      tickets = [],
-      sponsorTypes = [], // sponsorType IDs
+      booths = [],          // array of booth IDs
+      hotels = [],          // array of hotel IDs
+      tickets = [],         // array of { id: string, quantity: number }
+      sponsorTypes = [],    // array of { id: string, quantity: number }
+      roomTypes = [],       // array of { id: string, quantity: number }
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
@@ -53,27 +61,44 @@ export async function POST(req: NextRequest) {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        thumbnail: thumbnail || null,
+        thumbnail: thumbnail || "",
         eventType,
-        expectedAudience: expectedAudience || null,
+        expectedAudience: expectedAudience || "",
+
+        // Many-to-many relation connect
         booths: {
           connect: booths.map((id: string) => ({ id })),
         },
         hotels: {
           connect: hotels.map((id: string) => ({ id })),
         },
-        tickets: {
-          connect: tickets.map((id: string) => ({ id })),
+
+        // Explicit join model creations with quantities
+        eventTickets: {
+          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            ticket: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
-        sponsorTypes: {
-          connect: sponsorTypes.map((id: string) => ({ id })),
+        eventSponsorTypes: {
+          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            sponsorType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
+        },
+        eventRoomTypes: {
+          create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            roomType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
       },
       include: {
         booths: true,
         hotels: true,
-        tickets: true,
-        sponsorTypes: true,
+        eventTickets: { include: { ticket: true } },
+        eventSponsorTypes: { include: { sponsorType: true } },
+        eventRoomTypes: { include: { roomType: true } },
       },
     });
 
@@ -98,10 +123,11 @@ export async function PUT(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],
-      hotels = [],
-      tickets = [],
-      sponsorTypes = [],
+      booths = [],         // array of booth IDs
+      hotels = [],         // array of hotel IDs
+      tickets = [],        // array of { id: string, quantity: number }
+      sponsorTypes = [],   // array of { id: string, quantity: number }
+      roomTypes = [],      // array of { id: string, quantity: number }
     } = body;
 
     if (!id || !name || !startDate || !endDate || !location) {
@@ -116,27 +142,48 @@ export async function PUT(req: NextRequest) {
         startDate: new Date(startDate),
         endDate: new Date(endDate),
         location,
-        thumbnail: thumbnail || null,
+        thumbnail: thumbnail || "",
         eventType,
-        expectedAudience: expectedAudience || null,
+        expectedAudience: expectedAudience || "",
+
+        // Replace the many-to-many relationships for booths and hotels
         booths: {
           set: booths.map((id: string) => ({ id })),
         },
         hotels: {
           set: hotels.map((id: string) => ({ id })),
         },
-        tickets: {
-          set: tickets.map((id: string) => ({ id })),
+
+        // Replace explicit join models for tickets, sponsorTypes, roomTypes
+        eventTickets: {
+          // Remove old relations and create new ones to replace quantities + links
+          deleteMany: {}, // clear existing
+          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            ticket: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
-        sponsorTypes: {
-          set: sponsorTypes.map((id: string) => ({ id })),
+        eventSponsorTypes: {
+          deleteMany: {},
+          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            sponsorType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
+        },
+        eventRoomTypes: {
+          deleteMany: {},
+          create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+            roomType: { connect: { id } },
+            quantity: quantity || 1,
+          })),
         },
       },
       include: {
         booths: true,
         hotels: true,
-        tickets: true,
-        sponsorTypes: true,
+        eventTickets: { include: { ticket: true } },
+        eventSponsorTypes: { include: { sponsorType: true } },
+        eventRoomTypes: { include: { roomType: true } },
       },
     });
 

@@ -33,16 +33,24 @@ export default function EventFormPage() {
   const [booths, setBooths] = useState<any[]>([]);
   const [hotels, setHotels] = useState<any[]>([]);
   const [tickets, setTickets] = useState<any[]>([]);
+  const [sponsorTypes, setSponsorTypes] = useState<any[]>([]);
+
   const [selectedBoothIds, setSelectedBoothIds] = useState<string[]>([]);
   const [selectedHotelIds, setSelectedHotelIds] = useState<string[]>([]);
   const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
-  const [sponsorTypes, setSponsorTypes] = useState<any[]>([]);
   const [selectedSponsorTypeIds, setSelectedSponsorTypeIds] = useState<string[]>([]);
 
+  // New: Track quantities for tickets and sponsors
+  const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+  const [sponsorQuantities, setSponsorQuantities] = useState<Record<string, number>>({});
 
+  const [selectedRoomTypeIds, setSelectedRoomTypeIds] = useState<string[]>([]);
+  const [roomTypeQuantities, setRoomTypeQuantities] = useState<Record<string, number>>({});
+
+  // Fetch attachments (booths, hotels, tickets, sponsor types)
   const fetchAttachments = async () => {
     try {
-      const [boothRes, hotelRes, ticketRes,sponsorTypeRes] = await Promise.all([
+      const [boothRes, hotelRes, ticketRes, sponsorTypeRes] = await Promise.all([
         fetch("/api/admin/booths"),
         fetch("/api/admin/hotels"),
         fetch("/api/admin/tickets"),
@@ -57,42 +65,69 @@ export default function EventFormPage() {
     }
   };
 
+  // Fetch event data if editing
   const fetchEvent = async () => {
-    try {
-      setFetching(true);
-      const res = await fetch(`/api/events/${eventId}`);
-      if (!res.ok) {
-        console.error(await res.json());
-        return;
-      }
-      const event = await res.json();
-      setFormData({
-        name: event.name,
-        startDate: event.startDate?.split("T")[0] ?? "",
-        endDate: event.endDate?.split("T")[0] ?? "",
-        location: event.location,
-        thumbnail: event.thumbnail ?? "",
-        eventType: event.eventType ?? "New",
-        expectedAudience: event.expectedAudience ?? "",
-        description: event.description ?? "",
-      });
-      setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
-      setSelectedHotelIds(event.hotels?.map((h: any) => h.id) ?? []);
-      setSelectedTicketIds(event.tickets?.map((t: any) => t.id) ?? []);
-      setSelectedSponsorTypeIds(event.sponsorTypes?.map((s: any) => s.id) ?? []);
-
-    } catch (error) {
-      console.error("Failed to fetch event:", error);
-    } finally {
-      setFetching(false);
+  try {
+    setFetching(true);
+    const res = await fetch(`/api/events/${eventId}`);
+    if (!res.ok) {
+      console.error(await res.json());
+      return;
     }
-  };
+    const event = await res.json();
+
+    setFormData({
+      name: event.name,
+      startDate: event.startDate?.split("T")[0] ?? "",
+      endDate: event.endDate?.split("T")[0] ?? "",
+      location: event.location,
+      thumbnail: event.thumbnail ?? "",
+      eventType: event.eventType ?? "New",
+      expectedAudience: event.expectedAudience ?? "",
+      description: event.description ?? "",
+    });
+
+    setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
+    setSelectedHotelIds(event.hotels?.map((h: any) => h.id) ?? []);
+
+    setSelectedTicketIds(event.eventTickets?.map((et: any) => et.ticketId) ?? []);
+    setTicketQuantities(
+      event.eventTickets?.reduce((acc: any, et: any) => {
+        acc[et.ticketId] = et.quantity ?? 1;
+        return acc;
+      }, {}) ?? {}
+    );
+
+    setSelectedSponsorTypeIds(event.eventSponsorTypes?.map((es: any) => es.sponsorTypeId) ?? []);
+    setSponsorQuantities(
+      event.eventSponsorTypes?.reduce((acc: any, es: any) => {
+        acc[es.sponsorTypeId] = es.quantity ?? 1;
+        return acc;
+      }, {}) ?? {}
+    );
+
+    setSelectedRoomTypeIds(event.eventRoomTypes?.map((ert: any) => ert.roomTypeId) ?? []);
+setRoomTypeQuantities(
+  event.eventRoomTypes?.reduce((acc: any, ert: any) => {
+    acc[ert.roomTypeId] = ert.quantity ?? 1;
+    return acc;
+  }, {}) ?? {}
+);
+
+  } catch (error) {
+    console.error("Failed to fetch event:", error);
+  } finally {
+    setFetching(false);
+  }
+};
+
 
   useEffect(() => {
     fetchAttachments();
     if (isEditMode) fetchEvent();
   }, [eventId]);
 
+  // Form submit handler
   const handleSubmit = async () => {
     try {
       setLoading(true);
@@ -100,11 +135,23 @@ export default function EventFormPage() {
         method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          id: eventId,
           ...formData,
           booths: selectedBoothIds,
           hotels: selectedHotelIds,
-          tickets: selectedTicketIds,
-          sponsorTypes: selectedSponsorTypeIds,
+          tickets: selectedTicketIds.map(id => ({
+            id,
+            quantity: ticketQuantities[id] || 1,
+          })),
+          sponsorTypes: selectedSponsorTypeIds.map(id => ({
+            id,
+            quantity: sponsorQuantities[id] || 1,
+          })),
+          roomTypes: selectedRoomTypeIds.map(id => ({
+  id,
+  quantity: roomTypeQuantities[id] || 1,
+})),
+
         }),
       });
 
@@ -154,7 +201,7 @@ export default function EventFormPage() {
                 {field.label}
                 {field.required && <span className="text-red-500">*</span>}
               </Label>
-              <Input 
+              <Input
                 placeholder={field.placeholder}
                 value={formData[field.key as keyof typeof formData]}
                 onChange={(e) =>
@@ -215,16 +262,16 @@ export default function EventFormPage() {
         </div>
 
         <div className="space-y-2">
-  <Label>Event Type</Label>
-  <select
-    value={formData.eventType}
-    onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
-    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50  text-gray-900"
-  >
-    <option value="New">New Event</option>
-    <option value="Hot">Hot Event</option>
-  </select>
-</div>
+          <Label>Event Type</Label>
+          <select
+            value={formData.eventType}
+            onChange={(e) => setFormData({ ...formData, eventType: e.target.value })}
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50  text-gray-900"
+          >
+            <option value="New">New Event</option>
+            <option value="Hot">Hot Event</option>
+          </select>
+        </div>
       </div>
 
       {/* Attachments Section */}
@@ -244,7 +291,7 @@ export default function EventFormPage() {
             <SheetContent side="right" className="w-full sm:w-[500px] bg-white overflow-auto">
               <div className="space-y-6 p-4">
                 <h2 className="text-xl font-semibold text-gray-900">Add Items to Event</h2>
-                
+
                 {/* Booths Section */}
                 <div className="space-y-3">
                   <h3 className="font-medium text-gray-800 flex items-center gap-2">
@@ -286,48 +333,127 @@ export default function EventFormPage() {
                   )}
                 </div>
 
-                {/* Hotels Section */}
-                <div className="space-y-3">
-                  <h3 className="font-medium text-gray-800 flex items-center gap-2">
-                    <ChevronDown className="h-4 w-4" />
-                    Hotels
-                    {selectedHotelIds.length > 0 && (
-                      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
-                        {selectedHotelIds.length} selected
-                      </span>
-                    )}
-                  </h3>
-                  {hotels.length === 0 ? (
-                    <p className="text-sm text-gray-500 p-2">No hotels available.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {hotels.map((hotel) => (
-                        <div key={hotel.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                          <Checkbox
-                            id={`hotel-${hotel.id}`}
-                            checked={selectedHotelIds.includes(hotel.id)}
-                            onCheckedChange={(checked) => {
-                              setSelectedHotelIds((prev) =>
-                                checked
-                                  ? [...prev, hotel.id]
-                                  : prev.filter((id) => id !== hotel.id)
-                              );
-                            }}
-                            className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                          />
-                          <Label htmlFor={`hotel-${hotel.id}`} className="flex-1 cursor-pointer">
-                            <span className="font-medium">{hotel.hotelName}</span>
-                            {hotel.location && (
-                              <p className="text-sm text-gray-500">{hotel.location}</p>
-                            )}
-                          </Label>
-                        </div>
-                      ))}
+               {/* Hotels Section with RoomTypes */}
+<div className="space-y-3">
+  <h3 className="font-medium text-gray-800 flex items-center gap-2">
+    <ChevronDown className="h-4 w-4" />
+    Hotels
+    {selectedHotelIds.length > 0 && (
+      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
+        {selectedHotelIds.length} selected
+      </span>
+    )}
+  </h3>
+
+  {hotels.length === 0 ? (
+    <p className="text-sm text-gray-500 p-2">No hotels available.</p>
+  ) : (
+    <div className="space-y-4">
+      {hotels.map((hotel) => (
+        <div key={hotel.id} className="border rounded p-2">
+          <div className="flex items-center gap-3 hover:bg-gray-50 rounded p-1">
+            <Checkbox
+              id={`hotel-${hotel.id}`}
+              checked={selectedHotelIds.includes(hotel.id)}
+              onCheckedChange={(checked) => {
+                setSelectedHotelIds((prev) =>
+                  checked ? [...prev, hotel.id] : prev.filter((id) => id !== hotel.id)
+                );
+
+                // If hotel was unchecked, also clear selected room types for that hotel
+                if (!checked) {
+                  setSelectedRoomTypeIds((prev) =>
+                    prev.filter((rtId) => {
+                      const rt = hotels.flatMap(h => h.roomTypes).find(r => r.id === rtId);
+                      // keep room types that don't belong to this unchecked hotel
+                      return rt?.hotelId !== hotel.id;
+                    })
+                  );
+                  setRoomTypeQuantities((prev) => {
+                    // Remove quantities for room types of this hotel
+                    const copy = { ...prev };
+                    hotel.roomTypes.forEach((rt:any) => {
+                      delete copy[rt.id];
+                    });
+                    return copy;
+                  });
+                }
+              }}
+              className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            />
+            <Label htmlFor={`hotel-${hotel.id}`} className="flex-1 cursor-pointer">
+              <div className="font-medium">{hotel.hotelName}</div>
+              {hotel.address && <p className="text-sm text-gray-500">{hotel.address}</p>}
+            </Label>
+          </div>
+
+          {/* RoomTypes for this hotel, indented */}
+          <div className="ml-8 mt-2 space-y-2">
+            {hotel.roomTypes.length === 0 ? (
+              <p className="text-sm text-gray-400 italic">No rooms available.</p>
+            ) : (
+              hotel.roomTypes.map((roomType:any) => (
+                <div key={roomType.id} className="flex items-center gap-3">
+                  <Checkbox
+                    id={`roomType-${roomType.id}`}
+                    checked={selectedRoomTypeIds.includes(roomType.id)}
+                    onCheckedChange={(checked) => {
+                      setSelectedRoomTypeIds((prev) =>
+                        checked
+                          ? [...prev, roomType.id]
+                          : prev.filter((id) => id !== roomType.id)
+                      );
+                      // On uncheck, remove quantity from state
+                      if (!checked) {
+                        setRoomTypeQuantities((prev) => {
+                          const copy = { ...prev };
+                          delete copy[roomType.id];
+                          return copy;
+                        });
+                      } else {
+                        // If newly checked, initialize quantity to 1 if not set
+                        setRoomTypeQuantities((prev) => ({
+                          ...prev,
+                          [roomType.id]: prev[roomType.id] || 1,
+                        }));
+                      }
+                    }}
+                    className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                  />
+                  <Label htmlFor={`roomType-${roomType.id}`} className="flex-1 cursor-pointer">
+                    <div className="flex justify-between font-medium">
+                      <span>{roomType.roomType}</span>
+                      <span className="text-primary-600 text-sm font-semibold">${roomType.price}</span>
                     </div>
+                  </Label>
+
+                  {/* Quantity input, only visible if selected */}
+                  {selectedRoomTypeIds.includes(roomType.id) && (
+                    <Input
+                      type="number"
+                      min={1}
+                      value={roomTypeQuantities[roomType.id] || 1}
+                      onChange={(e) =>
+                        setRoomTypeQuantities((prev) => ({
+                          ...prev,
+                          [roomType.id]: Math.max(1, Number(e.target.value)),
+                        }))
+                      }
+                      className="w-20 text-gray-900"
+                    />
                   )}
                 </div>
+              ))
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+</div>
 
-                {/* Tickets Section */}
+
+                {/* Tickets Section with Quantity Input */}
                 <div className="space-y-3">
                   <h3 className="font-medium text-gray-800 flex items-center gap-2">
                     <ChevronDown className="h-4 w-4" />
@@ -353,75 +479,126 @@ export default function EventFormPage() {
                                   ? [...prev, ticket.id]
                                   : prev.filter((id) => id !== ticket.id)
                               );
+
+                              if (!checked) {
+                                setTicketQuantities(prev => {
+                                  const copy = { ...prev };
+                                  delete copy[ticket.id];
+                                  return copy;
+                                });
+                              } else {
+                                setTicketQuantities(prev => ({
+                                  ...prev,
+                                  [ticket.id]: prev[ticket.id] || 1,
+                                }));
+                              }
                             }}
                             className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                           />
                           <Label htmlFor={`ticket-${ticket.id}`} className="flex-1 cursor-pointer">
                             <div className="flex justify-between">
                               <span className="font-medium">{ticket.name}</span>
-                              <span className="text-sm font-medium text-primary-600">
-                                ${ticket.price}
-                              </span>
+                              <span className="text-sm font-medium text-primary-600">${ticket.price}</span>
                             </div>
                             {ticket.description && (
                               <p className="text-sm text-gray-500">{ticket.description}</p>
                             )}
                           </Label>
+                          {/* Quantity Input */}
+                          {selectedTicketIds.includes(ticket.id) && (
+                            <Input
+                              type="number"
+                              min={1}
+                              value={ticketQuantities[ticket.id] || 1}
+                              onChange={(e) =>
+                                setTicketQuantities(prev => ({
+                                  ...prev,
+                                  [ticket.id]: Math.max(1, Number(e.target.value)),
+                                }))
+                              }
+                              className="w-20 text-gray-900"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-
-{/* Sponsor Types Section */}
-<div className="space-y-3">
-  <h3 className="font-medium text-gray-800 flex items-center gap-2">
-    <ChevronDown className="h-4 w-4" />
-    Sponsor Types
-    {selectedSponsorTypeIds.length > 0 && (
-      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
-        {selectedSponsorTypeIds.length} selected
-      </span>
-    )}
-  </h3>
-  {sponsorTypes.length === 0 ? (
-    <p className="text-sm text-gray-500 p-2">No sponsor types available.</p>
-  ) : (
-    <div className="space-y-2">
-      {sponsorTypes.map((sponsorType) => (
-        <div key={sponsorType.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-          <Checkbox
-            id={`sponsorType-${sponsorType.id}`}
-            checked={selectedSponsorTypeIds.includes(sponsorType.id)}
-            onCheckedChange={(checked) => {
-              setSelectedSponsorTypeIds((prev) =>
-                checked
-                  ? [...prev, sponsorType.id]
-                  : prev.filter((id) => id !== sponsorType.id)
-              );
-            }}
-            className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-          />
-          <Label htmlFor={`sponsorType-${sponsorType.id}`} className="flex-1 cursor-pointer">
-            <span className="font-medium">{sponsorType.name}</span>
-            {sponsorType.description && (
-              <p className="text-sm text-gray-500">{sponsorType.description}</p>
-            )}
-          </Label>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
+                {/* Sponsor Types Section with Quantity Input */}
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-800 flex items-center gap-2">
+                    <ChevronDown className="h-4 w-4" />
+                    Sponsor Types
+                    {selectedSponsorTypeIds.length > 0 && (
+                      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
+                        {selectedSponsorTypeIds.length} selected
+                      </span>
+                    )}
+                  </h3>
+                  {sponsorTypes.length === 0 ? (
+                    <p className="text-sm text-gray-500 p-2">No sponsor types available.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {sponsorTypes.map((sponsorType) => (
+                        <div key={sponsorType.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                          <Checkbox
+                            id={`sponsorType-${sponsorType.id}`}
+                            checked={selectedSponsorTypeIds.includes(sponsorType.id)}
+                            onCheckedChange={(checked) => {
+                              setSelectedSponsorTypeIds((prev) =>
+                                checked
+                                  ? [...prev, sponsorType.id]
+                                  : prev.filter((id) => id !== sponsorType.id)
+                              );
+                              if (!checked) {
+                                setSponsorQuantities(prev => {
+                                  const copy = { ...prev };
+                                  delete copy[sponsorType.id];
+                                  return copy;
+                                });
+                              } else {
+                                setSponsorQuantities(prev => ({
+                                  ...prev,
+                                  [sponsorType.id]: prev[sponsorType.id] || 1,
+                                }));
+                              }
+                            }}
+                            className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                          />
+                          <Label htmlFor={`sponsorType-${sponsorType.id}`} className="flex-1 cursor-pointer">
+                            <span className="font-medium">{sponsorType.name}</span>
+                            {sponsorType.description && (
+                              <p className="text-sm text-gray-500">{sponsorType.description}</p>
+                            )}
+                          </Label>
+                          {/* Quantity Input */}
+                          {selectedSponsorTypeIds.includes(sponsorType.id) && (
+                            <Input
+                              type="number"
+                              min={1}
+                              value={sponsorQuantities[sponsorType.id] || 1}
+                              onChange={(e) =>
+                                setSponsorQuantities(prev => ({
+                                  ...prev,
+                                  [sponsorType.id]: Math.max(1, Number(e.target.value)),
+                                }))
+                              }
+                              className="w-20 text-gray-900"
+                            />
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
 
               </div>
             </SheetContent>
           </Sheet>
         </div>
 
-        {selectedBoothIds.length > 0 || selectedHotelIds.length > 0 || selectedTicketIds.length > 0 ? (
+        {(selectedBoothIds.length > 0 || selectedHotelIds.length > 0 || selectedTicketIds.length > 0 || selectedSponsorTypeIds.length > 0) ? (
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="font-medium text-gray-800 mb-2">Selected Items</h3>
             <div className="flex flex-wrap gap-2">
@@ -441,11 +618,10 @@ export default function EventFormPage() {
                 </span>
               )}
               {selectedSponsorTypeIds.length > 0 && (
-  <span className="inline-flex items-center bg-yellow-50 text-yellow-800 text-xs px-3 py-1 rounded-full">
-    {selectedSponsorTypeIds.length} Sponsor Type{selectedSponsorTypeIds.length !== 1 ? 's' : ''}
-  </span>
-)}
-
+                <span className="inline-flex items-center bg-yellow-50 text-yellow-800 text-xs px-3 py-1 rounded-full">
+                  {selectedSponsorTypeIds.length} Sponsor Type{selectedSponsorTypeIds.length !== 1 ? 's' : ''}
+                </span>
+              )}
             </div>
           </div>
         ) : (

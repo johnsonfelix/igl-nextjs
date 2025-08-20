@@ -40,6 +40,10 @@ export default function SponsorsPage() {
   }, []);
 
   const handleSubmit = async () => {
+    if (!formData.name || !formData.description || !formData.price || !formData.image) {
+    alert("Please fill out all fields before saving.");
+    return;
+  }
     try {
       if (editingId) {
         await fetch(`/api/admin/sponsors/${editingId}`, {
@@ -109,6 +113,7 @@ export default function SponsorsPage() {
       <div>
         <Label className="text-gray-800">Name</Label>
         <Input
+          required
           className="text-gray-900 placeholder-gray-400"
           placeholder="Sponsor name"
           value={formData.name}
@@ -121,6 +126,7 @@ export default function SponsorsPage() {
       <div>
         <Label className="text-gray-800">Description</Label>
         <Input
+          required
           className="text-gray-900 placeholder-gray-400"
           placeholder="Platinum, Gold, etc."
           value={formData.description}
@@ -133,6 +139,7 @@ export default function SponsorsPage() {
       <div>
         <Label className="text-gray-800">Price</Label>
         <Input
+          required
           className="text-gray-900 placeholder-gray-400"
           placeholder="Country"
           value={formData.price}
@@ -145,6 +152,7 @@ export default function SponsorsPage() {
       <div>
         <Label className="text-gray-800">Logo URL</Label>
         <Input
+          required
           className="text-gray-900 placeholder-gray-400"
           placeholder="https://example.com/logo.png"
           value={formData.image}
@@ -164,7 +172,7 @@ export default function SponsorsPage() {
         )}
       </div>
 
-      <Button className="w-full mt-2" onClick={handleSubmit}>
+      <Button variant="primary" onClick={handleSubmit}>
         {editingId ? "Update Sponsor" : "Save Sponsor"}
       </Button>
     </div>
@@ -207,7 +215,7 @@ export default function SponsorsPage() {
                 <div className="p-4 space-y-1">
                   <h3 className="font-semibold text-lg truncate">{sponsor.name}</h3>
                   <div className="flex justify-between items-center">
-                    <Badge variant="secondary">{sponsor.price || "Unknown"}</Badge>
+                    <Badge variant="secondary"> ${sponsor.price || "Unknown"}</Badge>
                     {/* <span className="text-sm text-gray-500 truncate">
                       {sponsor.country || "Unknown"}
                     </span> */}

@@ -22,6 +22,8 @@ export default function HotelsPage() {
     hotelName: "",
     address: "",
     contact: "",
+    contactPerson: "",
+    email: "",
     eventId: "",
     image: "",
   });
@@ -52,7 +54,12 @@ export default function HotelsPage() {
     fetchHotels();
   }, []);
 
+
   const handleSubmit = async () => {
+    if (!formData.hotelName || !formData.address || !formData.contact || !formData.image || !formData.contactPerson || !formData.email) {
+    alert("Please fill out all fields before saving.");
+    return;
+  }
     try {
       const url = editingId
         ? `/api/admin/hotels/${editingId}`
@@ -72,6 +79,8 @@ export default function HotelsPage() {
         hotelName: "",
         address: "",
         contact: "",
+        contactPerson: "",
+        email: "",
         eventId: "",
         image: "",
       });
@@ -99,6 +108,8 @@ export default function HotelsPage() {
       address: hotel.address || "",
       contact: hotel.contact || "",
       eventId: hotel.eventId || "",
+      contactPerson: hotel.contactPerson || "",
+      email: hotel.email  || "",
       image: hotel.image || "",
     });
     setEditingId(hotel.id);
@@ -199,6 +210,8 @@ export default function HotelsPage() {
                 { key: "hotelName", label: "Hotel Name" },
                 { key: "address", label: "Address" },
                 { key: "contact", label: "Contact" },
+                { key: "contactPerson", label: "Contact Person" },
+                { key: "email", label: "Email" },
                 { key: "image", label: "Image URL (optional)" },
               ].map(({ key, label }) => (
                 <div key={key}>
@@ -212,7 +225,7 @@ export default function HotelsPage() {
                   />
                 </div>
               ))}
-              <Button onClick={handleSubmit} className="w-full">
+              <Button onClick={handleSubmit} variant="primary">
                 {editingId ? "Update Hotel" : "Save Hotel"}
               </Button>
             </div>
@@ -244,7 +257,9 @@ export default function HotelsPage() {
                 )}
                 <h3 className="font-semibold text-lg">{hotel.hotelName}</h3>
                 <p className="text-sm text-gray-500">{hotel.address || "No address"}</p>
+                <p className="text-sm text-gray-700">{hotel.contactPerson || "No contact"}</p>                
                 <p className="text-sm text-gray-500">{hotel.contact || "No contact"}</p>
+                <p className="text-sm text-gray-500">{hotel.email || "No contact"}</p>
 
                 {/* Room Types */}
                 <div className="pt-2 space-y-2">
@@ -344,7 +359,7 @@ export default function HotelsPage() {
                 />
               </div>
             ))}
-            <Button onClick={handleRoomSubmit} className="w-full">
+            <Button variant="primary" onClick={handleRoomSubmit}>
               {editingRoomId ? "Update Room Type" : "Save Room Type"}
             </Button>
           </div>

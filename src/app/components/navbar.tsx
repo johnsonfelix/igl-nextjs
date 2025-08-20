@@ -1,48 +1,235 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, useRef } from "react";
+import { Menu, X, User } from "lucide-react";
+// Assuming you have a custom Button component, adjust path if needed
 import { Button } from "@/app/components/ui/button";
 
-const navItems = [
-  { name: "Dashboard", href: "/admin/dashboard" },
+// Define a type for your user object for better type safety
+interface User {
+  email?: string;
+  // Add other user properties you expect from /api/me
+  // companyId?: string; // Example
+}
+
+// Hook: Fetch user info from /api/me
+// This hook determines if the user is logged in
+function useUser(): User | null {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Flag to prevent state updates if component unmounts
+    let isMounted = true;
+
+    fetch("/api/me")
+      .then(async (res) => {
+        if (isMounted) {
+          if (res.ok) {
+            setUser(await res.json());
+          } else {
+            // If response is not OK (e.g., 401 Unauthorized), set user to null
+            setUser(null);
+          }
+        }
+      })
+      .catch((error) => {
+        if (isMounted) {
+          console.error("Failed to fetch user data:", error);
+          setUser(null); // Ensure user is null on network/fetch errors
+        }
+      });
+
+    return () => {
+      isMounted = false; // Cleanup: component unmounted
+    };
+  }, []); // Empty dependency array means this runs once on mount
+
+  return user;
+}
+
+// Define the structure for your navigation items
+interface NavItem {
+  name: string;
+  href: string;
+}
+
+const navItems: NavItem[] = [
+  { name: "Dashboard", href: "/dashboard" },
   { name: "Events", href: "/events" },
   { name: "Admin", href: "/admin/sponsors" },
+  // Add other navigation items as needed
+  // { name: "Chat", href: "/company/chat" }, // Example: if you add a direct link to chat
 ];
 
 export default function Navbar() {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false); // State for mobile menu open/close
+  const [accountOpen, setAccountOpen] = useState(false); // State for account dropdown open/close
+  const menuRef = useRef<HTMLDivElement>(null); // Ref for clicking outside the account dropdown
+  const router = useRouter();
+  const user = useUser(); // Get user session data
+
+  // Effect to close the account dropdown when clicking outside of it
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      // Check if the click occurred outside the dropdown, but only if the dropdown is open
+      if (accountOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setAccountOpen(false);
+      }
+    }
+
+    // Attach the event listener to the document when the component mounts or accountOpen changes
+    document.addEventListener("click", handleClickOutside);
+
+    // Cleanup function: remove the event listener when the component unmounts
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [accountOpen]); // Dependency array: re-run effect if accountOpen state changes
+
+  // Handle user logout
+  const handleLogout = async () => {
+    try {
+      // Send a POST request to your logout API endpoint
+      const res = await fetch("/api/logout", { method: "POST" });
+
+      if (res.ok) {
+        // Clear the account dropdown state
+        setAccountOpen(false);
+        // Redirect to the login page after successful logout
+        router.push("/company/login");
+        // Optional: Force a refresh of user data to ensure the UI updates
+        // window.location.reload(); // Use with caution, can be disruptive
+      } else {
+        console.error("Logout failed:", await res.text());
+        // Handle logout error, e.g., show a toast notification
+      }
+    } catch (error) {
+      console.error("Network error during logout:", error);
+      // Handle network errors
+    }
+  };
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+        {/* Logo/Brand Name */}
         <Link href="/admin/dashboard" className="text-xl font-bold text-primary">
           IGLA
         </Link>
 
-        {/* Desktop Menu */}
+        {/* Desktop Navigation Menu */}
         <nav className="hidden md:flex space-x-4">
           {navItems.map((item) => (
             <Link
-  key={item.href}
-  href={item.href}
-  className={`text-sm px-3 py-2 rounded-md transition ${
-    pathname === item.href
-      ? "bg-[#2563EB] text-white"
-      : "text-gray-700 hover:bg-gray-100"
-  }`}
->
-  {item.name}
-</Link>
-
+              key={item.href}
+              href={item.href}
+              className={`text-sm px-3 py-2 rounded-md transition ${
+                pathname === item.href
+                  ? "bg-[#2563EB] text-white" // Active link style
+                  : "text-gray-700 hover:bg-gray-100" // Inactive link style
+              }`}
+            >
+              {item.name}
+            </Link>
           ))}
         </nav>
 
-        {/* Mobile Menu Toggle */}
-        <div className="md:hidden">
+        {/* Account Menu (Desktop) - Visible only if user is logged in */}
+        {user ? ( // Only render account menu if user object exists
+          <div className="relative hidden md:block" ref={menuRef}>
+            <button
+              className="flex items-center px-3 py-2 rounded-md bg-gray-100 hover:bg-gray-200 focus:outline-none"
+              aria-haspopup="true"
+              aria-expanded={accountOpen}
+              onClick={() => setAccountOpen((open) => !open)} // Toggle account dropdown
+            >
+              <User className="h-5 w-5 mr-2" /> {/* User icon */}
+              <span>Account</span> {/* Account text */}
+            </button>
+            {/* Account Dropdown Content - Visible only if accountOpen is true */}
+            {accountOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 border z-50">
+                <Link
+                  href="/account"
+                  className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
+                  onClick={() => setAccountOpen(false)} // Close dropdown on link click
+                >
+                  Account Settings
+                </Link>
+                <Link
+                  href="/admin/store-setup"
+                  className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
+                  onClick={() => setAccountOpen(false)} // Close dropdown on link click
+                >
+                  Store Setup
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleLogout} // Logout handler
+                  className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        ) : (
+          // If user is not logged in, show a login button (optional)
+          <Link href="/company/login">
+            <Button variant="ghost">Login</Button>
+          </Link>
+        )}
+
+        {/* Mobile Menu Toggle & Account (Mobile) */}
+        <div className="md:hidden flex items-center gap-2">
+          {/* Account button (mobile) - Visible only if user is logged in */}
+          {user ? (
+            <div className="relative" ref={menuRef}>
+              <button
+                className="p-2 rounded-full bg-gray-100 focus:outline-none"
+                onClick={() => setAccountOpen((o) => !o)} // Toggle account dropdown
+                aria-label="Open account menu"
+              >
+                <User className="h-5 w-5" />
+              </button>
+              {/* Account Dropdown Content (Mobile) - Visible only if accountOpen is true */}
+              {accountOpen && (
+                <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 border z-50">
+                  <Link
+                    href="/account"
+                    className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    Account Settings
+                  </Link>
+                  <Link
+                    href="/admin/store-setup"
+                    className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
+                    onClick={() => setAccountOpen(false)}
+                  >
+                    Store Setup
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-50 text-red-600"
+                  >
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            // If user is not logged in, show a login button (optional for mobile)
+            <Link href="/company/login">
+              <Button variant="ghost" className="p-2">Login</Button>
+            </Link>
+          )}
+
+          {/* Mobile Nav Menu Toggle */}
           <Button
             variant="ghost"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -53,23 +240,23 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Navigation Menu (expanded) */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t shadow">
           <nav className="flex flex-col space-y-1 p-4">
             {navItems.map((item) => (
               <Link
-  key={item.href}
-  href={item.href}
-  className={`text-sm px-3 py-2 rounded-md transition ${
-    pathname === item.href
-      ? "bg-[#2563EB] text-white"
-      : "text-gray-700 hover:bg-gray-100"
-  }`}
->
-  {item.name}
-</Link>
-
+                key={item.href}
+                href={item.href}
+                className={`text-sm px-3 py-2 rounded-md transition ${
+                  pathname === item.href
+                    ? "bg-[#2563EB] text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+                onClick={() => setMenuOpen(false)} // Close mobile menu on nav item click
+              >
+                {item.name}
+              </Link>
             ))}
           </nav>
         </div>
