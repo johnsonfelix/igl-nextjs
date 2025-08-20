@@ -4,6 +4,9 @@ frontend:
     preBuild:
       commands:
         - npm ci --cache .npm --prefer-offline
+        - echo "--- Checking Build-time Environment Variables ---"
+        - printenv
+        - echo "--- End of Environment Variables ---"
     build:
       commands:
         # Write variables into .env.production with proper names and quotes
