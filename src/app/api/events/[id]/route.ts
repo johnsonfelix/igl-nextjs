@@ -233,42 +233,40 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id?: string } }) {
-  const eventId = params?.id;
-  if (!eventId) {
-    return NextResponse.json({ error: "Event ID is required" }, { status: 400 });
+
+export async function DELETE(_req: Request, ctx: any) {
+  // split: read raw, then validate/normalize
+  const params = ctx?.params
+  const id = typeof params?.id === 'string' ? params.id : undefined
+
+  if (!id) {
+    return NextResponse.json({ error: 'Event ID is required' }, { status: 400 })
   }
 
   try {
-    // ensure event exists and check for purchase orders
     const eventWithOrders = await prisma.event.findUnique({
-      where: { id: eventId },
+      where: { id },
       select: {
         id: true,
-        purchaseOrders: {
-          select: { id: true },
-          take: 1, // just need to know if any exist
-        },
+        purchaseOrders: { select: { id: true }, take: 1 },
       },
-    });
+    })
 
     if (!eventWithOrders) {
-      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 })
     }
 
-    if (eventWithOrders.purchaseOrders && eventWithOrders.purchaseOrders.length > 0) {
+    if (eventWithOrders.purchaseOrders?.length) {
       return NextResponse.json(
-        { error: "Event has purchase orders. Cancel or remove them before deleting the event." },
+        { error: 'Event has purchase orders. Cancel or remove them before deleting the event.' },
         { status: 409 }
-      );
+      )
     }
 
-    // Safe to delete — many child relations use onDelete: Cascade in your schema
-    await prisma.event.delete({ where: { id: eventId } });
-
-    return NextResponse.json({ message: "Event deleted" }, { status: 200 });
+    await prisma.event.delete({ where: { id } })
+    return NextResponse.json({ message: 'Event deleted' }, { status: 200 })
   } catch (err) {
-    console.error("[EVENT_DELETE]", err);
-    return NextResponse.json({ error: "Failed to delete event" }, { status: 500 });
+    console.error('[EVENT_DELETE]', err)
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 })
   }
 }
