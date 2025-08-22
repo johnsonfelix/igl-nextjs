@@ -232,3 +232,43 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: { id?: string } }) {
+  const eventId = params?.id;
+  if (!eventId) {
+    return NextResponse.json({ error: "Event ID is required" }, { status: 400 });
+  }
+
+  try {
+    // ensure event exists and check for purchase orders
+    const eventWithOrders = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        purchaseOrders: {
+          select: { id: true },
+          take: 1, // just need to know if any exist
+        },
+      },
+    });
+
+    if (!eventWithOrders) {
+      return NextResponse.json({ error: "Event not found" }, { status: 404 });
+    }
+
+    if (eventWithOrders.purchaseOrders && eventWithOrders.purchaseOrders.length > 0) {
+      return NextResponse.json(
+        { error: "Event has purchase orders. Cancel or remove them before deleting the event." },
+        { status: 409 }
+      );
+    }
+
+    // Safe to delete — many child relations use onDelete: Cascade in your schema
+    await prisma.event.delete({ where: { id: eventId } });
+
+    return NextResponse.json({ message: "Event deleted" }, { status: 200 });
+  } catch (err) {
+    console.error("[EVENT_DELETE]", err);
+    return NextResponse.json({ error: "Failed to delete event" }, { status: 500 });
+  }
+}
