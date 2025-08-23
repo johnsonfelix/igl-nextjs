@@ -1,0 +1,21 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - npm ci
+        # create .env.production from Amplify environment variables so Next.js SSR lambdas can read them
+        - |
+          printf "POSTGRES_URL=%s\nPOSTGRES_URL_NON_POOLING=%s\nJWT_SECRET=%s\nDATABASE_URL=%s\n" "$POSTGRES_URL" "$POSTGRES_URL_NON_POOLING" "$JWT_SECRET" "$DATABASE_URL" >> .env.production || true
+        - cat .env.production || true
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+      - .next/cache/**/*
