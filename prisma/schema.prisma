@@ -19,6 +19,7 @@ model Company {
   id          String    @id @default(cuid())
   memberId    String    @unique
   memberType  String?
+  purchasedMembership  String?
   sector      String?
   name        String
   website     String?
@@ -27,6 +28,10 @@ model Company {
   about       String?
   memberSince DateTime?
   location    Location?
+  logoUrl     String?
+  isVerified Boolean  @default(false)
+  isActive    Boolean   @default(true)
+  status      CompanyStatus @default(LIVE)
 
   services         Service[]         @relation("CompanyServices")
   partners         Partner[]         @relation("CompanyPartners")
@@ -46,6 +51,12 @@ model Company {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum CompanyStatus {
+  LIVE
+  BLOCKLISTED
+  SUSPENDED
 }
 
 model Service {
@@ -121,6 +132,7 @@ model User {
   password  String
   name      String?
   role      Role      @default(USER)
+  isCompleted Boolean   @default(false)
   companies Company[] @relation("UserCompanies")
 
   createdAt DateTime @default(now())
@@ -422,3 +434,12 @@ model Message {
   @@index([senderId])
 }
 
+model MembershipPlan {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String?   @unique // e.g., 'elite', 'premium'
+  price       Float
+  features    String[] // An array of feature strings
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

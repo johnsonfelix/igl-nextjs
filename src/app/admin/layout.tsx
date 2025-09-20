@@ -11,6 +11,10 @@ const MENU_ITEMS = [
   { name: "Hotels", href: "/admin/hotels", icon: <Hotel className="h-5 w-5" /> },
   { name: "Booths", href: "/admin/booths", icon: <Store className="h-5 w-5" /> },
   { name: "Tickets", href: "/admin/tickets", icon: <Ticket className="h-5 w-5" /> },
+  { name: "Events", href: "/admin/events", icon: <Ticket className="h-5 w-5" /> },
+  { name: "Companies", href: "/admin/company", icon: <Ticket className="h-5 w-5" /> },
+  { name: "Users", href: "/admin/users", icon: <Ticket className="h-5 w-5" /> },
+  { name: "Membership", href: "/admin/membership", icon: <Ticket className="h-5 w-5" /> },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

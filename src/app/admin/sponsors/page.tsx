@@ -214,7 +214,7 @@ export default function SponsorsPage() {
                 )}
                 <div className="p-4 space-y-1">
                   <h3 className="font-semibold text-lg truncate">{sponsor.name}</h3>
-                  <div className="flex justify-between items-center">
+                  <div className="flex justify-between items-center text-white">
                     <Badge variant="secondary"> ${sponsor.price || "Unknown"}</Badge>
                     {/* <span className="text-sm text-gray-500 truncate">
                       {sponsor.country || "Unknown"}

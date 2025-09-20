@@ -56,7 +56,7 @@ export default function EventsPage() {
             <p className="mt-1 text-sm text-slate-400">Futuristic dashboard with neon glass UI</p>
           </div>
 
-          <Link href="/events/create">
+          <Link href="/admin/events/create">
             <Button className="relative overflow-hidden">
               <span className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-40 blur-lg animate-[pulse_4s_infinite] rounded-lg" />
               <span className="relative flex items-center gap-2 z-10">
@@ -107,13 +107,13 @@ export default function EventsPage() {
                       <p className="text-sm text-slate-300 line-clamp-2">{event.description || ''}</p>
 
                       <div className="flex items-center gap-2 pt-4">
-                        <Link href={`/events/${event.id}`}>
+                        <Link href={`/admin/events/${event.id}`}>
                           <Button variant="ghost" size="sm" className="flex-1 justify-center gap-2 border border-white/6 hover:bg-white/4">
                             <Eye size={14} /> View
                           </Button>
                         </Link>
 
-                        <Link href={`/events/create?id=${event.id}`}>
+                        <Link href={`/admin/events/create?id=${event.id}`}>
                           <Button variant="outline" size="sm" className="flex-1 justify-center gap-2 border border-white/6 hover:bg-white/4">
                             <Edit size={14} /> Edit
                           </Button>

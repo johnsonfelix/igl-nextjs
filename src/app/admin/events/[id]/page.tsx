@@ -120,53 +120,49 @@ export default function EventViewPage() {
   };
 
   // convert ISO / Date-like value to "YYYY-MM-DD" for <input type="date">
-function toDateInputValue(value?: string | Date | null) {
-  if (!value) return '';
-  // if already in YYYY-MM-DD, return it
-  if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return String(value);
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return '';
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${day}`;
-}
-
-// convert ISO / Date-like value to "HH:MM" for <input type="time">
-function toTimeInputValue(value?: string | Date | null) {
-  if (!value) return '';
-  // if already in HH:MM or HH:MM:SS -> extract HH:MM
-  if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(String(value))) {
-    const parts = String(value).split(':');
-    return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+  function toDateInputValue(value?: string | Date | null) {
+    if (!value) return '';
+    // if already in YYYY-MM-DD, return it
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(value))) return String(value);
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
   }
-  const d = new Date(value);
-  if (isNaN(d.getTime())) return '';
-  const hh = String(d.getHours()).padStart(2, '0');
-  const mm = String(d.getMinutes()).padStart(2, '0');
-  return `${hh}:${mm}`;
-}
+
+  // convert ISO / Date-like value to "HH:MM" for <input type="time">
+  function toTimeInputValue(value?: string | Date | null) {
+    if (!value) return '';
+    // if already in HH:MM or HH:MM:SS -> extract HH:MM
+    if (/^\d{1,2}:\d{2}(:\d{2})?$/.test(String(value))) {
+      const parts = String(value).split(':');
+      return `${parts[0].padStart(2, '0')}:${parts[1].padStart(2, '0')}`;
+    }
+    const d = new Date(value);
+    if (isNaN(d.getTime())) return '';
+    const hh = String(d.getHours()).padStart(2, '0');
+    const mm = String(d.getMinutes()).padStart(2, '0');
+    return `${hh}:${mm}`;
+  }
 
   // Agenda: open edit
   const openEditAgenda = (item: any) => {
-  setEditingAgenda(item);
+    setEditingAgenda(item);
+    const dateForInput = toDateInputValue(item.date ?? item.startTime ?? item.start);
+    const startForInput = toTimeInputValue(item.startTime ?? item.start ?? null);
+    const endForInput = toTimeInputValue(item.endTime ?? item.end ?? null);
+    setAgendaForm({
+      date: dateForInput,
+      startTime: startForInput,
+      endTime: endForInput,
+      title: item.title || '',
+      description: item.description || '',
+    });
+    setIsAgendaSheetOpen(true);
+  };
 
-  // item.date might be "2025-08-21" OR an ISO datetime string ("2025-08-21T00:00:00.000Z")
-  // item.startTime/endTime are likely ISO datetime strings (or Date objects)
-  const dateForInput = toDateInputValue(item.date ?? item.startTime ?? item.start);
-  const startForInput = toTimeInputValue(item.startTime ?? item.start ?? null);
-  const endForInput = toTimeInputValue(item.endTime ?? item.end ?? null);
-
-  setAgendaForm({
-    date: dateForInput,
-    startTime: startForInput,
-    endTime: endForInput,
-    title: item.title || '',
-    description: item.description || '',
-  });
-
-  setIsAgendaSheetOpen(true);
-};
   // Agenda: save (create or update)
   const handleSaveAgenda = async () => {
     setCreatingAgenda(true);
@@ -176,7 +172,6 @@ function toTimeInputValue(value?: string | Date | null) {
       const url = editingAgenda
         ? `/api/events/${eventId}/agenda/${editingAgenda.id}`
         : `/api/events/${eventId}/agenda`;
-
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -215,9 +210,8 @@ function toTimeInputValue(value?: string | Date | null) {
       </div>
     );
 
-  if (!event) return <div className="py-32 text-center text-gray-500">Event not found</div>;
+  if (!event) return <div className="py-32 text-center text-slate-500">Event not found</div>;
 
-  // Split data
   const {
     name,
     startDate,
@@ -237,16 +231,15 @@ function toTimeInputValue(value?: string | Date | null) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-12">
-
       {/* HERO */}
-      <section className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-tr from-slate-900 via-neutral-900 to-slate-800 text-white">
+      <section className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-tr from-primary to-secondary text-white">
         <div className="relative w-full h-72 sm:h-96">
           {thumbnail ? (
-            <img src={thumbnail} alt={name} className="absolute inset-0 w-full h-full object-cover opacity-80" />
+            <img src={thumbnail} alt={name} className="absolute inset-0 w-full h-full object-cover opacity-30" />
           ) : (
             <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-secondary/30" />
           )}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
 
           <div className="absolute left-6 bottom-6 right-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 z-10">
             <motion.div
@@ -257,25 +250,27 @@ function toTimeInputValue(value?: string | Date | null) {
             >
               <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight drop-shadow-lg">{name}</h1>
               <div className="mt-3 flex flex-wrap gap-3 items-center text-sm font-medium">
-                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
+                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
                   <MapPin size={16} /> {location}
                 </span>
-                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full">
+                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
                   <Calendar size={16} /> {formatDate(startDate)} — {formatDate(endDate)}
                 </span>
-                {eventType && <span className="px-3 py-1 rounded-full bg-yellow-400 text-black font-semibold">{eventType}</span>}
+                {eventType && <span className="px-3 py-1 rounded-full bg-white text-secondary font-semibold">{eventType}</span>}
                 {expectedAudience && (
-                  <span className="inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full"> <User size={14} /> {expectedAudience}</span>
+                  <span className="inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full backdrop-blur-sm">
+                    <User size={14} /> {expectedAudience}
+                  </span>
                 )}
               </div>
               <p className="mt-4 text-lg text-white/90">{description}</p>
             </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex gap-3">
-              <Button className="flex items-center gap-2">
+              <Button className="bg-white text-primary hover:bg-white/90 flex items-center gap-2">
                 <Plus /> Manage
               </Button>
-              <Button variant="ghost" className="flex items-center gap-2">
+              <Button variant="ghost" className="hover:bg-white/10 flex items-center gap-2">
                 Share
               </Button>
             </motion.div>
@@ -285,29 +280,28 @@ function toTimeInputValue(value?: string | Date | null) {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column */}
-        <div className="col-span-2 space-y-6">
-
+        <div className="lg:col-span-2 space-y-6">
           {/* BOOTHS */}
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-2xl p-6 shadow-md">
             <HeaderWithAction
               title="Booth Types"
               buttonLabel="Manage Booths"
-              icon={<Boxes size={18} />}
+              icon={<Boxes size={18} className="text-primary" />}
               onAction={() => setIsBoothSheetOpen(true)}
             />
 
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {booths.length === 0 ? (
-                <div className="col-span-full text-center text-gray-500 italic py-6">No booths linked yet.</div>
+                <div className="col-span-full text-center text-slate-500 italic py-6">No booths linked yet.</div>
               ) : booths.map((booth: any) => (
-                <motion.div key={booth.id} whileHover={{ scale: 1.02 }} className="rounded-2xl overflow-hidden border bg-gradient-to-b from-white to-slate-50 shadow-sm">
+                <motion.div key={booth.id} whileHover={{ y: -4 }} className="rounded-2xl overflow-hidden border bg-gradient-to-b from-white to-slate-50 shadow-sm transition-transform duration-200">
                   <div className="relative h-40 w-full">
                     <img src={booth.image} alt={booth.name} className="object-cover w-full h-full" />
                     <div className="absolute right-3 top-3 bg-white/95 text-primary font-bold px-3 py-1 rounded-lg shadow">${booth.price}</div>
                   </div>
                   <div className="p-4">
-                    <h3 className="font-bold text-lg">{booth.name}</h3>
-                    <p className="text-sm text-gray-600 mt-2 line-clamp-2">{booth.description}</p>
+                    <h3 className="font-bold text-lg text-slate-800">{booth.name}</h3>
+                    <p className="text-sm text-slate-600 mt-2 line-clamp-2">{booth.description}</p>
                     {booth.subTypes && booth.subTypes.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2">
                         {booth.subTypes.map((sub: any) => (
@@ -320,7 +314,6 @@ function toTimeInputValue(value?: string | Date | null) {
               ))}
             </div>
 
-            {/* Booth Sheet */}
             <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
               <SheetContent side="right" className="w-full sm:w-[680px] max-w-[95vw] p-6">
                 <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
@@ -331,7 +324,7 @@ function toTimeInputValue(value?: string | Date | null) {
           {/* AGENDA */}
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-2xl p-6 shadow-md">
             <div className="flex items-center justify-between mb-2">
-              <HeaderWithIcon title="Agenda" icon={<Calendar size={18} />} />
+              <HeaderWithIcon title="Agenda" icon={<Calendar size={18} className="text-primary" />} />
               <div className="flex items-center gap-2">
                 <Button size="sm" onClick={openNewAgenda} className="flex items-center gap-2"><Plus /> Add Agenda</Button>
               </div>
@@ -339,28 +332,27 @@ function toTimeInputValue(value?: string | Date | null) {
 
             <div className="mt-4 space-y-4">
               {agendaItems.length === 0 ? (
-                <div className="text-gray-500 italic">No agenda items yet.</div>
+                <div className="text-slate-500 italic text-center py-4">No agenda items yet.</div>
               ) : agendaItems.map((item: any) => (
-                <div key={item.id} className="flex gap-4 items-start bg-slate-50 rounded-xl p-4">
-                  <div className="flex-none w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center font-bold text-primary text-lg">
+                <div key={item.id} className="flex gap-4 items-start bg-slate-50/70 rounded-xl p-4 border border-slate-100">
+                  <div className="flex-none w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center font-bold text-primary text-lg">
                     {formatDate(item.date).split(' ')[0]}
                   </div>
                   <div className="flex-1">
                     <div className="flex items-baseline justify-between gap-2">
-                      <h4 className="font-semibold text-lg">{item.title}</h4>
-                      <span className="text-xs text-gray-500">{formatTime(item.startTime)} — {formatTime(item.endTime)}</span>
+                      <h4 className="font-semibold text-lg text-slate-800">{item.title}</h4>
+                      <span className="text-xs text-slate-500 font-medium">{formatTime(item.startTime)} — {formatTime(item.endTime)}</span>
                     </div>
-                    <p className="text-gray-700 mt-1">{item.description}</p>
+                    <p className="text-slate-700 mt-1">{item.description}</p>
                     <div className="mt-3 flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => openEditAgenda(item)} className="flex items-center gap-2"><Edit2 size={14} /> Edit</Button>
-                      <Button variant="destructive" size="sm" onClick={() => handleDeleteAgenda(item.id)} className="flex items-center gap-2"><Trash2 size={14} /> Delete</Button>
+                      <Button variant="ghost" size="sm" onClick={() => openEditAgenda(item)} className="flex items-center gap-2 text-slate-600 hover:text-primary"><Edit2 size={14} /> Edit</Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDeleteAgenda(item.id)} className="flex items-center gap-2 text-slate-600 hover:text-red-500"><Trash2 size={14} /> Delete</Button>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* Agenda Sheet */}
             <Sheet open={isAgendaSheetOpen} onOpenChange={setIsAgendaSheetOpen}>
               <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
                 <h2 className="text-xl font-bold mb-4">{editingAgenda ? 'Edit Agenda' : 'Add Agenda'}</h2>
@@ -389,56 +381,52 @@ function toTimeInputValue(value?: string | Date | null) {
                   </div>
                   <div className="flex gap-2">
                     <Button className="flex-1" disabled={creatingAgenda}>{editingAgenda ? 'Update' : 'Create'}</Button>
-                    <Button variant="outline" onClick={() => { setIsAgendaSheetOpen(false); setEditingAgenda(null); }}>Cancel</Button>
+                    <Button variant="outline" type="button" onClick={() => { setIsAgendaSheetOpen(false); setEditingAgenda(null); }}>Cancel</Button>
                   </div>
                 </form>
               </SheetContent>
             </Sheet>
-
           </motion.section>
 
           {/* SPONSORS */}
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }} className="bg-white rounded-2xl p-6 shadow-md">
-            <HeaderWithIcon title="Sponsors" icon={<Star size={18} />} />
+            <HeaderWithIcon title="Sponsors" icon={<Star size={18} className="text-primary" />} />
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {eventSponsorTypes.length === 0 ? (
-                <div className="text-gray-500 italic">No sponsor packages defined.</div>
+                <div className="text-slate-500 italic text-center py-4">No sponsor packages defined.</div>
               ) : eventSponsorTypes.map((es: any) => (
-                <div key={es.sponsorTypeId} className="flex items-start gap-4 bg-slate-50 rounded-lg p-4">
+                <div key={es.sponsorTypeId} className="flex items-start gap-4 bg-slate-50/70 rounded-lg p-4 border border-slate-100">
                   <img src={es.sponsorType.image} alt={es.sponsorType.name} className="h-12 w-12 object-cover rounded-lg border" />
                   <div>
                     <div className="flex items-center gap-3">
-                      <span className="font-semibold">{es.sponsorType.name}</span>
-                      <span className="text-sm text-gray-600">${es.sponsorType.price}</span>
+                      <span className="font-semibold text-slate-800">{es.sponsorType.name}</span>
+                      <span className="text-sm text-primary font-bold">${es.sponsorType.price}</span>
                     </div>
-                    <p className="text-xs text-gray-600 mt-1">{es.sponsorType.description}</p>
-                    <div className="text-xs text-gray-500 mt-2">{es.quantity} slots</div>
+                    <p className="text-xs text-slate-600 mt-1">{es.sponsorType.description}</p>
+                    <div className="text-xs font-medium text-slate-500 mt-2">{es.quantity} slots available</div>
                   </div>
                 </div>
               ))}
             </div>
           </motion.section>
-
         </div>
 
         {/* Right column */}
         <div className="space-y-6">
-
           {/* TICKETS */}
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-2xl p-6 shadow-md">
-            <HeaderWithIcon title="Tickets" icon={<Ticket size={18} />} />
+            <HeaderWithIcon title="Tickets" icon={<Ticket size={18} className="text-primary" />} />
             <div className="mt-4 flex flex-col gap-3">
               {eventTickets.length === 0 ? (
-                <div className="text-gray-500 italic">No tickets defined.</div>
+                <div className="text-slate-500 italic text-center py-4">No tickets defined.</div>
               ) : eventTickets.map((et: any) => (
-                <div key={et.ticketId} className="flex items-center gap-3 p-3 rounded-lg bg-slate-50">
+                <div key={et.ticketId} className="flex items-center gap-4 p-3 rounded-lg bg-slate-50/70 border border-slate-100">
                   <img src={et.ticket.logo} alt={et.ticket.name} className="h-14 w-14 object-cover rounded-lg border" />
                   <div className="flex-1">
-                    <div className="font-semibold">{et.ticket.name}</div>
-                    <div className="text-sm text-gray-700">Price: ${et.ticket.price}</div>
-                    <div className="text-xs text-gray-500">{et.quantity} available</div>
+                    <div className="font-semibold text-slate-800">{et.ticket.name}</div>
+                    <div className="text-sm text-primary font-bold">Price: ${et.ticket.price}</div>
+                    <div className="text-xs text-slate-500 font-medium">{et.quantity} available</div>
                   </div>
-                  {/* <Button variant="outline" size="sm">Sell</Button> */}
                 </div>
               ))}
             </div>
@@ -446,38 +434,35 @@ function toTimeInputValue(value?: string | Date | null) {
 
           {/* HOTELS */}
           <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-2xl p-6 shadow-md">
-            <HeaderWithIcon title="Hotels" icon={<Hotel size={18} />} />
+            <HeaderWithIcon title="Hotels" icon={<Hotel size={18} className="text-primary" />} />
             <div className="mt-4 grid grid-cols-1 gap-4">
               {hotels.length === 0 ? (
-                <div className="text-gray-500 italic">No hotels linked.</div>
+                <div className="text-slate-500 italic text-center py-4">No hotels linked.</div>
               ) : hotels.map((hotel: any) => (
-                <div key={hotel.id} className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
+                <div key={hotel.id} className="flex items-start gap-3 bg-slate-50/70 rounded-xl p-3 border border-slate-100">
                   <img src={hotel.image} alt={hotel.hotelName} className="h-20 w-28 object-cover rounded-lg border" />
                   <div className="flex-1">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-bold">{hotel.hotelName}</div>
-                        <div className="text-xs text-gray-600">{hotel.address}</div>
+                        <div className="font-bold text-slate-800">{hotel.hotelName}</div>
+                        <div className="text-xs text-slate-600">{hotel.address}</div>
                       </div>
-                      {/* <div className="text-sm font-semibold">Book</div> */}
                     </div>
 
                     {hotel.roomTypes && (
-                      <ul className="mt-2 text-xs text-gray-700">
+                      <ul className="mt-2 text-xs text-slate-700">
                         {hotel.roomTypes.map((rt: any) => {
                           const eventRoomType = event.eventRoomTypes?.find((ert: any) => ert.roomTypeId === rt.id);
                           const available = eventRoomType ? eventRoomType.quantity : 0;
-                          const total = rt.availableRooms ?? 'N/A';
                           return (
-                            <li key={rt.id} className="flex justify-between py-1">
-                              <div>{rt.roomType} — ${rt.price}</div>
-                              <div className="text-gray-600">{available} / {total}</div>
+                            <li key={rt.id} className="flex justify-between py-1 border-t border-slate-200/60 first:border-t-0">
+                              <div>{rt.roomType} — <span className="font-semibold text-primary">${rt.price}</span></div>
+                              <div className="text-slate-600 font-medium">{available} available</div>
                             </li>
                           );
                         })}
                       </ul>
                     )}
-
                   </div>
                 </div>
               ))}
@@ -489,30 +474,30 @@ function toTimeInputValue(value?: string | Date | null) {
             <HeaderWithAction
               title="Venue"
               buttonLabel={venue ? 'Edit Venue' : 'Add Venue'}
-              icon={<Landmark size={18} />}
+              icon={<Landmark size={18} className="text-primary" />}
               onAction={() => setIsVenueSheetOpen(true)}
             />
 
             <div className="mt-4">
               {venue ? (
-                <div className="rounded-xl overflow-hidden border">
-                  <div className="grid grid-cols-1 gap-4">
+                <div className="rounded-xl overflow-hidden border border-slate-200">
+                  <div className="grid grid-cols-1 gap-0">
                     <div className="w-full h-36 bg-slate-100">
                       {venue.imageUrls?.[0] && <img src={venue.imageUrls[0]} alt={venue.name} className="w-full h-full object-cover" />}
                     </div>
                     <div className="p-4 bg-white">
-                      <h3 className="text-lg font-bold">{venue.name}</h3>
-                      <p className="text-sm text-gray-700 mt-1">{venue.description}</p>
-                      <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-gray-600">
-                        <div><strong>Closest Airport:</strong> {venue.closestAirport || 'N/A'}</div>
-                        <div><strong>Public Transport:</strong> {venue.publicTransport || 'N/A'}</div>
-                        <div><strong>Nearby Places:</strong> {venue.nearbyPlaces || 'N/A'}</div>
+                      <h3 className="text-lg font-bold text-slate-800">{venue.name}</h3>
+                      <p className="text-sm text-slate-700 mt-1">{venue.description}</p>
+                      <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-600">
+                        <div className="flex items-center gap-2"><strong>Airport:</strong> {venue.closestAirport || 'N/A'}</div>
+                        <div className="flex items-center gap-2"><strong>Transport:</strong> {venue.publicTransport || 'N/A'}</div>
+                        <div className="flex items-center gap-2"><strong>Nearby:</strong> {venue.nearbyPlaces || 'N/A'}</div>
                       </div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="text-gray-500 italic">No venue linked.</div>
+                <div className="text-slate-500 italic text-center py-4">No venue linked.</div>
               )}
             </div>
 
@@ -531,37 +516,36 @@ function toTimeInputValue(value?: string | Date | null) {
                     <div key={field.name}>
                       <Label>{field.label}</Label>
                       {field.textarea ? (
-                        <Textarea className="text-gray-900" value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
+                        <Textarea value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
                       ) : (
-                        <Input className="text-gray-900" value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
+                        <Input value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
                       )}
                     </div>
                   ))}
                   <Button disabled={savingVenue} className="w-full">
+                    {savingVenue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
                     {venue ? 'Update Venue' : 'Add Venue'}
-                    {savingVenue && <Loader2 className="animate-spin ml-2 h-4 w-4" />}
                   </Button>
                 </form>
               </SheetContent>
             </Sheet>
           </motion.section>
-
         </div>
       </div>
-
     </div>
   );
 }
 
-// HEADER helpers — use for consistent styling
+// HEADER helpers
 function HeaderWithAction({ title, buttonLabel, icon, onAction }: any) {
   return (
     <div className="flex justify-between items-center mb-2">
-      <div className="flex items-center gap-3 text-lg font-bold">{icon}<span>{title}</span></div>
+      <div className="flex items-center gap-3 text-xl font-bold text-slate-800">{icon}<span>{title}</span></div>
       <Button variant="outline" size="sm" className="gap-2" onClick={onAction}>{buttonLabel}</Button>
     </div>
   );
 }
+
 function HeaderWithIcon({ title, icon }: any) {
-  return <h2 className="flex items-center gap-3 text-lg font-bold mb-2">{icon}<span>{title}</span></h2>;
+  return <h2 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-2">{icon}<span>{title}</span></h2>;
 }

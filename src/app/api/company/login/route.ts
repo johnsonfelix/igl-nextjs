@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const nextResponse = NextResponse.json({
     success: true,
     userId: user.id,
-    companyId, // here!
+    company: companyId, // here!
   });
   nextResponse.cookies.set('userId', user.id, {
     httpOnly: true,

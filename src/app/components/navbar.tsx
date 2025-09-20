@@ -18,6 +18,7 @@ interface User {
 // This hook determines if the user is logged in
 function useUser(): User | null {
   const [user, setUser] = useState<User | null>(null);
+  const pathname = usePathname(); // Get the current path
 
   useEffect(() => {
     // Flag to prevent state updates if component unmounts
@@ -44,7 +45,7 @@ function useUser(): User | null {
     return () => {
       isMounted = false; // Cleanup: component unmounted
     };
-  }, []); // Empty dependency array means this runs once on mount
+  }, [pathname]); // FIX: Re-run effect when the pathname changes
 
   return user;
 }
@@ -57,7 +58,13 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { name: "Dashboard", href: "/dashboard" },
-  { name: "Events", href: "/events" },
+  // { name: "Events", href: "/events" },
+  { name: "Membership", href: "/membership" },
+  { name: "Event", href: "/event/list" },
+  { name: "Company Directory", href: "/directory " },
+  { name: "Inquiry", href: "/inquiry " },
+  { name: "Risk Protection", href: "/risk" },
+  { name: "About Us", href: "/about" },
   { name: "Admin", href: "/admin/sponsors" },
   // Add other navigation items as needed
   // { name: "Chat", href: "/company/chat" }, // Example: if you add a direct link to chat
@@ -75,7 +82,11 @@ export default function Navbar() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       // Check if the click occurred outside the dropdown, but only if the dropdown is open
-      if (accountOpen && menuRef.current && !menuRef.current.contains(event.target as Node)) {
+      if (
+        accountOpen &&
+        menuRef.current &&
+        !menuRef.current.contains(event.target as Node)
+      ) {
         setAccountOpen(false);
       }
     }
@@ -100,8 +111,8 @@ export default function Navbar() {
         setAccountOpen(false);
         // Redirect to the login page after successful logout
         router.push("/company/login");
-        // Optional: Force a refresh of user data to ensure the UI updates
-        // window.location.reload(); // Use with caution, can be disruptive
+        // After redirection, the `useUser` hook will re-run due to the pathname change,
+        // correctly updating the state to `null`.
       } else {
         console.error("Logout failed:", await res.text());
         // Handle logout error, e.g., show a toast notification
@@ -116,7 +127,10 @@ export default function Navbar() {
     <header className="bg-white border-b shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
         {/* Logo/Brand Name */}
-        <Link href="/admin/dashboard" className="text-xl font-bold text-primary">
+        <Link
+          href="/admin/dashboard"
+          className="text-xl font-bold text-primary"
+        >
           IGLA
         </Link>
 
@@ -159,13 +173,13 @@ export default function Navbar() {
                 >
                   Account Settings
                 </Link>
-                <Link
+                {/* <Link
                   href="/admin/store-setup"
                   className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
                   onClick={() => setAccountOpen(false)} // Close dropdown on link click
                 >
                   Store Setup
-                </Link>
+                </Link> */}
                 <button
                   type="button"
                   onClick={handleLogout} // Logout handler
@@ -177,10 +191,12 @@ export default function Navbar() {
             )}
           </div>
         ) : (
-          // If user is not logged in, show a login button (optional)
-          <Link href="/company/login">
-            <Button variant="ghost">Login</Button>
-          </Link>
+          // If user is not logged in, show a login button
+          <div className="hidden md:block">
+            <Link href="/company/login">
+              <Button variant="ghost">Login</Button>
+            </Link>
+          </div>
         )}
 
         {/* Mobile Menu Toggle & Account (Mobile) */}
@@ -205,13 +221,13 @@ export default function Navbar() {
                   >
                     Account Settings
                   </Link>
-                  <Link
+                  {/* <Link
                     href="/admin/store-setup"
                     className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
                     onClick={() => setAccountOpen(false)}
                   >
                     Store Setup
-                  </Link>
+                  </Link> */}
                   <button
                     type="button"
                     onClick={handleLogout}
@@ -225,7 +241,9 @@ export default function Navbar() {
           ) : (
             // If user is not logged in, show a login button (optional for mobile)
             <Link href="/company/login">
-              <Button variant="ghost" className="p-2">Login</Button>
+              <Button variant="ghost" className="p-2">
+                Login
+              </Button>
             </Link>
           )}
 
@@ -235,7 +253,11 @@ export default function Navbar() {
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle Menu"
           >
-            {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            {menuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </Button>
         </div>
       </div>

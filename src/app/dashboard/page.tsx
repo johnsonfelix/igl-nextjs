@@ -1,36 +1,63 @@
 // app/dashboard/page.tsx
-'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation"; // Good practice for redirection
+import prisma from "@/app/lib/prisma";
+import CompleteProfileButton from "@/app/components/CompleteProfileButton";
 
-export default function Dashboard() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<string | null>(null);
+export default async function DashboardPage() {
+  // --- THIS IS THE FIX ---
+  // Await the cookies() function to get the actual cookie store
+  const cookieStore = await cookies();
+  // --- END OF FIX ---
+  
+  const userId = cookieStore.get('userId')?.value;
 
-  useEffect(() => {
-    async function checkUser() {
-      const res = await fetch('/api/me'); // An optional API to get user session
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data.userId);
-      } else {
-        router.push('/login'); // Redirect guest to login
-      }
-      setLoading(false);
-    }
+  if (!userId) {
+    // If no userId cookie, redirect to the login page
+    redirect('/login');
+  }
 
-    checkUser();
-  }, []);
+  // Fetch the full user model from the database using the userId
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
 
-  if (loading) return <p className="p-8">Loading...</p>;
-  if (!user) return null;
+  if (!user) {
+    // This handles if the cookie is invalid or the user was deleted
+    // You could also clear the cookie here before redirecting
+    return <div>Error: User not found. Please try logging in again.</div>;
+  }
+
+  // Find the primary company associated with this user
+  const company = await prisma.company.findFirst({
+    where: { userId: user.id },
+  });
+
+  if (!company) {
+    return <div>Error: Associated company data could not be loaded.</div>;
+  }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Welcome to Dashboard</h1>
-      <p className="mt-2 text-sm text-gray-500">User ID: {user}</p>
-    </div>
+    <main className="p-8">
+      <h1 className="text-3xl font-bold">Dashboard</h1>
+      <p className="mt-2 text-lg">Welcome back!</p>
+      
+      {/* Conditionally render based on the 'isCompleted' flag */}
+      {!user.isCompleted && (
+        <div className="mt-6 p-4 border-l-4 border-blue-500 bg-blue-50">
+          <div className="ml-3">
+            <p className="text-md font-semibold text-blue-800">
+              Your profile is almost ready!
+            </p>
+            <div className="mt-4">
+              <CompleteProfileButton companyId={company.id} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ... Rest of your dashboard content ... */}
+    </main>
   );
 }
