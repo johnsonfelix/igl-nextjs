@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     POSTGRES_URL: !!process.env.POSTGRES_URL,
     POSTGRES_URLva: process.env.DATABASE_URL || 'Not Set', // Use for debugging only
     POSTGRES_URL_NON_POOLING: !!process.env.POSTGRES_URL_NON_POOLING,
-    POSTGRES_URL_NON_POOLINGva: process.env.DATABASE_URL || 'Not Set' // Use for debugging only
+    POSTGRES_URL_NON_POOLINGva: process.env.DATABASE_URL || 'Not Set' ,// Use for debugging only
+    JWT_SECRET: process.env.JWT_SECRETL || 'Not Set' // Use for debugging only
   });
 }
