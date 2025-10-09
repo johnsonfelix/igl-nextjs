@@ -64,6 +64,13 @@ export async function GET(req: NextRequest) {
               },
         agendaItems: true,
         venue: true,
+        purchaseOrders: {
+  include: {
+    items: true,
+    company: true,
+  },
+},
+      
       },
     });
 

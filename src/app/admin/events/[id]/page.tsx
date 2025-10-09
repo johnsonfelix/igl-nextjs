@@ -2,7 +2,20 @@
 
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
-import { Loader2, Plus, User, MapPin, Calendar, Ticket, Hotel, Boxes, Landmark, Star, Edit2, Trash2 } from 'lucide-react';
+import {
+  Loader2,
+  Plus,
+  User,
+  MapPin,
+  Calendar,
+  Ticket,
+  Hotel,
+  Boxes,
+  Landmark,
+  Star,
+  Edit2,
+  Trash2,
+} from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { Button } from '@/app/components/ui/button';
@@ -14,7 +27,13 @@ import BoothSubTypeManager from '@/app/components/BoothSubTypeManager';
 
 // Helpers
 const formatDate = (date?: string) =>
-  date ? new Date(date).toLocaleDateString('en-GB', { year: 'numeric', month: 'short', day: 'numeric' }) : '';
+  date
+    ? new Date(date).toLocaleDateString('en-GB', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+      })
+    : '';
 const formatTime = (date?: string) =>
   date ? new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
@@ -36,6 +55,7 @@ export default function EventViewPage() {
   const [venueForm, setVenueForm] = useState({
     name: '',
     description: '',
+    location: '', // <-- ADDED
     imageUrls: '',
     closestAirport: '',
     publicTransport: '',
@@ -73,6 +93,7 @@ export default function EventViewPage() {
       setVenueForm({
         name: event.venue.name || '',
         description: event.venue.description || '',
+        location: event.venue.location || '', // <-- ADDED
         imageUrls: (event.venue.imageUrls ?? []).join(', '),
         closestAirport: event.venue.closestAirport || '',
         publicTransport: event.venue.publicTransport || '',
@@ -282,7 +303,12 @@ export default function EventViewPage() {
         {/* Left column */}
         <div className="lg:col-span-2 space-y-6">
           {/* BOOTHS */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <HeaderWithAction
               title="Booth Types"
               buttonLabel="Manage Booths"
@@ -293,25 +319,38 @@ export default function EventViewPage() {
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {booths.length === 0 ? (
                 <div className="col-span-full text-center text-slate-500 italic py-6">No booths linked yet.</div>
-              ) : booths.map((booth: any) => (
-                <motion.div key={booth.id} whileHover={{ y: -4 }} className="rounded-2xl overflow-hidden border bg-gradient-to-b from-white to-slate-50 shadow-sm transition-transform duration-200">
-                  <div className="relative h-40 w-full">
-                    <img src={booth.image} alt={booth.name} className="object-cover w-full h-full" />
-                    <div className="absolute right-3 top-3 bg-white/95 text-primary font-bold px-3 py-1 rounded-lg shadow">${booth.price}</div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-slate-800">{booth.name}</h3>
-                    <p className="text-sm text-slate-600 mt-2 line-clamp-2">{booth.description}</p>
-                    {booth.subTypes && booth.subTypes.length > 0 && (
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        {booth.subTypes.map((sub: any) => (
-                          <span key={sub.id} className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">{sub.name} — ${sub.price}</span>
-                        ))}
+              ) : (
+                booths.map((booth: any) => (
+                  <motion.div
+                    key={booth.id}
+                    whileHover={{ y: -4 }}
+                    className="rounded-2xl overflow-hidden border bg-gradient-to-b from-white to-slate-50 shadow-sm transition-transform duration-200"
+                  >
+                    <div className="relative h-40 w-full">
+                      <img src={booth.image} alt={booth.name} className="object-cover w-full h-full" />
+                      <div className="absolute right-3 top-3 bg-white/95 text-primary font-bold px-3 py-1 rounded-lg shadow">
+                        ${booth.price}
                       </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-bold text-lg text-slate-800">{booth.name}</h3>
+                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{booth.description}</p>
+                      {booth.subTypes && booth.subTypes.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {booth.subTypes.map((sub: any) => (
+                            <span
+                              key={sub.id}
+                              className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
+                            >
+                              {sub.name} — ${sub.price}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))
+              )}
             </div>
 
             <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
@@ -322,66 +361,126 @@ export default function EventViewPage() {
           </motion.section>
 
           {/* AGENDA */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <div className="flex items-center justify-between mb-2">
               <HeaderWithIcon title="Agenda" icon={<Calendar size={18} className="text-primary" />} />
               <div className="flex items-center gap-2">
-                <Button size="sm" onClick={openNewAgenda} className="flex items-center gap-2"><Plus /> Add Agenda</Button>
+                <Button size="sm" onClick={openNewAgenda} className="flex items-center gap-2">
+                  <Plus /> Add Agenda
+                </Button>
               </div>
             </div>
 
             <div className="mt-4 space-y-4">
               {agendaItems.length === 0 ? (
                 <div className="text-slate-500 italic text-center py-4">No agenda items yet.</div>
-              ) : agendaItems.map((item: any) => (
-                <div key={item.id} className="flex gap-4 items-start bg-slate-50/70 rounded-xl p-4 border border-slate-100">
-                  <div className="flex-none w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center font-bold text-primary text-lg">
-                    {formatDate(item.date).split(' ')[0]}
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <h4 className="font-semibold text-lg text-slate-800">{item.title}</h4>
-                      <span className="text-xs text-slate-500 font-medium">{formatTime(item.startTime)} — {formatTime(item.endTime)}</span>
+              ) : (
+                agendaItems.map((item: any) => (
+                  <div key={item.id} className="flex gap-4 items-start bg-slate-50/70 rounded-xl p-4 border border-slate-100">
+                    <div className="flex-none w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center font-bold text-primary text-lg">
+                      {formatDate(item.date).split(' ')[0]}
                     </div>
-                    <p className="text-slate-700 mt-1">{item.description}</p>
-                    <div className="mt-3 flex gap-2">
-                      <Button variant="ghost" size="sm" onClick={() => openEditAgenda(item)} className="flex items-center gap-2 text-slate-600 hover:text-primary"><Edit2 size={14} /> Edit</Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDeleteAgenda(item.id)} className="flex items-center gap-2 text-slate-600 hover:text-red-500"><Trash2 size={14} /> Delete</Button>
+                    <div className="flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <h4 className="font-semibold text-lg text-slate-800">{item.title}</h4>
+                        <span className="text-xs text-slate-500 font-medium">
+                          {formatTime(item.startTime)} — {formatTime(item.endTime)}
+                        </span>
+                      </div>
+                      <p className="text-slate-700 mt-1">{item.description}</p>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => openEditAgenda(item)}
+                          className="flex items-center gap-2 text-slate-600 hover:text-primary"
+                        >
+                          <Edit2 size={14} /> Edit
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteAgenda(item.id)}
+                          className="flex items-center gap-2 text-slate-600 hover:text-red-500"
+                        >
+                          <Trash2 size={14} /> Delete
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
 
             <Sheet open={isAgendaSheetOpen} onOpenChange={setIsAgendaSheetOpen}>
               <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
                 <h2 className="text-xl font-bold mb-4">{editingAgenda ? 'Edit Agenda' : 'Add Agenda'}</h2>
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSaveAgenda(); }}>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveAgenda();
+                  }}
+                >
                   <div>
                     <Label>Date</Label>
-                    <Input type="date" value={agendaForm.date} onChange={(e) => setAgendaForm({ ...agendaForm, date: e.target.value })} />
+                    <Input
+                      type="date"
+                      value={agendaForm.date}
+                      onChange={(e) => setAgendaForm({ ...agendaForm, date: e.target.value })}
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
                       <Label>Start Time</Label>
-                      <Input type="time" value={agendaForm.startTime} onChange={(e) => setAgendaForm({ ...agendaForm, startTime: e.target.value })} />
+                      <Input
+                        type="time"
+                        value={agendaForm.startTime}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, startTime: e.target.value })}
+                      />
                     </div>
                     <div>
                       <Label>End Time</Label>
-                      <Input type="time" value={agendaForm.endTime} onChange={(e) => setAgendaForm({ ...agendaForm, endTime: e.target.value })} />
+                      <Input
+                        type="time"
+                        value={agendaForm.endTime}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, endTime: e.target.value })}
+                      />
                     </div>
                   </div>
                   <div>
                     <Label>Title</Label>
-                    <Input value={agendaForm.title} onChange={(e) => setAgendaForm({ ...agendaForm, title: e.target.value })} />
+                    <Input
+                      value={agendaForm.title}
+                      onChange={(e) => setAgendaForm({ ...agendaForm, title: e.target.value })}
+                    />
                   </div>
                   <div>
                     <Label>Description</Label>
-                    <Textarea value={agendaForm.description} onChange={(e) => setAgendaForm({ ...agendaForm, description: e.target.value })} />
+                    <Textarea
+                      value={agendaForm.description}
+                      onChange={(e) => setAgendaForm({ ...agendaForm, description: e.target.value })}
+                    />
                   </div>
                   <div className="flex gap-2">
-                    <Button className="flex-1" disabled={creatingAgenda}>{editingAgenda ? 'Update' : 'Create'}</Button>
-                    <Button variant="outline" type="button" onClick={() => { setIsAgendaSheetOpen(false); setEditingAgenda(null); }}>Cancel</Button>
+                    <Button className="flex-1" disabled={creatingAgenda}>
+                      {editingAgenda ? 'Update' : 'Create'}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      onClick={() => {
+                        setIsAgendaSheetOpen(false);
+                        setEditingAgenda(null);
+                      }}
+                    >
+                      Cancel
+                    </Button>
                   </div>
                 </form>
               </SheetContent>
@@ -389,24 +488,38 @@ export default function EventViewPage() {
           </motion.section>
 
           {/* SPONSORS */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.11 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <HeaderWithIcon title="Sponsors" icon={<Star size={18} className="text-primary" />} />
             <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {eventSponsorTypes.length === 0 ? (
                 <div className="text-slate-500 italic text-center py-4">No sponsor packages defined.</div>
-              ) : eventSponsorTypes.map((es: any) => (
-                <div key={es.sponsorTypeId} className="flex items-start gap-4 bg-slate-50/70 rounded-lg p-4 border border-slate-100">
-                  <img src={es.sponsorType.image} alt={es.sponsorType.name} className="h-12 w-12 object-cover rounded-lg border" />
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-slate-800">{es.sponsorType.name}</span>
-                      <span className="text-sm text-primary font-bold">${es.sponsorType.price}</span>
+              ) : (
+                eventSponsorTypes.map((es: any) => (
+                  <div
+                    key={es.sponsorTypeId}
+                    className="flex items-start gap-4 bg-slate-50/70 rounded-lg p-4 border border-slate-100"
+                  >
+                    <img
+                      src={es.sponsorType.image}
+                      alt={es.sponsorType.name}
+                      className="h-12 w-12 object-cover rounded-lg border"
+                    />
+                    <div>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-slate-800">{es.sponsorType.name}</span>
+                        <span className="text-sm text-primary font-bold">${es.sponsorType.price}</span>
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1">{es.sponsorType.description}</p>
+                      <div className="text-xs font-medium text-slate-500 mt-2">{es.quantity} slots available</div>
                     </div>
-                    <p className="text-xs text-slate-600 mt-1">{es.sponsorType.description}</p>
-                    <div className="text-xs font-medium text-slate-500 mt-2">{es.quantity} slots available</div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </motion.section>
         </div>
@@ -414,63 +527,97 @@ export default function EventViewPage() {
         {/* Right column */}
         <div className="space-y-6">
           {/* TICKETS */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <HeaderWithIcon title="Tickets" icon={<Ticket size={18} className="text-primary" />} />
             <div className="mt-4 flex flex-col gap-3">
               {eventTickets.length === 0 ? (
                 <div className="text-slate-500 italic text-center py-4">No tickets defined.</div>
-              ) : eventTickets.map((et: any) => (
-                <div key={et.ticketId} className="flex items-center gap-4 p-3 rounded-lg bg-slate-50/70 border border-slate-100">
-                  <img src={et.ticket.logo} alt={et.ticket.name} className="h-14 w-14 object-cover rounded-lg border" />
-                  <div className="flex-1">
-                    <div className="font-semibold text-slate-800">{et.ticket.name}</div>
-                    <div className="text-sm text-primary font-bold">Price: ${et.ticket.price}</div>
-                    <div className="text-xs text-slate-500 font-medium">{et.quantity} available</div>
+              ) : (
+                eventTickets.map((et: any) => (
+                  <div
+                    key={et.ticketId}
+                    className="flex items-center gap-4 p-3 rounded-lg bg-slate-50/70 border border-slate-100"
+                  >
+                    <img src={et.ticket.logo} alt={et.ticket.name} className="h-14 w-14 object-cover rounded-lg border" />
+                    <div className="flex-1">
+                      <div className="font-semibold text-slate-800">{et.ticket.name}</div>
+                      <div className="text-sm text-primary font-bold">Price: ${et.ticket.price}</div>
+                      <div className="text-xs text-slate-500 font-medium">{et.quantity} available</div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </motion.section>
 
           {/* HOTELS */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.08 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <HeaderWithIcon title="Hotels" icon={<Hotel size={18} className="text-primary" />} />
             <div className="mt-4 grid grid-cols-1 gap-4">
               {hotels.length === 0 ? (
                 <div className="text-slate-500 italic text-center py-4">No hotels linked.</div>
-              ) : hotels.map((hotel: any) => (
-                <div key={hotel.id} className="flex items-start gap-3 bg-slate-50/70 rounded-xl p-3 border border-slate-100">
-                  <img src={hotel.image} alt={hotel.hotelName} className="h-20 w-28 object-cover rounded-lg border" />
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-bold text-slate-800">{hotel.hotelName}</div>
-                        <div className="text-xs text-slate-600">{hotel.address}</div>
+              ) : (
+                hotels.map((hotel: any) => (
+                  <div
+                    key={hotel.id}
+                    className="flex items-start gap-3 bg-slate-50/70 rounded-xl p-3 border border-slate-100"
+                  >
+                    <img
+                      src={hotel.image}
+                      alt={hotel.hotelName}
+                      className="h-20 w-28 object-cover rounded-lg border"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-bold text-slate-800">{hotel.hotelName}</div>
+                          <div className="text-xs text-slate-600">{hotel.address}</div>
+                        </div>
                       </div>
-                    </div>
 
-                    {hotel.roomTypes && (
-                      <ul className="mt-2 text-xs text-slate-700">
-                        {hotel.roomTypes.map((rt: any) => {
-                          const eventRoomType = event.eventRoomTypes?.find((ert: any) => ert.roomTypeId === rt.id);
-                          const available = eventRoomType ? eventRoomType.quantity : 0;
-                          return (
-                            <li key={rt.id} className="flex justify-between py-1 border-t border-slate-200/60 first:border-t-0">
-                              <div>{rt.roomType} — <span className="font-semibold text-primary">${rt.price}</span></div>
-                              <div className="text-slate-600 font-medium">{available} available</div>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    )}
+                      {hotel.roomTypes && (
+                        <ul className="mt-2 text-xs text-slate-700">
+                          {hotel.roomTypes.map((rt: any) => {
+                            const eventRoomType = event.eventRoomTypes?.find((ert: any) => ert.roomTypeId === rt.id);
+                            const available = eventRoomType ? eventRoomType.quantity : 0;
+                            return (
+                              <li
+                                key={rt.id}
+                                className="flex justify-between py-1 border-t border-slate-200/60 first:border-t-0"
+                              >
+                                <div>
+                                  {rt.roomType} — <span className="font-semibold text-primary">${rt.price}</span>
+                                </div>
+                                <div className="text-slate-600 font-medium">{available} available</div>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </motion.section>
 
           {/* VENUE */}
-          <motion.section initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.11 }} className="bg-white rounded-2xl p-6 shadow-md">
+          <motion.section
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.11 }}
+            className="bg-white rounded-2xl p-6 shadow-md"
+          >
             <HeaderWithAction
               title="Venue"
               buttonLabel={venue ? 'Edit Venue' : 'Add Venue'}
@@ -483,15 +630,29 @@ export default function EventViewPage() {
                 <div className="rounded-xl overflow-hidden border border-slate-200">
                   <div className="grid grid-cols-1 gap-0">
                     <div className="w-full h-36 bg-slate-100">
-                      {venue.imageUrls?.[0] && <img src={venue.imageUrls[0]} alt={venue.name} className="w-full h-full object-cover" />}
+                      {venue.imageUrls?.[0] && (
+                        <img src={venue.imageUrls[0]} alt={venue.name} className="w-full h-full object-cover" />
+                      )}
                     </div>
                     <div className="p-4 bg-white">
                       <h3 className="text-lg font-bold text-slate-800">{venue.name}</h3>
-                      <p className="text-sm text-slate-700 mt-1">{venue.description}</p>
+                      {/* --- VENUE LOCATION DISPLAY --- */}
+                      {venue.location && (
+                        <p className="text-sm font-semibold text-primary mt-1 flex items-center gap-1.5">
+                          <MapPin size={14} /> {venue.location}
+                        </p>
+                      )}
+                      <p className="text-sm text-slate-700 mt-2">{venue.description}</p>
                       <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-600">
-                        <div className="flex items-center gap-2"><strong>Airport:</strong> {venue.closestAirport || 'N/A'}</div>
-                        <div className="flex items-center gap-2"><strong>Transport:</strong> {venue.publicTransport || 'N/A'}</div>
-                        <div className="flex items-center gap-2"><strong>Nearby:</strong> {venue.nearbyPlaces || 'N/A'}</div>
+                        <div className="flex items-center gap-2">
+                          <strong>Airport:</strong> {venue.closestAirport || 'N/A'}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <strong>Transport:</strong> {venue.publicTransport || 'N/A'}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <strong>Nearby:</strong> {venue.nearbyPlaces || 'N/A'}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -504,9 +665,16 @@ export default function EventViewPage() {
             <Sheet open={isVenueSheetOpen} onOpenChange={setIsVenueSheetOpen}>
               <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
                 <h2 className="text-xl font-bold mb-4">{venue ? 'Edit Venue' : 'Add Venue'}</h2>
-                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); handleSaveVenue(); }}>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveVenue();
+                  }}
+                >
                   {[
                     { label: 'Venue Name', name: 'name' },
+                    { label: 'Location', name: 'location' }, // <-- ADDED
                     { label: 'Description', name: 'description', textarea: true },
                     { label: 'Image URLs (comma separated)', name: 'imageUrls', textarea: true },
                     { label: 'Closest Airport', name: 'closestAirport' },
@@ -516,9 +684,15 @@ export default function EventViewPage() {
                     <div key={field.name}>
                       <Label>{field.label}</Label>
                       {field.textarea ? (
-                        <Textarea value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
+                        <Textarea
+                          value={(venueForm as any)[field.name]}
+                          onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
+                        />
                       ) : (
-                        <Input value={(venueForm as any)[field.name]} onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })} />
+                        <Input
+                          value={(venueForm as any)[field.name]}
+                          onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
+                        />
                       )}
                     </div>
                   ))}
@@ -540,12 +714,22 @@ export default function EventViewPage() {
 function HeaderWithAction({ title, buttonLabel, icon, onAction }: any) {
   return (
     <div className="flex justify-between items-center mb-2">
-      <div className="flex items-center gap-3 text-xl font-bold text-slate-800">{icon}<span>{title}</span></div>
-      <Button variant="outline" size="sm" className="gap-2" onClick={onAction}>{buttonLabel}</Button>
+      <div className="flex items-center gap-3 text-xl font-bold text-slate-800">
+        {icon}
+        <span>{title}</span>
+      </div>
+      <Button variant="outline" size="sm" className="gap-2" onClick={onAction}>
+        {buttonLabel}
+      </Button>
     </div>
   );
 }
 
 function HeaderWithIcon({ title, icon }: any) {
-  return <h2 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-2">{icon}<span>{title}</span></h2>;
+  return (
+    <h2 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-2">
+      {icon}
+      <span>{title}</span>
+    </h2>
+  );
 }

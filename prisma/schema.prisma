@@ -32,6 +32,7 @@ model Company {
   isVerified Boolean  @default(false)
   isActive    Boolean   @default(true)
   status      CompanyStatus @default(LIVE)
+  zipCode     String?
 
   services         Service[]         @relation("CompanyServices")
   partners         Partner[]         @relation("CompanyPartners")
@@ -131,6 +132,7 @@ model User {
   email     String    @unique
   password  String
   name      String?
+  phone      String?
   role      Role      @default(USER)
   isCompleted Boolean   @default(false)
   companies Company[] @relation("UserCompanies")
@@ -253,6 +255,7 @@ model Venue {
   id              String   @id @default(cuid())
   name            String
   description     String?
+  location        String?
   imageUrls       String[] // for gallery
   closestAirport  String?
   publicTransport String?
@@ -365,6 +368,9 @@ model PurchaseOrder {
   createdAt   DateTime    @default(now())
 
   items OrderItem[] // All items included in this order
+  discountAmount Float? 
+  couponId       String?     // FK to coupon
+  coupon         Coupon?     @relation(fields: [couponId], references: [id])
 
   @@index([companyId])
   @@index([eventId])
@@ -439,7 +445,24 @@ model MembershipPlan {
   name        String   @unique
   slug        String?   @unique // e.g., 'elite', 'premium'
   price       Float
+  description String?
+  thumbnail   String?
   features    String[] // An array of feature strings
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Coupon {
+  id            String       @id @default(cuid())
+  code          String       @unique
+  discountType  DiscountType
+  discountValue Float
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  purchaseOrders PurchaseOrder[]
+}
+
+enum DiscountType {
+  FIXED
+  PERCENTAGE
 }

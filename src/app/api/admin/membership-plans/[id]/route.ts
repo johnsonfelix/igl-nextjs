@@ -30,11 +30,11 @@ export async function PATCH(
 
   try {
     const data = await request.json();
-    const { name, slug, price, features } = data;
+    const { name, slug, price, features,description, thumbnail, } = data;
 
     const updatedPlan = await prisma.membershipPlan.update({
       where: { id },
-      data: { name, slug, price, features },
+      data: { name, slug, price,description, thumbnail, features },
     });
 
     return NextResponse.json(updatedPlan);

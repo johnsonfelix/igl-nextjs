@@ -9,6 +9,7 @@ const publicPrefixes = [
   '/api/public',        // example: open APIs under /api/public
   '/company/login',
   '/company/register',
+  '/api/register',
 ];
 
 export function middleware(request: NextRequest) {

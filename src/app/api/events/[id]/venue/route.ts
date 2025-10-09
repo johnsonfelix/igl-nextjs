@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/app/lib/prisma";
+import { NextRequest, NextResponse } from 'next/server';
+import prisma from '@/app/lib/prisma';
 
 // ✅ GET venue
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
+    const pathnameParts = url.pathname.split('/');
     const eventId = pathnameParts[pathnameParts.length - 2];
 
     const venue = await prisma.venue.findFirst({
@@ -14,18 +14,16 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(venue || {});
   } catch (error) {
-    console.error("[VENUE_GET]", error);
-    return NextResponse.json({ error: "Failed to fetch venue" }, { status: 500 });
+    console.error('[VENUE_GET]', error);
+    return NextResponse.json({ error: 'Failed to fetch venue' }, { status: 500 });
   }
 }
-
-// ✅ POST venue
 
 // ✅ POST venue with safety checks
 export async function POST(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
+    const pathnameParts = url.pathname.split('/');
     const eventId = pathnameParts[pathnameParts.length - 2];
 
     // ✅ Ensure the event exists
@@ -34,10 +32,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!existingEvent) {
-      return NextResponse.json(
-        { error: "Event not found. Cannot create venue." },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Event not found. Cannot create venue.' }, { status: 404 });
     }
 
     // ✅ Ensure a Venue does not already exist for this event
@@ -46,10 +41,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingVenue) {
-      return NextResponse.json(
-        { error: "Venue already exists for this event." },
-        { status: 409 }
-      );
+      return NextResponse.json({ error: 'Venue already exists for this event.' }, { status: 409 });
     }
 
     const body = await req.json();
@@ -58,6 +50,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: body.name,
         description: body.description || null,
+        location: body.location || null, // <-- ADDED
         imageUrls: body.imageUrls || [],
         closestAirport: body.closestAirport || null,
         publicTransport: body.publicTransport || null,
@@ -68,20 +61,16 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(venue, { status: 201 });
   } catch (error) {
-    console.error("[VENUE_POST]", error);
-    return NextResponse.json(
-      { error: "Failed to create venue", detail: String(error) },
-      { status: 500 }
-    );
+    console.error('[VENUE_POST]', error);
+    return NextResponse.json({ error: 'Failed to create venue', detail: String(error) }, { status: 500 });
   }
 }
-
 
 // ✅ PUT venue
 export async function PUT(req: NextRequest) {
   try {
     const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
+    const pathnameParts = url.pathname.split('/');
     const eventId = pathnameParts[pathnameParts.length - 2];
 
     const body = await req.json();
@@ -91,7 +80,7 @@ export async function PUT(req: NextRequest) {
     });
 
     if (!existingVenue) {
-      return NextResponse.json({ error: "Venue not found" }, { status: 404 });
+      return NextResponse.json({ error: 'Venue not found' }, { status: 404 });
     }
 
     const updated = await prisma.venue.update({
@@ -99,15 +88,17 @@ export async function PUT(req: NextRequest) {
       data: {
         name: body.name,
         description: body.description || null,
+        location: body.location || null, // <-- ADDED
         imageUrls: body.imageUrls || [],
         closestAirport: body.closestAirport || null,
         publicTransport: body.publicTransport || null,
+        nearbyPlaces: body.nearbyPlaces || null, // <-- ADDED for consistency
       },
     });
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error("[VENUE_PUT]", error);
-    return NextResponse.json({ error: "Failed to update venue" }, { status: 500 });
+    console.error('[VENUE_PUT]', error);
+    return NextResponse.json({ error: 'Failed to update venue' }, { status: 500 });
   }
 }

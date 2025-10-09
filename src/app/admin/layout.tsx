@@ -15,6 +15,7 @@ const MENU_ITEMS = [
   { name: "Companies", href: "/admin/company", icon: <Ticket className="h-5 w-5" /> },
   { name: "Users", href: "/admin/users", icon: <Ticket className="h-5 w-5" /> },
   { name: "Membership", href: "/admin/membership", icon: <Ticket className="h-5 w-5" /> },
+  { name: "Coupon", href: "/admin/coupon", icon: <Ticket className="h-5 w-5" /> },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

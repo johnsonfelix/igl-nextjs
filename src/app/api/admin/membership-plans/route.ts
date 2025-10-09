@@ -22,10 +22,10 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { name, slug, price, features } = data;
+    const { name, slug, price, description, thumbnail, features } = data;
 
     // Basic validation
-    if (!name || !slug || typeof price !== 'number' || !Array.isArray(features)) {
+    if (!name || typeof price !== 'number' || !Array.isArray(features)) {
         return NextResponse.json({ message: 'Invalid data provided' }, { status: 400 });
     }
 
@@ -34,6 +34,8 @@ export async function POST(request: Request) {
         name,
         slug,
         price,
+        description,
+        thumbnail,
         features,
       },
     });
