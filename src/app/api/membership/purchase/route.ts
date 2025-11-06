@@ -1,61 +1,64 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+// app/api/membership/purchase/route.ts
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/app/lib/prisma";
 
-// Assume you have your prisma client initialized in a separate file
-// e.g., /lib/prisma.ts
-const prisma = new PrismaClient();
+type PaymentPayload = {
+  provider?: string;
+  transactionId?: string;
+  amount?: number;
+};
 
 export async function POST(req: NextRequest) {
   try {
-    const { companyId, membershipType, amount } = await req.json();
+    const body = await req.json();
+    const { companyId, membershipPlanId, payment, coupon, account, durationDays } = body;
 
-    // 1. --- Input Validation ---
-    if (!companyId || !membershipType || !amount) {
-      return NextResponse.json({ error: 'Missing required fields: companyId, membershipType, and amount.' }, { status: 400 });
+    if (!companyId || !membershipPlanId) {
+      return NextResponse.json({ error: "Missing required fields: companyId and membershipPlanId." }, { status: 400 });
     }
 
-    // 2. --- Payment Gateway Integration (Placeholder) ---
-    // In a real-world application, you would process the payment here using a service
-    // like Stripe, Adyen, or PayPal.
-    //
-    // const paymentIntent = await stripe.charges.create({
-    //   amount: amount * 100, // Amount in cents
-    //   currency: 'usd',
-    //   description: `Membership purchase: ${membershipType} for company ${companyId}`,
-    //   // source: paymentMethodId, // from the frontend
-    // });
-    //
-    // If payment fails, you would return an error response.
-    // if (!paymentIntent.paid) {
-    //   return NextResponse.json({ error: 'Payment failed.' }, { status: 402 });
+    const [company, plan] = await Promise.all([
+      prisma.company.findUnique({ where: { id: companyId }, select: { id: true, memberSince: true, membershipExpiresAt: true } }),
+      prisma.membershipPlan.findUnique({ where: { id: membershipPlanId } }),
+    ]);
+
+    if (!company) return NextResponse.json({ error: "Company not found" }, { status: 404 });
+    if (!plan) return NextResponse.json({ error: "Membership plan not found" }, { status: 404 });
+
+    // TODO: replace with your real provider verification
+    // if (payment && !payment.transactionId) {
+    //   return NextResponse.json({ error: "Payment verification failed", detail: "Missing/invalid payment.transactionId" }, { status: 402 });
     // }
 
-    console.log(`Simulating payment of $${amount} for ${membershipType} membership.`);
+    const now = new Date();
+    const baseStart = company.membershipExpiresAt && company.membershipExpiresAt > now ? company.membershipExpiresAt : now;
+    const expires = typeof durationDays === "number" && durationDays > 0
+      ? new Date(baseStart.getTime() + durationDays * 24 * 60 * 60 * 1000)
+      : null;
 
-    // 3. --- Update Company Record in Database ---
-    // If the payment is successful, update the company's record.
-    const updatedCompany = await prisma.company.update({
-      where: {
-        id: companyId,
-      },
-      data: {
-        purchasedMembership: membershipType,
-        memberSince: new Date(),
-      },
+    const updated = await prisma.$transaction(async (tx) => {
+      // Attach the plan via relation + keep legacy fields for now
+      const u = await tx.company.update({
+        where: { id: companyId },
+        data: {
+          membershipPlan: { connect: { id: membershipPlanId } }, // sets FK and relation
+          purchasedMembership: plan.name,                        // legacy display
+          purchasedAt: now,
+          membershipExpiresAt: expires,
+          memberType: "PAID",
+          memberSince: company.memberSince ?? now,
+        },
+        include: { membershipPlan: true },
+      });
+
+      return u;
     });
 
-    // 4. --- Return Success Response ---
-    return NextResponse.json({
-      message: 'Membership purchased successfully!',
-      company: updatedCompany,
-    }, { status: 200 });
-
-  } catch (error) {
-    console.error('Membership Purchase Error:', error);
-    // Handle potential errors, e.g., company not found
-    if (error instanceof Error) {
-        return NextResponse.json({ error: 'An internal server error occurred.', details: error.message }, { status: 500 });
-    }
-    return NextResponse.json({ error: 'An unknown internal server error occurred.'}, { status: 500 });
+    return NextResponse.json({ success: true, company: updated }, { status: 200 });
+  } catch (err: any) {
+    return NextResponse.json(
+      { error: "Could not complete membership purchase", detail: err?.message ?? String(err) },
+      { status: 500 }
+    );
   }
 }

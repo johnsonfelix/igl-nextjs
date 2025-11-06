@@ -58,19 +58,23 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
         if (mode === 'LAND') return <Truck className="h-5 w-5 text-gray-500" />;
         return null;
     };
+
+    // Wrap the whole card with Link so the entire card is clickable.
+    // We've removed the nested Link that used to live in the header.
     return (
-         <div className="bg-white border rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col">
+        <Link
+            href={`/inquiry/${inquiry.id}`}
+            className="block bg-white border rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col no-underline text-inherit"
+        >
             <div className="p-4 border-b">
                 <div className="flex justify-between items-center">
                     <p className="text-sm text-gray-500">Find Agent at</p>
                     <div className="flex items-center gap-2">
-                         <Clock className="h-4 w-4 text-primary" />
-                        <Link href={`/inquiry/${inquiry.id}`}
-  className="text-xs font-semibold text-background bg-secondary px-2 py-1 rounded-full">
-  Detailed Inquiry
-</Link>
-
-
+                        <Clock className="h-4 w-4 text-primary" />
+                        {/* replaced inner Link with a styled badge to avoid nested links */}
+                        <span className="text-xs font-semibold text-background bg-secondary px-2 py-1 rounded-full">
+                            Detailed Inquiry
+                        </span>
                     </div>
                 </div>
                 <div className="mt-2">
@@ -98,7 +102,7 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
                     {format(new Date(inquiry.createdAt), 'd-MMM-yyyy')}
                 </span>
             </div>
-        </div>
+        </Link>
     );
 };
 

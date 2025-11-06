@@ -19,7 +19,10 @@ model Company {
   id          String    @id @default(cuid())
   memberId    String    @unique
   memberType  String?
-  purchasedMembership  String?
+  purchasedMembership   String?   // legacy / optional textual marker (you can remove later)
+  purchasedMembershipId String?  
+  purchasedAt           DateTime?
+  membershipExpiresAt   DateTime?
   sector      String?
   name        String
   website     String?
@@ -33,6 +36,9 @@ model Company {
   isActive    Boolean   @default(true)
   status      CompanyStatus @default(LIVE)
   zipCode     String?
+
+  membershipPlanId String?
+  membershipPlan   MembershipPlan? @relation(fields: [membershipPlanId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
   services         Service[]         @relation("CompanyServices")
   partners         Partner[]         @relation("CompanyPartners")
@@ -183,9 +189,12 @@ enum EventType {
 model SponsorType {
   id          String  @id @default(cuid())
   name        String  @unique
-  image       String?
-  description String?
   price       Float
+  description String? 
+  image     String?   // public url
+  imageKey  String?   // s3 key, e.g. sponsors/...
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   eventSponsorTypes EventSponsorType[] @relation("EventSponsorTypes")
 }
@@ -216,7 +225,7 @@ model Hotel {
 model RoomType {
   id             String  @id @default(cuid())
   hotelId        String
-  hotel          Hotel   @relation(fields: [hotelId], references: [id])
+  hotel          Hotel   @relation(fields: [hotelId], references: [id],onDelete: Cascade)
   roomType       String // e.g., Deluxe, Suite, Standard
   price          Float
   availableRooms Int // number of rooms available
@@ -447,7 +456,8 @@ model MembershipPlan {
   price       Float
   description String?
   thumbnail   String?
-  features    String[] // An array of feature strings
+  features    String[]
+  companies   Company[] // back-relation
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }

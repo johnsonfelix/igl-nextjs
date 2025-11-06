@@ -9,15 +9,22 @@ import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { uploadFileToS3 } from "@/app/lib/s3-upload"; // Reuse the helper used in Booths
 
 export default function TicketsPage() {
   const [tickets, settickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Image upload states
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    logo: "",
+    logo: "", // holds existing logo URL or uploaded URL
   });
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -38,36 +45,63 @@ export default function TicketsPage() {
     fetchtickets();
   }, []);
 
+  // Create or update preview when file changes
+  useEffect(() => {
+    if (!file) {
+      // When clearing the file, fall back to existing logo for preview (edit mode)
+      setPreviewUrl(formData.logo || null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file, formData.logo]);
+
   const handleSubmit = async () => {
+    if (!formData.name || !formData.price) {
+      alert("Please fill out name and price before saving.");
+      return;
+    }
+    // Require an image either via selected file or an existing logo when editing
+    if (!file && !formData.logo) {
+      alert("Please select an image to upload.");
+      return;
+    }
 
-    if (!formData.name || !formData.price || !formData.logo) {
-    alert("Please fill out all fields before saving.");
-    return;
-  }
-  try {
-    const url = editingId
-      ? `/api/admin/tickets/${editingId}`
-      : "/api/admin/tickets";
-    const method = editingId ? "PUT" : "POST";
+    setSaving(true);
+    try {
+      // Upload only if a new file is selected
+      let logoUrl = formData.logo;
+      if (file) {
+        logoUrl = await uploadFileToS3(file); // returns public S3 URL
+      }
 
-    await fetch(url, {
-      method,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...formData,
-        price: parseFloat(formData.price || "0"), // ensure number
-      }),
-    });
+      const url = editingId ? `/api/admin/tickets/${editingId}` : "/api/admin/tickets";
+      const method = editingId ? "PUT" : "POST";
 
-    setFormData({ name: "", price: "", logo: "" });
-    setEditingId(null);
-    setFormOpen(false);
-    fetchtickets();
-  } catch (error) {
-    console.error("Failed to save ticket:", error);
-  }
-};
+      await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...formData,
+          logo: logoUrl ?? "",
+          price: parseFloat(formData.price || "0"),
+        }),
+      });
 
+      setFormData({ name: "", price: "", logo: "" });
+      setFile(null);
+      setPreviewUrl(null);
+      setEditingId(null);
+      setFormOpen(false);
+      fetchtickets();
+    } catch (error) {
+      console.error("Failed to save ticket:", error);
+      alert("Failed to save ticket. See console for details.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this ticket?")) return;
@@ -82,9 +116,11 @@ export default function TicketsPage() {
   const openEditForm = (ticket: any) => {
     setFormData({
       name: ticket.name,
-      price: ticket.price,
-      logo: ticket.logo,
+      price: String(ticket.price ?? ""),
+      logo: ticket.logo || "",
     });
+    setFile(null);
+    setPreviewUrl(ticket.logo || null);
     setEditingId(ticket.id);
     setFormOpen(true);
   };
@@ -105,77 +141,63 @@ export default function TicketsPage() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:w-[420px]">
-  <div className="space-y-6 p-4">
-    <h2 className="text-lg font-semibold text-gray-900">
-      {editingId ? "Edit ticket" : "Add New ticket"}
-    </h2>
+            <div className="space-y-6 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingId ? "Edit ticket" : "Add New ticket"}
+              </h2>
 
-    <div className="space-y-4">
-      <div>
-        <Label className="text-gray-800">Name</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="ticket name"
-          value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
-        />
-      </div>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-gray-800">Name</Label>
+                  <Input
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="ticket name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Price</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="$1000"
-          value={formData.price}
-          onChange={(e) =>
-            setFormData({ ...formData, price: e.target.value })
-          }
-        />
-      </div>
+                <div>
+                  <Label className="text-gray-800">Price</Label>
+                  <Input
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="$1000"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  />
+                </div>
 
-      {/* <div>
-        <Label className="text-gray-800">Country</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="Country"
-          value={formData.country}
-          onChange={(e) =>
-            setFormData({ ...formData, country: e.target.value })
-          }
-        />
-      </div> */}
+                {/* Logo upload */}
+                <div>
+                  <Label className="text-gray-800">Logo</Label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="mt-2 text-sm"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setFile(f);
+                      if (!f) {
+                        setPreviewUrl(formData.logo || null);
+                      }
+                    }}
+                  />
+                  {previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Logo Preview"
+                      className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
+                      onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                    />
+                  )}
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Logo URL</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="https://example.com/logo.png"
-          value={formData.logo}
-          onChange={(e) =>
-            setFormData({ ...formData, logo: e.target.value })
-          }
-        />
-        {formData.logo && (
-          <img
-            src={formData.logo}
-            alt="Logo Preview"
-            className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
-            onError={(e) =>
-              ((e.target as HTMLImageElement).style.display = "none")
-            }
-          />
-        )}
-      </div>
-
-      <Button  variant="primary" onClick={handleSubmit}>
-        {editingId ? "Update ticket" : "Save ticket"}
-      </Button>
-    </div>
-  </div>
-</SheetContent>
-
+                <Button variant="primary" onClick={handleSubmit} disabled={saving}>
+                  {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : editingId ? "Update ticket" : "Save ticket"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
         </Sheet>
       </div>
 
@@ -210,28 +232,27 @@ export default function TicketsPage() {
                   </div>
                 )}
                 <div className="p-4 space-y-1">
-  <h3 className="font-semibold text-lg truncate">{ticket.name}</h3>
-  <p className="text-sm text-gray-600">Price: ${ticket.price}</p>
-  <div className="flex gap-2 pt-3">
-    <Button
-      variant="outline"
-      size="sm"
-      className="flex-1"
-      onClick={() => openEditForm(ticket)}
-    >
-      <Edit className="h-4 w-4 mr-1" /> Edit
-    </Button>
-    <Button
-      variant="outline"
-      size="sm"
-      className="flex-1 text-red-600 hover:bg-red-50"
-      onClick={() => handleDelete(ticket.id)}
-    >
-      <Trash2 className="h-4 w-4 mr-1" /> Delete
-    </Button>
-  </div>
-</div>
-
+                  <h3 className="font-semibold text-lg truncate">{ticket.name}</h3>
+                  <p className="text-sm text-gray-600">Price: ${ticket.price}</p>
+                  <div className="flex gap-2 pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => openEditForm(ticket)}
+                    >
+                      <Edit className="h-4 w-4 mr-1" /> Edit
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-red-600 hover:bg-red-50"
+                      onClick={() => handleDelete(ticket.id)}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                    </Button>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))}

@@ -3,23 +3,43 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Plus, Trash2, Edit, Search, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { uploadFileToS3 } from "@/app/lib/s3-upload"; // Import the reusable function
 
 export default function BoothsPage() {
-  const [Booths, setBooths] = useState<any[]>([]);
+  const [booths, setBooths] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     price: "",
-    image: ""
+    image: "", // This will hold the final image URL
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // Fetch booths on initial load
+  useEffect(() => {
+    fetchBooths();
+  }, []);
+
+  // Create a preview URL when a file is selected
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   const fetchBooths = async () => {
     setLoading(true);
@@ -34,36 +54,49 @@ export default function BoothsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchBooths();
-  }, []);
-
-
   const handleSubmit = async () => {
-    if (!formData.name || !formData.price || !formData.image) {
-    alert("Please fill out all fields before saving.");
-    return;
-  }
+    if (!formData.name || !formData.price) {
+      alert("Please fill out all fields before saving.");
+      return;
+    }
+
+    setSaving(true);
     try {
+      let imageUrl = formData.image;
+
+      // If a new file is selected, upload it to S3
+      if (file) {
+        imageUrl = await uploadFileToS3(file);
+      }
+
+      const payload = { ...formData, image: imageUrl };
+
       if (editingId) {
         await fetch(`/api/admin/booths/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
       } else {
         await fetch("/api/admin/booths", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
       }
+
+      // Reset form and state
       setFormData({ name: "", price: "", image: "" });
+      setFile(null);
+      setPreviewUrl(null);
       setEditingId(null);
       setFormOpen(false);
-      fetchBooths();
+      await fetchBooths(); // Refresh the list
     } catch (error) {
       console.error("Failed to save booth:", error);
+      alert("Failed to save booth. See console for details.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -80,9 +113,11 @@ export default function BoothsPage() {
   const openEditForm = (booth: any) => {
     setFormData({
       name: booth.name,
-      price: booth.price,
-      image: booth.image,
+      price: booth.price || "",
+      image: booth.image || "",
     });
+    setFile(null);
+    setPreviewUrl(booth.image || null); // Show existing image
     setEditingId(booth.id);
     setFormOpen(true);
   };
@@ -99,71 +134,74 @@ export default function BoothsPage() {
           <SheetTrigger asChild>
             <Button className="gap-2">
               <Plus size={16} />
-              Add booth
+              Add Booth
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:w-[420px]">
-  <div className="space-y-6 p-4">
-    <h2 className="text-lg font-semibold text-gray-900">
-      {editingId ? "Edit booth" : "Add New booth"}
-    </h2>
+            <div className="space-y-6 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingId ? "Edit Booth" : "Add New Booth"}
+              </h2>
 
-    <div className="space-y-4">
-      <div>
-        <Label className="text-gray-800">Name</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="booth name"
-          value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
-        />
-      </div>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-gray-800">Name</Label>
+                  <Input
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="Booth name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Price</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="$20000"
-          value={formData.price}
-          onChange={(e) =>
-            setFormData({ ...formData, price: e.target.value })
-          }
-        />
-      </div>
+                <div>
+                  <Label className="text-gray-800">Price</Label>
+                  <Input
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="$20000"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                  />
+                </div>
 
+                {/* Image Upload Field */}
+                <div>
+                  <Label className="text-gray-800">Image</Label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setFile(f);
+                      if (!f) {
+                        setPreviewUrl(formData.image || null);
+                      }
+                    }}
+                    className="mt-2 text-sm"
+                  />
+                  {/* Image Preview */}
+                  {previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Image Preview"
+                      className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
+                      onError={(e) =>
+                        ((e.target as HTMLImageElement).style.display = "none")
+                      }
+                    />
+                  )}
+                </div>
 
-
-      <div>
-        <Label className="text-gray-800">image URL</Label>
-        <Input
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="https://example.com/image.png"
-          value={formData.image}
-          onChange={(e) =>
-            setFormData({ ...formData, image: e.target.value })
-          }
-        />
-        {formData.image && (
-          <img
-            src={formData.image}
-            alt="image Preview"
-            className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
-            onError={(e) =>
-              ((e.target as HTMLImageElement).style.display = "none")
-            }
-          />
-        )}
-      </div>
-
-      <Button variant="primary" onClick={handleSubmit}>
-        {editingId ? "Update booth" : "Save booth"}
-      </Button>
-    </div>
-  </div>
-</SheetContent>
-
+                <Button variant="primary" onClick={handleSubmit} disabled={saving}>
+                  {saving ? "Saving..." : editingId ? "Update Booth" : "Save Booth"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
         </Sheet>
       </div>
 
@@ -174,13 +212,13 @@ export default function BoothsPage() {
             <Skeleton key={i} className="h-40 rounded-lg" />
           ))}
         </div>
-      ) : Booths.length === 0 ? (
+      ) : booths.length === 0 ? (
         <div className="text-center py-12 border border-dashed rounded-lg bg-gray-50">
-          <p className="text-gray-500">No Booths found. Add your first booth to get started.</p>
+          <p className="text-gray-500">No booths found. Add your first booth to get started.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {Booths.map((booth) => (
+          {booths.map((booth) => (
             <Card
               key={booth.id}
               className="hover:shadow-md transition border border-gray-200 rounded-lg bg-white overflow-hidden"
@@ -194,14 +232,13 @@ export default function BoothsPage() {
                   />
                 ) : (
                   <div className="w-full h-40 flex items-center justify-center bg-gray-50 text-gray-400">
-                    No image
+                    No Image
                   </div>
                 )}
                 <div className="p-4 space-y-1">
                   <h3 className="font-semibold text-lg truncate">{booth.name}</h3>
                   <div className="flex justify-between items-center">
-                    <Badge variant="secondary">{booth.price || "Unknown"}</Badge>
-                   
+                    <Badge variant="secondary">${booth.price || "Unknown"}</Badge>
                   </div>
                   <div className="flex gap-2 pt-3">
                     <Button

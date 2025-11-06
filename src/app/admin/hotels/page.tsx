@@ -1,28 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { Card, CardContent } from "@/app/components/ui/card";
+import { CardContent } from "@/app/components/ui/card";
 import { Plus, Edit, Trash2, Search, Filter, MapPin, Phone, Mail, Image as ImageIcon, DollarSign } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { uploadFileToS3 } from "@/app/lib/s3-upload"; // reuse your helper
 
 export default function HotelsPage() {
   const [hotels, setHotels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Hotel form state
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [roomFormOpen, setRoomFormOpen] = useState(false);
-  const [manageRoomsOpen, setManageRoomsOpen] = useState(false);
-  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
-  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
-
-  const [search, setSearch] = useState("");
-  const [onlyWithRooms, setOnlyWithRooms] = useState(false);
-
+  const [savingHotel, setSavingHotel] = useState(false);
+  const [hotelFile, setHotelFile] = useState<File | null>(null);
+  const [hotelPreviewUrl, setHotelPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     hotelName: "",
     address: "",
@@ -30,17 +28,29 @@ export default function HotelsPage() {
     contactPerson: "",
     email: "",
     eventId: "",
-    image: "",
+    image: "", // existing URL when editing or result after upload
   });
 
+  // Room form state
+  const [roomFormOpen, setRoomFormOpen] = useState(false);
+  const [manageRoomsOpen, setManageRoomsOpen] = useState(false);
+  const [selectedHotelId, setSelectedHotelId] = useState<string | null>(null);
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null);
+  const [savingRoom, setSavingRoom] = useState(false);
+  const [roomFile, setRoomFile] = useState<File | null>(null);
+  const [roomPreviewUrl, setRoomPreviewUrl] = useState<string | null>(null);
   const [roomFormData, setRoomFormData] = useState({
     roomType: "",
     price: "",
     availableRooms: "",
     maxOccupancy: "",
     amenities: "",
-    image: "",
+    image: "", // existing URL when editing or result after upload
   });
+
+  // Filters
+  const [search, setSearch] = useState("");
+  const [onlyWithRooms, setOnlyWithRooms] = useState(false);
 
   const fetchHotels = async () => {
     setLoading(true);
@@ -59,12 +69,42 @@ export default function HotelsPage() {
     fetchHotels();
   }, []);
 
+  // Preview URL lifecycle for hotel image
+  useEffect(() => {
+    if (!hotelFile) {
+      // Fall back to existing image URL for edit mode preview if present
+      setHotelPreviewUrl(formData.image || null);
+      return;
+    }
+    const url = URL.createObjectURL(hotelFile);
+    setHotelPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [hotelFile, formData.image]);
+
+  // Preview URL lifecycle for room image
+  useEffect(() => {
+    if (!roomFile) {
+      setRoomPreviewUrl(roomFormData.image || null);
+      return;
+    }
+    const url = URL.createObjectURL(roomFile);
+    setRoomPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [roomFile, roomFormData.image]);
+
   const handleSubmit = async () => {
     if (!formData.hotelName || !formData.address || !formData.contact || !formData.contactPerson || !formData.email) {
       alert("Please fill out all required fields before saving.");
       return;
     }
+    setSavingHotel(true);
     try {
+      // Upload selected file (if any) to S3 first
+      let imageUrl = formData.image;
+      if (hotelFile) {
+        imageUrl = await uploadFileToS3(hotelFile);
+      }
+
       const url = editingId ? `/api/admin/hotels/${editingId}` : "/api/admin/hotels";
       const method = editingId ? "PUT" : "POST";
 
@@ -73,16 +113,23 @@ export default function HotelsPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
+          image: imageUrl ?? "",
           eventId: formData.eventId.trim() === "" ? null : formData.eventId.trim(),
         }),
       });
 
+      // reset
       setFormData({ hotelName: "", address: "", contact: "", contactPerson: "", email: "", eventId: "", image: "" });
+      setHotelFile(null);
+      setHotelPreviewUrl(null);
       setEditingId(null);
       setFormOpen(false);
       fetchHotels();
     } catch (error) {
       console.error("Save hotel failed:", error);
+      alert("Failed to save hotel. See console for details.");
+    } finally {
+      setSavingHotel(false);
     }
   };
 
@@ -106,6 +153,8 @@ export default function HotelsPage() {
       email: hotel.email || "",
       image: hotel.image || "",
     });
+    setHotelFile(null);
+    setHotelPreviewUrl(hotel.image || null);
     setEditingId(hotel.id);
     setFormOpen(true);
   };
@@ -122,9 +171,13 @@ export default function HotelsPage() {
         amenities: room.amenities || "",
         image: room.image || "",
       });
+      setRoomFile(null);
+      setRoomPreviewUrl(room.image || null);
       setEditingRoomId(String(room.id));
     } else {
       setRoomFormData({ roomType: "", price: "", availableRooms: "", maxOccupancy: "", amenities: "", image: "" });
+      setRoomFile(null);
+      setRoomPreviewUrl(null);
       setEditingRoomId(null);
     }
     setRoomFormOpen(true);
@@ -132,7 +185,13 @@ export default function HotelsPage() {
 
   const handleRoomSubmit = async () => {
     if (!selectedHotelId) return;
+    setSavingRoom(true);
     try {
+      let imageUrl = roomFormData.image;
+      if (roomFile) {
+        imageUrl = await uploadFileToS3(roomFile);
+      }
+
       const url = editingRoomId ? `/api/admin/room-types/${editingRoomId}` : "/api/admin/room-types";
       const method = editingRoomId ? "PUT" : "POST";
 
@@ -146,16 +205,22 @@ export default function HotelsPage() {
           availableRooms: parseInt(roomFormData.availableRooms || "0"),
           maxOccupancy: parseInt(roomFormData.maxOccupancy || "0"),
           amenities: roomFormData.amenities,
-          image: roomFormData.image,
+          image: imageUrl ?? "",
         }),
       });
 
+      // reset
       setRoomFormData({ roomType: "", price: "", availableRooms: "", maxOccupancy: "", amenities: "", image: "" });
+      setRoomFile(null);
+      setRoomPreviewUrl(null);
       setEditingRoomId(null);
       setRoomFormOpen(false);
       fetchHotels();
     } catch (error) {
       console.error("Save room type failed:", error);
+      alert("Failed to save room type. See console for details.");
+    } finally {
+      setSavingRoom(false);
     }
   };
 
@@ -170,14 +235,23 @@ export default function HotelsPage() {
   };
 
   // Filter + search
-  const visibleHotels = hotels
-    .filter(h => (onlyWithRooms ? (h.roomTypes && h.roomTypes.length > 0) : true))
-    .filter(h => h.hotelName.toLowerCase().includes(search.toLowerCase()) || (h.address || "").toLowerCase().includes(search.toLowerCase()));
+  const visibleHotels = useMemo(
+    () =>
+      hotels
+        .filter((h) => (onlyWithRooms ? h.roomTypes && h.roomTypes.length > 0 : true))
+        .filter(
+          (h) =>
+            h.hotelName.toLowerCase().includes(search.toLowerCase()) ||
+            (h.address || "").toLowerCase().includes(search.toLowerCase()),
+        ),
+    [hotels, onlyWithRooms, search],
+  );
 
   // Small presentational subcomponent
   const HotelCard = ({ hotel }: { hotel: any }) => {
     const roomsCount = hotel.roomTypes ? hotel.roomTypes.length : 0;
-    const lowestPrice = hotel.roomTypes && hotel.roomTypes.length > 0 ? Math.min(...hotel.roomTypes.map((r: any) => r.price || 0)) : null;
+    const lowestPrice =
+      hotel.roomTypes && hotel.roomTypes.length > 0 ? Math.min(...hotel.roomTypes.map((r: any) => r.price || 0)) : null;
 
     return (
       <motion.div whileHover={{ scale: 1.02 }} className="bg-gradient-to-br from-white/60 to-white/40 rounded-2xl shadow-lg border overflow-hidden">
@@ -214,14 +288,25 @@ export default function HotelsPage() {
                 <span>{hotel.address || "-"}</span>
               </div>
               <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                <div className="flex items-center gap-1"><Phone size={12} />{hotel.contact || "-"}</div>
-                <div className="flex items-center gap-1"><Mail size={12} />{hotel.email || "-"}</div>
+                <div className="flex items-center gap-1">
+                  <Phone size={12} />
+                  {hotel.contact || "-"}
+                </div>
+                <div className="flex items-center gap-1">
+                  <Mail size={12} />
+                  {hotel.email || "-"}
+                </div>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-sm font-medium">{roomsCount} room{roomsCount !== 1 ? "s" : ""}</div>
+              <div className="text-sm font-medium">
+                {roomsCount} room{roomsCount !== 1 ? "s" : ""}
+              </div>
               {lowestPrice !== null && (
-                <div className="text-xs mt-1 flex items-center gap-1 text-gray-600"><DollarSign size={12} />{lowestPrice}</div>
+                <div className="text-xs mt-1 flex items-center gap-1 text-gray-600">
+                  <DollarSign size={12} />
+                  {lowestPrice}
+                </div>
               )}
             </div>
           </div>
@@ -229,7 +314,9 @@ export default function HotelsPage() {
           <div className="mt-3 flex flex-wrap gap-2">
             {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
               hotel.roomTypes.slice(0, 3).map((r: any) => (
-                <div key={r.id} className="px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-700 border">{r.roomType} • ₹{r.price}</div>
+                <div key={r.id} className="px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-700 border">
+                  {r.roomType} • ₹{r.price}
+                </div>
               ))
             ) : (
               <div className="text-xs text-gray-400">No room types added.</div>
@@ -241,8 +328,15 @@ export default function HotelsPage() {
               <Plus size={14} /> Add Room
             </Button>
 
-            {/* Manage rooms - opens a sheet listing all room subtypes with edit buttons */}
-            <Button size="sm" variant="ghost" onClick={() => { setSelectedHotelId(hotel.id); setManageRoomsOpen(true); }}>
+            {/* Manage rooms */}
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                setSelectedHotelId(hotel.id);
+                setManageRoomsOpen(true);
+              }}
+            >
               Manage Rooms
             </Button>
           </div>
@@ -262,14 +356,23 @@ export default function HotelsPage() {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-white">
             <Search size={16} className="text-gray-400" />
-            <Input placeholder="Search hotels or address" value={search} onChange={(e) => setSearch(e.target.value)} className="border-0 p-0 bg-transparent" />
+            <Input
+              placeholder="Search hotels or address"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border-0 p-0 bg-transparent"
+            />
           </div>
 
           <div className="flex items-center gap-2">
-            <button onClick={() => setOnlyWithRooms(!onlyWithRooms)} className={`px-3 py-2 rounded-lg border ${onlyWithRooms ? "bg-indigo-600 text-white" : "bg-white text-gray-700"}`}>
+            <button
+              onClick={() => setOnlyWithRooms(!onlyWithRooms)}
+              className={`px-3 py-2 rounded-lg border ${onlyWithRooms ? "bg-indigo-600 text-white" : "bg-white text-gray-700"}`}
+            >
               <Filter size={14} className="inline-block mr-2" /> {onlyWithRooms ? "With rooms" : "All"}
             </button>
 
+            {/* Hotel form */}
             <Sheet open={formOpen} onOpenChange={setFormOpen}>
               <SheetTrigger asChild>
                 <Button className="gap-2">
@@ -279,54 +382,106 @@ export default function HotelsPage() {
               <SheetContent side="right" className="w-full sm:w-[520px] bg-white text-gray-900">
                 <div className="p-6">
                   <h2 className="text-xl font-semibold mb-2">{editingId ? "Edit Hotel" : "Add Hotel"}</h2>
-                  <p className="text-sm text-gray-500 mb-4">Add or update hotel details. Image URL will show preview.</p>
+                  <p className="text-sm text-gray-500 mb-4">Add or update hotel details. Image upload shows preview.</p>
 
                   <div className="grid grid-cols-1 gap-3">
                     <div>
                       <Label>Hotel Name</Label>
-                      <Input value={formData.hotelName} onChange={(e) => setFormData({ ...formData, hotelName: e.target.value })} placeholder="Hotel name" />
+                      <Input
+                        value={formData.hotelName}
+                        onChange={(e) => setFormData({ ...formData, hotelName: e.target.value })}
+                        placeholder="Hotel name"
+                      />
                     </div>
 
                     <div>
                       <Label>Address</Label>
-                      <Input value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} placeholder="123, City, Country" />
+                      <Input
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        placeholder="123, City, Country"
+                      />
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Contact</Label>
-                        <Input value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} placeholder="+91 98xxxx" />
+                        <Input
+                          value={formData.contact}
+                          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                          placeholder="+91 98xxxx"
+                        />
                       </div>
                       <div>
                         <Label>Contact Person</Label>
-                        <Input value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} placeholder="Name" />
+                        <Input
+                          value={formData.contactPerson}
+                          onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
+                          placeholder="Name"
+                        />
                       </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
                         <Label>Email</Label>
-                        <Input value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} placeholder="email@example.com" />
+                        <Input
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="email@example.com"
+                        />
                       </div>
                       <div>
                         <Label>Event ID (optional)</Label>
-                        <Input value={formData.eventId} onChange={(e) => setFormData({ ...formData, eventId: e.target.value })} placeholder="Event id" />
+                        <Input
+                          value={formData.eventId}
+                          onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
+                          placeholder="Event id"
+                        />
                       </div>
                     </div>
 
+                    {/* Image Upload */}
                     <div>
-                      <Label>Image URL (optional)</Label>
-                      <Input value={formData.image} onChange={(e) => setFormData({ ...formData, image: e.target.value })} placeholder="https://..." />
-                      {formData.image && (
-                        <div className="mt-2 rounded overflow-hidden border"> 
-                          <img src={formData.image} alt="preview" className="w-full h-36 object-cover" />
-                        </div>
+                      <Label>Image</Label>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="mt-2 text-sm"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          setHotelFile(f);
+                          if (!f) {
+                            // If cleared, revert preview to existing URL (when editing)
+                            setHotelPreviewUrl(formData.image || null);
+                          }
+                        }}
+                      />
+                      {hotelPreviewUrl && (
+                        <img
+                          src={hotelPreviewUrl}
+                          alt="Image Preview"
+                          className="w-full h-36 object-cover border rounded mt-2 bg-white"
+                          onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                        />
                       )}
                     </div>
 
                     <div className="flex items-center justify-end gap-2 mt-4">
-                      <Button variant="ghost" onClick={() => { setFormOpen(false); setEditingId(null); }}>Cancel</Button>
-                      <Button onClick={handleSubmit} variant="primary">{editingId ? "Update Hotel" : "Save Hotel"}</Button>
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          setFormOpen(false);
+                          setEditingId(null);
+                          setHotelFile(null);
+                          setHotelPreviewUrl(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleSubmit} variant="primary" disabled={savingHotel}>
+                        {savingHotel ? "Saving..." : editingId ? "Update Hotel" : "Save Hotel"}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -371,39 +526,90 @@ export default function HotelsPage() {
             <div className="grid grid-cols-1 gap-3">
               <div>
                 <Label>Room Type</Label>
-                <Input value={roomFormData.roomType} onChange={(e) => setRoomFormData({ ...roomFormData, roomType: e.target.value })} placeholder="Deluxe / Suite" />
+                <Input
+                  value={roomFormData.roomType}
+                  onChange={(e) => setRoomFormData({ ...roomFormData, roomType: e.target.value })}
+                  placeholder="Deluxe / Suite"
+                />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Price (₹)</Label>
-                  <Input value={roomFormData.price} onChange={(e) => setRoomFormData({ ...roomFormData, price: e.target.value })} placeholder="0" />
+                  <Input
+                    value={roomFormData.price}
+                    onChange={(e) => setRoomFormData({ ...roomFormData, price: e.target.value })}
+                    placeholder="0"
+                  />
                 </div>
                 <div>
                   <Label>Available Rooms</Label>
-                  <Input value={roomFormData.availableRooms} onChange={(e) => setRoomFormData({ ...roomFormData, availableRooms: e.target.value })} placeholder="0" />
+                  <Input
+                    value={roomFormData.availableRooms}
+                    onChange={(e) => setRoomFormData({ ...roomFormData, availableRooms: e.target.value })}
+                    placeholder="0"
+                  />
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label>Max Occupancy</Label>
-                  <Input value={roomFormData.maxOccupancy} onChange={(e) => setRoomFormData({ ...roomFormData, maxOccupancy: e.target.value })} placeholder="2" />
+                  <Input
+                    value={roomFormData.maxOccupancy}
+                    onChange={(e) => setRoomFormData({ ...roomFormData, maxOccupancy: e.target.value })}
+                    placeholder="2"
+                  />
                 </div>
                 <div>
-                  <Label>Image URL (optional)</Label>
-                  <Input value={roomFormData.image} onChange={(e) => setRoomFormData({ ...roomFormData, image: e.target.value })} placeholder="https://..." />
+                  <Label>Image</Label>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="mt-2 text-sm"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setRoomFile(f);
+                      if (!f) {
+                        setRoomPreviewUrl(roomFormData.image || null);
+                      }
+                    }}
+                  />
+                  {roomPreviewUrl && (
+                    <img
+                      src={roomPreviewUrl}
+                      alt="Room Image Preview"
+                      className="w-full h-36 object-cover border rounded mt-2 bg-white"
+                      onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                    />
+                  )}
                 </div>
               </div>
 
               <div>
                 <Label>Amenities</Label>
-                <Input value={roomFormData.amenities} onChange={(e) => setRoomFormData({ ...roomFormData, amenities: e.target.value })} placeholder="WiFi, AC, Breakfast" />
+                <Input
+                  value={roomFormData.amenities}
+                  onChange={(e) => setRoomFormData({ ...roomFormData, amenities: e.target.value })}
+                  placeholder="WiFi, AC, Breakfast"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-2 mt-4">
-                <Button variant="ghost" onClick={() => { setRoomFormOpen(false); setEditingRoomId(null); }}>Cancel</Button>
-                <Button onClick={handleRoomSubmit} variant="primary">{editingRoomId ? "Update Room" : "Save Room"}</Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setRoomFormOpen(false);
+                    setEditingRoomId(null);
+                    setRoomFile(null);
+                    setRoomPreviewUrl(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleRoomSubmit} variant="primary" disabled={savingRoom}>
+                  {savingRoom ? "Saving..." : editingRoomId ? "Update Room" : "Save Room"}
+                </Button>
               </div>
             </div>
           </div>
@@ -418,34 +624,56 @@ export default function HotelsPage() {
             <p className="text-sm text-gray-500 mb-4">Edit, delete or add room types for the selected hotel.</p>
 
             <div className="space-y-3">
-              {selectedHotelId && (
-                (hotels.find(h => h.id === selectedHotelId)?.roomTypes || []).map((r: any) => (
+              {selectedHotelId &&
+                (hotels.find((h) => h.id === selectedHotelId)?.roomTypes || []).map((r: any) => (
                   <div key={r.id} className="flex items-center justify-between border rounded p-3">
                     <div>
-                      <div className="font-medium">{r.roomType} • ₹{r.price}</div>
-                      <div className="text-xs text-gray-500">Available: {r.availableRooms} | Max: {r.maxOccupancy}</div>
+                      <div className="font-medium">
+                        {r.roomType} • ₹{r.price}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Available: {r.availableRooms} | Max: {r.maxOccupancy}
+                      </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" variant="outline" onClick={() => { openRoomForm(selectedHotelId, r); /* close manage so room sheet is focused */ setManageRoomsOpen(false); }}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          openRoomForm(selectedHotelId, r);
+                          setManageRoomsOpen(false);
+                        }}
+                      >
                         <Edit size={14} /> Edit
                       </Button>
-                      <Button size="sm" variant="outline" className="text-red-600 hover:bg-red-50" onClick={() => handleRoomDelete(r.id)}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="text-red-600 hover:bg-red-50"
+                        onClick={() => handleRoomDelete(r.id)}
+                      >
                         <Trash2 size={14} />
                       </Button>
                     </div>
                   </div>
-                ))
-              )}
+                ))}
 
               <div className="pt-3">
-                <Button onClick={() => { openRoomForm(selectedHotelId || ""); setManageRoomsOpen(false); }}>
+                <Button
+                  onClick={() => {
+                    openRoomForm(selectedHotelId || "");
+                    setManageRoomsOpen(false);
+                  }}
+                >
                   <Plus size={14} /> Add Room
                 </Button>
               </div>
             </div>
 
             <div className="mt-4 text-right">
-              <Button variant="ghost" onClick={() => setManageRoomsOpen(false)}>Close</Button>
+              <Button variant="ghost" onClick={() => setManageRoomsOpen(false)}>
+                Close
+              </Button>
             </div>
           </div>
         </SheetContent>

@@ -1,13 +1,12 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useMemo, useState, ReactNode } from 'react';
 
-// 1. Define the types for a cart item and the context
 export interface CartItem {
   productId: string;
   productType: 'TICKET' | 'BOOTH' | 'SPONSOR' | 'HOTEL';
   name: string;
-  image?: string | null; // <-- FIX: Allow null in addition to string/undefined
+  image?: string | null;
   price: number;
   quantity: number;
   roomTypeId?: string;
@@ -23,54 +22,69 @@ interface CartContextType {
   itemCount: number;
 }
 
-// 2. Create the context with a default value
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-// 3. Create the provider component
-export const CartProvider = ({ children }: { children: ReactNode }) => {
+/**
+ * CartProvider now takes eventId so the cart is scoped to each event.
+ * This prevents cart conflicts across different events.
+ */
+export const CartProvider = ({ children, eventId }: { children: ReactNode; eventId: string }) => {
+  const STORAGE_KEY = `event-cart-${eventId}`; // event-scoped key
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  const addToCart = (newItem: Omit<CartItem, 'quantity'>, quantity = 1) => {
-    setCart(prevCart => {
-      const existingItemIndex = prevCart.findIndex(
-        item => item.productId === newItem.productId && item.roomTypeId === newItem.roomTypeId
-      );
-
-      if (existingItemIndex > -1) {
-        const updatedCart = [...prevCart];
-        updatedCart[existingItemIndex].quantity += quantity;
-        return updatedCart;
-      } else {
-        return [...prevCart, { ...newItem, quantity }];
+  // hydrate from localStorage (per event)
+  useEffect(() => {
+    try {
+      const raw = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
+      if (raw) {
+        const parsed: CartItem[] = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCart(parsed);
       }
+    } catch (e) {
+      console.warn('Failed to hydrate cart', e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]); // re-run if eventId ever changes
+
+  // persist whenever cart changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
+    } catch (e) {
+      console.warn('Failed to persist cart', e);
+    }
+  }, [cart, STORAGE_KEY]);
+
+  const addToCart = (newItem: Omit<CartItem, 'quantity'>, quantity = 1) => {
+    setCart(prev => {
+      const idx = prev.findIndex(
+        i => i.productId === newItem.productId && i.roomTypeId === newItem.roomTypeId
+      );
+      if (idx > -1) {
+        const copy = [...prev];
+        copy[idx] = { ...copy[idx], quantity: copy[idx].quantity + quantity };
+        return copy;
+      }
+      return [...prev, { ...newItem, quantity }];
     });
   };
 
   const removeFromCart = (productId: string, roomTypeId?: string) => {
-    setCart(prevCart =>
-      prevCart.filter(item => !(item.productId === productId && item.roomTypeId === roomTypeId))
+    setCart(prev => prev.filter(i => !(i.productId === productId && i.roomTypeId === roomTypeId)));
+  };
+
+  const updateQuantity = (productId: string, newQuantity: number, roomTypeId?: string) => {
+    if (newQuantity <= 0) return removeFromCart(productId, roomTypeId);
+    setCart(prev =>
+      prev.map(i =>
+        i.productId === productId && i.roomTypeId === roomTypeId ? { ...i, quantity: newQuantity } : i
+      )
     );
   };
-  
-  const updateQuantity = (productId: string, newQuantity: number, roomTypeId?: string) => {
-      if (newQuantity <= 0) {
-          removeFromCart(productId, roomTypeId);
-      } else {
-         setCart(prevCart =>
-            prevCart.map(item =>
-                (item.productId === productId && item.roomTypeId === roomTypeId)
-                    ? { ...item, quantity: newQuantity }
-                    : item
-            )
-        );
-      }
-  };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
-  const itemCount = cart.reduce((total, item) => total + item.quantity, 0);
+  const itemCount = useMemo(() => cart.reduce((n, i) => n + i.quantity, 0), [cart]);
 
   return (
     <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, itemCount }}>
@@ -79,11 +93,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// 4. Create a custom hook for easy access to the context
 export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
-  return context;
+  const ctx = useContext(CartContext);
+  if (ctx === undefined) throw new Error('useCart must be used within a CartProvider');
+  return ctx;
 };

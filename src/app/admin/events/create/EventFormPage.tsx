@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,6 +9,7 @@ import { Textarea } from "@/app/components/ui/textarea";
 import { Checkbox } from "@/app/components/ui/checkbox";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Plus, Loader2, ChevronDown, Calendar } from "lucide-react";
+import { uploadFileToS3 } from "@/app/lib/s3-upload"; // presigned upload helper
 
 export default function EventFormPage() {
   const router = useRouter();
@@ -24,11 +25,15 @@ export default function EventFormPage() {
     startDate: "",
     endDate: "",
     location: "",
-    thumbnail: "",
+    thumbnail: "", // will hold existing or uploaded S3 URL
     eventType: "New",
     expectedAudience: "",
     description: "",
   });
+
+  // New: image upload states for thumbnail
+  const [thumbFile, setThumbFile] = useState<File | null>(null);
+  const [thumbPreview, setThumbPreview] = useState<string | null>(null);
 
   const [booths, setBooths] = useState<any[]>([]);
   const [hotels, setHotels] = useState<any[]>([]);
@@ -52,7 +57,7 @@ export default function EventFormPage() {
     try {
       const [boothRes, hotelRes, ticketRes, sponsorTypeRes] = await Promise.all([
         fetch("/api/admin/booths"),
-        fetch("/api/admin/hotels"),
+        fetch("/api/admin/hotels?includeRooms=true"),
         fetch("/api/admin/tickets"),
         fetch("/api/admin/sponsors"),
       ]);
@@ -67,96 +72,115 @@ export default function EventFormPage() {
 
   // Fetch event data if editing
   const fetchEvent = async () => {
-  try {
-    setFetching(true);
-    const res = await fetch(`/api/events/${eventId}`);
-    if (!res.ok) {
-      console.error(await res.json());
-      return;
+    try {
+      setFetching(true);
+      const res = await fetch(`/api/events/${eventId}`);
+      if (!res.ok) {
+        console.error(await res.json());
+        return;
+      }
+      const event = await res.json();
+
+      setFormData({
+        name: event.name,
+        startDate: event.startDate?.split("T")[0] ?? "",
+        endDate: event.endDate?.split("T")[0] ?? "",
+        location: event.location,
+        thumbnail: event.thumbnail ?? "",
+        eventType: event.eventType ?? "New",
+        expectedAudience: event.expectedAudience ?? "",
+        description: event.description ?? "",
+      });
+
+      setThumbFile(null);
+      setThumbPreview(event.thumbnail || null);
+
+      setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
+      setSelectedHotelIds(event.hotels?.map((h: any) => h.id) ?? []);
+
+      setSelectedTicketIds(event.eventTickets?.map((et: any) => et.ticketId) ?? []);
+      setTicketQuantities(
+        event.eventTickets?.reduce((acc: any, et: any) => {
+          acc[et.ticketId] = et.quantity ?? 1;
+          return acc;
+        }, {}) ?? {},
+      );
+
+      setSelectedSponsorTypeIds(event.eventSponsorTypes?.map((es: any) => es.sponsorTypeId) ?? []);
+      setSponsorQuantities(
+        event.eventSponsorTypes?.reduce((acc: any, es: any) => {
+          acc[es.sponsorTypeId] = es.quantity ?? 1;
+          return acc;
+        }, {}) ?? {},
+      );
+
+      setSelectedRoomTypeIds(event.eventRoomTypes?.map((ert: any) => ert.roomTypeId) ?? []);
+      setRoomTypeQuantities(
+        event.eventRoomTypes?.reduce((acc: any, ert: any) => {
+          acc[ert.roomTypeId] = ert.quantity ?? 1;
+          return acc;
+        }, {}) ?? {},
+      );
+    } catch (error) {
+      console.error("Failed to fetch event:", error);
+    } finally {
+      setFetching(false);
     }
-    const event = await res.json();
-
-    setFormData({
-      name: event.name,
-      startDate: event.startDate?.split("T")[0] ?? "",
-      endDate: event.endDate?.split("T")[0] ?? "",
-      location: event.location,
-      thumbnail: event.thumbnail ?? "",
-      eventType: event.eventType ?? "New",
-      expectedAudience: event.expectedAudience ?? "",
-      description: event.description ?? "",
-    });
-
-    setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
-    setSelectedHotelIds(event.hotels?.map((h: any) => h.id) ?? []);
-
-    setSelectedTicketIds(event.eventTickets?.map((et: any) => et.ticketId) ?? []);
-    setTicketQuantities(
-      event.eventTickets?.reduce((acc: any, et: any) => {
-        acc[et.ticketId] = et.quantity ?? 1;
-        return acc;
-      }, {}) ?? {}
-    );
-
-    setSelectedSponsorTypeIds(event.eventSponsorTypes?.map((es: any) => es.sponsorTypeId) ?? []);
-    setSponsorQuantities(
-      event.eventSponsorTypes?.reduce((acc: any, es: any) => {
-        acc[es.sponsorTypeId] = es.quantity ?? 1;
-        return acc;
-      }, {}) ?? {}
-    );
-
-    setSelectedRoomTypeIds(event.eventRoomTypes?.map((ert: any) => ert.roomTypeId) ?? []);
-setRoomTypeQuantities(
-  event.eventRoomTypes?.reduce((acc: any, ert: any) => {
-    acc[ert.roomTypeId] = ert.quantity ?? 1;
-    return acc;
-  }, {}) ?? {}
-);
-
-  } catch (error) {
-    console.error("Failed to fetch event:", error);
-  } finally {
-    setFetching(false);
-  }
-};
-
+  };
 
   useEffect(() => {
     fetchAttachments();
     if (isEditMode) fetchEvent();
   }, [eventId]);
 
+  // Preview lifecycle for thumbnail
+  useEffect(() => {
+    if (!thumbFile) {
+      setThumbPreview(formData.thumbnail || null);
+      return;
+    }
+    const url = URL.createObjectURL(thumbFile);
+    setThumbPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [thumbFile, formData.thumbnail]);
+
   // Form submit handler
   const handleSubmit = async () => {
     try {
       setLoading(true);
+
+      // Upload thumbnail if a new file is selected
+      let thumbnailUrl = formData.thumbnail;
+      if (thumbFile) {
+        thumbnailUrl = await uploadFileToS3(thumbFile); // returns public S3 URL
+      }
+
       const res = await fetch(isEditMode ? `/api/events/${eventId}` : `/api/events`, {
         method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           id: eventId,
           ...formData,
+          thumbnail: thumbnailUrl ?? "",
           booths: selectedBoothIds,
           hotels: selectedHotelIds,
-          tickets: selectedTicketIds.map(id => ({
+          tickets: selectedTicketIds.map((id) => ({
             id,
             quantity: ticketQuantities[id] || 1,
           })),
-          sponsorTypes: selectedSponsorTypeIds.map(id => ({
+          sponsorTypes: selectedSponsorTypeIds.map((id) => ({
             id,
             quantity: sponsorQuantities[id] || 1,
           })),
-          roomTypes: selectedRoomTypeIds.map(id => ({
-  id,
-  quantity: roomTypeQuantities[id] || 1,
-})),
-
+          roomTypes: selectedRoomTypeIds.map((id) => ({
+            id,
+            quantity: roomTypeQuantities[id] || 1,
+          })),
         }),
       });
 
       if (res.ok) {
-        router.push("/events");
+        router.push("/admin/events");
       } else {
         console.error(await res.json());
       }
@@ -178,13 +202,9 @@ setRoomTypeQuantities(
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-8">
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {isEditMode ? "Edit Event" : "Create New Event"}
-        </h1>
+        <h1 className="text-3xl font-bold text-gray-900">{isEditMode ? "Edit Event" : "Create New Event"}</h1>
         <p className="text-gray-600">
-          {isEditMode
-            ? "Update the details of your event below"
-            : "Fill in the details below to create a new event"}
+          {isEditMode ? "Update the details of your event below" : "Fill in the details below to create a new event"}
         </p>
       </div>
 
@@ -193,7 +213,7 @@ setRoomTypeQuantities(
           {[
             { label: "Event Name", key: "name", placeholder: "Enter event name", required: true },
             { label: "Location", key: "location", placeholder: "Enter venue location", required: true },
-            { label: "Thumbnail URL", key: "thumbnail", placeholder: "https://example.com/image.jpg" },
+            // Thumbnail URL field removed; replaced with file upload below
             { label: "Expected Audience", key: "expectedAudience", placeholder: "e.g. 1000+" },
           ].map((field) => (
             <div key={field.key} className="space-y-2">
@@ -204,13 +224,36 @@ setRoomTypeQuantities(
               <Input
                 placeholder={field.placeholder}
                 value={formData[field.key as keyof typeof formData]}
-                onChange={(e) =>
-                  setFormData({ ...formData, [field.key]: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                 className="focus:ring-2 focus:ring-primary-500 text-gray-900"
               />
             </div>
           ))}
+        </div>
+
+        {/* Thumbnail upload */}
+        <div className="space-y-2">
+          <Label className="flex items-center gap-1">Thumbnail</Label>
+          <input
+            type="file"
+            accept="image/*"
+            className="mt-2 text-sm"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              setThumbFile(f);
+              if (!f) {
+                setThumbPreview(formData.thumbnail || null);
+              }
+            }}
+          />
+          {thumbPreview && (
+            <img
+              src={thumbPreview}
+              alt="Thumbnail Preview"
+              className="w-full h-48 object-contain border rounded mt-2 p-2 bg-white"
+              onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -222,9 +265,7 @@ setRoomTypeQuantities(
               <Input
                 type="date"
                 value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
                 className="pl-10 focus:ring-2 focus:ring-primary-500 text-gray-900"
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -238,9 +279,7 @@ setRoomTypeQuantities(
               <Input
                 type="date"
                 value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
+                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                 className="pl-10 focus:ring-2 focus:ring-primary-500 text-gray-900"
               />
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4  text-gray-900" />
@@ -253,9 +292,7 @@ setRoomTypeQuantities(
           <Textarea
             placeholder="Enter detailed event description..."
             value={formData.description}
-            onChange={(e) =>
-              setFormData({ ...formData, description: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
             rows={4}
             className="focus:ring-2 focus:ring-primary-500 text-gray-900"
           />
@@ -631,7 +668,7 @@ setRoomTypeQuantities(
         )}
       </div>
 
-      <div className="flex justify-end gap-4 pt-4">
+       <div className="flex justify-end gap-4 pt-4">
         <Button variant="outline" onClick={() => router.push("/admin/events")}>
           Cancel
         </Button>

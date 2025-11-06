@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
+import { deleteS3Object } from "@/app/lib/s3";
 
 // GET one ticket
 export async function GET(req: NextRequest) {
@@ -46,15 +47,36 @@ export async function PUT(req: NextRequest) {
 }
 
 // DELETE ticket
+function extractIdFromReq(req: NextRequest) {
+  const url = new URL(req.url);
+  const parts = url.pathname.split("/").filter(Boolean);
+  return parts[parts.length - 1];
+}
+
 export async function DELETE(req: NextRequest) {
   try {
-    const url = new URL(req.url);
-    const pathnameParts = url.pathname.split("/");
-    const id = pathnameParts[pathnameParts.length - 1];
+    const id = extractIdFromReq(req);
 
-    await prisma.ticket.delete({
-      where: { id },
-    });
+    // 1) Load the ticket so we know which S3 object to delete
+    const existing = await prisma.ticket.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ error: "Ticket not found" }, { status: 404 });
+    }
+
+    // 2) Prefer a stored key if present; otherwise extract the key from the URL
+    const keyOrUrl = (existing as any).logoKey ?? existing.logo ?? null;
+
+    if (keyOrUrl) {
+      try {
+        await deleteS3Object(keyOrUrl);
+      } catch (err) {
+        console.warn("[TICKET_DELETE] failed to delete S3 object:", err);
+        // Continue with DB deletion even if S3 cleanup fails
+      }
+    }
+
+    // 3) Delete the DB row
+    await prisma.ticket.delete({ where: { id } });
 
     return NextResponse.json({ message: "Ticket deleted successfully" });
   } catch (error) {

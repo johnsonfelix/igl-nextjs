@@ -121,15 +121,21 @@ export default function AdminCompaniesListPage() {
   }, [country, city, companyName, memberId, port]);
 
   const buildQuery = () => {
-    const params: Record<string, string> = {};
-    if (country && country !== 'All') params.country = country;
-    if (city) params.city = city;
-    if (companyName) params.name = companyName;
-    if (memberId) params.memberId = memberId;
-    if (port) params.port = port;
-    const qs = new URLSearchParams(params).toString();
-    return `/api/companies/search${qs ? `?${qs}` : ''}`;
-  };
+  const params: Record<string, string> = {};
+
+  if (country && country !== 'All') params.country = country;
+  if (city) params.city = city;
+  if (companyName) params.name = companyName;
+  if (memberId) params.memberId = memberId;
+  if (port) params.port = port;
+
+  // 👇 force backend to return everything
+  params.status = 'ALL';
+  params.includeInactive = '1';
+
+  const qs = new URLSearchParams(params).toString();
+  return `/api/companies/search${qs ? `?${qs}` : ''}`;
+};
 
   async function fetchCompanies() {
     setLoading(true);
@@ -364,7 +370,7 @@ export default function AdminCompaniesListPage() {
                   <div className="flex-shrink-0 flex md:flex-col items-center gap-4">
                     <div className="relative h-24 w-24 flex-shrink-0 border-2 border-gray-100 rounded-lg p-1.5 bg-white shadow-inner">
                       {logoUrl ? (
-                        <Image src={logoUrl} alt={`${company.name} logo`} fill style={{ objectFit: 'contain' }} className="rounded-md" />
+                        <Image unoptimized src={logoUrl} alt={`${company.name} logo`} fill style={{ objectFit: 'contain' }} className="rounded-md" />
                       ) : (
                         <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-50 text-gray-400">
                           <Building size={40} />

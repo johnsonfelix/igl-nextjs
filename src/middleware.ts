@@ -1,51 +1,77 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+// middleware.ts
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-// PUBLIC (prefix) routes — adjust to your real login/register paths
+/**
+ * Public (no-auth) route prefixes.
+ * Update this list if you add more public endpoints.
+ */
 const publicPrefixes = [
-  '/api/company/login',
-  '/api/auth/login',
-  '/api/register',
-  '/api/public',        // example: open APIs under /api/public
-  '/company/login',
-  '/company/register',
-  '/api/register',
+  // auth / register pages (frontend)
+  "/company/login",
+  "/company/register",
+  "/register",
+
+  // backend API registration/auth endpoints
+  "/api/register",
+  "/api/company/register",
+  "/api/auth/register",
+  "/api/company/login",
+  "/api/auth/login",
+
+  // open/public APIs & upload presign endpoint used by the app
+  "/api/public",
+  "/api/upload-url",
 ];
+
+/**
+ * Allow static assets through quickly
+ */
+function isStaticAsset(pathname: string) {
+  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || pathname === "/favicon.ico";
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // let static/next assets through quickly (optional)
-  if (pathname.startsWith('/_next/') || pathname === '/favicon.ico') {
+  // static assets and favicon
+  if (isStaticAsset(pathname)) {
     return NextResponse.next();
   }
 
-  // Let any public prefix pass through
-  if (publicPrefixes.some(p => pathname.startsWith(p))) {
+  // allow CORS preflight
+  if (request.method === "OPTIONS") {
+    return NextResponse.next();
+  }
+
+  // Allow any public prefix to pass through (registration, login, presign, public APIs)
+  if (publicPrefixes.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
 
   // Accept either: cookie token OR Authorization header
-  const cookieToken = request.cookies.get('jwt_token')?.value ?? request.cookies.get('userId')?.value;
-  const authHeader = request.headers.get('authorization');
+  const cookieToken =
+    request.cookies.get("jwt_token")?.value ?? request.cookies.get("userId")?.value;
+  const authHeader = request.headers.get("authorization");
 
-  const hasAuth = !!cookieToken || (authHeader != null && authHeader.startsWith('Bearer '));
+  const hasAuth = !!cookieToken || (authHeader != null && authHeader.startsWith("Bearer "));
 
   if (!hasAuth) {
     // API request -> JSON 401
-    if (pathname.startsWith('/api/')) {
-      return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
+    if (pathname.startsWith("/api/")) {
+      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
     }
 
     // Page request -> redirect to login
-    const loginUrl = new URL('/company/login', request.url);
+    const loginUrl = new URL("/company/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // token present — proceed (you can add token validation here if you want)
+  // token present — proceed
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  // run middleware for everything except certain static folders (adjust if needed)
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

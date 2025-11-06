@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Plus, Trash2, Edit, Search, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -14,13 +14,30 @@ export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
-    image: "",
+    image: "", // final URL stored here
     description: "",
-    price:""
+    price: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    fetchSponsors();
+  }, []);
+
+  useEffect(() => {
+    if (!file) {
+      setPreviewUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
 
   const fetchSponsors = async () => {
     setLoading(true);
@@ -35,35 +52,122 @@ export default function SponsorsPage() {
     }
   };
 
-  useEffect(() => {
-    fetchSponsors();
-  }, []);
+  const uploadFileToS3 = async (fileToUpload: File) => {
+  const params = new URLSearchParams({
+    filename: fileToUpload.name,
+    contentType: fileToUpload.type || "application/octet-stream",
+  });
+
+  // 1) Request presign info
+  const presignResp = await fetch(`/api/upload-url?${params.toString()}`);
+  if (!presignResp.ok) {
+    const body = await presignResp.text().catch(() => "<could not read body>");
+    throw new Error(`Failed to get upload URL (status ${presignResp.status}): ${body}`);
+  }
+
+  // 2) Parse JSON and log it for debugging
+  const data = await presignResp.json().catch((e) => {
+    throw new Error("Presign endpoint returned invalid JSON: " + String(e));
+  });
+  console.log("Presign response data:", data);
+
+  // 3) Decide PUT vs POST
+  if (data.post && data.post.url && data.post.fields) {
+    // presigned POST
+    const fd = new FormData();
+    Object.entries(data.post.fields).forEach(([k, v]) => fd.append(k, v as string));
+    fd.append("file", fileToUpload);
+
+    const uploadResp = await fetch(data.post.url, {
+      method: "POST",
+      body: fd,
+    });
+
+    if (!uploadResp.ok) {
+      const text = await uploadResp.text().catch(() => "<no body>");
+      throw new Error(`S3 POST upload failed: ${uploadResp.status} ${text}`);
+    }
+
+    return data.publicUrl ?? (data.key ? `https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${data.key}` : null);
+  }
+
+  if (data.uploadUrl) {
+    // presigned PUT
+    const uploadUrl: string = data.uploadUrl;
+    console.log("Using presigned PUT URL:", uploadUrl);
+
+    // Must set the exact content-type the presign expects (server should return contentType)
+    const signedContentType = data.contentType ?? fileToUpload.type ?? "application/octet-stream";
+
+    const putResp = await fetch(uploadUrl, {
+      method: "PUT",
+      headers: {
+        "Content-Type": signedContentType,
+      },
+      body: fileToUpload,
+    });
+
+    if (!putResp.ok) {
+      const text = await putResp.text().catch(() => "<no body>");
+      console.error("PUT response body:", text);
+      throw new Error(`Upload to S3 failed: ${putResp.status} ${text}`);
+    }
+
+    return data.publicUrl;
+  }
+
+  // If we reach here, the response was unexpected
+  throw new Error("Presign response missing uploadUrl or post fields: " + JSON.stringify(data));
+};
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.description || !formData.price || !formData.image) {
-    alert("Please fill out all fields before saving.");
-    return;
-  }
+    if (!formData.name || !formData.description || !formData.price) {
+      alert("Please fill out all fields before saving.");
+      return;
+    }
+
+    setSaving(true);
     try {
+      let imageUrl = formData.image;
+
+      // if a local file is selected, upload it first
+      if (file) {
+        imageUrl = await uploadFileToS3(file);
+      }
+
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        image: imageUrl,
+      };
+
       if (editingId) {
         await fetch(`/api/admin/sponsors/${editingId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
       } else {
         await fetch("/api/admin/sponsors", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData),
+          body: JSON.stringify(payload),
         });
       }
-      setFormData({ name: "", image: "", description: "",price: "" });
+
+      // reset form
+      setFormData({ name: "", image: "", description: "", price: "" });
+      setFile(null);
+      setPreviewUrl(null);
       setEditingId(null);
       setFormOpen(false);
-      fetchSponsors();
+      await fetchSponsors();
     } catch (error) {
       console.error("Failed to save sponsor:", error);
+      alert("Failed to save sponsor. See console for more details.");
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -81,9 +185,11 @@ export default function SponsorsPage() {
     setFormData({
       name: sponsor.name,
       description: sponsor.description,
-      image: sponsor.image,
-      price: sponsor.price
+      image: sponsor.image || "",
+      price: sponsor.price || "",
     });
+    setFile(null);
+    setPreviewUrl(sponsor.image || null);
     setEditingId(sponsor.id);
     setFormOpen(true);
   };
@@ -104,81 +210,86 @@ export default function SponsorsPage() {
             </Button>
           </SheetTrigger>
           <SheetContent side="right" className="w-full sm:w-[420px]">
-  <div className="space-y-6 p-4">
-    <h2 className="text-lg font-semibold text-gray-900">
-      {editingId ? "Edit Sponsor" : "Add New Sponsor"}
-    </h2>
+            <div className="space-y-6 p-4">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {editingId ? "Edit Sponsor" : "Add New Sponsor"}
+              </h2>
 
-    <div className="space-y-4">
-      <div>
-        <Label className="text-gray-800">Name</Label>
-        <Input
-          required
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="Sponsor name"
-          value={formData.name}
-          onChange={(e) =>
-            setFormData({ ...formData, name: e.target.value })
-          }
-        />
-      </div>
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-gray-800">Name</Label>
+                  <Input
+                    required
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="Sponsor name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Description</Label>
-        <Input
-          required
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="Platinum, Gold, etc."
-          value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
-        />
-      </div>
+                <div>
+                  <Label className="text-gray-800">Description</Label>
+                  <Input
+                    required
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="Platinum, Gold, etc."
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                  />
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Price</Label>
-        <Input
-          required
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="Country"
-          value={formData.price}
-          onChange={(e) =>
-            setFormData({ ...formData, price: e.target.value })
-          }
-        />
-      </div>
+                <div>
+                  <Label className="text-gray-800">Price</Label>
+                  <Input
+                    required
+                    className="text-gray-900 placeholder-gray-400"
+                    placeholder="USD"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                  />
+                </div>
 
-      <div>
-        <Label className="text-gray-800">Logo URL</Label>
-        <Input
-          required
-          className="text-gray-900 placeholder-gray-400"
-          placeholder="https://example.com/logo.png"
-          value={formData.image}
-          onChange={(e) =>
-            setFormData({ ...formData, image: e.target.value })
-          }
-        />
-        {formData.image && (
-          <img
-            src={formData.image}
-            alt="Logo Preview"
-            className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
-            onError={(e) =>
-              ((e.target as HTMLImageElement).style.display = "none")
-            }
-          />
-        )}
-      </div>
+                <div>
+                  <Label className="text-gray-800">Logo</Label>
+                  {/* If user wants to keep existing image, they can leave file empty */}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] ?? null;
+                      setFile(f);
+                      if (!f) {
+                        // if they cleared file, keep existing preview from URL or reset
+                        setPreviewUrl(formData.image || null);
+                      }
+                    }}
+                    className="mt-2"
+                  />
+                  {/* preview either local file or existing url */}
+                  {previewUrl && (
+                    <img
+                      src={previewUrl}
+                      alt="Logo Preview"
+                      className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
+                      onError={(e) =>
+                        ((e.target as HTMLImageElement).style.display = "none")
+                      }
+                    />
+                  )}
+                </div>
 
-      <Button variant="primary" onClick={handleSubmit}>
-        {editingId ? "Update Sponsor" : "Save Sponsor"}
-      </Button>
-    </div>
-  </div>
-</SheetContent>
-
+                <Button variant="primary" onClick={handleSubmit} disabled={saving}>
+                  {saving ? "Saving..." : editingId ? "Update Sponsor" : "Save Sponsor"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
         </Sheet>
       </div>
 
@@ -216,9 +327,6 @@ export default function SponsorsPage() {
                   <h3 className="font-semibold text-lg truncate">{sponsor.name}</h3>
                   <div className="flex justify-between items-center text-white">
                     <Badge variant="secondary"> ${sponsor.price || "Unknown"}</Badge>
-                    {/* <span className="text-sm text-gray-500 truncate">
-                      {sponsor.country || "Unknown"}
-                    </span> */}
                   </div>
                   <div className="flex gap-2 pt-3">
                     <Button

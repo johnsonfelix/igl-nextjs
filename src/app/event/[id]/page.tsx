@@ -138,11 +138,7 @@ const PriceCard = ({ item, productType, actionText = "Select" }: { item: { id: s
 
 // --- Main Page Component Wrapper ---
 export default function EventDetailPageWrapper({ params }: { params: Promise<{ id: string }> }) {
-  return (
-    <CartProvider>
-      <EventDetailPage params={params} />
-    </CartProvider>
-  );
+  return <EventDetailPage params={params} />;
 }
 
 // --- MAIN PAGE COMPONENT ---
@@ -153,7 +149,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('About');
   const [isCartOpen, setCartOpen] = useState(false);
-  const [selectedHotel, setSelectedHotel] = useState<HotelData | null>(null);
 
   const { itemCount } = useCart();
 
@@ -204,7 +199,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       <h4 className="text-xl font-bold flex items-center gap-2"><Hotel className="h-5 w-5 text-indigo-600" /> {hotel.hotelName}</h4>
                       <p className="text-slate-500 flex items-center gap-2 mt-1"><MapPin className="h-4 w-4" /> {hotel.address}</p>
                     </div>
-                    <button onClick={() => setSelectedHotel(hotel)} className="bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-md hover:bg-indigo-200 transition-colors self-start sm:self-center w-full sm:w-auto">View Rooms</button>
+                    {/* Navigate to the new rooms page */}
+                    <Link href={`/event/${eventData.id}/hotel/${hotel.id}`} className="bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-md hover:bg-indigo-200 transition-colors self-start sm:self-center w-full sm:w-auto">View Rooms</Link>
                   </div>
                 </div>
               ))}
@@ -231,74 +227,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
       </div>
-      <main className="container mx-auto p-4 md:p-8 -mt-20 relative">
+      <main className="container mx-auto p-4 md:p-8 -mt relative">
         <div className="bg-white/70 backdrop-blur-md rounded-lg shadow-lg p-2 flex items-center justify-start space-x-2 overflow-x-auto mb-8 border border-slate-200/80">
           {tabs.map(tab => (<button key={tab} onClick={() => setActiveTab(tab)} className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold transition-colors ${ activeTab === tab ? 'bg-indigo-600 text-white shadow' : 'text-slate-600 hover:bg-slate-100' }`}>{tab}</button>))}
         </div>
         {renderContent()}
       </main>
-      <button onClick={() => setCartOpen(true)} className="fixed bottom-8 right-8 bg-indigo-600 text-white rounded-full shadow-lg p-4 hover:bg-indigo-700 transition-transform hover:scale-105 flex items-center gap-2">
+      {/* <button onClick={() => setCartOpen(true)} className="fixed bottom-8 right-8 bg-indigo-600 text-white rounded-full shadow-lg p-4 hover:bg-indigo-700 transition-transform hover:scale-105 flex items-center gap-2">
         <ShoppingCart className="h-6 w-6" />
         {itemCount > 0 && <span className="absolute -top-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-xs font-bold">{itemCount}</span>}
-      </button>
-      <CartSheet isOpen={isCartOpen} onClose={() => setCartOpen(false)} eventId={eventData.id} />
-      {selectedHotel && <HotelRoomsModal hotel={selectedHotel} onClose={() => setSelectedHotel(null)} />}
+      </button> */}
+      {/* <CartSheet isOpen={isCartOpen} onClose={() => setCartOpen(false)} eventId={eventData.id} /> */}
     </div>
   );
 }
 
-// --- Hotel Rooms Modal Component ---
-const HotelRoomsModal = ({ hotel, onClose }: { hotel: HotelData, onClose: () => void }) => {
-    const { addToCart } = useCart();
-    const handleAddRoom = (room: HotelData['roomTypes'][0]) => {
-        addToCart({
-            productId: hotel.id,
-            productType: 'HOTEL',
-            name: `${hotel.hotelName} - ${room.roomType}`,
-            price: room.price,
-            image: hotel.image,
-            roomTypeId: room.id
-        });
-        alert('Room added to cart!');
-        onClose();
-    };
-
-    return (
-        <div className="fixed inset-0 bg-black/60 flex items-center justify-center p-4 z-50 animate-fade-in">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-                <div className="p-4 border-b flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-slate-800">Room Types at {hotel.hotelName}</h3>
-                    <button onClick={onClose} className="text-slate-500 hover:text-slate-800"><X className="h-6 w-6" /></button>
-                </div>
-                <div className="p-6 overflow-y-auto">
-                    {hotel.roomTypes.length > 0 ? (
-                        <div className="space-y-4">
-                            {hotel.roomTypes.map(room => {
-                                const available = room.eventRoomTypes[0]?.quantity ?? 0;
-                                return (
-                                <div key={room.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-200">
-                                    <div>
-                                        <p className="font-semibold text-slate-800">{room.roomType}</p>
-                                        <p className="text-xs text-slate-500">{room.amenities}</p>
-                                        <p className="text-sm font-medium text-slate-700 mt-1">Available: {available}</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="font-bold text-indigo-600 text-lg">${room.price}</p>
-                                        {available > 0 ? (
-                                            <button onClick={() => handleAddRoom(room)} className="text-sm bg-indigo-600 text-white px-3 py-1 rounded-md mt-1 hover:bg-indigo-700">Add</button>
-                                        ) : ( <p className="text-sm text-red-500 font-semibold">Sold Out</p> )}
-                                    </div>
-                                </div>
-                            )})}
-                        </div>
-                    ) : <p>No room types available for this event.</p>}
-                </div>
-            </div>
-        </div>
-    );
-};
-
-// --- Cart Sheet Component ---
+// --- CartSheet Component (unchanged from your code) ---
 const CartSheet = ({ isOpen, onClose, eventId }: { isOpen: boolean, onClose: () => void, eventId: string }) => {
     const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
     const [isCheckingOut, setCheckingOut] = useState(false);

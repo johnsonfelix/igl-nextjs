@@ -1,16 +1,18 @@
-// app/api/companies/route.ts
+// app/api/companies/search/route.ts
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
+
+type CompanyStatus = 'LIVE' | 'BLOCKLISTED' | 'SUSPENDED';
 
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
     const params = url.searchParams;
 
-    // --- [FIX] Changed 'companyName' to 'name' to match the frontend query ---
-    const companyName = params.get('name') ?? undefined;
+    // --- query params from client ---
+    const companyName = params.get('name') ?? undefined;       // matches frontend
     const memberId = params.get('memberId') ?? undefined;
     const memberType = params.get('memberType') ?? undefined;
     const country = params.get('country') ?? undefined;
@@ -20,16 +22,43 @@ export async function GET(request: Request) {
     const limit = Math.min(100, Number(params.get('limit') ?? '25'));
     const offset = Math.max(0, Number(params.get('offset') ?? '0'));
 
-    // Base company filters
+    // NEW: Status controls
+    // - status=ALL            -> no status filter (return all)
+    // - statuses=LIVE,BLOCKLISTED (CSV) -> filter to provided list
+    // - (default)             -> LIVE only (backwards compatible)
+    const statusParam = (params.get('status') || '').toUpperCase(); // 'ALL' or ''
+    const statusesCsv = params.get('statuses'); // e.g. "LIVE,BLOCKLISTED"
+    const includeInactive = params.get('includeInactive') === '1';  // if true, don't filter isActive=true
+
+    // ------------------ build where ------------------
     const where: any = {};
-    // only show companies with LIVE status
-    where.status = 'LIVE';
+
+    // Status filter
+    if (statusParam === 'ALL') {
+      // no status filter
+    } else if (statusesCsv) {
+      const list = statusesCsv
+        .split(',')
+        .map(s => s.trim().toUpperCase())
+        .filter(Boolean) as CompanyStatus[];
+      if (list.length > 0) {
+        where.status = { in: list };
+      }
+    } else {
+      // default behavior: LIVE only
+      where.status = 'LIVE';
+    }
+
+    // isActive filter (default: only active; unless includeInactive=1)
+    if (!includeInactive) {
+      where.isActive = true;
+    }
 
     if (companyName) where.name = { contains: companyName, mode: 'insensitive' };
-    if (memberId) where.memberId = memberId;
-    if (memberType) where.memberType = memberType;
+    if (memberId) where.memberId = { contains: memberId, mode: 'insensitive' };
+    if (memberType) where.memberType = { equals: memberType, mode: 'insensitive' };
 
-    // Location filters (used below)
+    // location filters
     const locationWhere: any = {};
     if (country && country !== 'All') locationWhere.country = { equals: country, mode: 'insensitive' };
     if (city) locationWhere.city = { contains: city, mode: 'insensitive' };
@@ -37,10 +66,9 @@ export async function GET(request: Request) {
 
     let companies;
 
-    // --- The rest of your location filtering logic remains the same ---
+    // Try one-to-one "location" first, then fallback to hypothetical one-to-many "locations"
     if (Object.keys(locationWhere).length > 0) {
       try {
-        // One-to-one location relation
         companies = await prisma.company.findMany({
           where: { ...where, location: locationWhere },
           include: { location: true, media: true },
@@ -50,10 +78,9 @@ export async function GET(request: Request) {
         });
       } catch (errOne) {
         try {
-          // Fallback to one-to-many locations relation
           companies = await prisma.company.findMany({
-            where: { ...where, locations: { some: locationWhere } },
-            include: { media: true }, // Assuming 'locations' if it's one-to-many
+            where: { ...where, locations: { some: locationWhere } }, // if you have a one-to-many relation
+            include: { media: true }, // adjust if you also want to include locations
             skip: offset,
             take: limit,
             orderBy: { name: 'asc' },
@@ -70,7 +97,6 @@ export async function GET(request: Request) {
         }
       }
     } else {
-      // No location filters
       try {
         companies = await prisma.company.findMany({
           where,
@@ -79,8 +105,7 @@ export async function GET(request: Request) {
           take: limit,
           orderBy: { name: 'asc' },
         });
-      } catch (err) {
-        // Fallback if 'location' relation doesn't exist on some records
+      } catch {
         companies = await prisma.company.findMany({
           where,
           include: { media: true },
@@ -93,7 +118,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(companies);
   } catch (error) {
-    console.error('API /api/companies error:', error);
+    console.error('API /api/companies/search error:', error);
     return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });
   }
 }
