@@ -139,7 +139,7 @@ export async function PUT(req: NextRequest) {
                   const u = new URL(newImageUrl);
                   let p = u.pathname || "";
                   if (p.startsWith("/")) p = p.slice(1);
-                  const BUCKET = process.env.S3_BUCKET;
+                  const BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
                   if (BUCKET && p.startsWith(`${BUCKET}/`)) p = p.slice(BUCKET.length + 1);
                   return decodeURIComponent(p);
                 } catch {
@@ -206,7 +206,7 @@ export async function PUT(req: NextRequest) {
             const u = new URL(body.image);
             let p = u.pathname || "";
             if (p.startsWith("/")) p = p.slice(1);
-            const BUCKET = process.env.S3_BUCKET;
+            const BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
             if (BUCKET && p.startsWith(`${BUCKET}/`)) p = p.slice(BUCKET.length + 1);
             imageKey = decodeURIComponent(p);
           } catch {

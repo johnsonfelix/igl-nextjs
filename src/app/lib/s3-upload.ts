@@ -33,7 +33,7 @@ export const uploadFileToS3 = async (fileToUpload: File): Promise<string> => {
     }
 
     // Construct the public URL
-    return data.publicUrl ?? (data.key ? `https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${data.key}` : "");
+    return data.publicUrl ?? (data.key ? `https://${process.env.NEXT_PUBLIC_NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${data.key}` : "");
   }
 
   // 3. Handle presigned PUT

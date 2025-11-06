@@ -88,7 +88,7 @@ export default function SponsorsPage() {
       throw new Error(`S3 POST upload failed: ${uploadResp.status} ${text}`);
     }
 
-    return data.publicUrl ?? (data.key ? `https://${process.env.NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${data.key}` : null);
+    return data.publicUrl ?? (data.key ? `https://${process.env.NEXT_PUBLIC_NEXT_PUBLIC_S3_BUCKET}.s3.${process.env.NEXT_PUBLIC_NEXT_PUBLIC_AWS_REGION}.amazonaws.com/${data.key}` : null);
   }
 
   if (data.uploadUrl) {

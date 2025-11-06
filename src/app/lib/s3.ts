@@ -8,11 +8,11 @@ import {
   DeleteObjectsCommand,
 } from "@aws-sdk/client-s3";
 
-const REGION = process.env.AWS_REGION!;
-const BUCKET = process.env.S3_BUCKET!;
+const REGION = process.env.NEXT_PUBLIC_AWS_REGION!;
+const BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET!;
 
 if (!REGION || !BUCKET) {
-  throw new Error("Missing AWS_REGION or S3_BUCKET env vars");
+  throw new Error("Missing NEXT_PUBLIC_AWS_REGION or NEXT_PUBLIC_S3_BUCKET env vars");
 }
 
 declare global {

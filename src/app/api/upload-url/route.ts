@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 import s3Client from "@/app/lib/s3";
 
-const BUCKET = process.env.S3_BUCKET;
-const REGION = process.env.AWS_REGION;
+const BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
+const REGION = process.env.NEXT_PUBLIC_AWS_REGION;
 
 // Optional whitelist to avoid arbitrary key prefixes
 const ALLOWED_FOLDERS = ["admin", "avatars", "products", "posts", "misc"];

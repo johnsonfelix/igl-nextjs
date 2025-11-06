@@ -12,7 +12,7 @@ function extractKeyFromUrl(urlStr?: string | null): string | null {
     const u = new URL(urlStr);
     let path = u.pathname || "";
     if (path.startsWith("/")) path = path.slice(1);
-    const BUCKET = process.env.S3_BUCKET;
+    const BUCKET = process.env.NEXT_PUBLIC_S3_BUCKET;
     if (BUCKET && path.startsWith(`${BUCKET}/`)) path = path.slice(BUCKET.length + 1);
     if (path) return decodeURIComponent(path);
   } catch (_) {
