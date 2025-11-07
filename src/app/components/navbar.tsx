@@ -18,34 +18,28 @@ interface User {
 // This hook determines if the user is logged in
 function useUser(): User | null {
   const [user, setUser] = useState<User | null>(null);
-  const pathname = usePathname(); // Get the current path
+  const pathname = usePathname();
 
   useEffect(() => {
-    // Flag to prevent state updates if component unmounts
-    let isMounted = true;
+    let aborted = false;
 
-    fetch("/api/me")
+    fetch(`/api/me?t=${Date.now()}`, {
+      cache: 'no-store',
+      credentials: 'include',
+    })
       .then(async (res) => {
-        if (isMounted) {
-          if (res.ok) {
-            setUser(await res.json());
-          } else {
-            // If response is not OK (e.g., 401 Unauthorized), set user to null
-            setUser(null);
-          }
-        }
+        if (aborted) return;
+        if (res.ok) setUser(await res.json());
+        else setUser(null);
       })
-      .catch((error) => {
-        if (isMounted) {
-          console.error("Failed to fetch user data:", error);
-          setUser(null); // Ensure user is null on network/fetch errors
-        }
+      .catch(() => {
+        if (!aborted) setUser(null);
       });
 
     return () => {
-      isMounted = false; // Cleanup: component unmounted
+      aborted = true;
     };
-  }, [pathname]); // FIX: Re-run effect when the pathname changes
+  }, [pathname]);
 
   return user;
 }
@@ -61,8 +55,8 @@ const navItems: NavItem[] = [
   // { name: "Events", href: "/events" },
   { name: "Membership", href: "/membership/become-member" },
   { name: "Event", href: "/event/list" },
-  { name: "Company Directory", href: "/directory " },
-  { name: "Inquiry", href: "/inquiry " },
+  { name: "Company Directory", href: "/directory" },
+  { name: "Inquiry", href: "/inquiry" },
   { name: "Risk Protection", href: "/risk" },
   { name: "About Us", href: "/about" },
   { name: "Admin", href: "/admin/sponsors" },

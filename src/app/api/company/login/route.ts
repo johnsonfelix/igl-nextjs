@@ -38,8 +38,10 @@ export async function POST(req: Request) {
   });
   nextResponse.cookies.set('userId', user.id, {
     httpOnly: true,
+    secure: true, 
     sameSite: 'lax',
     path: '/',
+    maxAge: 60 * 60 * 24 * 7,
   });
 
   return nextResponse;

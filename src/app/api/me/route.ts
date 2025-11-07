@@ -1,28 +1,30 @@
+// app/api/me/route.ts
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import prisma from '@/app/lib/prisma';
 
-export const dynamic = 'force-dynamic';   // or: export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
-  const cookieStore = cookies(); // no await
-  const userId = (await cookieStore).get('userId')?.value;
-
-  if (!userId) {
-    return NextResponse.json(
-      { error: 'Unauthorized' },
-      {
-        status: 401,
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-        },
-      }
-    );
-  }
-
   try {
+    const cookieStore = cookies(); // synchronous
+    const userId = (await cookieStore).get('userId')?.value;
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        {
+          status: 401,
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'Vary': 'Cookie',
+          },
+        }
+      );
+    }
+
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       return NextResponse.json(
@@ -33,6 +35,7 @@ export async function GET() {
             'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
             'Expires': '0',
+            'Vary': 'Cookie',
           },
         }
       );
@@ -45,18 +48,19 @@ export async function GET() {
         id: user.id,
         email: user.email,
         name: user.name,
-        companyId: company?.id,
+        companyId: company?.id ?? null,
       },
       {
         headers: {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0',
+          'Vary': 'Cookie',
         },
       }
     );
-  } catch (error) {
-    console.error('API /me error:', error);
+  } catch (err) {
+    console.error('API /me error:', err);
     return NextResponse.json(
       { error: 'An internal error occurred' },
       {
@@ -65,6 +69,7 @@ export async function GET() {
           'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0',
+          'Vary': 'Cookie',
         },
       }
     );
