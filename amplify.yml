@@ -5,7 +5,7 @@ frontend:
       commands:
         - npm ci
         - |
-          printf "POSTGRES_URL=%s\nPOSTGRES_URL_NON_POOLING=%s\nJWT_SECRET=%s\nDATABASE_URL=%s\n" "$POSTGRES_URL" "$POSTGRES_URL_NON_POOLING" "$JWT_SECRET" "$DATABASE_URL" "$ACCESS_KEY_ID" "$SECRET_ACCESS_KEY"> .env.production || true
+          printf "POSTGRES_URL=%s\nPOSTGRES_URL_NON_POOLING=%s\nJWT_SECRET=%s\nDATABASE_URL=%s\n" "$POSTGRES_URL" "$POSTGRES_URL_NON_POOLING" "$JWT_SECRET" "$DATABASE_URL" > .env.production || true
         - cat .env.production || true
         - npx prisma generate
     build:
