@@ -17,22 +17,29 @@ export default function LoginPage() {
     setLoading(true);
     setError('');
 
-    const res = await fetch('/api/company/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch('/api/company/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',            // <--- important
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      router.replace('/dashboard'); // simpler and avoids back button oddities
-  return;
-    } else {
-      setError(data.error || 'Invalid email or password');
+      if (res.ok) {
+        // success — navigate
+        await router.replace('/dashboard');
+        return;
+      } else {
+        setError(data?.error || 'Invalid email or password');
+      }
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err?.message || 'Network error');
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   }
 
   return (

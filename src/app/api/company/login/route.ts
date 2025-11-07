@@ -1,4 +1,3 @@
-// app/api/company/login/route.ts
 import prisma from '@/app/lib/prisma';
 import { compare } from 'bcryptjs';
 import { NextResponse } from 'next/server';
@@ -34,12 +33,12 @@ export async function POST(req: Request) {
     }
   );
 
-  res.cookies.set('userId', user.id, {
+  // ensure string and allow http in development
+  res.cookies.set('userId', String(user.id), {
     httpOnly: true,
-    secure: true,      // HTTPS on Amplify
+    secure: process.env.NODE_ENV === 'production', // <-- safe for local dev
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 60 * 24 * 7,
   });
 
   return res;
