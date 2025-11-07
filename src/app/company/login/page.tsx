@@ -19,17 +19,17 @@ export default function LoginPage() {
 
     try {
       const res = await fetch('/api/company/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',            // <--- important
-        body: JSON.stringify({ email, password }),
-      });
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',                 // important
+  body: JSON.stringify({ email, password }),
+});
 
       const data = await res.json();
 
       if (res.ok) {
         // success — navigate
-        await router.replace('/dashboard');
+        window.location.assign('/dashboard');
         return;
       } else {
         setError(data?.error || 'Invalid email or password');

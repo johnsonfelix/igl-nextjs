@@ -34,42 +34,29 @@ function isStaticAsset(pathname: string) {
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // static assets and favicon
-  if (isStaticAsset(pathname)) {
-    return NextResponse.next();
-  }
+  if (isStaticAsset(pathname) || request.method === 'OPTIONS') return NextResponse.next();
+  if (publicPrefixes.some((p) => pathname.startsWith(p))) return NextResponse.next();
 
-  // allow CORS preflight
-  if (request.method === "OPTIONS") {
-    return NextResponse.next();
-  }
-
-  // Allow any public prefix to pass through (registration, login, presign, public APIs)
-  if (publicPrefixes.some((p) => pathname.startsWith(p))) {
-    return NextResponse.next();
-  }
-
-  // Accept either: cookie token OR Authorization header
   const cookieToken =
-    request.cookies.get("jwt_token")?.value ?? request.cookies.get("userId")?.value;
-  const authHeader = request.headers.get("authorization");
-
-  const hasAuth = !!cookieToken || (authHeader != null && authHeader.startsWith("Bearer "));
+    request.cookies.get('jwt_token')?.value ?? request.cookies.get('userId')?.value;
+  const hasAuthHeader = request.headers.get('authorization')?.startsWith('Bearer ') ?? false;
+  const hasAuth = Boolean(cookieToken || hasAuthHeader);
 
   if (!hasAuth) {
-    // API request -> JSON 401
-    if (pathname.startsWith("/api/")) {
-      return NextResponse.json({ message: "Authentication required" }, { status: 401 });
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ message: 'Authentication required' }, { status: 401 });
     }
-
-    // Page request -> redirect to login
-    const loginUrl = new URL("/company/login", request.url);
+    const loginUrl = new URL('/company/login', request.url);
     return NextResponse.redirect(loginUrl);
   }
 
-  // token present — proceed
-  return NextResponse.next();
+  // add debug header so you can see what the edge read
+  const res = NextResponse.next();
+  res.headers.set('x-auth-cookie-present', cookieToken ? '1' : '0');
+  res.headers.set('cache-control', 'no-store'); // avoid any accidental edge caching
+  return res;
 }
+
 
 export const config = {
   // run middleware for everything except certain static folders (adjust if needed)

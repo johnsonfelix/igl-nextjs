@@ -35,11 +35,20 @@ export async function POST(req: Request) {
 
   // ensure string and allow http in development
   res.cookies.set('userId', String(user.id), {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'lax',
+  path: '/',
+});
+
+if (company?.id) {
+  res.cookies.set('companyId', String(company.id), {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // <-- safe for local dev
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
   });
+}
 
   return res;
 }
