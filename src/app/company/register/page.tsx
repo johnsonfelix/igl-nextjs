@@ -52,6 +52,7 @@ export default function RegisterCompanyPage() {
 
       // ✅ Send user to login (your login page lives at /company/login)
       router.push('/company/login');
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong');
     } finally {
