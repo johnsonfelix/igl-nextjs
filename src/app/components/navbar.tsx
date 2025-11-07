@@ -7,7 +7,6 @@ import { Menu, X, User } from "lucide-react";
 // Assuming you have a custom Button component, adjust path if needed
 import { Button } from "@/app/components/ui/button";
 
-
 // Define a type for your user object for better type safety
 interface User {
   email?: string;
@@ -15,34 +14,38 @@ interface User {
   // companyId?: string; // Example
 }
 
-const user = useUser();
-
 // Hook: Fetch user info from /api/me
 // This hook determines if the user is logged in
 function useUser(): User | null {
   const [user, setUser] = useState<User | null>(null);
-  const pathname = usePathname();
+  const pathname = usePathname(); // Get the current path
 
   useEffect(() => {
-    let aborted = false;
+    // Flag to prevent state updates if component unmounts
+    let isMounted = true;
 
-    fetch(`/api/me?t=${Date.now()}`, {
-      cache: 'no-store',
-      credentials: 'include',
-    })
+    fetch("/api/me")
       .then(async (res) => {
-        if (aborted) return;
-        if (res.ok) setUser(await res.json());
-        else setUser(null);
+        if (isMounted) {
+          if (res.ok) {
+            setUser(await res.json());
+          } else {
+            // If response is not OK (e.g., 401 Unauthorized), set user to null
+            setUser(null);
+          }
+        }
       })
-      .catch(() => {
-        if (!aborted) setUser(null);
+      .catch((error) => {
+        if (isMounted) {
+          console.error("Failed to fetch user data:", error);
+          setUser(null); // Ensure user is null on network/fetch errors
+        }
       });
 
     return () => {
-      aborted = true;
+      isMounted = false; // Cleanup: component unmounted
     };
-  }, [pathname]);
+  }, [pathname]); // FIX: Re-run effect when the pathname changes
 
   return user;
 }
@@ -58,8 +61,8 @@ const navItems: NavItem[] = [
   // { name: "Events", href: "/events" },
   { name: "Membership", href: "/membership/become-member" },
   { name: "Event", href: "/event/list" },
-  { name: "Company Directory", href: "/directory" },
-  { name: "Inquiry", href: "/inquiry" },
+  { name: "Company Directory", href: "/directory " },
+  { name: "Inquiry", href: "/inquiry " },
   { name: "Risk Protection", href: "/risk" },
   { name: "About Us", href: "/about" },
   { name: "Admin", href: "/admin/sponsors" },
