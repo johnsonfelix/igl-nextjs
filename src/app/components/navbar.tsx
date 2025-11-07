@@ -6,7 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { Menu, X, User } from "lucide-react";
 // Assuming you have a custom Button component, adjust path if needed
 import { Button } from "@/app/components/ui/button";
-import { useUser } from "../hooks/useUser";
+
 
 // Define a type for your user object for better type safety
 interface User {
@@ -19,33 +19,33 @@ const user = useUser();
 
 // Hook: Fetch user info from /api/me
 // This hook determines if the user is logged in
-// function useUser(): User | null {
-//   const [user, setUser] = useState<User | null>(null);
-//   const pathname = usePathname();
+function useUser(): User | null {
+  const [user, setUser] = useState<User | null>(null);
+  const pathname = usePathname();
 
-//   useEffect(() => {
-//     let aborted = false;
+  useEffect(() => {
+    let aborted = false;
 
-//     fetch(`/api/me?t=${Date.now()}`, {
-//       cache: 'no-store',
-//       credentials: 'include',
-//     })
-//       .then(async (res) => {
-//         if (aborted) return;
-//         if (res.ok) setUser(await res.json());
-//         else setUser(null);
-//       })
-//       .catch(() => {
-//         if (!aborted) setUser(null);
-//       });
+    fetch(`/api/me?t=${Date.now()}`, {
+      cache: 'no-store',
+      credentials: 'include',
+    })
+      .then(async (res) => {
+        if (aborted) return;
+        if (res.ok) setUser(await res.json());
+        else setUser(null);
+      })
+      .catch(() => {
+        if (!aborted) setUser(null);
+      });
 
-//     return () => {
-//       aborted = true;
-//     };
-//   }, [pathname]);
+    return () => {
+      aborted = true;
+    };
+  }, [pathname]);
 
-//   return user;
-// }
+  return user;
+}
 
 // Define the structure for your navigation items
 interface NavItem {
@@ -98,21 +98,27 @@ export default function Navbar() {
   }, [accountOpen]); // Dependency array: re-run effect if accountOpen state changes
 
   // Handle user logout
-const handleLogout = async () => {
-  try {
-    const res = await fetch("/api/logout", { method: "POST", credentials: "include" });
-    if (res.ok) {
-      setAccountOpen(false);
-      // broadcast
-      window.dispatchEvent(new Event("auth:changed"));
-      router.replace("/company/login");
-    } else {
-      console.error("Logout failed:", await res.text());
+  const handleLogout = async () => {
+    try {
+      // Send a POST request to your logout API endpoint
+      const res = await fetch("/api/logout", { method: "POST" });
+
+      if (res.ok) {
+        // Clear the account dropdown state
+        setAccountOpen(false);
+        // Redirect to the login page after successful logout
+        router.push("/company/login");
+        // After redirection, the `useUser` hook will re-run due to the pathname change,
+        // correctly updating the state to `null`.
+      } else {
+        console.error("Logout failed:", await res.text());
+        // Handle logout error, e.g., show a toast notification
+      }
+    } catch (error) {
+      console.error("Network error during logout:", error);
+      // Handle network errors
     }
-  } catch (e) {
-    console.error("Network error during logout:", e);
-  }
-};
+  };
 
   return (
     <header className="bg-white border-b shadow-sm sticky top-0 z-50">
