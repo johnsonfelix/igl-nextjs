@@ -7,39 +7,22 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    const cookieStore = cookies(); // synchronous
-    const userId = (await cookieStore).get('userId')?.value;
+    const store = await cookies(); // DO NOT await
+    const userId = store.get('userId')?.value;
+
+    const headers = {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
+      'Pragma': 'no-cache',
+      'Expires': '0',
+      'Vary': 'Cookie',
+    } as const;
 
     if (!userId) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        {
-          status: 401,
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'Vary': 'Cookie',
-          },
-        }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers });
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        {
-          status: 404,
-          headers: {
-            'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'Vary': 'Cookie',
-          },
-        }
-      );
-    }
+    if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404, headers });
 
     const company = await prisma.company.findFirst({ where: { userId: user.id } });
 
@@ -50,17 +33,10 @@ export async function GET() {
         name: user.name,
         companyId: company?.id ?? null,
       },
-      {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate, max-age=0',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'Vary': 'Cookie',
-        },
-      }
+      { headers }
     );
-  } catch (err) {
-    console.error('API /me error:', err);
+  } catch (e) {
+    console.error('API /me error:', e);
     return NextResponse.json(
       { error: 'An internal error occurred' },
       {

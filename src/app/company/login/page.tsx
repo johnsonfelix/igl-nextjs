@@ -26,7 +26,7 @@ export default function LoginPage() {
     const data = await res.json();
 
     if (res.ok) {
-      router.replace('/dashboard');
+      router.replace('/dashboard'); // simpler and avoids back button oddities
   return;
     } else {
       setError(data.error || 'Invalid email or password');
