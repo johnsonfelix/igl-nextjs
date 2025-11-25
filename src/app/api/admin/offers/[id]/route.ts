@@ -1,5 +1,5 @@
 // D:\Projects\Logistics\web\backend-api\src\app\api\admin\offers\[id]\route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
 type OfferPayload = {
@@ -17,14 +17,31 @@ type OfferPayload = {
   boothIds?: string[];
 };
 
-export async function GET(req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+// small helper to get the last path segment as id
+function getIdFromRequest(req: NextRequest): string {
+  const url = new URL(req.url);
+  const parts = url.pathname.split("/").filter(Boolean); // remove empty segments
+  return parts[parts.length - 1]; // last segment = [id]
+}
+
+// 🔹 GET /api/admin/offers/[id]
+export async function GET(req: NextRequest) {
+  const id = getIdFromRequest(req);
+
   try {
     const o = await prisma.offer.findUnique({
       where: { id },
-      include: { hotels: true, tickets: true, sponsorTypes: true, booths: true },
+      include: {
+        hotels: true,
+        tickets: true,
+        sponsorTypes: true,
+        booths: true,
+      },
     });
-    if (!o) return NextResponse.json({ error: "Offer not found" }, { status: 404 });
+
+    if (!o) {
+      return NextResponse.json({ error: "Offer not found" }, { status: 404 });
+    }
 
     return NextResponse.json({
       id: o.id,
@@ -43,18 +60,30 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     });
   } catch (err) {
     console.error("GET /api/admin/offers/[id] error:", err);
-    return NextResponse.json({ error: "Failed to fetch offer" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch offer" },
+      { status: 500 }
+    );
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+// 🔹 PUT /api/admin/offers/[id]
+export async function PUT(req: NextRequest) {
+  const id = getIdFromRequest(req);
+
   try {
-    // TODO: add auth/permission checks here if required
     const body = (await req.json()) as OfferPayload;
 
-    if (body.percentage !== undefined && (isNaN(body.percentage as number) || (body.percentage as number) <= 0 || (body.percentage as number) > 100)) {
-      return NextResponse.json({ error: "percentage must be a number between 1 and 100" }, { status: 400 });
+    if (
+      body.percentage !== undefined &&
+      (isNaN(body.percentage as number) ||
+        (body.percentage as number) <= 0 ||
+        (body.percentage as number) > 100)
+    ) {
+      return NextResponse.json(
+        { error: "percentage must be a number between 1 and 100" },
+        { status: 400 }
+      );
     }
 
     const updateData: any = {};
@@ -64,19 +93,30 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     if (body.description !== undefined) updateData.description = body.description;
     if (body.percentage !== undefined) updateData.percentage = body.percentage;
     if (body.scope !== undefined) updateData.scope = body.scope;
-    if (body.startsAt !== undefined) updateData.startsAt = body.startsAt ? new Date(body.startsAt) : null;
-    if (body.endsAt !== undefined) updateData.endsAt = body.endsAt ? new Date(body.endsAt) : null;
+    if (body.startsAt !== undefined)
+      updateData.startsAt = body.startsAt ? new Date(body.startsAt) : null;
+    if (body.endsAt !== undefined)
+      updateData.endsAt = body.endsAt ? new Date(body.endsAt) : null;
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
     // If scope == CUSTOM, replace relations with provided arrays using `set`
     if (body.scope === "CUSTOM") {
-      if (Array.isArray(body.hotelIds)) updateData.hotels = { set: body.hotelIds.map((id) => ({ id })) };
-      if (Array.isArray(body.ticketIds)) updateData.tickets = { set: body.ticketIds.map((id) => ({ id })) };
-      if (Array.isArray(body.sponsorTypeIds)) updateData.sponsorTypes = { set: body.sponsorTypeIds.map((id) => ({ id })) };
-      if (Array.isArray(body.boothIds)) updateData.booths = { set: body.boothIds.map((id) => ({ id })) };
+      if (Array.isArray(body.hotelIds)) {
+        updateData.hotels = { set: body.hotelIds.map((id) => ({ id })) };
+      }
+      if (Array.isArray(body.ticketIds)) {
+        updateData.tickets = { set: body.ticketIds.map((id) => ({ id })) };
+      }
+      if (Array.isArray(body.sponsorTypeIds)) {
+        updateData.sponsorTypes = {
+          set: body.sponsorTypeIds.map((id) => ({ id })),
+        };
+      }
+      if (Array.isArray(body.boothIds)) {
+        updateData.booths = { set: body.boothIds.map((id) => ({ id })) };
+      }
     } else {
-      // Optional: if scope changed away from CUSTOM you may want to clear relations.
-      // Uncomment the following lines to clear them automatically when not CUSTOM:
+      // optional: clear relations when scope != CUSTOM
       // updateData.hotels = { set: [] };
       // updateData.tickets = { set: [] };
       // updateData.sponsorTypes = { set: [] };
@@ -86,7 +126,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
     const updated = await prisma.offer.update({
       where: { id },
       data: updateData,
-      include: { hotels: true, tickets: true, sponsorTypes: true, booths: true },
+      include: {
+        hotels: true,
+        tickets: true,
+        sponsorTypes: true,
+        booths: true,
+      },
     });
 
     return NextResponse.json({
@@ -113,8 +158,10 @@ export async function PUT(req: Request, { params }: { params: { id: string } }) 
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } }) {
-  const id = params.id;
+// 🔹 DELETE /api/admin/offers/[id]
+export async function DELETE(req: NextRequest) {
+  const id = getIdFromRequest(req);
+
   try {
     await prisma.offer.delete({ where: { id } });
     return NextResponse.json({ ok: true });

@@ -1,5 +1,5 @@
 // /app/api/events/[id]/checkout/route.ts
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -15,15 +15,21 @@ interface CartItem {
   boothSubTypeId?: string; // optional; may be provided for BOOTH
 }
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  const eventId = params.id;
+// helper to get the eventId from /api/events/[id]/checkout
+function getEventIdFromRequest(req: NextRequest): string {
+  const url = new URL(req.url);
+  const parts = url.pathname.split("/").filter(Boolean);
+  // pathname looks like: /api/events/{id}/checkout
+  // parts: ["api", "events", "{id}", "checkout"]
+  return parts[parts.length - 2]; // => {id}
+}
+
+export async function POST(req: NextRequest) {
+  const eventId = getEventIdFromRequest(req);
   let body: any;
 
   try {
-    body = await request.json();
+    body = await req.json();
   } catch (e) {
     console.error("Failed to parse request JSON:", e);
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
@@ -145,48 +151,46 @@ export async function POST(
             break;
           }
 
-          case 'BOOTH': {
-  const needed = Math.max(1, item.quantity);
+          case "BOOTH": {
+            const needed = Math.max(1, item.quantity);
 
-  // Look up EventBooth for this event & booth
-  const eventBooth = await tx.eventBooth.findUnique({
-    where: {
-      eventId_boothId: {
-        eventId,
-        boothId: item.productId,
-      },
-    },
-  });
+            const eventBooth = await tx.eventBooth.findUnique({
+              where: {
+                eventId_boothId: {
+                  eventId,
+                  boothId: item.productId,
+                },
+              },
+            });
 
-  console.log(
-    `Found EventBooth for booth ${item.name}. Current quantity: ${eventBooth?.quantity}`
-  );
+            console.log(
+              `Found EventBooth for booth ${item.name}. Current quantity: ${eventBooth?.quantity}`
+            );
 
-  if (!eventBooth || eventBooth.quantity < needed) {
-    throw new Error(
-      `Booth "${item.name}" is sold out or has insufficient quantity.`
-    );
-  }
+            if (!eventBooth || eventBooth.quantity < needed) {
+              throw new Error(
+                `Booth "${item.name}" is sold out or has insufficient quantity.`
+              );
+            }
 
-  const updated = await tx.eventBooth.update({
-    where: {
-      eventId_boothId: {
-        eventId,
-        boothId: item.productId,
-      },
-    },
-    data: {
-      quantity: { decrement: needed },
-    },
-  });
+            const updated = await tx.eventBooth.update({
+              where: {
+                eventId_boothId: {
+                  eventId,
+                  boothId: item.productId,
+                },
+              },
+              data: {
+                quantity: { decrement: needed },
+              },
+            });
 
-  console.log(
-    `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
-  );
-
-  // no special sub-type handling now; generic OrderItem creation below will handle the order line
-  break;
-}
+            console.log(
+              `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
+            );
+            // no special sub-type handling now; generic OrderItem creation below will handle the order line
+            break;
+          }
 
           case "MEMBERSHIP":
           case "PRODUCT": {
@@ -204,27 +208,27 @@ export async function POST(
           }
         }
 
-        // For non-BOOTH items (and BOOTH fallback case with no subtypes), create a single OrderItem
-       await tx.orderItem.create({
-  data: {
-    orderId: purchaseOrder.id,
-    productId: item.productId,
-    productType: productType,
-    name: item.name,
-    quantity: item.quantity,
-    price: item.price,
-    roomTypeId: item.roomTypeId ?? undefined,
-    boothSubTypeId: item.boothSubTypeId ?? undefined,
-  },
-});
-console.log(`[OK] Created OrderItem for: ${item.name}`);
+        // Create OrderItem for all items
+        await tx.orderItem.create({
+          data: {
+            orderId: purchaseOrder.id,
+            productId: item.productId,
+            productType: productType,
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            roomTypeId: item.roomTypeId ?? undefined,
+            boothSubTypeId: item.boothSubTypeId ?? undefined,
+          },
+        });
+        console.log(`[OK] Created OrderItem for: ${item.name}`);
 
-calculatedTotal += item.price * item.quantity;
+        calculatedTotal += item.price * item.quantity;
       } // end for items
 
       console.log(`[INFO] Calculated subtotal: ${calculatedTotal}`);
 
-      // ---- COUPON VALIDATION & DISCOUNT calculation (server-side authoritative) ----
+      // ---- COUPON VALIDATION & DISCOUNT calculation ----
       let discountAmount = 0;
       let couponRecord: any = null;
 
