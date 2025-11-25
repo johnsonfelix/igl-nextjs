@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useEffect, useMemo, useState, use } from 'react';
-import Link from 'next/link';
-import { Loader, Check, ArrowLeft, LockKeyhole } from 'lucide-react';
-import { useCart } from '@/app/event/[id]/CartContext';
-import { useAuth } from '@/app/context/AuthContext';
+import React, { use, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { Loader, Check, ArrowLeft, LockKeyhole } from "lucide-react";
+import { useCart } from "@/app/event/[id]/CartContext";
+import { useAuth } from "@/app/context/AuthContext";
 
 /** ---------- Types ---------- */
 
@@ -21,21 +21,39 @@ type Account = {
 type CouponApplied = {
   id?: string | null;
   code?: string | null;
-  discountAmount: number;   // fixed amount
-  discountPercent: number;  // %
+  discountAmount: number; // fixed amount
+  discountPercent: number; // %
 };
 
-/** ---------- UI subcomponents (module scope to keep focus stable) ---------- */
+type OfferScope = "ALL" | "HOTELS" | "TICKETS" | "SPONSORS" | "CUSTOM";
 
-function StepDot({ state }: { state: 'completed' | 'active' | 'upcoming' }) {
-  if (state === 'completed') {
+type Offer = {
+  id: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  percentage: number | string;
+  scope: OfferScope;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  isActive: boolean;
+  hotelIds?: string[];
+  ticketIds?: string[];
+  sponsorTypeIds?: string[];
+  boothIds?: string[]; // support booths
+};
+
+/** ---------- Small UI helpers ---------- */
+
+function StepDot({ state }: { state: "completed" | "active" | "upcoming" }) {
+  if (state === "completed") {
     return (
       <div className="w-[22px] h-[22px] rounded-full bg-indigo-600 grid place-items-center text-white shadow-sm">
         <Check className="w-3.5 h-3.5" />
       </div>
     );
   }
-  if (state === 'active') {
+  if (state === "active") {
     return <div className="w-[22px] h-[22px] rounded-full bg-indigo-600 shadow-sm" />;
   }
   return <div className="w-[22px] h-[22px] rounded-full border-2 border-indigo-300" />;
@@ -61,11 +79,15 @@ function HeaderLabels() {
 
 function Totals({
   subtotal,
+  offerLabel,
+  offerValue,
   discountCode,
   discountValue,
   total,
 }: {
   subtotal: number;
+  offerLabel?: string | null;
+  offerValue: number;
   discountCode?: string | null;
   discountValue: number;
   total: number;
@@ -76,12 +98,21 @@ function Totals({
         <span>Sub Total</span>
         <span>${subtotal.toFixed(2)}</span>
       </div>
+
+      {offerValue > 0 && (
+        <div className="flex justify-between text-rose-700">
+          <span>Offer {offerLabel ? `(${offerLabel})` : ""}</span>
+          <span>- ${offerValue.toFixed(2)}</span>
+        </div>
+      )}
+
       {discountCode && discountValue > 0 && (
         <div className="flex justify-between text-green-600">
-          <span>Discount ({discountCode})</span>
+          <span>Coupon ({discountCode})</span>
           <span>- ${discountValue.toFixed(2)}</span>
         </div>
       )}
+
       <div className="flex justify-between">
         <span>Tax</span>
         <span>$0.00</span>
@@ -94,6 +125,8 @@ function Totals({
   );
 }
 
+/** ---------- Cart summary UI ---------- */
+
 function CartSummary({
   cart,
   couponCode,
@@ -102,9 +135,7 @@ function CartSummary({
   applyCoupon,
   removeCoupon,
   couponBusy,
-  subtotal,
-  discountValue,
-  total,
+  linesWithOffers,
 }: {
   cart: Array<any>;
   couponCode: string;
@@ -113,39 +144,38 @@ function CartSummary({
   applyCoupon: () => void;
   removeCoupon: () => void;
   couponBusy: boolean;
-  subtotal: number;
-  discountValue: number;
-  total: number;
+  linesWithOffers: Array<any>; // items augmented with offers & computed prices
 }) {
   return (
     <div>
       <h3 className="font-semibold text-slate-800">PRODUCT SUMMARY</h3>
 
       <div className="mt-3 space-y-3">
-        {cart.length === 0 && (
-          <p className="text-slate-500 text-sm">No items in cart.</p>
-        )}
-        {cart.map((item, idx) => (
+        {cart.length === 0 && <p className="text-slate-500 text-sm">No items in cart.</p>}
+        {linesWithOffers.map((item, idx) => (
           <div
-            key={`${item.productId}-${item.roomTypeId || item.boothSubTypeId || ''}`}
+            key={`${item.productId}-${item.roomTypeId || item.boothSubTypeId || ""}`}
             className="flex items-center gap-3 border-b pb-3"
           >
-            <img
-              src={item.image || '/placeholder.png'}
-              alt={item.name}
-              className="w-12 h-12 rounded-md object-cover border"
-            />
+            <img src={item.image || "/placeholder.png"} alt={item.name} className="w-12 h-12 rounded-md object-cover border" />
             <div className="flex-1">
               <div className="font-medium">
                 {idx + 1}. {item.name}
               </div>
               <div className="text-sm text-slate-500">
-                Qty: {item.quantity} • ${item.price.toFixed(2)}
+                Qty: {item.quantity} •{" "}
+                {item.appliedOfferPercent ? (
+                  <>
+                    <span className="line-through mr-2">${Number(item.original).toFixed(2)}</span>
+                    <span className="font-semibold">${Number(item.effective).toFixed(2)}</span>
+                    <span className="ml-2 text-xs text-rose-600 font-medium">-{Math.round(item.appliedOfferPercent)}%</span>
+                  </>
+                ) : (
+                  <span className="font-semibold">${Number(item.original).toFixed(2)}</span>
+                )}
               </div>
             </div>
-            <div className="font-semibold">
-              ${(item.price * item.quantity).toFixed(2)}
-            </div>
+            <div className="font-semibold">${Number(item.lineTotal).toFixed(2)}</div>
           </div>
         ))}
       </div>
@@ -162,12 +192,8 @@ function CartSummary({
             className="flex-1 rounded border px-3 py-2"
           />
           {!appliedCoupon.code ? (
-            <button
-              onClick={applyCoupon}
-              disabled={couponBusy || !couponCode.trim()}
-              className="px-4 py-2 rounded bg-indigo-600 text-white disabled:bg-slate-400"
-            >
-              {couponBusy ? 'Applying…' : 'Apply'}
+            <button onClick={applyCoupon} disabled={couponBusy || !couponCode.trim()} className="px-4 py-2 rounded bg-indigo-600 text-white disabled:bg-slate-400">
+              {couponBusy ? "Applying…" : "Apply"}
             </button>
           ) : (
             <button onClick={removeCoupon} className="px-4 py-2 rounded border">
@@ -175,141 +201,17 @@ function CartSummary({
             </button>
           )}
         </div>
-
-        <Totals
-          subtotal={subtotal}
-          discountCode={appliedCoupon.code}
-          discountValue={discountValue}
-          total={total}
-        />
       </div>
     </div>
   );
 }
 
-function AccountForm({
-  account,
-  setAccount,
-}: {
-  account: Account;
-  setAccount: React.Dispatch<React.SetStateAction<Account>>;
-}) {
-  return (
-    <div className="space-y-3">
-      <h3 className="font-semibold text-slate-800">ACCOUNT DETAILS</h3>
-      <input
-        value={account.name}
-        onChange={(e) => setAccount((a) => ({ ...a, name: e.target.value }))}
-        placeholder="Name"
-        className="w-full rounded border px-3 py-2"
-      />
-      <input
-        value={account.email}
-        onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))}
-        placeholder="Email"
-        type="email"
-        className="w-full rounded border px-3 py-2"
-      />
-      <input
-        value={account.phone}
-        onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value }))}
-        placeholder="Phone"
-        className="w-full rounded border px-3 py-2"
-      />
-      <input
-        value={account.address1}
-        onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))}
-        placeholder="Address 1"
-        className="w-full rounded border px-3 py-2"
-      />
-      <input
-        value={account.address2}
-        onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))}
-        placeholder="Address 2"
-        className="w-full rounded border px-3 py-2"
-      />
-    </div>
-  );
-}
-
-function PaymentStep({
-  paymentMethod,
-  setPaymentMethod,
-  agreeTerms,
-  setAgreeTerms,
-  agreePolicies,
-  setAgreePolicies,
-}: {
-  paymentMethod: 'razorpay' | 'paypal';
-  setPaymentMethod: (p: 'razorpay' | 'paypal') => void;
-  agreeTerms: boolean;
-  setAgreeTerms: (v: boolean) => void;
-  agreePolicies: boolean;
-  setAgreePolicies: (v: boolean) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div>
-        <div className="font-semibold mb-2">PAYMENT METHOD :</div>
-        <div className="flex gap-6">
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="payment"
-              value="razorpay"
-              checked={paymentMethod === 'razorpay'}
-              onChange={() => setPaymentMethod('razorpay')}
-            />
-            <span className="font-medium">Razorpay</span>
-          </label>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="radio"
-              name="payment"
-              value="paypal"
-              checked={paymentMethod === 'paypal'}
-              onChange={() => setPaymentMethod('paypal')}
-            />
-            <span className="font-medium">PayPal</span>
-          </label>
-        </div>
-      </div>
-
-      <div>
-        <div className="font-semibold mb-2">TERMS & CONDITIONS:</div>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={agreeTerms}
-            onChange={(e) => setAgreeTerms(e.target.checked)}
-          />
-          <span>Agree to Terms & Conditions:</span>
-          <Link href="/terms" className="text-indigo-700 underline">
-            Condition Name
-          </Link>
-        </label>
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={agreePolicies}
-            onChange={(e) => setAgreePolicies(e.target.checked)}
-          />
-          <span>Agree to Policies:</span>
-          <Link href="/privacy" className="text-indigo-700 underline">
-            Policy Name
-          </Link>
-        </label>
-      </div>
-    </div>
-  );
-}
-
-/** ---------- Page ---------- */
+/** ---------- Checkout Page (main) ---------- */
 
 export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const { id: eventId } = use(params);
   const { user } = useAuth();
-  const companyId = user?.companyId ?? '';
+  const companyId = user?.companyId ?? "";
 
   const { cart, clearCart } = useCart();
 
@@ -319,15 +221,15 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   // account
   const [account, setAccount] = useState<Account>({
-    name: '',
-    email: '',
-    phone: '',
-    address1: '',
-    address2: '',
+    name: "",
+    email: "",
+    phone: "",
+    address1: "",
+    address2: "",
   });
 
   // coupon
-  const [couponCode, setCouponCode] = useState('');
+  const [couponCode, setCouponCode] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<CouponApplied>({
     id: null,
@@ -337,9 +239,14 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   });
 
   // payment
-  const [paymentMethod, setPaymentMethod] = useState<'razorpay' | 'paypal'>('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "paypal">("razorpay");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePolicies, setAgreePolicies] = useState(false);
+
+  // offers
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offersLoading, setOffersLoading] = useState(false);
+  const [offersError, setOffersError] = useState<string | null>(null);
 
   // Prefill from company
   useEffect(() => {
@@ -353,20 +260,20 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
         const userObj = data?.user ?? {};
         const location = data?.location ?? {};
-        const name = userObj?.name?.toString?.() || data?.name?.toString?.() || '';
-        const email = userObj?.email?.toString?.() || '';
-        const phone = userObj?.phone?.toString?.() || '';
+        const name = userObj?.name?.toString?.() || data?.name?.toString?.() || "";
+        const email = userObj?.email?.toString?.() || "";
+        const phone = userObj?.phone?.toString?.() || "";
 
         const parts: string[] = [];
-        const a = (location.address || '').toString().trim();
-        const c = (location.city || '').toString().trim();
-        const s = (location.state || '').toString().trim();
-        const co = (location.country || '').toString().trim();
+        const a = (location.address || "").toString().trim();
+        const c = (location.city || "").toString().trim();
+        const s = (location.state || "").toString().trim();
+        const co = (location.country || "").toString().trim();
         if (a) parts.push(a);
         if (c) parts.push(c);
         if (s) parts.push(s);
         if (co) parts.push(co);
-        const address1 = parts.join(', ');
+        const address1 = parts.join(", ");
 
         if (!ignore) {
           setAccount((prev) => ({
@@ -387,63 +294,265 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     };
   }, [companyId]);
 
-  // totals
-  const subtotal = useMemo(
-    () => cart.reduce((sum, i) => sum + i.price * i.quantity, 0),
-    [cart]
-  );
+  /** ---------- Offers loader & helpers ---------- */
 
-  const discountValue = useMemo(() => {
-    if (appliedCoupon.discountPercent > 0) {
-      return subtotal * (appliedCoupon.discountPercent / 100);
+  useEffect(() => {
+    let mounted = true;
+    const loadOffers = async () => {
+      setOffersLoading(true);
+      setOffersError(null);
+      try {
+        const res = await fetch("/api/admin/offers");
+        if (!res.ok) {
+          const txt = await res.text().catch(() => "");
+          throw new Error(`Offers fetch failed: ${res.status} ${res.statusText} ${txt}`);
+        }
+        const data = (await res.json()) as Offer[];
+        if (!mounted) return;
+        setOffers(Array.isArray(data) ? data : []);
+      } catch (err: any) {
+        console.error("loadOffers error", err);
+        if (!mounted) return;
+        setOffers([]);
+        setOffersError(err?.message || "Failed to load offers");
+      } finally {
+        if (!mounted) return;
+        setOffersLoading(false);
+      }
+    };
+    loadOffers();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const toFiniteNumber = (v: any): number | null => {
+    if (v === null || v === undefined) return null;
+    if (typeof v === "number") return Number.isFinite(v) ? v : null;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  const getOriginalPriceFromCartItem = (item: any): number => {
+    // prefer explicit originalPrice then other fields
+    const keys = ["originalPrice", "basePrice", "listPrice", "price"];
+    for (const k of keys) {
+      const n = toFiniteNumber(item?.[k]);
+      if (n !== null) return n;
     }
-    return Math.min(appliedCoupon.discountAmount, subtotal);
-  }, [subtotal, appliedCoupon]);
+    if (item?.product && typeof item.product === "object") {
+      const n = toFiniteNumber(item.product.price);
+      if (n !== null) return n;
+    }
+    return 0;
+  };
 
-  const total = useMemo(() => Math.max(0, subtotal - discountValue), [subtotal, discountValue]);
+  const parseOfferPercent = (o: Offer): number | null => {
+    const raw = (o as any).percentage;
+    const n = toFiniteNumber(raw);
+    if (n === null) return null;
+    if (n <= 0) return null;
+    return Math.min(100, n);
+  };
 
-  /** Coupon handling:
-   * 1) Try event-level validation: POST /api/events/:id/apply-coupon  (optional backend)
-   * 2) Fallback: GET /api/admin/coupons  then match by code (case-insensitive)
+  function getBestOfferForItem(productType: string, productId: string): { offer?: Offer | null; percent?: number | null } {
+    if (!offers || offers.length === 0) return { offer: null, percent: null };
+    const now = new Date();
+    const applicable: { offer: Offer; pct: number }[] = [];
+
+    for (const o of offers) {
+      try {
+        if (!o.isActive) continue;
+        if (o.startsAt && new Date(o.startsAt) > now) continue;
+        if (o.endsAt && new Date(o.endsAt) < now) continue;
+        const pct = parseOfferPercent(o);
+        if (pct === null) continue;
+
+        if (o.scope === "ALL") {
+          applicable.push({ offer: o, pct });
+          continue;
+        }
+        if (productType === "TICKET" && o.scope === "TICKETS") {
+          applicable.push({ offer: o, pct });
+          continue;
+        }
+        if (productType === "HOTEL" && o.scope === "HOTELS") {
+          applicable.push({ offer: o, pct });
+          continue;
+        }
+        if (productType === "SPONSOR" && o.scope === "SPONSORS") {
+          applicable.push({ offer: o, pct });
+          continue;
+        }
+        if (o.scope === "CUSTOM") {
+          if (productType === "TICKET" && Array.isArray(o.ticketIds) && o.ticketIds.includes(productId)) {
+            applicable.push({ offer: o, pct });
+            continue;
+          }
+          if (productType === "HOTEL" && Array.isArray(o.hotelIds) && o.hotelIds.includes(productId)) {
+            applicable.push({ offer: o, pct });
+            continue;
+          }
+          if (productType === "SPONSOR" && Array.isArray(o.sponsorTypeIds) && o.sponsorTypeIds.includes(productId)) {
+            applicable.push({ offer: o, pct });
+            continue;
+          }
+          if (productType === "BOOTH" && Array.isArray(o.boothIds) && o.boothIds.includes(productId)) {
+            applicable.push({ offer: o, pct });
+            continue;
+          }
+        }
+      } catch (err) {
+        console.warn("Offer check error", err, o);
+      }
+    }
+
+    if (applicable.length === 0) return { offer: null, percent: null };
+    // choose highest percentage
+    const best = applicable.reduce((a, b) => (b.pct > a.pct ? b : a), applicable[0]);
+    return { offer: best.offer, percent: best.pct };
+  }
+
+  const getDiscountedPrice = (original: number, percent?: number | null) => {
+    if (!percent || percent <= 0) return original;
+    return Math.max(0, Number((original * (1 - percent / 100)).toFixed(2)));
+  };
+
+  /** ---------- Compose computed lines & totals ----------
+   * Algorithm:
+   *  - For each cart item, determine original price (from known keys).
+   *  - Find best offer (if any) and compute effective price & line total.
+   *  - subtotalBeforeOffers = sum(original * qty)
+   *  - offerDiscountTotal = sum((original - effective) * qty)
+   *  - subtotalAfterOffers = subtotalBeforeOffers - offerDiscountTotal
+   *  - apply coupon (fixed or percent) to subtotalAfterOffers -> couponValue
+   *  - final total = subtotalAfterOffers - couponValue
    */
+
+  const computed = useMemo(() => {
+    // lines with computed fields
+    const lines: Array<any> = [];
+    let subtotalBeforeOffers = 0;
+    let offerDiscountTotal = 0;
+
+    for (const i of cart) {
+      const productId = String(i.productId ?? "");
+      const productType = String((i.productType ?? "TICKET")).toUpperCase();
+      const qty = Number.isFinite(Number(i.quantity)) ? Number(i.quantity) : 1;
+      const original = getOriginalPriceFromCartItem(i);
+      subtotalBeforeOffers += original * qty;
+
+      const best = getBestOfferForItem(productType, productId);
+      const effective = getDiscountedPrice(original, best.percent ?? null);
+      const lineOfferDiscount = Number(((original - effective) * qty).toFixed(2));
+      offerDiscountTotal += lineOfferDiscount;
+
+      const lineTotal = Number((effective * qty).toFixed(2));
+
+      lines.push({
+        ...i,
+        original,
+        appliedOfferPercent: best.percent ?? null,
+        appliedOffer: best.offer ?? null,
+        effective,
+        lineOfferDiscount,
+        lineTotal,
+        qty,
+      });
+    }
+
+    const subtotalAfterOffers = Number((subtotalBeforeOffers - offerDiscountTotal).toFixed(2));
+
+    // coupon calculation is computed later (needs subtotalAfterOffers)
+    return {
+      lines,
+      subtotalBeforeOffers: Number(subtotalBeforeOffers.toFixed(2)),
+      offerDiscountTotal: Number(offerDiscountTotal.toFixed(2)),
+      subtotalAfterOffers,
+    };
+  }, [cart, offers]);
+
+  // coupon calculations: coupon is applied after offers
+  const couponDiscountValue = useMemo(() => {
+    const subtotal = computed.subtotalAfterOffers ?? 0;
+    if (!appliedCoupon) return 0;
+    if (appliedCoupon.discountPercent && appliedCoupon.discountPercent > 0) {
+      const val = Number((subtotal * (appliedCoupon.discountPercent / 100)).toFixed(2));
+      return Math.min(val, subtotal);
+    }
+    const val = Number(appliedCoupon.discountAmount || 0);
+    return Math.min(val, subtotal);
+  }, [computed.subtotalAfterOffers, appliedCoupon]);
+
+  const finalTotal = Math.max(0, Number((computed.subtotalAfterOffers - couponDiscountValue).toFixed(2)));
+
+  // produce a user-facing label for offers in totals:
+  const offerLabel = useMemo(() => {
+    // if no offer discount -> null
+    if (!computed.offerDiscountTotal || computed.offerDiscountTotal <= 0) return null;
+    // collect unique offer names used
+    const used = new Map<string, { id: string; name: string; pct: number }>();
+    for (const l of computed.lines) {
+      if (l.appliedOffer && l.appliedOffer.id) {
+        used.set(l.appliedOffer.id, { id: l.appliedOffer.id, name: l.appliedOffer.name || "Offer", pct: l.appliedOfferPercent ?? 0 });
+      }
+    }
+    if (used.size === 0) {
+      // maybe global ALL offer without id? fallback to first line's offer name
+      const candidate = computed.lines.find((l) => l.appliedOffer);
+      return candidate?.appliedOffer?.name ?? "Offer";
+    }
+    if (used.size === 1) {
+      return Array.from(used.values())[0].name ?? "Offer";
+    }
+    return "Multiple offers";
+  }, [computed.lines, computed.offerDiscountTotal]);
+
+  // Offer payload for checkout: unique offers used
+  const appliedOffersPayload = useMemo(() => {
+    const map = new Map<string, { id: string; name?: string; percent?: number }>();
+    for (const l of computed.lines) {
+      if (l.appliedOffer && l.appliedOffer.id) {
+        map.set(l.appliedOffer.id, { id: l.appliedOffer.id, name: l.appliedOffer.name, percent: l.appliedOfferPercent });
+      }
+    }
+    return Array.from(map.values());
+  }, [computed.lines]);
+
+  /** ---------- Coupon handling (same flow but now uses offers-aware subtotal) ---------- */
+
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     const input = couponCode.trim();
     setCouponBusy(true);
     try {
-      // ---- Try event-level endpoint first (if you add it later, this will be used) ----
+      // Attempt server-side event coupon endpoint first
       try {
         const res = await fetch(`/api/events/${eventId}/apply-coupon`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            companyId,
-            code: input,
-            cartItems: cart,
-          }),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ companyId, code: input, cartItems: cart }),
         });
-
         if (res.ok) {
           const data = await res.json().catch(() => ({} as any));
-          const dt = `${data?.discountType ?? data?.type ?? ''}`.toUpperCase();
+          const dt = `${data?.discountType ?? data?.type ?? ""}`.toUpperCase();
           const raw = data?.discountValue ?? data?.discount ?? data?.amount ?? data?.percent ?? 0;
 
           let fixed = 0;
           let percent = 0;
 
-          if (typeof raw === 'object' && raw) {
+          if (typeof raw === "object" && raw) {
             if (raw.amount != null) fixed = Number(raw.amount) || 0;
             if (raw.percent != null) percent = Number(raw.percent) || 0;
           } else {
-            const s = String(raw ?? '');
-            if (dt === 'FIXED' || dt === 'AMOUNT') fixed = Number(s) || 0;
-            else if (dt === 'PERCENTAGE' || dt === 'PERCENT') percent = Number(s) || 0;
-            else if (s.includes('%')) percent = Number(s.replace('%', '')) || 0;
+            const s = String(raw ?? "");
+            if (dt === "FIXED" || dt === "AMOUNT") fixed = Number(s) || 0;
+            else if (dt === "PERCENTAGE" || dt === "PERCENT") percent = Number(s) || 0;
+            else if (s.includes("%")) percent = Number(s.replace("%", "")) || 0;
             else fixed = Number(s) || 0;
           }
 
-          percent = Math.max(0, Math.min(100, percent)); // clamp
-
+          percent = Math.max(0, Math.min(100, percent));
           setAppliedCoupon({
             id: data?.id ?? null,
             code: data?.code ?? input,
@@ -452,38 +561,37 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           });
           return;
         }
-        // If not found, fall through to admin list
       } catch {
-        // ignore and try admin list
+        // ignore and fallback
       }
 
-      // ---- Fallback: fetch admin coupons and match ----
-      const listRes = await fetch(`/api/admin/coupons`, { method: 'GET' });
+      // Fallback: admin coupons list
+      const listRes = await fetch(`/api/admin/coupons`, { method: "GET" });
       if (!listRes.ok) {
         const ee = await listRes.json().catch(() => ({}));
-        alert(ee?.message || 'Failed to fetch coupons');
+        alert(ee?.message || "Failed to fetch coupons");
         return;
       }
       const list = await listRes.json();
       if (!Array.isArray(list)) {
-        alert('Invalid coupon list response');
+        alert("Invalid coupon list response");
         return;
       }
       const norm = input.toLowerCase();
       const match = list.find((c: any) => c?.code?.toString?.().toLowerCase() === norm);
 
       if (!match) {
-        alert('Coupon not found');
+        alert("Coupon not found");
         return;
       }
 
-      const type = String(match.discountType || '').toUpperCase(); // 'FIXED' | 'PERCENTAGE'
+      const type = String(match.discountType || "").toUpperCase(); // 'FIXED' | 'PERCENTAGE'
       const value = Number(match.discountValue || 0);
 
       let fixed = 0;
       let percent = 0;
 
-      if (type === 'PERCENTAGE') {
+      if (type === "PERCENTAGE") {
         percent = Math.max(0, Math.min(100, value));
       } else {
         fixed = Math.max(0, value);
@@ -504,62 +612,68 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   const removeCoupon = () => {
     setAppliedCoupon({ id: null, code: null, discountAmount: 0, discountPercent: 0 });
-    setCouponCode('');
+    setCouponCode("");
   };
 
-  // submit
+  /** ---------- Submit checkout ---------- */
+
   const submitCheckout = async () => {
     if (!companyId) {
-      alert('You must be logged in to check out.');
+      alert("You must be logged in to check out.");
       return;
     }
     if (!cart.length) {
-      alert('Cart is empty.');
+      alert("Cart is empty.");
       return;
     }
     if (!agreeTerms || !agreePolicies) {
-      alert('You must agree to the Terms & Policies.');
+      alert("You must agree to the Terms & Policies.");
       return;
     }
+
     setSubmitting(true);
     try {
-      const payload = {
+      const payload: any = {
         companyId,
         account,
         paymentMethod,
-        coupon: {
-          ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}),
-          ...(appliedCoupon.code ? { code: appliedCoupon.code } : {}),
-        },
+        coupon: appliedCoupon.code ? { ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}), code: appliedCoupon.code } : undefined,
         discount: {
           amount: appliedCoupon.discountAmount,
           percent: appliedCoupon.discountPercent,
         },
+        appliedOffers: appliedOffersPayload, // which offers were applied
         cartItems: cart.map((i) => ({
           productId: String(i.productId),
-          productType: String(i.productType ?? 'TICKET').toUpperCase(),
+          productType: String(i.productType ?? "TICKET").toUpperCase(),
           quantity: i.quantity,
           price: i.price,
           name: i.name,
           ...(i.roomTypeId ? { roomTypeId: String(i.roomTypeId) } : {}),
           ...(i.boothSubTypeId ? { boothSubTypeId: String(i.boothSubTypeId) } : {}),
         })),
-        total,
+        totals: {
+          subtotalBeforeOffers: computed.subtotalBeforeOffers,
+          offerDiscountTotal: computed.offerDiscountTotal,
+          subtotalAfterOffers: computed.subtotalAfterOffers,
+          couponDiscountValue,
+          total: finalTotal,
+        },
       };
 
       const res = await fetch(`/api/events/${eventId}/checkout`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (res.status === 201 || res.ok) {
-        alert('Checkout successful!');
+        alert("Checkout successful!");
         clearCart();
         window.location.href = `/event/${eventId}`;
       } else {
         const e = await res.json().catch(() => ({}));
-        alert(e?.error || e?.message || 'Checkout failed');
+        alert(e?.error || e?.message || "Checkout failed");
       }
     } catch (e: any) {
       alert(`Network error: ${e?.message || e}`);
@@ -569,10 +683,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   };
 
   // helper: step state for StepDot
-  const stepState = (index: 0 | 1 | 2): 'completed' | 'active' | 'upcoming' => {
-    if (step > index) return 'completed';
-    if (step === index) return 'active';
-    return 'upcoming';
+  const stepState = (index: 0 | 1 | 2): "completed" | "active" | "upcoming" => {
+    if (step > index) return "completed";
+    if (step === index) return "active";
+    return "upcoming";
   };
 
   return (
@@ -610,15 +724,21 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               applyCoupon={applyCoupon}
               removeCoupon={removeCoupon}
               couponBusy={couponBusy}
-              subtotal={subtotal}
-              discountValue={discountValue}
-              total={total}
+              linesWithOffers={computed.lines}
             />
-            <button
-              onClick={() => setStep(1)}
-              disabled={cart.length === 0}
-              className="w-full mt-2 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400"
-            >
+
+            <div className="mt-4">
+              <Totals
+                subtotal={computed.subtotalBeforeOffers}
+                offerLabel={offerLabel}
+                offerValue={computed.offerDiscountTotal}
+                discountCode={appliedCoupon.code}
+                discountValue={couponDiscountValue}
+                total={finalTotal}
+              />
+            </div>
+
+            <button onClick={() => setStep(1)} disabled={cart.length === 0} className="w-full mt-4 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400">
               Continue
             </button>
           </div>
@@ -626,26 +746,33 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
         {step === 1 && (
           <div className="space-y-4">
-            <AccountForm account={account} setAccount={setAccount} />
+            {/* Account form */}
+            <div className="space-y-3">
+              <h3 className="font-semibold text-slate-800">ACCOUNT DETAILS</h3>
+              <input value={account.name} onChange={(e) => setAccount((a) => ({ ...a, name: e.target.value }))} placeholder="Name" className="w-full rounded border px-3 py-2" />
+              <input value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} placeholder="Email" type="email" className="w-full rounded border px-3 py-2" />
+              <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value }))} placeholder="Phone" className="w-full rounded border px-3 py-2" />
+              <input value={account.address1} onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))} placeholder="Address 1" className="w-full rounded border px-3 py-2" />
+              <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Address 2" className="w-full rounded border px-3 py-2" />
+            </div>
+
             {/* Totals below account */}
-            <Totals
-              subtotal={subtotal}
-              discountCode={appliedCoupon.code}
-              discountValue={discountValue}
-              total={total}
-            />
+            <div>
+              <Totals
+                subtotal={computed.subtotalBeforeOffers}
+                offerLabel={offerLabel}
+                offerValue={computed.offerDiscountTotal}
+                discountCode={appliedCoupon.code}
+                discountValue={couponDiscountValue}
+                total={finalTotal}
+              />
+            </div>
+
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep(0)}
-                className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center"
-                title="Back"
-              >
+              <button onClick={() => setStep(0)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center" title="Back">
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setStep(2)}
-                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md"
-              >
+              <button onClick={() => setStep(2)} className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md">
                 Proceed Payment
               </button>
             </div>
@@ -654,46 +781,63 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
         {step === 2 && (
           <div className="space-y-4">
-            <PaymentStep
-              paymentMethod={paymentMethod}
-              setPaymentMethod={setPaymentMethod}
-              agreeTerms={agreeTerms}
-              setAgreeTerms={setAgreeTerms}
-              agreePolicies={agreePolicies}
-              setAgreePolicies={setAgreePolicies}
-            />
+            <div>
+              <div className="font-semibold mb-2">PAYMENT METHOD :</div>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="payment" value="razorpay" checked={paymentMethod === "razorpay"} onChange={() => setPaymentMethod("razorpay")} />
+                  <span className="font-medium">Razorpay</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="payment" value="paypal" checked={paymentMethod === "paypal"} onChange={() => setPaymentMethod("paypal")} />
+                  <span className="font-medium">PayPal</span>
+                </label>
+              </div>
+            </div>
+
+            <div>
+              <div className="font-semibold mb-2">TERMS & CONDITIONS:</div>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
+                <span>Agree to Terms & Conditions:</span>
+                <Link href="/terms" className="text-indigo-700 underline">
+                  Condition Name
+                </Link>
+              </label>
+              <label className="flex items-center gap-2">
+                <input type="checkbox" checked={agreePolicies} onChange={(e) => setAgreePolicies(e.target.checked)} />
+                <span>Agree to Policies:</span>
+                <Link href="/privacy" className="text-indigo-700 underline">
+                  Policy Name
+                </Link>
+              </label>
+            </div>
+
             <Totals
-              subtotal={subtotal}
+              subtotal={computed.subtotalBeforeOffers}
+              offerLabel={offerLabel}
+              offerValue={computed.offerDiscountTotal}
               discountCode={appliedCoupon.code}
-              discountValue={discountValue}
-              total={total}
+              discountValue={couponDiscountValue}
+              total={finalTotal}
             />
+
             <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center"
-                title="Back"
-              >
+              <button onClick={() => setStep(1)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center" title="Back">
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <button
-                onClick={submitCheckout}
-                disabled={isSubmitting || !agreeTerms || !agreePolicies}
-                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400 inline-flex items-center justify-center gap-2"
-              >
+              <button onClick={submitCheckout} disabled={isSubmitting || !agreeTerms || !agreePolicies} className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400 inline-flex items-center justify-center gap-2">
                 {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : <LockKeyhole className="w-5 h-5" />}
-                {isSubmitting ? 'Processing…' : 'Proceed Payment'}
+                {isSubmitting ? "Processing…" : "Proceed Payment"}
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {!companyId && (
-        <p className="text-xs text-center text-red-600 mt-3">
-          Please log in to check out.
-        </p>
-      )}
+      {!companyId && <p className="text-xs text-center text-red-600 mt-3">Please log in to check out.</p>}
+      {offersLoading && <div className="mt-3 text-sm text-slate-500">Loading offers…</div>}
+      {offersError && <div className="mt-3 text-sm text-amber-700">Offers error: {offersError}</div>}
     </div>
   );
 }

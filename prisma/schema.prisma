@@ -164,7 +164,7 @@ model Event {
   expectedAudience String
   description      String?
 
-  booths Booth[] @relation("EventBooths")
+  eventBooths EventBooth[] @relation()
   hotels Hotel[] @relation("EventHotels")
 
   eventTickets      EventTicket[]      @relation("EventTickets")
@@ -196,6 +196,8 @@ model SponsorType {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  offers Offer[] @relation("OfferSponsorTypes")
+
   eventSponsorTypes EventSponsorType[] @relation("EventSponsorTypes")
 }
 
@@ -205,6 +207,7 @@ model Ticket {
   logo        String
   price       Float
   description String?
+  offers Offer[] @relation("OfferTickets")
 
   eventTickets EventTicket[] @relation("EventTickets")
 }
@@ -220,6 +223,7 @@ model Hotel {
   roomTypes     RoomType[]
 
   events Event[] @relation("EventHotels")
+  offers Offer[] @relation("OfferHotels")
 }
 
 model RoomType {
@@ -244,7 +248,21 @@ model Booth {
   description String?
   subTypes  BoothSubType[]
 
-  events Event[] @relation("EventBooths")
+  offers Offer[] @relation("OfferBooths")
+
+  eventBooths EventBooth[] @relation()
+}
+
+model EventBooth {
+  eventId String
+  boothId String
+  quantity Int    @default(1)
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  booth Booth @relation(fields: [boothId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, boothId])
+  @@index([boothId])
 }
 
 model AgendaItem {
@@ -366,6 +384,7 @@ model BoothSubType {
   @@unique([boothId, eventId, name])
 }
 
+
 model PurchaseOrder {
   id          String      @id @default(cuid())
   companyId   String      // The company that made the purchase
@@ -475,4 +494,34 @@ model Coupon {
 enum DiscountType {
   FIXED
   PERCENTAGE
+}
+
+// Offer model - percentage-based discounts that can be scoped
+
+model Offer {
+  id          String      @id @default(cuid())
+  name        String      // e.g., "Summer Sale 2025"
+  code        String?     @unique
+  description String?
+  percentage  Float       // store as 0-100 (e.g., 25 for 25%)
+  scope       OfferScope  @default(ALL)
+  startsAt    DateTime?
+  endsAt      DateTime?
+  isActive    Boolean     @default(true)
+
+  // implicit many-to-many relations — DO NOT include `references` here
+  hotels       Hotel[]        @relation("OfferHotels")
+  tickets      Ticket[]       @relation("OfferTickets")
+  sponsorTypes SponsorType[]  @relation("OfferSponsorTypes")
+  booths         Booth[]        @relation("OfferBooths")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+enum OfferScope {
+  ALL
+  HOTELS
+  TICKETS
+  SPONSORS
+  CUSTOM
 }

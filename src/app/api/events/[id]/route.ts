@@ -1,26 +1,21 @@
+// D:\Projects\Logistics\web\backend-api\src\app\api\events\[id]\route.ts
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
-
+import prisma from '@/app/lib/prisma';
 
 // Helper to extract eventId from URL
 function extractEventId(req: NextRequest): string | null {
   try {
     const pathname = new URL(req.url).pathname;
     const parts = pathname.split("/");
-    // Adjust if your route structure changes
     const eventId = parts[parts.length - 1];
-    if (!eventId || eventId === "events") return null; // prevent returning "events" as ID
-    console.log('eventId');
-    console.log(eventId);
+    if (!eventId || eventId === "events" || eventId === "" ) return null;
     return eventId;
   } catch (error) {
     console.error("[extractEventId]", error);
     return null;
   }
 }
-
 
 export async function GET(req: NextRequest) {
   try {
@@ -32,51 +27,53 @@ export async function GET(req: NextRequest) {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        booths: {
-      include: {
-        subTypes: {
-          where: { eventId },  
-        }
-      }
-    },
-    boothSubTypes: true,
-         hotels: {
+        // include eventBooths (with quantities) and the nested booth (and booth.subTypes filtered for this event)
+        eventBooths: {
           include: {
-            roomTypes: {
-              // For each room type, include the related EventRoomType record,
-              // but only the one that matches the current event.
+            booth: {
               include: {
-                eventRoomTypes: {
-                  where: {
-                    eventId: eventId,
-                  },
+                // include subTypes but only those tied to this event (BoothSubType uses eventId)
+                subTypes: {
+                  where: { eventId }, // only relevant subtypes for this event
                 },
               },
             },
           },
         },
-        eventTickets: { include: { ticket: true } },  
-        eventSponsorTypes: { include: { sponsorType: true } },
-        eventRoomTypes: {
-                where: {
-                  eventId: eventId,
+
+        // hotels with roomTypes and their eventRoomTypes (only for this event)
+        hotels: {
+          include: {
+            roomTypes: {
+              include: {
+                eventRoomTypes: {
+                  where: { eventId },
                 },
               },
+            },
+          },
+        },
+
+        eventTickets: { include: { ticket: true } },
+        eventSponsorTypes: { include: { sponsorType: true } },
+        eventRoomTypes: {
+          where: { eventId },
+        },
         agendaItems: true,
         venue: true,
         purchaseOrders: {
-  include: {
-    items: true,
-    company: true,
-  },
-},
-      
+          include: {
+            items: true,
+            company: true,
+          },
+        },
       },
     });
 
     if (!event) {
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
+
     return NextResponse.json(event);
   } catch (error) {
     console.error("[EVENT_GET]", error);
@@ -97,11 +94,11 @@ export async function POST(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],         
+      booths = [],         // now expected as array of { id: string, quantity: number }
       hotels = [],       
-      tickets = [],        
-      sponsorTypes = [],    
-      roomTypes = [], 
+      tickets = [],        // array of { id, quantity }
+      sponsorTypes = [],   // array of { id, quantity }
+      roomTypes = [],      // array of { id, quantity }
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
@@ -119,33 +116,43 @@ export async function POST(req: NextRequest) {
         eventType,
         expectedAudience: expectedAudience || "",
 
-        booths: {
-          connect: booths.map((id: string) => ({ id })),
+        // eventBooths create with quantity per booth
+        eventBooths: {
+          create: (booths || []).map((b: { id: string; quantity?: number }) => ({
+            booth: { connect: { id: b.id } },
+            quantity: b.quantity ?? 1,
+          })),
         },
+
         hotels: {
-          connect: hotels.map((id: string) => ({ id })),
+          connect: (hotels || []).map((id: string) => ({ id })),
         },
+
         eventTickets: {
-          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+          create: (tickets || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
             ticket: { connect: { id } },
-            quantity: quantity || 1,
+            quantity: quantity ?? 1,
           })),
         },
+
         eventSponsorTypes: {
-          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+          create: (sponsorTypes || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
             sponsorType: { connect: { id } },
-            quantity: quantity || 1,
+            quantity: quantity ?? 1,
           })),
         },
+
         eventRoomTypes: {
-  create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
-    roomType: { connect: { id } },
-    quantity: quantity || 1,
-  })),
-},
+          create: (roomTypes || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
+            roomType: { connect: { id } },
+            quantity: quantity ?? 1,
+          })),
+        },
       },
       include: {
-        booths: true,
+        eventBooths: {
+          include: { booth: { include: { subTypes: true } } },
+        },
         hotels: true,
         eventTickets: { include: { ticket: true } },
         eventSponsorTypes: { include: { sponsorType: true } },
@@ -162,7 +169,7 @@ export async function POST(req: NextRequest) {
 // ✅ UPDATE event
 export async function PUT(req: NextRequest) {
   try {
-    const body = await req.json();    
+    const body = await req.json();
     console.log('Update event body:', body);
     const {
       id,
@@ -174,7 +181,7 @@ export async function PUT(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],         // array of booth IDs
+      booths = [],         // array of { id: string, quantity: number }
       hotels = [],         // array of hotel IDs
       tickets = [],        // array of { id: string, quantity: number }
       sponsorTypes = [],   // array of { id: string, quantity: number }
@@ -197,36 +204,46 @@ export async function PUT(req: NextRequest) {
         eventType,
         expectedAudience: expectedAudience || "",
 
-        booths: {
-          set: booths.map((id: string) => ({ id })),
+        // Replace eventBooths: remove existing and create new entries with quantity
+        eventBooths: {
+          deleteMany: {}, // remove all existing eventBooths for this event
+          create: (booths || []).map(({ id: boothId, quantity }: { id: string; quantity?: number }) => ({
+            booth: { connect: { id: boothId } },
+            quantity: quantity ?? 1,
+          })),
         },
+
+        // hotels set
         hotels: {
-          set: hotels.map((id: string) => ({ id })),
+          set: (hotels || []).map((hId: string) => ({ id: hId })),
         },
+
         eventTickets: {
           deleteMany: {},
-          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
-            ticket: { connect: { id } },
-            quantity: quantity || 1,
+          create: (tickets || []).map(({ id: ticketId, quantity }: { id: string; quantity?: number }) => ({
+            ticket: { connect: { id: ticketId } },
+            quantity: quantity ?? 1,
           })),
         },
+
         eventSponsorTypes: {
           deleteMany: {},
-          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
-            sponsorType: { connect: { id } },
-            quantity: quantity || 1,
+          create: (sponsorTypes || []).map(({ id: sponsorTypeId, quantity }: { id: string; quantity?: number }) => ({
+            sponsorType: { connect: { id: sponsorTypeId } },
+            quantity: quantity ?? 1,
           })),
         },
+
         eventRoomTypes: {
-  deleteMany: {}, // remove existing
-  create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
-    roomType: { connect: { id } },
-    quantity: quantity || 1,
-  })),
-},
+          deleteMany: {},
+          create: (roomTypes || []).map(({ id: roomTypeId, quantity }: { id: string; quantity?: number }) => ({
+            roomType: { connect: { id: roomTypeId } },
+            quantity: quantity ?? 1,
+          })),
+        },
       },
       include: {
-        booths: true,
+        eventBooths: { include: { booth: { include: { subTypes: true } } } },
         hotels: true,
         eventTickets: { include: { ticket: true } },
         eventSponsorTypes: { include: { sponsorType: true } },
@@ -240,14 +257,12 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-
 export async function DELETE(_req: Request, ctx: any) {
-  // split: read raw, then validate/normalize
-  const params = ctx?.params
-  const id = typeof params?.id === 'string' ? params.id : undefined
+  const params = ctx?.params;
+  const id = typeof params?.id === 'string' ? params.id : undefined;
 
   if (!id) {
-    return NextResponse.json({ error: 'Event ID is required' }, { status: 400 })
+    return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
   }
 
   try {
@@ -257,23 +272,23 @@ export async function DELETE(_req: Request, ctx: any) {
         id: true,
         purchaseOrders: { select: { id: true }, take: 1 },
       },
-    })
+    });
 
     if (!eventWithOrders) {
-      return NextResponse.json({ error: 'Event not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Event not found' }, { status: 404 });
     }
 
     if (eventWithOrders.purchaseOrders?.length) {
       return NextResponse.json(
         { error: 'Event has purchase orders. Cancel or remove them before deleting the event.' },
         { status: 409 }
-      )
+      );
     }
 
-    await prisma.event.delete({ where: { id } })
-    return NextResponse.json({ message: 'Event deleted' }, { status: 200 })
+    await prisma.event.delete({ where: { id } });
+    return NextResponse.json({ message: 'Event deleted' }, { status: 200 });
   } catch (err) {
-    console.error('[EVENT_DELETE]', err)
-    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 })
+    console.error('[EVENT_DELETE]', err);
+    return NextResponse.json({ error: 'Failed to delete event' }, { status: 500 });
   }
 }

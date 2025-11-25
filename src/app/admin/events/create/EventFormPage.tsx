@@ -1,3 +1,4 @@
+// src/app/admin/events/EventFormPage.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -45,7 +46,8 @@ export default function EventFormPage() {
   const [selectedTicketIds, setSelectedTicketIds] = useState<string[]>([]);
   const [selectedSponsorTypeIds, setSelectedSponsorTypeIds] = useState<string[]>([]);
 
-  // New: Track quantities for tickets and sponsors
+  // Track quantities for booths, tickets and sponsors
+  const [boothQuantities, setBoothQuantities] = useState<Record<string, number>>({});
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
   const [sponsorQuantities, setSponsorQuantities] = useState<Record<string, number>>({});
 
@@ -95,9 +97,39 @@ export default function EventFormPage() {
       setThumbFile(null);
       setThumbPreview(event.thumbnail || null);
 
-      setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
+      // ---------- BOOTHS + QUANTITY (FIXED) ----------
+
+      // If backend uses join model: event.eventBooths = [{ boothId, quantity, booth: {...} }]
+      if (Array.isArray(event.eventBooths) && event.eventBooths.length > 0) {
+        const boothIds = event.eventBooths
+          .map((eb: any) => eb.boothId ?? eb.booth?.id)
+          .filter((id: string | undefined): id is string => Boolean(id));
+
+        setSelectedBoothIds(boothIds);
+
+        setBoothQuantities(
+          event.eventBooths.reduce((acc: any, eb: any) => {
+            const boothId = eb.boothId ?? eb.booth?.id;
+            if (!boothId) return acc;
+            acc[boothId] = eb.quantity ?? 1;
+            return acc;
+          }, {})
+        );
+      } else {
+        // Legacy shape: event.booths = [{ id, ... , quantity? }]
+        setSelectedBoothIds(event.booths?.map((b: any) => b.id) ?? []);
+        setBoothQuantities(
+          (event.booths || []).reduce((acc: any, b: any) => {
+            acc[b.id] = b.quantity ?? 1;
+            return acc;
+          }, {})
+        );
+      }
+
+      // ---------- HOTELS ----------
       setSelectedHotelIds(event.hotels?.map((h: any) => h.id) ?? []);
 
+      // ---------- TICKETS ----------
       setSelectedTicketIds(event.eventTickets?.map((et: any) => et.ticketId) ?? []);
       setTicketQuantities(
         event.eventTickets?.reduce((acc: any, et: any) => {
@@ -106,6 +138,7 @@ export default function EventFormPage() {
         }, {}) ?? {},
       );
 
+      // ---------- SPONSOR TYPES ----------
       setSelectedSponsorTypeIds(event.eventSponsorTypes?.map((es: any) => es.sponsorTypeId) ?? []);
       setSponsorQuantities(
         event.eventSponsorTypes?.reduce((acc: any, es: any) => {
@@ -114,6 +147,7 @@ export default function EventFormPage() {
         }, {}) ?? {},
       );
 
+      // ---------- ROOM TYPES ----------
       setSelectedRoomTypeIds(event.eventRoomTypes?.map((ert: any) => ert.roomTypeId) ?? []);
       setRoomTypeQuantities(
         event.eventRoomTypes?.reduce((acc: any, ert: any) => {
@@ -131,6 +165,7 @@ export default function EventFormPage() {
   useEffect(() => {
     fetchAttachments();
     if (isEditMode) fetchEvent();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   // Preview lifecycle for thumbnail
@@ -155,37 +190,41 @@ export default function EventFormPage() {
         thumbnailUrl = await uploadFileToS3(thumbFile); // returns public S3 URL
       }
 
+      const payload = {
+        id: eventId,
+        ...formData,
+        thumbnail: thumbnailUrl ?? "",
+        booths: selectedBoothIds.map((id) => ({ id, quantity: boothQuantities[id] || 1 })),
+        hotels: selectedHotelIds,
+        tickets: selectedTicketIds.map((id) => ({
+          id,
+          quantity: ticketQuantities[id] || 1,
+        })),
+        sponsorTypes: selectedSponsorTypeIds.map((id) => ({
+          id,
+          quantity: sponsorQuantities[id] || 1,
+        })),
+        roomTypes: selectedRoomTypeIds.map((id) => ({
+          id,
+          quantity: roomTypeQuantities[id] || 1,
+        })),
+      };
+
       const res = await fetch(isEditMode ? `/api/events/${eventId}` : `/api/events`, {
         method: isEditMode ? "PUT" : "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          id: eventId,
-          ...formData,
-          thumbnail: thumbnailUrl ?? "",
-          booths: selectedBoothIds,
-          hotels: selectedHotelIds,
-          tickets: selectedTicketIds.map((id) => ({
-            id,
-            quantity: ticketQuantities[id] || 1,
-          })),
-          sponsorTypes: selectedSponsorTypeIds.map((id) => ({
-            id,
-            quantity: sponsorQuantities[id] || 1,
-          })),
-          roomTypes: selectedRoomTypeIds.map((id) => ({
-            id,
-            quantity: roomTypeQuantities[id] || 1,
-          })),
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
         router.push("/admin/events");
       } else {
         console.error(await res.json());
+        alert("Failed to save event. See console for details.");
       }
     } catch (error) {
       console.error("Error submitting event:", error);
+      alert("Error submitting event. See console.");
     } finally {
       setLoading(false);
     }
@@ -223,7 +262,7 @@ export default function EventFormPage() {
               </Label>
               <Input
                 placeholder={field.placeholder}
-                value={formData[field.key as keyof typeof formData]}
+                value={formData[field.key as keyof typeof formData] as string}
                 onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                 className="focus:ring-2 focus:ring-primary-500 text-gray-900"
               />
@@ -355,6 +394,17 @@ export default function EventFormPage() {
                                   ? [...prev, booth.id]
                                   : prev.filter((id) => id !== booth.id)
                               );
+
+                              if (!checked) {
+                                setBoothQuantities((prev) => {
+                                  const copy = { ...prev };
+                                  delete copy[booth.id];
+                                  return copy;
+                                });
+                              } else {
+                                // initialize to 1
+                                setBoothQuantities((prev) => ({ ...prev, [booth.id]: prev[booth.id] || 1 }));
+                              }
                             }}
                             className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                           />
@@ -364,131 +414,146 @@ export default function EventFormPage() {
                               <p className="text-sm text-gray-500">{booth.description}</p>
                             )}
                           </Label>
+
+                          {/* Quantity Input for booths (optional) */}
+                          {selectedBoothIds.includes(booth.id) && (
+                            <Input
+                              type="number"
+                              min={1}
+                              value={boothQuantities[booth.id] || 1}
+                              onChange={(e) =>
+                                setBoothQuantities((prev) => ({
+                                  ...prev,
+                                  [booth.id]: Math.max(1, Number(e.target.value)),
+                                }))
+                              }
+                              className="w-20 text-gray-900"
+                            />
+                          )}
                         </div>
                       ))}
                     </div>
                   )}
                 </div>
 
-               {/* Hotels Section with RoomTypes */}
-<div className="space-y-3">
-  <h3 className="font-medium text-gray-800 flex items-center gap-2">
-    <ChevronDown className="h-4 w-4" />
-    Hotels
-    {selectedHotelIds.length > 0 && (
-      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
-        {selectedHotelIds.length} selected
-      </span>
-    )}
-  </h3>
+                {/* Hotels Section with RoomTypes */}
+                <div className="space-y-3">
+                  <h3 className="font-medium text-gray-800 flex items-center gap-2">
+                    <ChevronDown className="h-4 w-4" />
+                    Hotels
+                    {selectedHotelIds.length > 0 && (
+                      <span className="ml-auto bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-full">
+                        {selectedHotelIds.length} selected
+                      </span>
+                    )}
+                  </h3>
 
-  {hotels.length === 0 ? (
-    <p className="text-sm text-gray-500 p-2">No hotels available.</p>
-  ) : (
-    <div className="space-y-4">
-      {hotels.map((hotel) => (
-        <div key={hotel.id} className="border rounded p-2">
-          <div className="flex items-center gap-3 hover:bg-gray-50 rounded p-1">
-            <Checkbox
-              id={`hotel-${hotel.id}`}
-              checked={selectedHotelIds.includes(hotel.id)}
-              onCheckedChange={(checked) => {
-                setSelectedHotelIds((prev) =>
-                  checked ? [...prev, hotel.id] : prev.filter((id) => id !== hotel.id)
-                );
+                  {hotels.length === 0 ? (
+                    <p className="text-sm text-gray-500 p-2">No hotels available.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {hotels.map((hotel) => (
+                        <div key={hotel.id} className="border rounded p-2">
+                          <div className="flex items-center gap-3 hover:bg-gray-50 rounded p-1">
+                            <Checkbox
+                              id={`hotel-${hotel.id}`}
+                              checked={selectedHotelIds.includes(hotel.id)}
+                              onCheckedChange={(checked) => {
+                                setSelectedHotelIds((prev) =>
+                                  checked ? [...prev, hotel.id] : prev.filter((id) => id !== hotel.id)
+                                );
 
-                // If hotel was unchecked, also clear selected room types for that hotel
-                if (!checked) {
-                  setSelectedRoomTypeIds((prev) =>
-                    prev.filter((rtId) => {
-                      const rt = hotels.flatMap(h => h.roomTypes).find(r => r.id === rtId);
-                      // keep room types that don't belong to this unchecked hotel
-                      return rt?.hotelId !== hotel.id;
-                    })
-                  );
-                  setRoomTypeQuantities((prev) => {
-                    // Remove quantities for room types of this hotel
-                    const copy = { ...prev };
-                    hotel.roomTypes.forEach((rt:any) => {
-                      delete copy[rt.id];
-                    });
-                    return copy;
-                  });
-                }
-              }}
-              className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-            />
-            <Label htmlFor={`hotel-${hotel.id}`} className="flex-1 cursor-pointer">
-              <div className="font-medium">{hotel.hotelName}</div>
-              {hotel.address && <p className="text-sm text-gray-500">{hotel.address}</p>}
-            </Label>
-          </div>
+                                // If hotel was unchecked, also clear selected room types for that hotel
+                                if (!checked) {
+                                  setSelectedRoomTypeIds((prev) =>
+                                    prev.filter((rtId) => {
+                                      const rt = hotels.flatMap(h => h.roomTypes).find(r => r.id === rtId);
+                                      // keep room types that don't belong to this unchecked hotel
+                                      return rt?.hotelId !== hotel.id;
+                                    })
+                                  );
+                                  setRoomTypeQuantities((prev) => {
+                                    // Remove quantities for room types of this hotel
+                                    const copy = { ...prev };
+                                    (hotel.roomTypes || []).forEach((rt: any) => {
+                                      delete copy[rt.id];
+                                    });
+                                    return copy;
+                                  });
+                                }
+                              }}
+                              className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                            />
+                            <Label htmlFor={`hotel-${hotel.id}`} className="flex-1 cursor-pointer">
+                              <div className="font-medium">{hotel.hotelName}</div>
+                              {hotel.address && <p className="text-sm text-gray-500">{hotel.address}</p>}
+                            </Label>
+                          </div>
 
-          {/* RoomTypes for this hotel, indented */}
-          <div className="ml-8 mt-2 space-y-2">
-            {hotel.roomTypes.length === 0 ? (
-              <p className="text-sm text-gray-400 italic">No rooms available.</p>
-            ) : (
-              hotel.roomTypes.map((roomType:any) => (
-                <div key={roomType.id} className="flex items-center gap-3">
-                  <Checkbox
-                    id={`roomType-${roomType.id}`}
-                    checked={selectedRoomTypeIds.includes(roomType.id)}
-                    onCheckedChange={(checked) => {
-                      setSelectedRoomTypeIds((prev) =>
-                        checked
-                          ? [...prev, roomType.id]
-                          : prev.filter((id) => id !== roomType.id)
-                      );
-                      // On uncheck, remove quantity from state
-                      if (!checked) {
-                        setRoomTypeQuantities((prev) => {
-                          const copy = { ...prev };
-                          delete copy[roomType.id];
-                          return copy;
-                        });
-                      } else {
-                        // If newly checked, initialize quantity to 1 if not set
-                        setRoomTypeQuantities((prev) => ({
-                          ...prev,
-                          [roomType.id]: prev[roomType.id] || 1,
-                        }));
-                      }
-                    }}
-                    className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                  <Label htmlFor={`roomType-${roomType.id}`} className="flex-1 cursor-pointer">
-                    <div className="flex justify-between font-medium">
-                      <span>{roomType.roomType}</span>
-                      <span className="text-primary-600 text-sm font-semibold">${roomType.price}</span>
+                          {/* RoomTypes for this hotel, indented */}
+                          <div className="ml-8 mt-2 space-y-2">
+                            {(!hotel.roomTypes || hotel.roomTypes.length === 0) ? (
+                              <p className="text-sm text-gray-400 italic">No rooms available.</p>
+                            ) : (
+                              (hotel.roomTypes || []).map((roomType: any) => (
+                                <div key={roomType.id} className="flex items-center gap-3">
+                                  <Checkbox
+                                    id={`roomType-${roomType.id}`}
+                                    checked={selectedRoomTypeIds.includes(roomType.id)}
+                                    onCheckedChange={(checked) => {
+                                      setSelectedRoomTypeIds((prev) =>
+                                        checked
+                                          ? [...prev, roomType.id]
+                                          : prev.filter((id) => id !== roomType.id)
+                                      );
+                                      // On uncheck, remove quantity from state
+                                      if (!checked) {
+                                        setRoomTypeQuantities((prev) => {
+                                          const copy = { ...prev };
+                                          delete copy[roomType.id];
+                                          return copy;
+                                        });
+                                      } else {
+                                        // If newly checked, initialize quantity to 1 if not set
+                                        setRoomTypeQuantities((prev) => ({
+                                          ...prev,
+                                          [roomType.id]: prev[roomType.id] || 1,
+                                        }));
+                                      }
+                                    }}
+                                    className="h-5 w-5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                                  />
+                                  <Label htmlFor={`roomType-${roomType.id}`} className="flex-1 cursor-pointer">
+                                    <div className="flex justify-between font-medium">
+                                      <span>{roomType.roomType}</span>
+                                      <span className="text-primary-600 text-sm font-semibold">${roomType.price}</span>
+                                    </div>
+                                  </Label>
+
+                                  {/* Quantity input, only visible if selected */}
+                                  {selectedRoomTypeIds.includes(roomType.id) && (
+                                    <Input
+                                      type="number"
+                                      min={1}
+                                      value={roomTypeQuantities[roomType.id] || 1}
+                                      onChange={(e) =>
+                                        setRoomTypeQuantities((prev) => ({
+                                          ...prev,
+                                          [roomType.id]: Math.max(1, Number(e.target.value)),
+                                        }))
+                                      }
+                                      className="w-20 text-gray-900"
+                                    />
+                                  )}
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  </Label>
-
-                  {/* Quantity input, only visible if selected */}
-                  {selectedRoomTypeIds.includes(roomType.id) && (
-                    <Input
-                      type="number"
-                      min={1}
-                      value={roomTypeQuantities[roomType.id] || 1}
-                      onChange={(e) =>
-                        setRoomTypeQuantities((prev) => ({
-                          ...prev,
-                          [roomType.id]: Math.max(1, Number(e.target.value)),
-                        }))
-                      }
-                      className="w-20 text-gray-900"
-                    />
                   )}
                 </div>
-              ))
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  )}
-</div>
-
 
                 {/* Tickets Section with Quantity Input */}
                 <div className="space-y-3">

@@ -1,6 +1,6 @@
 // /app/api/events/[id]/checkout/route.ts
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -12,32 +12,39 @@ interface CartItem {
   price: number;
   name: string;
   roomTypeId?: string;
-  boothSubTypeId?: string;
+  boothSubTypeId?: string; // optional; may be provided for BOOTH
 }
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
-  const { id: eventId } = await params;
+  const eventId = params.id;
   let body: any;
 
   try {
     body = await request.json();
   } catch (e) {
-    console.error('Failed to parse request JSON:', e);
-    return NextResponse.json({ error: 'Invalid request body.' }, { status: 400 });
+    console.error("Failed to parse request JSON:", e);
+    return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const { cartItems, companyId, coupon: couponInput }:
-    { cartItems: CartItem[]; companyId: string; coupon?: { id?: string; code?: string } } = body;
+  const {
+    cartItems,
+    companyId,
+    coupon: couponInput,
+  }: {
+    cartItems: CartItem[];
+    companyId: string;
+    coupon?: { id?: string; code?: string };
+  } = body;
 
   if (!eventId || !companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   try {
-    console.log('--- STARTING CHECKOUT TRANSACTION ---');
+    console.log("--- STARTING CHECKOUT TRANSACTION ---");
 
     const result = await prisma.$transaction(async (tx) => {
       // Create a PurchaseOrder (initial stub)
@@ -46,7 +53,7 @@ export async function POST(
           companyId,
           eventId,
           totalAmount: 0,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
       console.log(`[OK] Created PurchaseOrder ${purchaseOrder.id}`);
@@ -54,11 +61,20 @@ export async function POST(
       let calculatedTotal = 0;
 
       for (const originalItem of cartItems) {
-        const rawType = (originalItem.productType ?? originalItem.clientProductType ?? 'PRODUCT').toString().toUpperCase();
-        const allowedTypes = ['TICKET', 'SPONSOR', 'HOTEL', 'BOOTH', 'MEMBERSHIP', 'PRODUCT'];
-        const productType = allowedTypes.includes(rawType) ? rawType : 'PRODUCT';
+        const rawType = (
+          originalItem.productType ?? originalItem.clientProductType ?? "PRODUCT"
+        )
+          .toString()
+          .toUpperCase();
 
-        console.log(`Processing item: ${originalItem.name} (incoming: ${originalItem.productType ?? originalItem.clientProductType}, mapped: ${productType})`);
+        const allowedTypes = ["TICKET", "SPONSOR", "HOTEL", "BOOTH", "MEMBERSHIP", "PRODUCT"];
+        const productType = allowedTypes.includes(rawType) ? rawType : "PRODUCT";
+
+        console.log(
+          `Processing item: ${originalItem.name} (incoming: ${
+            originalItem.productType ?? originalItem.clientProductType
+          }, mapped: ${productType})`
+        );
 
         const item = {
           productId: originalItem.productId,
@@ -66,13 +82,13 @@ export async function POST(
           quantity: originalItem.quantity,
           price: originalItem.price,
           name: originalItem.name,
-          roomTypeId: originalItem.roomTypeId,
-          boothSubTypeId: originalItem.boothSubTypeId,
+          roomTypeId: originalItem.roomTypeId ?? null,
+          boothSubTypeId: originalItem.boothSubTypeId ?? null,
         };
 
-        // inventory & booking logic (unchanged)
+        // inventory & booking logic
         switch (productType) {
-          case 'TICKET': {
+          case "TICKET": {
             const eventTicket = await tx.eventTicket.findUnique({
               where: { eventId_ticketId: { eventId, ticketId: item.productId } },
             });
@@ -87,7 +103,7 @@ export async function POST(
             break;
           }
 
-          case 'SPONSOR': {
+          case "SPONSOR": {
             const eventSponsor = await tx.eventSponsorType.findUnique({
               where: { eventId_sponsorTypeId: { eventId, sponsorTypeId: item.productId } },
             });
@@ -102,16 +118,20 @@ export async function POST(
             break;
           }
 
-          case 'HOTEL': {
-            if (!item.roomTypeId) throw new Error('Room Type ID is missing for hotel booking.');
+          case "HOTEL": {
+            if (!item.roomTypeId) throw new Error("Room Type ID is missing for hotel booking.");
             const eventRoomType = await tx.eventRoomType.findUnique({
               where: { eventId_roomTypeId: { eventId, roomTypeId: item.roomTypeId } },
             });
 
-            console.log(`Found EventRoomType for room ${item.name}. Current quantity: ${eventRoomType?.quantity}`);
+            console.log(
+              `Found EventRoomType for room ${item.name}. Current quantity: ${eventRoomType?.quantity}`
+            );
 
             if (!eventRoomType || eventRoomType.quantity < item.quantity) {
-              throw new Error(`Room type "${item.name}" is sold out or has insufficient quantity.`);
+              throw new Error(
+                `Room type "${item.name}" is sold out or has insufficient quantity.`
+              );
             }
 
             const updatedEventRoomType = await tx.eventRoomType.update({
@@ -119,57 +139,96 @@ export async function POST(
               data: { quantity: { decrement: item.quantity } },
             });
 
-            console.log(`[OK] Decremented quantity for Hotel Room: ${item.name}. New quantity: ${updatedEventRoomType.quantity}.`);
+            console.log(
+              `[OK] Decremented quantity for Hotel Room: ${item.name}. New quantity: ${updatedEventRoomType.quantity}.`
+            );
             break;
           }
 
           case 'BOOTH': {
-            if (!item.boothSubTypeId) throw new Error('Booth Sub-Type ID is missing for booth booking.');
-            const boothSubType = await tx.boothSubType.findUnique({ where: { id: item.boothSubTypeId } });
-            if (!boothSubType || !boothSubType.isAvailable) throw new Error(`Booth "${item.name}" is no longer available.`);
-            await tx.boothSubType.update({ where: { id: item.boothSubTypeId! }, data: { isAvailable: false } });
-            console.log(`[OK] Marked Booth as sold: ${item.name}`);
-            break;
-          }
+  const needed = Math.max(1, item.quantity);
 
-          case 'MEMBERSHIP':
-          case 'PRODUCT': {
-            console.log(`[OK] Recording ${productType} item (no inventory changes): ${item.name}`);
+  // Look up EventBooth for this event & booth
+  const eventBooth = await tx.eventBooth.findUnique({
+    where: {
+      eventId_boothId: {
+        eventId,
+        boothId: item.productId,
+      },
+    },
+  });
+
+  console.log(
+    `Found EventBooth for booth ${item.name}. Current quantity: ${eventBooth?.quantity}`
+  );
+
+  if (!eventBooth || eventBooth.quantity < needed) {
+    throw new Error(
+      `Booth "${item.name}" is sold out or has insufficient quantity.`
+    );
+  }
+
+  const updated = await tx.eventBooth.update({
+    where: {
+      eventId_boothId: {
+        eventId,
+        boothId: item.productId,
+      },
+    },
+    data: {
+      quantity: { decrement: needed },
+    },
+  });
+
+  console.log(
+    `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
+  );
+
+  // no special sub-type handling now; generic OrderItem creation below will handle the order line
+  break;
+}
+
+          case "MEMBERSHIP":
+          case "PRODUCT": {
+            console.log(
+              `[OK] Recording ${productType} item (no inventory changes): ${item.name}`
+            );
             break;
           }
 
           default: {
-            console.warn(`Unhandled product type "${productType}" for item ${item.name} — treating as PRODUCT.`);
+            console.warn(
+              `Unhandled product type "${productType}" for item ${item.name} — treating as PRODUCT.`
+            );
             break;
           }
         }
 
-        // Create OrderItem record for every item
-        await tx.orderItem.create({
-          data: {
-            orderId: purchaseOrder.id,
-            productId: item.productId,
-            productType: productType,
-            name: item.name,
-            quantity: item.quantity,
-            price: item.price,
-            roomTypeId: item.roomTypeId,
-            boothSubTypeId: item.boothSubTypeId,
-          },
-        });
-        console.log(`[OK] Created OrderItem for: ${item.name}`);
+        // For non-BOOTH items (and BOOTH fallback case with no subtypes), create a single OrderItem
+       await tx.orderItem.create({
+  data: {
+    orderId: purchaseOrder.id,
+    productId: item.productId,
+    productType: productType,
+    name: item.name,
+    quantity: item.quantity,
+    price: item.price,
+    roomTypeId: item.roomTypeId ?? undefined,
+    boothSubTypeId: item.boothSubTypeId ?? undefined,
+  },
+});
+console.log(`[OK] Created OrderItem for: ${item.name}`);
 
-        calculatedTotal += item.price * item.quantity;
+calculatedTotal += item.price * item.quantity;
       } // end for items
 
       console.log(`[INFO] Calculated subtotal: ${calculatedTotal}`);
 
       // ---- COUPON VALIDATION & DISCOUNT calculation (server-side authoritative) ----
       let discountAmount = 0;
-      let couponRecord = null;
+      let couponRecord: any = null;
 
       if (couponInput) {
-        // prefer id, then code
         if (couponInput.id) {
           couponRecord = await tx.coupon.findUnique({ where: { id: couponInput.id } });
         }
@@ -178,34 +237,37 @@ export async function POST(
         }
 
         if (couponRecord) {
-          console.log(`[INFO] Found coupon ${couponRecord.code} (${couponRecord.discountType} ${couponRecord.discountValue})`);
+          console.log(
+            `[INFO] Found coupon ${couponRecord.code} (${couponRecord.discountType} ${couponRecord.discountValue})`
+          );
           const dv = Number(couponRecord.discountValue ?? 0);
-          if (couponRecord.discountType === 'FIXED') {
+          if (couponRecord.discountType === "FIXED") {
             discountAmount = Math.min(dv, calculatedTotal);
           } else {
-            // PERCENTAGE
             discountAmount = calculatedTotal * (dv / 100);
           }
-          // round to 2 decimals
           discountAmount = Math.round(discountAmount * 100) / 100;
         } else {
-          console.log('[INFO] Coupon provided but not found in DB (id/code mismatch). Ignoring coupon for this checkout.');
+          console.log(
+            "[INFO] Coupon provided but not found in DB (id/code mismatch). Ignoring coupon for this checkout."
+          );
         }
       } else {
-        console.log('[INFO] No coupon provided in request body.');
+        console.log("[INFO] No coupon provided in request body.");
       }
 
-      const finalTotal = Math.max(0, Math.round((calculatedTotal - discountAmount) * 100) / 100);
+      const finalTotal = Math.max(
+        0,
+        Math.round((calculatedTotal - discountAmount) * 100) / 100
+      );
 
-      // Finalize the PurchaseOrder: persist discountAmount and coupon relation (if exists)
       const updateData: any = {
         totalAmount: finalTotal,
-        status: 'COMPLETED',
+        status: "COMPLETED",
         discountAmount: discountAmount,
       };
 
       if (couponRecord) {
-        // if your schema uses couponId as FK or relation, this will work:
         updateData.couponId = couponRecord.id;
       }
 
@@ -215,25 +277,30 @@ export async function POST(
         include: { items: true },
       });
 
-      console.log(`[OK] Finalized PurchaseOrder ${finalOrder.id} with total ${finalOrder.totalAmount} (discount ${discountAmount})`);
+      console.log(
+        `[OK] Finalized PurchaseOrder ${finalOrder.id} with total ${finalOrder.totalAmount} (discount ${discountAmount})`
+      );
 
       return finalOrder;
-    }); // end transaction
+    });
 
-    console.log('--- CHECKOUT TRANSACTION COMPLETED SUCCESSFULLY ---');
+    console.log("--- CHECKOUT TRANSACTION COMPLETED SUCCESSFULLY ---");
     return NextResponse.json(result, { status: 201 });
-
   } catch (error: any) {
-    console.error('--- CHECKOUT TRANSACTION FAILED ---');
-    console.error('Error during checkout:', error);
+    console.error("--- CHECKOUT TRANSACTION FAILED ---");
+    console.error("Error during checkout:", error);
 
     const msg = error?.message ?? String(error);
     const isClientError =
-      msg.includes('sold out') ||
-      msg.includes('insufficient quantity') ||
-      msg.includes('missing') ||
-      msg.includes('no longer available');
+      msg.includes("sold out") ||
+      msg.includes("insufficient quantity") ||
+      msg.includes("missing") ||
+      msg.includes("no longer available") ||
+      msg.includes("Not enough available");
 
-    return NextResponse.json({ error: msg || 'An unexpected error occurred during checkout.' }, { status: isClientError ? 400 : 500 });
+    return NextResponse.json(
+      { error: msg || "An unexpected error occurred during checkout." },
+      { status: isClientError ? 400 : 500 }
+    );
   }
 }

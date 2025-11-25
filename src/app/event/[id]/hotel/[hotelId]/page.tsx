@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, use } from 'react';
+import React, { use, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Loader, MapPin } from 'lucide-react';
+import { Loader, MapPin, Tag } from 'lucide-react';
 import { useCart } from '@/app/event/[id]/CartContext';
 
 interface RoomType {
@@ -22,6 +22,22 @@ interface HotelData {
   image?: string | null;
 }
 
+type OfferScope = 'ALL' | 'HOTELS' | 'TICKETS' | 'SPONSORS' | 'CUSTOM';
+interface Offer {
+  id: string;
+  name: string;
+  code?: string | null;
+  description?: string | null;
+  percentage: number;
+  scope: OfferScope;
+  startsAt?: string | null;
+  endsAt?: string | null;
+  isActive: boolean;
+  hotelIds?: string[];
+  ticketIds?: string[];
+  sponsorTypeIds?: string[];
+}
+
 export default function HotelRoomsPage({
   params,
 }: {
@@ -33,6 +49,10 @@ export default function HotelRoomsPage({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
+
+  // Offers
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offersLoading, setOffersLoading] = useState(false);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -51,8 +71,8 @@ export default function HotelRoomsPage({
             id: r.id,
             hotelId: r.hotelId,
             roomType: r.roomType,
-            price: r.price,
-            amenities: r.amenities,
+            price: Number(r.price ?? 0),
+            amenities: r.amenities ?? null,
             availableRooms: r.eventRoomTypes?.[0]?.quantity ?? r.availableRooms ?? 0,
             image: r.image ?? null,
           }))
@@ -63,23 +83,81 @@ export default function HotelRoomsPage({
         setLoading(false);
       }
     };
+
+    const fetchOffers = async () => {
+      setOffersLoading(true);
+      try {
+        const r = await fetch('/api/admin/offers');
+        if (!r.ok) {
+          // don't block page load if offers fail
+          console.warn('Failed to load offers', r.status);
+          setOffers([]);
+          return;
+        }
+        const data = await r.json();
+        setOffers(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('Offers fetch error', err);
+        setOffers([]);
+      } finally {
+        setOffersLoading(false);
+      }
+    };
+
     fetchRooms();
+    fetchOffers();
   }, [eventId, hotelId]);
+
+  // determine best offer percent for a given hotelId (checks validity and time windows)
+  function getBestOfferPercentForHotel(hId: string): { percent: number | null; name?: string | null } {
+    if (!offers || offers.length === 0) return { percent: null };
+
+    const now = new Date();
+    const applicable = offers.filter((o) => {
+      if (!o.isActive) return false;
+      if (o.startsAt && new Date(o.startsAt) > now) return false;
+      if (o.endsAt && new Date(o.endsAt) < now) return false;
+
+      if (o.scope === 'ALL') return true;
+      if (o.scope === 'HOTELS') return true;
+      if (o.scope === 'CUSTOM') {
+        if (Array.isArray(o.hotelIds) && o.hotelIds.includes(hId)) return true;
+      }
+      return false;
+    });
+
+    if (applicable.length === 0) return { percent: null };
+    const best = applicable.reduce((acc, cur) => (cur.percentage > acc.percentage ? cur : acc), applicable[0]);
+    return { percent: best.percentage, name: best.name };
+  }
+
+  function formatPrice(n: number) {
+    return n % 1 === 0 ? n.toLocaleString() : n.toFixed(2);
+  }
+  function getDiscountedPrice(original: number, percent?: number | null) {
+    if (!percent || percent <= 0) return original;
+    return Math.max(0, +(original * (1 - percent / 100)).toFixed(2));
+  }
 
   const handleAdd = (room: RoomType) => {
     if ((room.availableRooms ?? 0) <= 0) {
       alert('This room type is sold out for the event.');
       return;
     }
+
+    // compute best offer for this hotel
+    const { percent } = getBestOfferPercentForHotel(hotel!.id);
+    const effectivePrice = getDiscountedPrice(room.price, percent ?? null);
+
     addToCart({
       productId: hotel!.id,
       productType: 'HOTEL',
       name: `${hotel!.hotelName} - ${room.roomType}`,
-      price: room.price,
+      price: effectivePrice,
       image: hotel!.image,
       roomTypeId: room.id,
     });
-    alert('Room added to cart!');
+    alert(`Room added to cart at $${effectivePrice.toFixed(2)}${percent ? ` (saved ${percent}%)` : ''}!`);
   };
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader className="h-12 w-12 animate-spin text-indigo-600" /></div>;
@@ -101,28 +179,53 @@ export default function HotelRoomsPage({
           </div>
         </div>
 
+        {offersLoading && (
+          <div className="mb-4 text-sm text-slate-500">Loading offers…</div>
+        )}
+
         {rooms.length === 0 ? (
           <p className="text-slate-500">No room types available for this hotel.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {rooms.map(room => (
-              <div key={room.id} className="p-4 border rounded-md flex items-center gap-4">
-                <img src={room.image || '/placeholder.png'} className="w-24 h-20 object-cover rounded-md" />
-                <div className="flex-grow">
-                  <p className="font-semibold text-slate-800">{room.roomType}</p>
-                  <p className="text-sm text-slate-500">{room.amenities}</p>
-                  <p className="text-sm mt-1">Available: <span className="font-medium">{room.availableRooms ?? 0}</span></p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-indigo-600 text-lg">${room.price.toFixed(2)}</p>
-                  {(room.availableRooms ?? 0) > 0 ? (
-                    <button onClick={() => handleAdd(room)} className="mt-2 bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700">Add</button>
-                  ) : (
-                    <span className="text-red-500 font-semibold mt-2 block">Sold out</span>
+            {rooms.map(room => {
+              const { percent, name: offerName } = getBestOfferPercentForHotel(room.hotelId);
+              const discounted = percent && percent > 0;
+              const newPrice = getDiscountedPrice(room.price, percent ?? null);
+
+              return (
+                <div key={room.id} className="relative p-4 border rounded-md flex items-center gap-4 bg-white">
+                  {discounted && (
+                    <div className="absolute -top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-bold flex items-center gap-1 shadow">
+                      <Tag className="h-4 w-4" /> -{Math.round(percent!)}%
+                    </div>
                   )}
+
+                  <img src={room.image || '/placeholder.png'} className="w-24 h-20 object-cover rounded-md" />
+                  <div className="flex-grow">
+                    <p className="font-semibold text-slate-800">{room.roomType}</p>
+                    <p className="text-sm text-slate-500">{room.amenities}</p>
+                    <p className="text-sm mt-1">Available: <span className="font-medium">{room.availableRooms ?? 0}</span></p>
+                  </div>
+                  <div className="text-right">
+                    {discounted ? (
+                      <>
+                        <div className="text-sm text-slate-500 line-through">${formatPrice(room.price)}</div>
+                        <div className="font-bold text-indigo-600 text-lg">${formatPrice(newPrice)}</div>
+                        {offerName && <div className="text-xs text-amber-600 mt-1">{offerName}</div>}
+                      </>
+                    ) : (
+                      <div className="font-bold text-indigo-600 text-lg">${formatPrice(room.price)}</div>
+                    )}
+
+                    {(room.availableRooms ?? 0) > 0 ? (
+                      <button onClick={() => handleAdd(room)} className="mt-2 bg-indigo-600 text-white px-3 py-1 rounded-md hover:bg-indigo-700">Add</button>
+                    ) : (
+                      <span className="text-red-500 font-semibold mt-2 block">Sold out</span>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

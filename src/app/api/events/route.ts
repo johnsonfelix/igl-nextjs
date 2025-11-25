@@ -1,14 +1,24 @@
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
-
-const prisma = new PrismaClient();
+import prisma from '@/app/lib/prisma';
 
 // ✅ GET all events
 export async function GET() {
   try {
     const events = await prisma.event.findMany({
       include: {
-        booths: true,
+        // eventBooths contains { eventId, boothId, quantity } and we include the nested booth
+        eventBooths: {
+          include: {
+            booth: {
+              include: {
+                // include subTypes (all); if you want to filter per-event you'll do that in single-event GET
+                subTypes: true,
+              },
+            },
+          },
+        },
+
         hotels: true,
         eventTickets: {
           include: { ticket: true },
@@ -43,11 +53,12 @@ export async function POST(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],          // array of booth IDs
+      // now expecting booths: array of { id: string, quantity?: number }
+      booths = [],          // array of { id: string, quantity?: number }
       hotels = [],          // array of hotel IDs
-      tickets = [],         // array of { id: string, quantity: number }
-      sponsorTypes = [],    // array of { id: string, quantity: number }
-      roomTypes = [],       // array of { id: string, quantity: number }
+      tickets = [],         // array of { id: string, quantity?: number }
+      sponsorTypes = [],    // array of { id: string, quantity?: number }
+      roomTypes = [],       // array of { id: string, quantity?: number }
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
@@ -65,36 +76,47 @@ export async function POST(req: NextRequest) {
         eventType,
         expectedAudience: expectedAudience || "",
 
-        // Many-to-many relation connect
-        booths: {
-          connect: booths.map((id: string) => ({ id })),
-        },
-        hotels: {
-          connect: hotels.map((id: string) => ({ id })),
+        // Create eventBooths entries (join model) with quantity
+        eventBooths: {
+          create: (booths || []).map((b: { id: string; quantity?: number }) => ({
+            booth: { connect: { id: b.id } },
+            quantity: b.quantity ?? 1,
+          })),
         },
 
-        // Explicit join model creations with quantities
+        // Hotels (many-to-many connect by id)
+        hotels: {
+          connect: (hotels || []).map((id: string) => ({ id })),
+        },
+
+        // Tickets join model
         eventTickets: {
-          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
+          create: (tickets || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
             ticket: { connect: { id } },
-            quantity: quantity || 1,
+            quantity: quantity ?? 1,
           })),
         },
+
+        // Sponsor types join model
         eventSponsorTypes: {
-          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+          create: (sponsorTypes || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
             sponsorType: { connect: { id } },
-            quantity: quantity || 1,
+            quantity: quantity ?? 1,
           })),
         },
+
+        // Room types join model
         eventRoomTypes: {
-          create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
+          create: (roomTypes || []).map(({ id, quantity }: { id: string; quantity?: number }) => ({
             roomType: { connect: { id } },
-            quantity: quantity || 1,
+            quantity: quantity ?? 1,
           })),
         },
       },
       include: {
-        booths: true,
+        eventBooths: {
+          include: { booth: { include: { subTypes: true } } },
+        },
         hotels: true,
         eventTickets: { include: { ticket: true } },
         eventSponsorTypes: { include: { sponsorType: true } },
@@ -123,11 +145,12 @@ export async function PUT(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],         // array of booth IDs
+      // booths now array of { id, quantity }
+      booths = [],         // array of { id: string, quantity?: number }
       hotels = [],         // array of hotel IDs
-      tickets = [],        // array of { id: string, quantity: number }
-      sponsorTypes = [],   // array of { id: string, quantity: number }
-      roomTypes = [],      // array of { id: string, quantity: number }
+      tickets = [],        // array of { id: string, quantity?: number }
+      sponsorTypes = [],   // array of { id: string, quantity?: number }
+      roomTypes = [],      // array of { id: string, quantity?: number }
     } = body;
 
     if (!id || !name || !startDate || !endDate || !location) {
@@ -146,40 +169,49 @@ export async function PUT(req: NextRequest) {
         eventType,
         expectedAudience: expectedAudience || "",
 
-        // Replace the many-to-many relationships for booths and hotels
-        booths: {
-          set: booths.map((id: string) => ({ id })),
-        },
-        hotels: {
-          set: hotels.map((id: string) => ({ id })),
+        // Replace eventBooths: delete existing join rows and create the new ones with quantities
+        eventBooths: {
+          deleteMany: {}, // remove existing eventBooth rows for this event
+          create: (booths || []).map(({ id: boothId, quantity }: { id: string; quantity?: number }) => ({
+            booth: { connect: { id: boothId } },
+            quantity: quantity ?? 1,
+          })),
         },
 
-        // Replace explicit join models for tickets, sponsorTypes, roomTypes
+        // Replace hotels many-to-many
+        hotels: {
+          set: (hotels || []).map((hId: string) => ({ id: hId })),
+        },
+
+        // Replace tickets join model entries
         eventTickets: {
-          // Remove old relations and create new ones to replace quantities + links
-          deleteMany: {}, // clear existing
-          create: tickets.map(({ id, quantity }: { id: string; quantity: number }) => ({
-            ticket: { connect: { id } },
-            quantity: quantity || 1,
+          deleteMany: {},
+          create: (tickets || []).map(({ id: ticketId, quantity }: { id: string; quantity?: number }) => ({
+            ticket: { connect: { id: ticketId } },
+            quantity: quantity ?? 1,
           })),
         },
+
+        // Replace sponsorTypes join model entries
         eventSponsorTypes: {
           deleteMany: {},
-          create: sponsorTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
-            sponsorType: { connect: { id } },
-            quantity: quantity || 1,
+          create: (sponsorTypes || []).map(({ id: sponsorTypeId, quantity }: { id: string; quantity?: number }) => ({
+            sponsorType: { connect: { id: sponsorTypeId } },
+            quantity: quantity ?? 1,
           })),
         },
+
+        // Replace roomTypes join model entries
         eventRoomTypes: {
           deleteMany: {},
-          create: roomTypes.map(({ id, quantity }: { id: string; quantity: number }) => ({
-            roomType: { connect: { id } },
-            quantity: quantity || 1,
+          create: (roomTypes || []).map(({ id: roomTypeId, quantity }: { id: string; quantity?: number }) => ({
+            roomType: { connect: { id: roomTypeId } },
+            quantity: quantity ?? 1,
           })),
         },
       },
       include: {
-        booths: true,
+        eventBooths: { include: { booth: { include: { subTypes: true } } } },
         hotels: true,
         eventTickets: { include: { ticket: true } },
         eventSponsorTypes: { include: { sponsorType: true } },
