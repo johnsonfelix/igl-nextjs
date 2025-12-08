@@ -37,6 +37,11 @@ model Company {
   status      CompanyStatus @default(LIVE)
   zipCode     String?
 
+  directors         String?
+  participationYears String?
+  scopeOfBusiness    String? 
+  servicesOffered    String?
+
   membershipPlanId String?
   membershipPlan   MembershipPlan? @relation(fields: [membershipPlanId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
@@ -128,8 +133,13 @@ model Location {
   phone   String?
   fax     String?
   email   String?
+  contactPerson String?
+  contactPersonDesignation String?
+  mobile        String?
+  skype         String?
+  wechat        String?
 
-  company   Company @relation(fields: [companyId], references: [id])
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   companyId String  @unique
 }
 
@@ -294,7 +304,7 @@ model Venue {
 model Inquiry {
   id             String            @id @default(cuid())
   companyId      String
-  company        Company           @relation("CompanyInquiry", fields: [companyId], references: [id])
+  company        Company           @relation("CompanyInquiry", fields: [companyId], references: [id], onDelete: Cascade)
   from           String
   to             String
   commodity      String
@@ -318,7 +328,7 @@ model InquiryResponse {
   id          String   @id @default(cuid())
   inquiry     Inquiry  @relation(fields: [inquiryId], references: [id])
   inquiryId   String
-  responder   Company  @relation("ResponderCompany", fields: [responderId], references: [id])
+  responder   Company  @relation("ResponderCompany", fields: [responderId], references: [id], onDelete: Cascade)
   responderId String
   message     String
   offerPrice  Float?
@@ -367,9 +377,15 @@ model EventRoomType {
 
 model BoothSubType {
   id          String   @id @default(cuid())
-  name        String
+  name        String   // label (e.g. "Booth A1", "Day 1 - 10:00–11:00")
   price       Float
   description String?
+
+  type        BoothSubTypeType @default(BOOTH_NUMBER)
+
+  // Only used when type = TIME_SLOT
+  slotStart   DateTime?
+  slotEnd     DateTime?
 
   boothId     String
   eventId     String
@@ -384,13 +400,19 @@ model BoothSubType {
   @@unique([boothId, eventId, name])
 }
 
+enum BoothSubTypeType {
+  BOOTH_NUMBER
+  TIME_SLOT
+  CUSTOM
+}
+
 
 model PurchaseOrder {
   id          String      @id @default(cuid())
   companyId   String      // The company that made the purchase
-  company     Company     @relation(fields: [companyId], references: [id])
-  eventId     String      // The event for which the purchase was made
-  event       Event       @relation(fields: [eventId], references: [id])
+  company     Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  eventId     String?      // The event for which the purchase was made
+  event       Event?       @relation(fields: [eventId], references: [id])
   totalAmount Float
   status      OrderStatus @default(COMPLETED) // Or you could have PENDING, FAILED
   createdAt   DateTime    @default(now())
@@ -455,7 +477,7 @@ model Message {
   
   // The company that sent the message
   senderId  String
-  sender    Company   @relation("SentMessages", fields: [senderId], references: [id])
+  sender    Company   @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   
   // The conversation this message belongs to
   conversationId String
@@ -476,6 +498,7 @@ model MembershipPlan {
   description String?
   thumbnail   String?
   features    String[]
+  offers      Offer[]  @relation("OfferMembershipPlans")
   companies   Company[] // back-relation
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -514,6 +537,7 @@ model Offer {
   tickets      Ticket[]       @relation("OfferTickets")
   sponsorTypes SponsorType[]  @relation("OfferSponsorTypes")
   booths         Booth[]        @relation("OfferBooths")
+  membershipPlans MembershipPlan[] @relation("OfferMembershipPlans")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -523,5 +547,7 @@ enum OfferScope {
   HOTELS
   TICKETS
   SPONSORS
+  BOOTHS
+  SUBSCRIPTIONS
   CUSTOM
 }

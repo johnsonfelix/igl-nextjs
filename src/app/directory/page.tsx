@@ -29,35 +29,35 @@ const getMembershipYears = (memberSince: string) => {
 };
 
 const MembershipBadge = ({ type, isVerified }: { type?: string, isVerified?: boolean }) => {
-    const baseStyle = 'rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1.5';
-    let style = 'bg-gray-100 text-gray-800';
+  const baseStyle = 'rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1.5';
+  let style = 'bg-gray-100 text-gray-800';
 
-    if (isVerified) {
-        style = 'bg-green-100 text-green-800';
-        return (
-            <span className={`${baseStyle} ${style}`}>
-                <CheckCircle size={14} /> Verified Member
-            </span>
-        );
-    }
-    
-    const styleMap: Record<string, string> = {
-        'IGLA Elite': 'bg-blue-100 text-blue-800',
-        'IGLA Premium': 'bg-yellow-100 text-yellow-800',
-        'IGLA Projects': 'bg-purple-100 text-purple-800',
-        'IGLA Dangerous Goods': 'bg-red-100 text-red-800',
-    };
+  if (isVerified) {
+    style = 'bg-green-100 text-green-800';
+    return (
+      <span className={`${baseStyle} ${style}`}>
+        <CheckCircle size={14} /> Verified Member
+      </span>
+    );
+  }
 
-    if (type && styleMap[type]) {
-        style = styleMap[type];
-    } else if (type) {
-        // Default style for other specialities
-        style = 'bg-cyan-100 text-cyan-800';
-    } else {
-        return null; // Don't render a badge if no type is provided
-    }
+  const styleMap: Record<string, string> = {
+    'IGLA Elite': 'bg-blue-100 text-blue-800',
+    'IGLA Premium': 'bg-yellow-100 text-yellow-800',
+    'IGLA Projects': 'bg-purple-100 text-purple-800',
+    'IGLA Dangerous Goods': 'bg-red-100 text-red-800',
+  };
 
-    return <span className={`${baseStyle} ${style}`}>{type}</span>;
+  if (type && styleMap[type]) {
+    style = styleMap[type];
+  } else if (type) {
+    // Default style for other specialities
+    style = 'bg-cyan-100 text-cyan-800';
+  } else {
+    return null; // Don't render a badge if no type is provided
+  }
+
+  return <span className={`${baseStyle} ${style}`}>{type}</span>;
 };
 
 
@@ -73,7 +73,7 @@ export default function CompaniesListPage() {
   const [companyName, setCompanyName] = useState('');
   const [memberId, setMemberId] = useState('');
   const [port, setPort] = useState('');
-  
+
   // --- UI State ---
   const tabs = ['Location', 'Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Location');
@@ -117,7 +117,7 @@ export default function CompaniesListPage() {
   const countryOptions = useMemo(() => ['All', 'India', 'United States', 'China', 'United Kingdom'], []);
 
   const renderSearchInputs = () => {
-    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-teal-500 focus:border-teal-500 transition shadow-sm";
+    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#5da765] focus:border-[#5da765] transition shadow-sm";
     switch (activeTab) {
       case 'Location':
         return (
@@ -138,33 +138,47 @@ export default function CompaniesListPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <main className="container mx-auto p-4 md:p-8">
-        
+    <div className="min-h-screen bg-[#f8f9fa] font-sans">
+      <main className="container mx-auto p-4 md:p-8 max-w-7xl">
+        {/* Page Header */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-1.5 h-8 bg-[#5da765] rounded-full"></div>
+            <h1 className="text-3xl font-bold text-gray-800">Company Directory</h1>
+          </div>
+          <p className="text-gray-500 ml-6">Discover and connect with verified logistics companies worldwide</p>
+        </div>
+
         {/* Search Section */}
-        <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-light-blue-50 border border-gray-200 shadow-sm">
-          <div className="flex border-b border-gray-200 mb-4">
+        <div className="mb-8 p-8 rounded-2xl bg-white border border-gray-100 shadow-lg shadow-gray-200/50">
+          <div className="flex border-b border-gray-100 mb-6 -mx-2">
             {tabs.map(t => (
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-4 py-2 font-semibold text-sm transition-colors duration-300 ${
-                    activeTab === t
-                    ? 'border-b-2 border-teal-500 text-teal-600'
-                    : 'text-gray-500 hover:text-teal-500'
-                }`}
+                className={`px-6 py-3 font-bold text-sm transition-all duration-300 relative ${activeTab === t
+                  ? 'text-[#5da765]'
+                  : 'text-gray-400 hover:text-gray-600'
+                  }`}
               >
                 {t}
+                {activeTab === t && (
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5da765] rounded-full"></div>
+                )}
               </button>
             ))}
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-[1fr,auto] items-center gap-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-center">
+
+          <div className="grid grid-cols-1 md:grid-cols-[1fr,auto] items-end gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {renderSearchInputs()}
             </div>
-            <button onClick={fetchCompanies} className="flex h-12 w-12 items-center justify-center rounded-lg bg-teal-600 text-white hover:bg-teal-700 transition-all shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-              <Search size={22} />
+            <button
+              onClick={fetchCompanies}
+              className="group flex h-12 px-6 items-center justify-center gap-2 rounded-xl bg-[#5da765] text-white hover:bg-[#4a8a52] transition-all shadow-lg shadow-green-200 hover:shadow-xl hover:translate-y-[-2px] focus:outline-none focus:ring-4 focus:ring-green-100 font-bold"
+            >
+              <Search size={20} className="group-hover:rotate-90 transition-transform" />
+              <span className="hidden md:inline">Search</span>
             </button>
           </div>
         </div>
@@ -172,85 +186,113 @@ export default function CompaniesListPage() {
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-8">
           <div className="space-y-5">
             {loading && (
-              <div className="flex h-64 items-center justify-center">
-                <div className="h-16 w-16 animate-spin rounded-full border-4 border-t-4 border-gray-200 border-t-teal-500"></div>
+              <div className="flex h-64 items-center justify-center bg-white rounded-2xl border border-gray-100">
+                <div className="flex flex-col items-center">
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#5da765]"></div>
+                  <p className="text-gray-500 font-medium mt-4">Loading companies...</p>
+                </div>
               </div>
             )}
-            {error && <div className="text-red-600 p-4 bg-red-50 rounded-lg border border-red-200">{error}</div>}
-            {!loading && !error && companies.length === 0 && (
-              <div className="text-gray-500 p-8 bg-white rounded-lg border text-center">No companies found. Try adjusting your search criteria.</div>
+            {error && (
+              <div className="bg-red-50 text-red-600 p-6 rounded-xl border border-red-100 shadow-sm">
+                <p className="font-bold mb-1">Error</p>
+                <p className="text-sm">{error}</p>
+              </div>
             )}
-            
+            {!loading && !error && companies.length === 0 && (
+              <div className="bg-white p-12 rounded-2xl border border-dashed border-gray-200 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                  <Building size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-1">No companies found</h3>
+                <p className="text-gray-500 text-sm">Try adjusting your search criteria</p>
+              </div>
+            )}
+
             {!loading && companies.length > 0 && companies.map(company => {
               const logoUrl = company.media?.[0]?.url || null;
               const memberYears = getMembershipYears(company.memberSince);
               const displayLocation = `${company.location?.city || ''}${company.location?.country ? `, ${company.location.country}` : ''}`;
-              
+
               return (
-                <div key={company.id} className="group flex flex-col md:flex-row gap-5 rounded-xl border bg-white p-5 shadow-sm hover:shadow-xl hover:border-teal-200 transition-all duration-300 overflow-hidden">
-                    <div className="flex-shrink-0 flex md:flex-col items-center gap-4">
-                        <div className="relative h-24 w-24 flex-shrink-0 border-2 border-gray-100 rounded-lg p-1.5 bg-white shadow-inner">
-                          {logoUrl ? (
-                            <Image src={logoUrl} alt={`${company.name} logo`} fill style={{objectFit:'contain'}} className="rounded-md" />
-                          ) : (
-                            <div className="flex h-full w-full items-center justify-center rounded-lg bg-gray-50 text-gray-400">
-                              <Building size={40} />
-                            </div>
-                          )}
+                <div key={company.id} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#5da765]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative">
+                  {/* Decorative border on hover */}
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#5da765] to-[#4a8a52] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                  <div className="flex-shrink-0 flex md:flex-col items-center gap-3">
+                    <div className="relative h-24 w-24 flex-shrink-0 border-2 border-gray-100 rounded-xl p-2 bg-gradient-to-br from-gray-50 to-white shadow-sm group-hover:border-[#5da765]/30 transition-colors">
+                      {logoUrl ? (
+                        <Image src={logoUrl} alt={`${company.name} logo`} fill style={{ objectFit: 'contain' }} className="rounded-lg" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center rounded-xl bg-gray-50 text-gray-300">
+                          <Building size={36} />
                         </div>
-                        {memberYears > 0 && (
-                            <div className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">
-                                <Star size={14} className="text-amber-500" />
-                                {memberYears} Year Member
-                            </div>
-                        )}
+                      )}
                     </div>
-                    
-                    <div className="flex-grow flex flex-col">
-                        <Link href={`/company/details/${company.id}`}>
-                            <h2 className="text-lg font-bold text-gray-800 group-hover:text-teal-600 transition-colors">{company.name}</h2>
-                        </Link>
-                        <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
-                            <MapPin size={14} />
-                            {displayLocation}
-                        </p>
-                        <div className="flex flex-wrap items-center gap-2 mt-4">
-                            {company.isVerified && <MembershipBadge isVerified={true} />}
-                            <MembershipBadge type={company.purchasedMembership} />
-                            {company.specialties?.slice(0, 2).map(spec => <MembershipBadge key={spec} type={spec} />)}
-                        </div>
+                    {memberYears > 0 && (
+                      <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 shadow-sm border border-amber-200/50">
+                        <Star size={12} className="text-amber-500 fill-amber-500" />
+                        {memberYears}Y
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-grow flex flex-col min-w-0">
+                    <Link href={`/company/details/${company.id}`}>
+                      <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#5da765] transition-colors truncate">{company.name}</h2>
+                    </Link>
+                    <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-2">
+                      <MapPin size={14} className="shrink-0" />
+                      <span className="truncate">{displayLocation || 'Location not specified'}</span>
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 mt-5">
+                      {company.isVerified && <MembershipBadge isVerified={true} />}
+                      <MembershipBadge type={company.purchasedMembership} />
+                      {company.specialties?.slice(0, 2).map(spec => <MembershipBadge key={spec} type={spec} />)}
                     </div>
-                    
-                    <div className="flex-shrink-0 flex items-center mt-4 md:mt-0">
-                      <Link href={`/company/details/${company.id}`} className="rounded-lg bg-teal-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-teal-700 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
-                        View Profile
-                      </Link>
-                    </div>
+                  </div>
+
+                  <div className="flex-shrink-0 flex items-center justify-end mt-4 md:mt-0">
+                    <Link
+                      href={`/company/details/${company.id}`}
+                      className="group/btn flex items-center gap-2 rounded-xl bg-[#5da765] px-6 py-3 text-sm font-bold text-white shadow-md shadow-green-200 hover:bg-[#4a8a52] hover:shadow-lg hover:translate-y-[-2px] transition-all focus:outline-none focus:ring-4 focus:ring-green-100 whitespace-nowrap"
+                    >
+                      View Profile
+                      <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               );
             })}
           </div>
-          
-          <aside className="hidden lg:block space-y-8">
-            <div className="rounded-xl bg-white p-6 shadow-sm border border-gray-200">
-                <div className="flex items-center gap-3">
-                    <div className="bg-gray-800 text-white rounded-lg p-2"><TrendingUp /></div>
-                    <h3 className="font-bold text-lg text-gray-800">Global Inquiries</h3>
-                </div>
-                <p className="text-sm text-gray-500 mt-3">Access curated hotlists, market trends, and member inquiries to stay ahead.</p>
-                <button className="w-full mt-5 rounded-lg bg-gray-800 text-white py-2.5 text-sm font-semibold hover:bg-black transition-colors">
+
+          <aside className="hidden lg:block space-y-6">
+            <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="bg-gray-800 text-white rounded-xl p-3 shadow-md"><TrendingUp size={20} /></div>
+                <h3 className="font-bold text-lg text-gray-800">Global Inquiries</h3>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">Access curated hotlists, market trends, and member inquiries to stay ahead in the industry.</p>
+              <button className="w-full mt-5 rounded-xl bg-gray-800 text-white py-3 text-sm font-bold hover:bg-black transition-all shadow-md hover:shadow-lg hover:translate-y-[-2px]">
                 View Hotlists
-                </button>
+              </button>
             </div>
-            <div className="rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 p-6 text-white shadow-lg">
-                <div className="flex items-center gap-3">
-                    <div className="bg-white/20 rounded-lg p-2"><Award /></div>
-                    <h3 className="font-bold text-lg">Become Verified</h3>
+            <div className="rounded-2xl bg-gradient-to-br from-[#5da765] to-[#4a8a52] p-6 text-white shadow-xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 opacity-10">
+                <Award size={120} />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 shadow-md"><Award size={20} /></div>
+                  <h3 className="font-bold text-lg">Become Verified</h3>
                 </div>
-                <p className="text-sm text-white/90 mt-3">Increase trust and visibility in the network by getting your profile verified.</p>
-                <button className="w-full mt-5 rounded-lg bg-white text-teal-600 py-2.5 text-sm font-semibold hover:bg-gray-100 transition-colors">
-                Learn More
+                <p className="text-sm text-white/95 leading-relaxed">Increase trust and visibility in the network by getting your profile verified today.</p>
+                <button className="w-full mt-5 rounded-xl bg-white text-[#5da765] py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]">
+                  Learn More
                 </button>
+              </div>
             </div>
           </aside>
         </div>

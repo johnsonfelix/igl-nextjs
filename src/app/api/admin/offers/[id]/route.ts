@@ -2,12 +2,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
+type OfferScopePayload =
+  | "ALL"
+  | "HOTELS"
+  | "TICKETS"
+  | "SPONSORS"
+  | "BOOTHS"
+  | "SUBSCRIPTIONS"
+  | "CUSTOM";
+
 type OfferPayload = {
   name?: string;
   code?: string | null;
   description?: string | null;
   percentage?: number;
-  scope?: "ALL" | "HOTELS" | "TICKETS" | "SPONSORS" | "CUSTOM";
+  scope?: OfferScopePayload;
   startsAt?: string | null;
   endsAt?: string | null;
   isActive?: boolean;
@@ -15,16 +24,17 @@ type OfferPayload = {
   ticketIds?: string[];
   sponsorTypeIds?: string[];
   boothIds?: string[];
+  membershipPlanIds?: string[];
 };
 
-// small helper to get the last path segment as id
+// helper
 function getIdFromRequest(req: NextRequest): string {
   const url = new URL(req.url);
-  const parts = url.pathname.split("/").filter(Boolean); // remove empty segments
-  return parts[parts.length - 1]; // last segment = [id]
+  const parts = url.pathname.split("/").filter(Boolean);
+  return parts[parts.length - 1];
 }
 
-// 🔹 GET /api/admin/offers/[id]
+// GET /api/admin/offers/[id]
 export async function GET(req: NextRequest) {
   const id = getIdFromRequest(req);
 
@@ -36,6 +46,7 @@ export async function GET(req: NextRequest) {
         tickets: true,
         sponsorTypes: true,
         booths: true,
+        membershipPlans: true,
       },
     });
 
@@ -57,6 +68,7 @@ export async function GET(req: NextRequest) {
       ticketIds: (o.tickets || []).map((t) => t.id),
       sponsorTypeIds: (o.sponsorTypes || []).map((s) => s.id),
       boothIds: (o.booths || []).map((b) => b.id),
+      membershipPlanIds: (o.membershipPlans || []).map((m) => m.id),
     });
   } catch (err) {
     console.error("GET /api/admin/offers/[id] error:", err);
@@ -67,7 +79,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// 🔹 PUT /api/admin/offers/[id]
+// PUT /api/admin/offers/[id]
 export async function PUT(req: NextRequest) {
   const id = getIdFromRequest(req);
 
@@ -93,19 +105,25 @@ export async function PUT(req: NextRequest) {
     if (body.description !== undefined) updateData.description = body.description;
     if (body.percentage !== undefined) updateData.percentage = body.percentage;
     if (body.scope !== undefined) updateData.scope = body.scope;
-    if (body.startsAt !== undefined)
+    if (body.startsAt !== undefined) {
       updateData.startsAt = body.startsAt ? new Date(body.startsAt) : null;
-    if (body.endsAt !== undefined)
+    }
+    if (body.endsAt !== undefined) {
       updateData.endsAt = body.endsAt ? new Date(body.endsAt) : null;
+    }
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
     // If scope == CUSTOM, replace relations with provided arrays using `set`
     if (body.scope === "CUSTOM") {
       if (Array.isArray(body.hotelIds)) {
-        updateData.hotels = { set: body.hotelIds.map((id) => ({ id })) };
+        updateData.hotels = {
+          set: body.hotelIds.map((id) => ({ id })),
+        };
       }
       if (Array.isArray(body.ticketIds)) {
-        updateData.tickets = { set: body.ticketIds.map((id) => ({ id })) };
+        updateData.tickets = {
+          set: body.ticketIds.map((id) => ({ id })),
+        };
       }
       if (Array.isArray(body.sponsorTypeIds)) {
         updateData.sponsorTypes = {
@@ -113,7 +131,14 @@ export async function PUT(req: NextRequest) {
         };
       }
       if (Array.isArray(body.boothIds)) {
-        updateData.booths = { set: body.boothIds.map((id) => ({ id })) };
+        updateData.booths = {
+          set: body.boothIds.map((id) => ({ id })),
+        };
+      }
+      if (Array.isArray(body.membershipPlanIds)) {
+        updateData.membershipPlans = {
+          set: body.membershipPlanIds.map((id) => ({ id })),
+        };
       }
     } else {
       // optional: clear relations when scope != CUSTOM
@@ -121,6 +146,7 @@ export async function PUT(req: NextRequest) {
       // updateData.tickets = { set: [] };
       // updateData.sponsorTypes = { set: [] };
       // updateData.booths = { set: [] };
+      // updateData.membershipPlans = { set: [] };
     }
 
     const updated = await prisma.offer.update({
@@ -131,6 +157,7 @@ export async function PUT(req: NextRequest) {
         tickets: true,
         sponsorTypes: true,
         booths: true,
+        membershipPlans: true,
       },
     });
 
@@ -148,17 +175,21 @@ export async function PUT(req: NextRequest) {
       ticketIds: (updated.tickets || []).map((t) => t.id),
       sponsorTypeIds: (updated.sponsorTypes || []).map((s) => s.id),
       boothIds: (updated.booths || []).map((b) => b.id),
+      membershipPlanIds: (updated.membershipPlans || []).map((m) => m.id),
     });
   } catch (err: any) {
     console.error("PUT /api/admin/offers/[id] error:", err);
     if (err?.code === "P2025") {
       return NextResponse.json({ error: "Offer not found" }, { status: 404 });
     }
-    return NextResponse.json({ error: "Failed to update offer" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update offer" },
+      { status: 500 }
+    );
   }
 }
 
-// 🔹 DELETE /api/admin/offers/[id]
+// DELETE /api/admin/offers/[id]
 export async function DELETE(req: NextRequest) {
   const id = getIdFromRequest(req);
 
@@ -170,6 +201,9 @@ export async function DELETE(req: NextRequest) {
     if (err?.code === "P2025") {
       return NextResponse.json({ error: "Offer not found" }, { status: 404 });
     }
-    return NextResponse.json({ error: "Failed to delete offer" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to delete offer" },
+      { status: 500 }
+    );
   }
 }

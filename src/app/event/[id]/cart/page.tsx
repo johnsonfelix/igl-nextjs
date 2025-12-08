@@ -25,7 +25,11 @@ interface Offer {
   boothIds?: string[];
 }
 
-export default function CartPage({ params }: { params: Promise<{ id: string }> }) {
+export default function CartPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id: eventId } = use(params);
   const router = useRouter();
   const { cart, removeFromCart, updateQuantity } = useCart();
@@ -48,7 +52,9 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
         const res = await fetch("/api/admin/offers");
         if (!res.ok) {
           const text = await res.text().catch(() => "");
-          throw new Error(`Failed to load offers: ${res.status} ${res.statusText} ${text}`);
+          throw new Error(
+            `Failed to load offers: ${res.status} ${res.statusText} ${text}`
+          );
         }
         const data = (await res.json()) as Offer[];
         if (!mounted) return;
@@ -75,24 +81,20 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
     if (typeof value === "number") {
       return Number.isFinite(value) ? value : null;
     }
-    // attempt parse for strings
     const n = Number(value);
     return Number.isFinite(n) ? n : null;
   }
 
   function getOriginalPriceFromCartItem(item: any): number {
-    // check these keys in order and return first finite number
     const candidates = ["originalPrice", "basePrice", "listPrice", "price"];
     for (const key of candidates) {
       const v = toFiniteNumber(item?.[key]);
       if (v !== null) return v;
     }
-    // fallback: try nested structures (some cart items may have product.price)
     if (item?.product && typeof item.product === "object") {
       const v = toFiniteNumber(item.product.price);
       if (v !== null) return v;
     }
-    // last resort — return 0 but make it explicit
     return 0;
   }
 
@@ -100,7 +102,6 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
     const raw = (o as any).percentage;
     const n = toFiniteNumber(raw);
     if (n === null) return null;
-    // clamp between 0 and 100
     if (n <= 0) return null;
     if (n > 100) return 100;
     return n;
@@ -110,12 +111,14 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
     if (typeof original !== "number" || !Number.isFinite(original)) return 0;
     if (!percent || percent <= 0) return original;
     const discounted = original * (1 - percent / 100);
-    // handle floating issues
     return Math.max(0, Number(discounted.toFixed(2)));
   }
 
   // Find best offer for given product
-  function getBestOfferForItem(productType: string, productId: string): { percent: number | null; name?: string | null } {
+  function getBestOfferForItem(
+    productType: string,
+    productId: string
+  ): { percent: number | null; name?: string | null } {
     if (!offers || offers.length === 0) return { percent: null };
 
     const now = new Date();
@@ -130,7 +133,6 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
         const pct = parseOfferPercent(o);
         if (pct === null) continue;
 
-        // scope checks
         if (o.scope === "ALL") {
           applicable.push({ offer: o, pct });
           continue;
@@ -148,19 +150,35 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
           continue;
         }
         if (o.scope === "CUSTOM") {
-          if (productType === "TICKET" && Array.isArray(o.ticketIds) && o.ticketIds.includes(productId)) {
+          if (
+            productType === "TICKET" &&
+            Array.isArray(o.ticketIds) &&
+            o.ticketIds.includes(productId)
+          ) {
             applicable.push({ offer: o, pct });
             continue;
           }
-          if (productType === "HOTEL" && Array.isArray(o.hotelIds) && o.hotelIds.includes(productId)) {
+          if (
+            productType === "HOTEL" &&
+            Array.isArray(o.hotelIds) &&
+            o.hotelIds.includes(productId)
+          ) {
             applicable.push({ offer: o, pct });
             continue;
           }
-          if (productType === "SPONSOR" && Array.isArray(o.sponsorTypeIds) && o.sponsorTypeIds.includes(productId)) {
+          if (
+            productType === "SPONSOR" &&
+            Array.isArray(o.sponsorTypeIds) &&
+            o.sponsorTypeIds.includes(productId)
+          ) {
             applicable.push({ offer: o, pct });
             continue;
           }
-          if (productType === "BOOTH" && Array.isArray(o.boothIds) && o.boothIds.includes(productId)) {
+          if (
+            productType === "BOOTH" &&
+            Array.isArray(o.boothIds) &&
+            o.boothIds.includes(productId)
+          ) {
             applicable.push({ offer: o, pct });
             continue;
           }
@@ -173,8 +191,9 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
 
     if (applicable.length === 0) return { percent: null };
 
-    // choose maximum percentage
-    const best = applicable.reduce((acc, cur) => (cur.pct > acc.pct ? cur : acc), applicable[0]);
+    const best = applicable.reduce((acc, cur) =>
+      cur.pct > acc.pct ? cur : acc
+    );
     return { percent: best.pct, name: best.offer?.name ?? null };
   }
 
@@ -183,11 +202,15 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
     let subTotal = 0;
     const lines = cart.map((item: any) => {
       const productId = String(item.productId ?? "");
-      const productType = String((item.productType || "").toString().toUpperCase()); // e.g. 'TICKET','BOOTH','HOTEL','SPONSOR'
+      const productType = String(
+        (item.productType || "").toString().toUpperCase()
+      ); // 'TICKET','BOOTH','HOTEL','SPONSOR'
       const original = getOriginalPriceFromCartItem(item);
       const best = getBestOfferForItem(productType, productId);
       const effective = getDiscountedPrice(original, best.percent);
-      const qty = Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : 1;
+      const qty = Number.isFinite(Number(item.quantity))
+        ? Number(item.quantity)
+        : 1;
       const lineTotal = Number((effective * qty).toFixed(2));
       subTotal += lineTotal;
       return {
@@ -200,7 +223,6 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
         qty,
       };
     });
-    // avoid floating rounding problems
     return { lines, subTotal: Number(subTotal.toFixed(2)) };
   }, [cart, offers]);
 
@@ -213,14 +235,18 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
     }
     if (cart.length === 0) return;
     setCheckingOut(true);
-    // Navigate to the 3-step checkout page
     router.push(`/event/${eventId}/checkout`);
   };
 
   return (
     <div className="container mx-auto p-6 md:p-8">
       <div className="flex items-center justify-between mb-6">
-        <Link href={`/event/${eventId}`} className="text-indigo-600 hover:underline">← Back to Event</Link>
+        <Link
+          href={`/event/${eventId}`}
+          className="text-indigo-600 hover:underline"
+        >
+          ← Back to Event
+        </Link>
         <h1 className="text-2xl font-bold text-slate-800">Your Cart</h1>
       </div>
 
@@ -233,9 +259,18 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
           <div className="bg-white p-4 rounded-lg shadow">
             <div className="space-y-4">
               {computed.lines.map((item: any) => (
-                <div key={`${item.productId}-${item.roomTypeId || ""}`} className="flex gap-4 items-center border-b pb-4">
+                <div
+                  key={`${item.productId}-${item.roomTypeId || ""}-${
+                    item.boothSubTypeId || ""
+                  }`}
+                  className="flex gap-4 items-center border-b pb-4"
+                >
                   <div className="relative">
-                    <img src={item.image || "/placeholder.png"} alt={item.name} className="w-16 h-16 rounded-md object-cover border" />
+                    <img
+                      src={item.image || "/placeholder.png"}
+                      alt={item.name}
+                      className="w-16 h-16 rounded-md object-cover border"
+                    />
                     {item.appliedOfferPercent ? (
                       <div className="absolute -top-1 -left-1 bg-red-600 text-white text-xs px-2 py-0.5 rounded font-semibold">
                         -{Math.round(item.appliedOfferPercent)}%
@@ -244,31 +279,81 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
                   </div>
 
                   <div className="flex-grow">
-                    <p className="font-semibold text-slate-800">{item.name}</p>
+                    <p className="font-semibold text-slate-800">
+                      {item.name}
+                    </p>
 
-                    {/* Show original vs discounted price */}
+                    {/* 👇 Booth subtype label */}
+                    {String(item.productType || "").toUpperCase() === "BOOTH" &&
+                      item.boothSubTypeId && (
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          Booth option:{" "}
+                          {item.boothSubTypeName ||
+                            item.subTypeName ||
+                            "Selected booth option"}
+                        </p>
+                      )}
+
+                    {/* original vs discounted price */}
                     <div className="mt-1">
                       {item.appliedOfferPercent ? (
                         <div className="flex items-baseline gap-3">
-                          <div className="text-sm text-slate-500 line-through">${Number(item.original).toFixed(2)}</div>
-                          <div className="text-lg font-bold text-indigo-600">${Number(item.effective).toFixed(2)}</div>
+                          <div className="text-sm text-slate-500 line-through">
+                            ${Number(item.original).toFixed(2)}
+                          </div>
+                          <div className="text-lg font-bold text-indigo-600">
+                            ${Number(item.effective).toFixed(2)}
+                          </div>
                           <div className="text-xs text-slate-400">each</div>
                         </div>
                       ) : (
-                        <div className="text-lg font-bold text-indigo-600">${Number(item.original).toFixed(2)}</div>
+                        <div className="text-lg font-bold text-indigo-600">
+                          ${Number(item.original).toFixed(2)}
+                        </div>
                       )}
                     </div>
 
                     <div className="flex items-center gap-2 mt-2">
-                      <button onClick={() => updateQuantity(item.productId, Math.max((item.quantity || 1) - 1, 0), item.roomTypeId)} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"><Minus className="h-4 w-4" /></button>
-                      <span className="font-semibold w-6 text-center">{item.qty}</span>
-                      <button onClick={() => updateQuantity(item.productId, (item.quantity || 1) + 1, item.roomTypeId)} className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"><Plus className="h-4 w-4" /></button>
+                      <button
+                        onClick={() =>
+                          updateQuantity(
+                            item.productId,
+                            Math.max((item.quantity || 1) - 1, 0),
+                            item.roomTypeId
+                          )
+                        }
+                        className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
+                      >
+                        <Minus className="h-4 w-4" />
+                      </button>
+                      <span className="font-semibold w-6 text-center">
+                        {item.qty}
+                      </span>
+                      <button
+                        onClick={() =>
+                          updateQuantity(
+                            item.productId,
+                            (item.quantity || 1) + 1,
+                            item.roomTypeId
+                          )
+                        }
+                        className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </button>
                     </div>
                   </div>
 
                   <div className="text-right">
-                    <p className="font-bold text-slate-800">${(item.lineTotal).toFixed(2)}</p>
-                    <button onClick={() => removeFromCart(item.productId, item.roomTypeId)} className="text-red-500 hover:text-red-700 mt-2 inline-flex items-center gap-1">
+                    <p className="font-bold text-slate-800">
+                      ${item.lineTotal.toFixed(2)}
+                    </p>
+                    <button
+                      onClick={() =>
+                        removeFromCart(item.productId, item.roomTypeId)
+                      }
+                      className="text-red-500 hover:text-red-700 mt-2 inline-flex items-center gap-1"
+                    >
                       <Trash2 className="h-4 w-4" /> Remove
                     </button>
                   </div>
@@ -276,7 +361,6 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
               ))}
             </div>
 
-            {/* Offer load error */}
             {offersError && (
               <div className="mt-4 p-3 bg-amber-50 text-amber-800 rounded-md text-sm">
                 Offers could not be loaded: {offersError}
@@ -299,9 +383,17 @@ export default function CartPage({ params }: { params: Promise<{ id: string }> }
               disabled={cart.length === 0 || !companyId}
               className="w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 flex items-center justify-center transition-colors"
             >
-              {isCheckingOut ? <Loader className="animate-spin h-6 w-6" /> : 'Proceed to Checkout'}
+              {isCheckingOut ? (
+                <Loader className="animate-spin h-6 w-6" />
+              ) : (
+                "Proceed to Checkout"
+              )}
             </button>
-            {!companyId && <p className="text-xs text-center text-red-600 mt-2">Please log in to check out.</p>}
+            {!companyId && (
+              <p className="text-xs text-center text-red-600 mt-2">
+                Please log in to check out.
+              </p>
+            )}
           </div>
         </div>
       )}

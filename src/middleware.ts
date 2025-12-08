@@ -22,6 +22,7 @@ const publicPrefixes = [
   // open/public APIs & upload presign endpoint used by the app
   "/api/public",
   "/api/upload-url",
+  "/", // Home page
 ];
 
 /**

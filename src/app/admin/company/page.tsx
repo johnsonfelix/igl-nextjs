@@ -112,6 +112,32 @@ export default function AdminCompaniesListPage() {
   const tabs = ['Location', 'Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Location');
 
+  // Membership Update State
+  const [showMemberModal, setShowMemberModal] = useState(false);
+  const [selectedCompanyForUpdate, setSelectedCompanyForUpdate] = useState<Company | null>(null);
+  const [membershipPlans, setMembershipPlans] = useState<any[]>([]);
+  const [newMembershipType, setNewMembershipType] = useState('');
+
+  // Fetch plans on mount
+  useEffect(() => {
+    fetch('/api/membership-plans')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMembershipPlans(data);
+      })
+      .catch(err => console.error('Failed to load plans', err));
+  }, []);
+
+  // Add Company link
+  const renderAddButton = () => (
+    <Link
+      href="/admin/company/create"
+      className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 shadow-md font-semibold transition"
+    >
+      <span className="text-xl">+</span> Add Company
+    </Link>
+  );
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies();
@@ -121,21 +147,21 @@ export default function AdminCompaniesListPage() {
   }, [country, city, companyName, memberId, port]);
 
   const buildQuery = () => {
-  const params: Record<string, string> = {};
+    const params: Record<string, string> = {};
 
-  if (country && country !== 'All') params.country = country;
-  if (city) params.city = city;
-  if (companyName) params.name = companyName;
-  if (memberId) params.memberId = memberId;
-  if (port) params.port = port;
+    if (country && country !== 'All') params.country = country;
+    if (city) params.city = city;
+    if (companyName) params.name = companyName;
+    if (memberId) params.memberId = memberId;
+    if (port) params.port = port;
 
-  // 👇 force backend to return everything
-  params.status = 'ALL';
-  params.includeInactive = '1';
+    // 👇 force backend to return everything
+    params.status = 'ALL';
+    params.includeInactive = '1';
 
-  const qs = new URLSearchParams(params).toString();
-  return `/api/companies/search${qs ? `?${qs}` : ''}`;
-};
+    const qs = new URLSearchParams(params).toString();
+    return `/api/companies/search${qs ? `?${qs}` : ''}`;
+  };
 
   async function fetchCompanies() {
     setLoading(true);
@@ -232,29 +258,57 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // Update member type (merges response)
-  async function handleUpdateMemberType(company: Company) {
-    const newType = prompt('Enter new member type (leave blank to cancel):', company.purchasedMembership ?? '');
-    if (newType === null) return; // canceled
-    if (newType.trim() === '') return;
+  // Delete company
+  async function handleDeleteCompany(company: Company) {
+    if (!confirm(`Are you sure you want to DELETE "${company.name}"? This action cannot be undone.`)) return;
 
     const companyId = company.id;
     setCompanyActionLoading(companyId, true);
     try {
       const res = await fetch(`/api/admin/companies/${companyId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ purchasedMembership: newType.trim() }),
+        method: 'DELETE',
       });
       if (!res.ok) {
-        const txt = await res.text().catch(() => `Update failed: ${res.status}`);
+        const txt = await res.text().catch(() => `Delete failed: ${res.status}`);
         throw new Error(txt);
       }
-      const updatedPartial: Partial<Company> = await res.json();
-      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, ...updatedPartial, location: (updatedPartial as any).location ?? c.location, media: (updatedPartial as any).media ?? c.media } as Company : c));
-      alert('Member type updated.');
+      // Remove from state
+      setCompanies(prev => prev.filter(c => c.id !== companyId));
+      alert('Company deleted successfully.');
     } catch (err) {
       alert(err instanceof Error ? err.message : String(err));
+      setCompanyActionLoading(companyId, false);
+    }
+  }
+
+  // Open Membership Modal
+  function openMembershipModal(company: Company) {
+    setSelectedCompanyForUpdate(company);
+    setNewMembershipType(company.purchasedMembership || '');
+    setShowMemberModal(true);
+  }
+
+  // Submit Membership Update
+  async function submitMembershipUpdate() {
+    if (!selectedCompanyForUpdate) return;
+    const companyId = selectedCompanyForUpdate.id;
+
+    setCompanyActionLoading(companyId, true);
+    try {
+      const res = await fetch(`/api/admin/companies/${companyId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ purchasedMembership: newMembershipType }),
+      });
+      if (!res.ok) throw new Error('Failed to update membership');
+
+      const updatedPartial = await res.json();
+      setCompanies(prev => prev.map(c => c.id === companyId ? { ...c, ...updatedPartial, location: (updatedPartial as any).location ?? c.location, media: (updatedPartial as any).media ?? c.media } as Company : c));
+
+      setShowMemberModal(false);
+      setSelectedCompanyForUpdate(null);
+    } catch (err) {
+      alert('Update failed');
     } finally {
       setCompanyActionLoading(companyId, false);
     }
@@ -319,6 +373,11 @@ export default function AdminCompaniesListPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto p-4 md:p-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+          <h1 className="text-3xl font-bold text-gray-800">Companies Management</h1>
+          {renderAddButton()}
+        </div>
+
         {/* Search Section */}
         <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-light-blue-50 border border-gray-200 shadow-sm">
           <div className="flex border-b border-gray-200 mb-4">
@@ -326,11 +385,10 @@ export default function AdminCompaniesListPage() {
               <button
                 key={t}
                 onClick={() => setActiveTab(t)}
-                className={`px-4 py-2 font-semibold text-sm transition-colors duration-300 ${
-                  activeTab === t
-                    ? 'border-b-2 border-teal-500 text-teal-600'
-                    : 'text-gray-500 hover:text-teal-500'
-                }`}
+                className={`px-4 py-2 font-semibold text-sm transition-colors duration-300 ${activeTab === t
+                  ? 'border-b-2 border-teal-500 text-teal-600'
+                  : 'text-gray-500 hover:text-teal-500'
+                  }`}
               >
                 {t}
               </button>
@@ -423,7 +481,7 @@ export default function AdminCompaniesListPage() {
 
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => handleUpdateMemberType(company)}
+                            onClick={() => openMembershipModal(company)}
                             disabled={isActionLoading}
                             className="inline-flex items-center gap-2 rounded-lg bg-white border px-3 py-2 text-sm font-medium hover:bg-gray-50 focus:outline-none"
                           >
@@ -436,6 +494,15 @@ export default function AdminCompaniesListPage() {
                             className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none border ${company.isActive ? 'bg-white hover:bg-gray-50' : 'bg-yellow-600 text-white hover:bg-yellow-700'}`}
                           >
                             {company.isActive ? 'Disable' : 'Enable'}
+                          </button>
+
+                          <button
+                            onClick={() => handleDeleteCompany(company)}
+                            disabled={isActionLoading}
+                            className="inline-flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 text-red-700 px-3 py-2 text-sm font-medium hover:bg-red-100 focus:outline-none"
+                            title="Delete Company"
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
 
@@ -482,6 +549,53 @@ export default function AdminCompaniesListPage() {
           </aside>
         </div>
       </main>
+
+      {/* Membership Update Modal */}
+      {showMemberModal && selectedCompanyForUpdate && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+            <h3 className="text-xl font-bold mb-4">Update Membership</h3>
+            <p className="text-sm text-gray-500 mb-4">Select a new membership plan for <span className="font-semibold">{selectedCompanyForUpdate.name}</span>.</p>
+
+            <div className="space-y-3">
+              <select
+                className="w-full border rounded-lg p-2"
+                value={newMembershipType}
+                onChange={(e) => setNewMembershipType(e.target.value)}
+              >
+                <option value="">-- Select Plan --</option>
+                {membershipPlans.map(plan => (
+                  <option key={plan.id} value={plan.name}>{plan.name} ({plan.price ? `$${plan.price}` : 'Free'})</option>
+                ))}
+                {/* Fallback options if no plans found */}
+                {membershipPlans.length === 0 && (
+                  <>
+                    <option value="IGLA Elite">IGLA Elite</option>
+                    <option value="IGLA Premium">IGLA Premium</option>
+                    <option value="IGLA Projects">IGLA Projects</option>
+                    <option value="IGLA Dangerous Goods">IGLA Dangerous Goods</option>
+                  </>
+                )}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowMemberModal(false)}
+                className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={submitMembershipUpdate}
+                className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Save Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

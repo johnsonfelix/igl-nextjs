@@ -13,9 +13,16 @@ import {
   Globe,
   CheckCircle,
   ArrowLeft,
+  Phone,
+  Mail,
+  MessageCircle, // WeChat usually
+  MessageSquare, // Skype usually
+  Award,
+  User,
+  Quote,
 } from "lucide-react";
 
-// Accept promise-typed params to satisfy Next 15 PageProps, but don't use it in client
+// Accept promise-typed params for Next 15
 type PageProps = { params: Promise<{ id: string }> };
 
 interface CompanyDetails {
@@ -37,7 +44,17 @@ interface CompanyDetails {
     state: string;
     country: string;
     zipCode: string;
+    mobile?: string | null;
+    email?: string | null;
+    skype?: string | null;
+    wechat?: string | null;
+    contactPerson?: string | null;
+    contactPersonDesignation?: string | null;
   };
+  directors?: string | null;
+  participationYears?: string | null;
+  scopeOfBusiness?: string | null;
+  servicesOffered?: string | null;
 }
 
 function withProtocol(url?: string | null) {
@@ -48,7 +65,6 @@ function withProtocol(url?: string | null) {
 
 export default function CompanyProfilePage(_props: PageProps) {
   const { id: companyId } = useParams<{ id: string }>();
-
   const [companyData, setCompanyData] = useState<CompanyDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,16 +84,22 @@ export default function CompanyProfilePage(_props: PageProps) {
 
         if (cancelled) return;
 
+        // Parse Services: Prioritize 'servicesOffered', then 'services' array, then 'about' parsing legacy
+        let parsedServices: string[] = [];
+        if (data.servicesOffered) {
+          // If it's a raw string in servicesOffered, we might split by newlines for list display if desired, 
+          // or just keep it as text in the new UI.
+          // For now, let's keep the legacy `services` array map if it exists too.
+        }
+
+        const legacyServices = data.services?.map((s: any) => s.type) || [];
+
         const formattedData: CompanyDetails = {
           ...data,
           established: data.established ? new Date(data.established).getFullYear().toString() : "",
           memberSince: data.memberSince ? new Date(data.memberSince).getFullYear().toString() : "",
-          services:
-            data.about
-              ?.split(" - ")
-              .slice(1)
-              .map((s: string) => s.split("\n")[0].trim()) || [],
-          about: data.about?.split("Regular Services")[0].trim() || data.about || "",
+          services: legacyServices.length > 0 ? legacyServices : [],
+          about: data.about || "",
         };
 
         setCompanyData(formattedData);
@@ -105,177 +127,306 @@ export default function CompanyProfilePage(_props: PageProps) {
   if (error) {
     return (
       <div className="flex h-screen items-center justify-center bg-gray-50 p-4">
-        <div className="rounded-lg bg-red-50 p-8 text-center shadow-md">
-          <h2 className="text-2xl font-bold text-red-700">Error</h2>
-          <p className="mt-2 text-red-600">{error}</p>
-          <Link
-            href="/company/details"
-            className="mt-6 inline-block rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
-          >
-            Go Back
+        <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
+          <div className="mx-auto w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-4">
+            <span className="text-red-600 text-xl font-bold">!</span>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">Unavailable</h2>
+          <p className="text-gray-600 mb-6">{error}</p>
+          <Link href="/directory" className="inline-block bg-gray-900 text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition">
+            Back to Directory
           </Link>
         </div>
       </div>
     );
   }
 
-  if (!companyData) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-gray-50">
-        <p className="text-xl text-gray-500">Company not found.</p>
-      </div>
-    );
-  }
+  if (!companyData) return null;
 
   return (
-    <div className="bg-gray-50 min-h-screen font-sans">
-      <div className="container mx-auto p-4 md:p-8">
-        <div className="mb-6">
-          <Link
-            href="/directory"
-            className="flex items-center text-indigo-600 hover:text-indigo-800 font-semibold"
-          >
-            <ArrowLeft className="mr-2 h-5 w-5" />
-            Back to Search
+    <div className="min-h-screen bg-gray-50 font-sans pb-12">
+      {/* --- HERO SECTION --- */}
+      <div className="relative bg-gradient-to-r from-slate-900 to-indigo-900 h-64 md:h-80">
+        <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(/pattern-grid.svg)' }}></div>
+        <div className="container mx-auto px-4 h-full relative">
+          <Link href="/directory" className="absolute top-6 left-4 md:left-8 text-white/80 hover:text-white flex items-center transition">
+            <ArrowLeft className="w-5 h-5 mr-2" /> Back
           </Link>
         </div>
+      </div>
 
-        <header className="bg-white rounded-lg shadow-md p-6 mb-8 flex flex-col md:flex-row items-center justify-between">
-          <div className="flex items-center mb-4 md:mb-0">
-            <div className="w-20 h-20 bg-indigo-600 text-white flex items-center justify-center rounded-full mr-6 text-3xl font-bold">
-              {companyData.name.charAt(0)}
+      <div className="container mx-auto px-4 -mt-24 relative z-10">
+        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-10 mb-8">
+          <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
+            {/* Logo */}
+            <div className="relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-xl shadow-md border border-gray-100 p-2 flex-shrink-0 -mt-16 md:-mt-20 overflow-hidden">
+              {companyData.logoUrl ? (
+                <Image src={companyData.logoUrl} alt={companyData.name} fill className="object-contain p-2" />
+              ) : (
+                <div className="w-full h-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-4xl font-bold rounded-lg">
+                  {companyData.name.charAt(0)}
+                </div>
+              )}
             </div>
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-4xl font-extrabold text-gray-800">{companyData.name}</h1>
-                {companyData.isVerified && <CheckCircle className="h-7 w-7 text-green-500" />}
+
+            {/* Title & Badge */}
+            <div className="flex-grow pt-2">
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">{companyData.name}</h1>
+                {companyData.isVerified && (
+                  <div className="bg-green-100 text-green-700 p-1 rounded-full" title="Verified Member">
+                    <CheckCircle className="w-5 h-5" />
+                  </div>
+                )}
               </div>
-              <span className="text-indigo-500 font-semibold text-lg">
-                {companyData.memberType} Member
-              </span>
+              <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium">
+                <span className="flex items-center gap-1">
+                  <Briefcase className="w-4 h-4 text-gray-400" />
+                  {companyData.memberType} Member
+                </span>
+                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-4 h-4 text-gray-400" />
+                  {companyData.location.country}
+                </span>
+              </div>
+            </div>
+
+            {/* CTA */}
+            <div className="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0">
+              <a href={withProtocol(companyData.website)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full md:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
+                <Globe className="w-5 h-5" />
+                Visit Website
+              </a>
             </div>
           </div>
-          <div className="text-right">
-            <a
-              href={withProtocol(companyData.website)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700 transition-colors shadow-lg"
-            >
-              <Globe className="mr-2 h-5 w-5" />
-              Visit Website
-            </a>
-          </div>
-        </header>
+        </div>
 
-        <main className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* --- MAIN GRID CONTENT --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+          {/* LEFT COLUMN (Main Info) */}
           <div className="lg:col-span-2 space-y-8">
-            <div className="bg-white rounded-lg shadow-md p-8">
-              <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-indigo-200 pb-3">
-                About Us
+
+            {/* About Section */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
+                <Quote className="w-6 h-6 text-indigo-500 mr-3 opacity-50" />
+                About Company
               </h2>
-              <p className="text-gray-600 leading-relaxed text-lg">{companyData.about}</p>
-            </div>
-
-            {companyData.services && companyData.services.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-indigo-200 pb-3">
-                  Our Services
-                </h2>
-                <ul className="space-y-3 list-disc list-inside text-gray-600">
-                  {companyData.services.map((service, index) => (
-                    <li key={index} className="flex items-start">
-                      <span className="text-indigo-500 mr-3 mt-1">&#10003;</span>
-                      <span>{service}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="prose prose-indigo max-w-none text-gray-600 leading-relaxed whitespace-pre-line">
+                {companyData.about}
               </div>
-            )}
+            </section>
 
-            {companyData.media?.length > 0 && (
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-6 border-b-2 border-indigo-200 pb-3">
-                  Gallery
-                </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {/* Services & Scope */}
+            <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+              <h2 className="text-2xl font-bold text-gray-900 mb-6 px-2 border-l-4 border-indigo-500">
+                Capabilities & Services
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Services List */}
+                {/* Services List */}
+                <div className="md:col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 bg-gray-50 inline-block px-3 py-1 rounded-md">Services Offered</h3>
+                  {(() => {
+                    // Combine and parse services
+                    const items: string[] = [];
+                    if (companyData.servicesOffered) {
+                      items.push(...companyData.servicesOffered.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0));
+                    }
+                    const legacyServices = companyData.services || [];
+                    const allServices = [...new Set([...items, ...legacyServices])];
+
+                    if (allServices.length > 0) {
+                      return (
+                        <div className="flex flex-wrap gap-2">
+                          {allServices.map((svc, i) => (
+                            <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-indigo-50 text-indigo-700 border border-indigo-100 hover:bg-indigo-100 transition-colors shadow-sm">
+                              <CheckCircle className="w-3.5 h-3.5 mr-1.5 text-indigo-500" />
+                              {svc}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    return <p className="text-gray-400 italic">No specific services listed.</p>;
+                  })()}
+                </div>
+
+                {/* Scope of Business */}
+                <div className="md:col-span-2">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-4 bg-gray-50 inline-block px-3 py-1 rounded-md">Scope of Business</h3>
+                  {(() => {
+                    const items: string[] = [];
+                    if (companyData.scopeOfBusiness) {
+                      // Heuristic: if it contains newlines or commas, treat as list. 
+                      // If just a long text without commas, maybe keep as text?
+                      // Given the example "sdfdsf,asdf,asdfd", it is a list.
+                      if (companyData.scopeOfBusiness.includes(',') || companyData.scopeOfBusiness.includes('\n')) {
+                        items.push(...companyData.scopeOfBusiness.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0));
+                      } else {
+                        // Determine if it's likely a sentence or a single item tag
+                        // For now let's just make it a chip if it's short (< 50 chars)? 
+                        // Or just default to chip if requested "like chip like ui".
+                        // Let's treat as single item if short, or paragraph if long?
+                        if (companyData.scopeOfBusiness.length < 50) {
+                          items.push(companyData.scopeOfBusiness.trim());
+                        } else {
+                          return <p className="text-gray-600 whitespace-pre-line leading-relaxed">{companyData.scopeOfBusiness}</p>;
+                        }
+                      }
+                    }
+
+                    if (items.length > 0) {
+                      return (
+                        <div className="flex flex-wrap gap-2">
+                          {items.map((scope, i) => (
+                            <span key={i} className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 hover:bg-emerald-100 transition-colors shadow-sm">
+                              <Briefcase className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+                              {scope}
+                            </span>
+                          ))}
+                        </div>
+                      );
+                    }
+
+                    if (!companyData.scopeOfBusiness) {
+                      return <p className="text-gray-400 italic">Scope of business details not added.</p>;
+                    }
+                    return null; // Should be handled by else block above
+                  })()}
+                </div>
+              </div>
+            </section>
+
+            {/* Media Gallery */}
+            {companyData.media && companyData.media.length > 0 && (
+              <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                   {companyData.media.map((item) => (
-                    <div key={item.id} className="overflow-hidden rounded-lg shadow-lg">
-                      <Image
-                        src={item.url}
-                        alt={item.altText || "Company image"}
-                        width={600}
-                        height={400}
-                        className="w-full h-auto object-cover transition-transform duration-300 hover:scale-105"
-                      />
+                    <div key={item.id} className="group relative aspect-video bg-gray-100 rounded-lg overflow-hidden cursor-zoom-in">
+                      <Image src={item.url} alt={item.altText || "Gallery Image"} fill className="object-cover transition-transform duration-500 group-hover:scale-110" />
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
             )}
           </div>
 
-          <aside className="space-y-8">
-            <div className="bg-white rounded-lg shadow-md p-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b-2 border-indigo-200 pb-3">
-                Company Details
-              </h3>
-              <ul className="space-y-5 text-gray-600">
-                <li className="flex items-center">
-                  <Briefcase className="w-6 h-6 mr-4 text-indigo-500" />
-                  <div>
-                    <span className="font-semibold">Member Since:</span> {companyData.memberSince}
+          {/* RIGHT COLUMN (Sidebar Stats & Contact) */}
+          <div className="space-y-6">
+
+            {/* Key Contact Card */}
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+              <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
+                <User className="w-32 h-32" />
+              </div>
+
+              <h3 className="text-indigo-100 font-semibold uppercase tracking-wider text-xs mb-4">Key Contact Person</h3>
+
+              <div className="flex items-center gap-4 mb-6 relative z-10">
+                <div className="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-2xl font-bold border-2 border-white/30">
+                  {companyData.location.contactPerson ? companyData.location.contactPerson.charAt(0) : <User />}
+                </div>
+                <div>
+                  <div className="text-xl font-bold">{companyData.location.contactPerson || "N/A"}</div>
+                  <div className="text-indigo-200 text-sm">{companyData.location.contactPersonDesignation || "Designation N/A"}</div>
+                </div>
+              </div>
+
+              <div className="space-y-3 relative z-10 text-sm">
+                {companyData.location.mobile && (
+                  <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg">
+                    <Phone className="w-4 h-4 text-indigo-200" />
+                    <span>{companyData.location.mobile}</span>
+                  </div>
+                )}
+                {companyData.location.email && (
+                  <div className="flex items-center gap-3 bg-white/10 p-2 rounded-lg break-all">
+                    <Mail className="w-4 h-4 text-indigo-200" />
+                    <a href={`mailto:${companyData.location.email}`} className="hover:text-white hover:underline">{companyData.location.email}</a>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Location & Quick Stats */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Company Overview</h3>
+
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <MapPin className="w-5 h-5 text-indigo-500 mt-0.5 mr-3" />
+                  <div className="text-sm text-gray-600">
+                    <strong className="block text-gray-900 mb-1">Headquarters</strong>
+                    {companyData.location.address}<br />
+                    {companyData.location.city}, {companyData.location.state} {companyData.location.zipCode}<br />
+                    {companyData.location.country}
                   </div>
                 </li>
+
                 <li className="flex items-center">
-                  <Calendar className="w-6 h-6 mr-4 text-indigo-500" />
-                  <div>
-                    <span className="font-semibold">Established:</span> {companyData.established}
+                  <Calendar className="w-5 h-5 text-indigo-500 mr-3" />
+                  <div className="text-sm text-gray-600">
+                    <strong className="text-gray-900">Established:</strong> {companyData.established}
                   </div>
                 </li>
+
                 <li className="flex items-center">
-                  <Users className="w-6 h-6 mr-4 text-indigo-500" />
-                  <div>
-                    <span className="font-semibold">Company Size:</span> {companyData.size}
+                  <Users className="w-5 h-5 text-indigo-500 mr-3" />
+                  <div className="text-sm text-gray-600">
+                    <strong className="text-gray-900">Size:</strong> {companyData.size}
                   </div>
                 </li>
-                <li className="flex items-center">
-                  <Globe className="w-6 h-6 mr-4 text-indigo-500" />
-                  <div>
-                    <span className="font-semibold">Website:</span>{" "}
-                    <a
-                      href={withProtocol(companyData.website)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-indigo-600 hover:underline break-all"
-                    >
-                      {companyData.website}
-                    </a>
+
+                <li className="pt-2">
+                  <h4 className="text-xs uppercase text-gray-400 font-bold mb-2">Connect</h4>
+                  <div className="flex gap-2">
+                    {companyData.location.skype && (
+                      <div className="bg-sky-50 text-sky-600 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5">
+                        <MessageSquare className="w-3.5 h-3.5" /> {companyData.location.skype}
+                      </div>
+                    )}
+                    {companyData.location.wechat && (
+                      <div className="bg-green-50 text-green-600 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5">
+                        <MessageCircle className="w-3.5 h-3.5" /> {companyData.location.wechat}
+                      </div>
+                    )}
                   </div>
                 </li>
               </ul>
             </div>
 
-            <div className="bg-white rounded-lg shadow-md p-8">
-              <h3 className="text-2xl font-bold text-gray-800 mb-6 border-b-2 border-indigo-200 pb-3">
-                Location
-              </h3>
-              <address className="not-italic text-gray-600 space-y-4">
-                <div className="flex items-start">
-                  <MapPin className="w-6 h-6 mr-4 text-indigo-500 flex-shrink-0 mt-1" />
-                  <div>
-                    <p className="font-semibold">{companyData.location.address}</p>
-                    <p>
-                      {companyData.location.city}, {companyData.location.state}{" "}
-                      {companyData.location.zipCode}
-                    </p>
-                    <p>{companyData.location.country}</p>
-                  </div>
+            {/* Directors & IGLA */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Leadership</h3>
+              {companyData.directors ? (
+                <div className="text-gray-600 text-sm leading-relaxed mb-6">
+                  {companyData.directors}
                 </div>
-              </address>
+              ) : (
+                <div className="text-gray-400 text-sm italic mb-6">Not listed</div>
+              )}
+
+              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">IGLA Network</h3>
+              <div className="flex items-center gap-3 text-sm text-gray-700">
+                <div className="bg-indigo-50 p-2 rounded-lg">
+                  <Award className="w-6 h-6 text-indigo-600" />
+                </div>
+                <div>
+                  <div className="font-bold">Participation</div>
+                  <div className="text-gray-500">{companyData.participationYears || "New Member"}</div>
+                </div>
+              </div>
             </div>
-          </aside>
-        </main>
+
+          </div>
+        </div>
+
       </div>
     </div>
   );

@@ -4,8 +4,8 @@ import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import CityAutocompleteField from '@/app/components/CityAutocompleteField';
-import { 
-    AlertTriangle, CheckCircle, Send, Package, Anchor, Plane, Truck, Calendar, User, Mail, Phone, Hash, FileText, Receipt 
+import {
+    AlertTriangle, CheckCircle, Send, Package, Anchor, Plane, Truck, Calendar, User, Mail, Phone, Hash, FileText, Receipt
 } from 'lucide-react';
 
 // --- Type Definition for FormInput props ---
@@ -21,15 +21,15 @@ type FormInputProps = {
 
 // --- Reusable Form Input Component ---
 const FormInput = ({ label, value, onChange, icon: Icon, required = false, ...props }: FormInputProps) => (
-     <div>
+    <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-            {label} {required && <span className="text-red-500">*</span>}
+            {label} {required && <span className="text-[#5da765]">*</span>}
         </label>
         <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                 <Icon className="h-5 w-5 text-gray-400" />
             </div>
-            <input value={value} onChange={onChange} className="w-full p-2 pl-10 border border-gray-300 rounded-md" required={required} {...props}/>
+            <input value={value} onChange={onChange} className="w-full p-2 pl-10 border border-gray-300 rounded-md" required={required} {...props} />
         </div>
     </div>
 );
@@ -39,7 +39,7 @@ const FormInput = ({ label, value, onChange, icon: Icon, required = false, ...pr
 export default function NewInquiryPage() {
     const router = useRouter();
     const { user } = useAuth();
-    
+
     // Form state - Expanded to match your API
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
@@ -64,7 +64,7 @@ export default function NewInquiryPage() {
             setContactEmail(user.email || '');
         }
     }, [user]);
-    
+
     // Submission status
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -72,7 +72,7 @@ export default function NewInquiryPage() {
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
-        
+
         if (!user?.companyId) {
             setError("Authentication error: Company ID is missing.");
             return;
@@ -131,10 +131,10 @@ export default function NewInquiryPage() {
     const sectionHeader = (title: string) => (
         <h2 className="text-xl font-bold text-gray-800 mt-8 mb-4 border-b pb-2">{title}</h2>
     );
-    
+
     return (
         <div className="bg-gray-50 min-h-screen">
-             <header className="bg-white shadow-sm sticky top-0 z-20">
+            <header className="bg-white shadow-sm sticky top-0 z-20">
                 <div className="container mx-auto px-4 h-16 flex items-center">
                     <h1 className="text-xl font-bold text-gray-800">Submit a New Inquiry</h1>
                 </div>
@@ -145,7 +145,7 @@ export default function NewInquiryPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <CityAutocompleteField label="From" value={from} onChange={setFrom} />
                         <CityAutocompleteField label="To" value={to} onChange={setTo} />
-                        <FormInput label="Commodity" value={commodity} onChange={(e: ChangeEvent<HTMLInputElement>) => setCommodity(e.target.value)} icon={Package} required/>
+                        <FormInput label="Commodity" value={commodity} onChange={(e: ChangeEvent<HTMLInputElement>) => setCommodity(e.target.value)} icon={Package} required />
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Shipment Mode</label>
                             <select value={shipmentMode} onChange={(e: ChangeEvent<HTMLSelectElement>) => setShipmentMode(e.target.value)} className="w-full p-2 border border-gray-300 rounded-md bg-white">
@@ -154,16 +154,16 @@ export default function NewInquiryPage() {
                                 <option value="LAND">LAND</option>
                             </select>
                         </div>
-                        <FormInput label="Cargo Type" value={cargoType} onChange={(e: ChangeEvent<HTMLInputElement>) => setCargoType(e.target.value)} placeholder="e.g., General, Reefer" icon={Package}/>
-                        <FormInput label="Cargo Ready Date" value={cargoReadyDate} onChange={(e: ChangeEvent<HTMLInputElement>) => setCargoReadyDate(e.target.value)} type="date" icon={Calendar}/>
-                        <FormInput label="Total Weight (kg)" value={weight} onChange={(e: ChangeEvent<HTMLInputElement>) => setWeight(e.target.value)} type="number" icon={Hash}/>
-                        <FormInput label="Total Volume (cbm)" value={volume} onChange={(e: ChangeEvent<HTMLInputElement>) => setVolume(e.target.value)} type="number" icon={Hash}/>
+                        <FormInput label="Cargo Type" value={cargoType} onChange={(e: ChangeEvent<HTMLInputElement>) => setCargoType(e.target.value)} placeholder="e.g., General, Reefer" icon={Package} />
+                        <FormInput label="Cargo Ready Date" value={cargoReadyDate} onChange={(e: ChangeEvent<HTMLInputElement>) => setCargoReadyDate(e.target.value)} type="date" icon={Calendar} />
+                        <FormInput label="Total Weight (kg)" value={weight} onChange={(e: ChangeEvent<HTMLInputElement>) => setWeight(e.target.value)} type="number" icon={Hash} />
+                        <FormInput label="Total Volume (cbm)" value={volume} onChange={(e: ChangeEvent<HTMLInputElement>) => setVolume(e.target.value)} type="number" icon={Hash} />
                     </div>
 
                     {sectionHeader("Additional Details")}
-                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Freight Term" value={freightTerm} onChange={(e: ChangeEvent<HTMLInputElement>) => setFreightTerm(e.target.value)} placeholder="e.g., Prepaid, Collect" icon={Receipt}/>
-                        <FormInput label="Incoterms" value={incoterms} onChange={(e: ChangeEvent<HTMLInputElement>) => setIncoterms(e.target.value)} placeholder="e.g., FOB, EXW" icon={FileText}/>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <FormInput label="Freight Term" value={freightTerm} onChange={(e: ChangeEvent<HTMLInputElement>) => setFreightTerm(e.target.value)} placeholder="e.g., Prepaid, Collect" icon={Receipt} />
+                        <FormInput label="Incoterms" value={incoterms} onChange={(e: ChangeEvent<HTMLInputElement>) => setIncoterms(e.target.value)} placeholder="e.g., FOB, EXW" icon={FileText} />
                         <FormInput label="Dimensions" value={dimensions} onChange={(e: ChangeEvent<HTMLInputElement>) => setDimensions(e.target.value)} placeholder="e.g., 120x80x100 cm" icon={Hash} />
                         <div className="md:col-span-2">
                             <label className="block text-sm font-medium text-gray-700 mb-1">Remarks</label>
@@ -174,14 +174,14 @@ export default function NewInquiryPage() {
                     {sectionHeader("Contact Information")}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <FormInput label="Contact Name" value={contactName} onChange={(e: ChangeEvent<HTMLInputElement>) => setContactName(e.target.value)} icon={User} />
-                        <FormInput label="Contact Email" value={contactEmail} onChange={(e: ChangeEvent<HTMLInputElement>) => setContactEmail(e.target.value)} type="email" icon={Mail} required/>
+                        <FormInput label="Contact Email" value={contactEmail} onChange={(e: ChangeEvent<HTMLInputElement>) => setContactEmail(e.target.value)} type="email" icon={Mail} required />
                         <FormInput label="Contact Phone" value={contactPhone} onChange={(e: ChangeEvent<HTMLInputElement>) => setContactPhone(e.target.value)} type="tel" icon={Phone} />
                     </div>
 
                     <div className="mt-8">
-                         {error && <div className="bg-red-50 text-red-700 p-3 rounded-md flex items-center gap-2 mb-4"><AlertTriangle/>{error}</div>}
-                         {success && <div className="bg-green-50 text-green-700 p-3 rounded-md flex items-center gap-2 mb-4"><CheckCircle/>{success}</div>}
-                        <button type="submit" disabled={loading || !!success} className="w-full flex justify-center items-center gap-2 bg-orange-500 text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-orange-600 disabled:bg-gray-400 transition-all">
+                        {error && <div className="bg-red-50 text-red-700 p-3 rounded-md flex items-center gap-2 mb-4"><AlertTriangle />{error}</div>}
+                        {success && <div className="bg-green-50 text-green-700 p-3 rounded-md flex items-center gap-2 mb-4"><CheckCircle />{success}</div>}
+                        <button type="submit" disabled={loading || !!success} className="w-full flex justify-center items-center gap-2 bg-[#5da765] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-[#4a8a52] disabled:bg-gray-400 transition-all">
                             <Send className="h-5 w-5" />
                             {loading ? "Submitting..." : "Submit Inquiry"}
                         </button>

@@ -154,7 +154,7 @@ export default function HotelRoomsPage({
       productType: 'HOTEL',
       name: `${hotel!.hotelName} - ${room.roomType}`,
       price: effectivePrice,
-      image: hotel!.image,
+      // image: hotel!.image,
       roomTypeId: room.id,
     });
     alert(`Room added to cart at $${effectivePrice.toFixed(2)}${percent ? ` (saved ${percent}%)` : ''}!`);

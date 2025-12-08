@@ -1,15 +1,19 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/app/components/ui/button";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { CardContent } from "@/app/components/ui/card";
-import { Plus, Edit, Trash2, Search, Filter, MapPin, Phone, Mail, Image as ImageIcon, DollarSign } from "lucide-react";
+import { Card, CardContent } from "@/app/components/ui/card";
+import {
+  Plus, Edit, Trash2, Search, Filter, MapPin, Phone, Mail,
+  Image as ImageIcon, DollarSign, Bed, Users, Wifi, AlertCircle, Building2
+} from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Skeleton } from "@/app/components/ui/skeleton";
-import { uploadFileToS3 } from "@/app/lib/s3-upload"; // reuse your helper
+import { Badge } from "@/app/components/ui/badge";
+import { uploadFileToS3 } from "@/app/lib/s3-upload";
 
 export default function HotelsPage() {
   const [hotels, setHotels] = useState<any[]>([]);
@@ -28,7 +32,7 @@ export default function HotelsPage() {
     contactPerson: "",
     email: "",
     eventId: "",
-    image: "", // existing URL when editing or result after upload
+    image: "",
   });
 
   // Room form state
@@ -45,7 +49,7 @@ export default function HotelsPage() {
     availableRooms: "",
     maxOccupancy: "",
     amenities: "",
-    image: "", // existing URL when editing or result after upload
+    image: "",
   });
 
   // Filters
@@ -56,10 +60,16 @@ export default function HotelsPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/admin/hotels?includeRooms=true");
+      if (!res.ok) throw new Error("Failed to fetch hotels");
       const data = await res.json();
-      setHotels(data);
+      if (Array.isArray(data)) {
+        setHotels(data);
+      } else {
+        setHotels([]);
+      }
     } catch (error) {
       console.error("Fetch hotels failed:", error);
+      setHotels([]);
     } finally {
       setLoading(false);
     }
@@ -72,7 +82,6 @@ export default function HotelsPage() {
   // Preview URL lifecycle for hotel image
   useEffect(() => {
     if (!hotelFile) {
-      // Fall back to existing image URL for edit mode preview if present
       setHotelPreviewUrl(formData.image || null);
       return;
     }
@@ -92,6 +101,26 @@ export default function HotelsPage() {
     return () => URL.revokeObjectURL(url);
   }, [roomFile, roomFormData.image]);
 
+  const resetHotelForm = () => {
+    setFormData({
+      hotelName: "",
+      address: "",
+      contact: "",
+      contactPerson: "",
+      email: "",
+      eventId: "",
+      image: ""
+    });
+    setHotelFile(null);
+    setHotelPreviewUrl(null);
+    setEditingId(null);
+  };
+
+  const handleOpenAddHotel = () => {
+    resetHotelForm();
+    setFormOpen(true);
+  };
+
   const handleSubmit = async () => {
     if (!formData.hotelName || !formData.address || !formData.contact || !formData.contactPerson || !formData.email) {
       alert("Please fill out all required fields before saving.");
@@ -99,7 +128,6 @@ export default function HotelsPage() {
     }
     setSavingHotel(true);
     try {
-      // Upload selected file (if any) to S3 first
       let imageUrl = formData.image;
       if (hotelFile) {
         imageUrl = await uploadFileToS3(hotelFile);
@@ -118,11 +146,7 @@ export default function HotelsPage() {
         }),
       });
 
-      // reset
-      setFormData({ hotelName: "", address: "", contact: "", contactPerson: "", email: "", eventId: "", image: "" });
-      setHotelFile(null);
-      setHotelPreviewUrl(null);
-      setEditingId(null);
+      resetHotelForm();
       setFormOpen(false);
       fetchHotels();
     } catch (error) {
@@ -159,7 +183,6 @@ export default function HotelsPage() {
     setFormOpen(true);
   };
 
-  // open room form for a specific room (ensure id is string)
   const openRoomForm = (hotelId: string, room?: any) => {
     setSelectedHotelId(hotelId);
     if (room) {
@@ -209,7 +232,6 @@ export default function HotelsPage() {
         }),
       });
 
-      // reset
       setRoomFormData({ roomType: "", price: "", availableRooms: "", maxOccupancy: "", amenities: "", image: "" });
       setRoomFile(null);
       setRoomPreviewUrl(null);
@@ -234,10 +256,9 @@ export default function HotelsPage() {
     }
   };
 
-  // Filter + search
   const visibleHotels = useMemo(
     () =>
-      hotels
+      (Array.isArray(hotels) ? hotels : [])
         .filter((h) => (onlyWithRooms ? h.roomTypes && h.roomTypes.length > 0 : true))
         .filter(
           (h) =>
@@ -247,433 +268,441 @@ export default function HotelsPage() {
     [hotels, onlyWithRooms, search],
   );
 
-  // Small presentational subcomponent
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   const HotelCard = ({ hotel }: { hotel: any }) => {
     const roomsCount = hotel.roomTypes ? hotel.roomTypes.length : 0;
     const lowestPrice =
       hotel.roomTypes && hotel.roomTypes.length > 0 ? Math.min(...hotel.roomTypes.map((r: any) => r.price || 0)) : null;
 
     return (
-      <motion.div whileHover={{ scale: 1.02 }} className="bg-gradient-to-br from-white/60 to-white/40 rounded-2xl shadow-lg border overflow-hidden">
-        <div className="relative">
-          <div className="h-44 w-full bg-gray-100">
+      <motion.div variants={itemVariants} className="group flex flex-col h-full">
+        <div className="relative overflow-hidden rounded-2xl shadow-sm border border-gray-100 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex-1 flex flex-col">
+          {/* Image Section */}
+          <div className="relative h-56 overflow-hidden bg-gray-100 group">
             {hotel.image ? (
-              <img src={hotel.image} alt={hotel.hotelName} className="w-full h-44 object-cover" />
+              <img src={hotel.image} alt={hotel.hotelName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
             ) : (
-              <div className="w-full h-44 flex items-center justify-center text-gray-400">
-                <ImageIcon size={36} />
+              <div className="w-full h-full flex items-center justify-center bg-emerald-50 text-emerald-200">
+                <Building2 size={64} strokeWidth={1} />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-            <div className="absolute left-4 bottom-3 text-white">
-              <h3 className="text-lg font-semibold drop-shadow">{hotel.hotelName}</h3>
-              <p className="text-xs drop-shadow">{hotel.address || "No address"}</p>
-            </div>
-            <div className="absolute right-4 top-4 flex gap-2">
-              <Button size="sm" variant="ghost" onClick={() => openEditForm(hotel)}>
+
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+            {/* Top Actions Overlay */}
+            <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              <Button size="icon" className="h-9 w-9 bg-white/90 hover:bg-white text-gray-700 hover:text-emerald-600 rounded-full shadow-lg backdrop-blur-sm transition-colors" onClick={() => openEditForm(hotel)}>
                 <Edit size={16} />
               </Button>
-              <Button size="sm" variant="ghost" onClick={() => handleDelete(hotel.id)} className="text-red-600">
+              <Button size="icon" className="h-9 w-9 bg-white/90 hover:bg-white text-gray-700 hover:text-red-600 rounded-full shadow-lg backdrop-blur-sm transition-colors" onClick={() => handleDelete(hotel.id)}>
                 <Trash2 size={16} />
               </Button>
             </div>
-          </div>
-        </div>
 
-        <CardContent className="p-4">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <MapPin size={14} />
-                <span>{hotel.address || "-"}</span>
-              </div>
-              <div className="mt-2 flex items-center gap-3 text-xs text-gray-500">
-                <div className="flex items-center gap-1">
-                  <Phone size={12} />
-                  {hotel.contact || "-"}
-                </div>
-                <div className="flex items-center gap-1">
-                  <Mail size={12} />
-                  {hotel.email || "-"}
-                </div>
+            {/* Bottom Info Overlay */}
+            <div className="absolute bottom-4 left-4 right-4 text-white">
+              <h3 className="text-xl font-bold tracking-tight drop-shadow-md leading-tight mb-1">{hotel.hotelName}</h3>
+              <div className="flex items-center gap-1.5 text-white/90 text-sm font-medium drop-shadow-sm">
+                <MapPin size={14} className="text-emerald-400" />
+                <span className="truncate">{hotel.address || "No address provided"}</span>
               </div>
             </div>
-            <div className="text-right">
-              <div className="text-sm font-medium">
-                {roomsCount} room{roomsCount !== 1 ? "s" : ""}
+          </div>
+
+          <CardContent className="p-5 flex-1 flex flex-col gap-4">
+            {/* Contact Details Grid */}
+            <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2" title={hotel.contact}>
+                <Phone size={14} className="text-emerald-500/70" />
+                <span className="truncate">{hotel.contact || "N/A"}</span>
               </div>
-              {lowestPrice !== null && (
-                <div className="text-xs mt-1 flex items-center gap-1 text-gray-600">
-                  <DollarSign size={12} />
-                  {lowestPrice}
-                </div>
+              <div className="flex items-center gap-2" title={hotel.email}>
+                <Mail size={14} className="text-emerald-500/70" />
+                <span className="truncate">{hotel.email || "N/A"}</span>
+              </div>
+            </div>
+
+            {/* Rooms Preview Pucks */}
+            <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
+              {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
+                hotel.roomTypes.slice(0, 3).map((r: any) => (
+                  <Badge key={r.id} variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0 font-medium">
+                    {r.roomType} <span className="mx-1">•</span> ₹{r.price}
+                  </Badge>
+                ))
+              ) : (
+                <span className="text-xs text-gray-400 italic flex items-center gap-1">
+                  <AlertCircle size={12} /> No rooms configured
+                </span>
+              )}
+              {hotel.roomTypes?.length > 3 && (
+                <span className="text-xs text-gray-400 self-center">+{hotel.roomTypes.length - 3} more</span>
               )}
             </div>
-          </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
-            {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
-              hotel.roomTypes.slice(0, 3).map((r: any) => (
-                <div key={r.id} className="px-2 py-1 rounded-full bg-gray-100 text-xs text-gray-700 border">
-                  {r.roomType} • ₹{r.price}
-                </div>
-              ))
-            ) : (
-              <div className="text-xs text-gray-400">No room types added.</div>
-            )}
-          </div>
-
-          <div className="mt-4 flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => openRoomForm(hotel.id)}>
-              <Plus size={14} /> Add Room
-            </Button>
-
-            {/* Manage rooms */}
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                setSelectedHotelId(hotel.id);
-                setManageRoomsOpen(true);
-              }}
-            >
-              Manage Rooms
-            </Button>
-          </div>
-        </CardContent>
+            {/* Card Footer Actions */}
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <Button variant="outline" className="w-full border-gray-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors" onClick={() => openRoomForm(hotel.id)}>
+                <Plus size={16} className="mr-2" /> Add Room
+              </Button>
+              <Button variant="ghost" className="w-full text-gray-600 hover:text-gray-900 group-hover:bg-gray-50"
+                onClick={() => {
+                  setSelectedHotelId(hotel.id);
+                  setManageRoomsOpen(true);
+                }}>
+                Manage ({roomsCount})
+              </Button>
+            </div>
+          </CardContent>
+        </div>
       </motion.div>
     );
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <div className="p-6 max-w-[1600px] mx-auto space-y-8">
+      {/* Header Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-extrabold tracking-tight">Hotels</h1>
-          <p className="text-sm text-gray-500">Manage hotels and room types — beautiful, quick and usable.</p>
+          <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Hotels</h1>
+          <p className="text-gray-500 mt-2 text-lg">Curate your hospitality partners and room inventory.</p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 border rounded-lg px-3 py-2 bg-white">
-            <Search size={16} className="text-gray-400" />
+        <div className="flex flex-col sm:flex-row items-center gap-3">
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search hotels or address"
+              placeholder="Search hotels..."
+              className="pl-10 w-full sm:w-72 bg-white border-gray-200 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="border-0 p-0 bg-transparent"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setOnlyWithRooms(!onlyWithRooms)}
-              className={`px-3 py-2 rounded-lg border ${onlyWithRooms ? "bg-indigo-600 text-white" : "bg-white text-gray-700"}`}
-            >
-              <Filter size={14} className="inline-block mr-2" /> {onlyWithRooms ? "With rooms" : "All"}
-            </button>
+          <Button
+            variant="outline"
+            onClick={() => setOnlyWithRooms(!onlyWithRooms)}
+            className={`transition-all ${onlyWithRooms ? "bg-emerald-50 border-emerald-500 text-emerald-700" : "bg-white text-gray-700 border-gray-200"}`}
+          >
+            <Filter size={16} className={`mr-2 ${onlyWithRooms ? "text-emerald-600" : "text-gray-400"}`} />
+            {onlyWithRooms ? "With Rooms Only" : "All Hotels"}
+          </Button>
 
-            {/* Hotel form */}
-            <Sheet open={formOpen} onOpenChange={setFormOpen}>
-              <SheetTrigger asChild>
-                <Button className="gap-2">
-                  <Plus size={16} /> Add Hotel
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="right" className="w-full sm:w-[520px] bg-white text-gray-900">
-                <div className="p-6">
-                  <h2 className="text-xl font-semibold mb-2">{editingId ? "Edit Hotel" : "Add Hotel"}</h2>
-                  <p className="text-sm text-gray-500 mb-4">Add or update hotel details. Image upload shows preview.</p>
+          <Sheet open={formOpen} onOpenChange={setFormOpen}>
+            <SheetTrigger asChild>
+              {/* 
+                     Using onClick to strictly ensure form reset. 
+                     Note: SheetTrigger prevents the default onClick from propagating sometimes, 
+                     so we rely on the manual setFormOpen(true) inside handleOpenAddHotel.
+                     BUT SheetTrigger automatically toggles state. 
+                     We should REMOVE SheetTrigger and just use a Button if we want manual control, 
+                     OR we can keep SheetTrigger and just use onOpenChange to reset if opening.
+                     
+                     Better approach: Remove SheetTrigger, use standard Button + onClick handler.
+                 */}
+              <div />
+            </SheetTrigger>
+            <Button onClick={handleOpenAddHotel} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all">
+              <Plus size={18} className="mr-2" /> Add Hotel
+            </Button>
 
-                  <div className="grid grid-cols-1 gap-3">
-                    <div>
-                      <Label>Hotel Name</Label>
-                      <Input
-                        value={formData.hotelName}
-                        onChange={(e) => setFormData({ ...formData, hotelName: e.target.value })}
-                        placeholder="Hotel name"
-                      />
+            <SheetContent side="right" className="w-full sm:w-[540px] overflow-y-auto">
+              <div className="py-6 space-y-6">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">{editingId ? "Edit Hotel" : "Add New Hotel"}</h2>
+                  <p className="text-sm text-gray-500">Create a new hotel profile for the event.</p>
+                </div>
+
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label>Hotel Name</Label>
+                    <Input
+                      placeholder="e.g. Grand Hyatt Logistics"
+                      className="focus:ring-emerald-500"
+                      value={formData.hotelName}
+                      onChange={(e) => setFormData({ ...formData, hotelName: e.target.value })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Address</Label>
+                    <Input
+                      placeholder="Full street address"
+                      className="focus:ring-emerald-500"
+                      value={formData.address}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Contact Number</Label>
+                      <Input placeholder="+1 234..." className="focus:ring-emerald-500"
+                        value={formData.contact} onChange={(e) => setFormData({ ...formData, contact: e.target.value })} />
                     </div>
-
-                    <div>
-                      <Label>Address</Label>
-                      <Input
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        placeholder="123, City, Country"
-                      />
+                    <div className="space-y-2">
+                      <Label>Manager Name</Label>
+                      <Input placeholder="John Doe" className="focus:ring-emerald-500"
+                        value={formData.contactPerson} onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })} />
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label>Contact</Label>
-                        <Input
-                          value={formData.contact}
-                          onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                          placeholder="+91 98xxxx"
-                        />
-                      </div>
-                      <div>
-                        <Label>Contact Person</Label>
-                        <Input
-                          value={formData.contactPerson}
-                          onChange={(e) => setFormData({ ...formData, contactPerson: e.target.value })}
-                          placeholder="Name"
-                        />
-                      </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Email</Label>
+                      <Input placeholder="reservations@hotel.com" className="focus:ring-emerald-500"
+                        value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <Label>Email</Label>
-                        <Input
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="email@example.com"
-                        />
-                      </div>
-                      <div>
-                        <Label>Event ID (optional)</Label>
-                        <Input
-                          value={formData.eventId}
-                          onChange={(e) => setFormData({ ...formData, eventId: e.target.value })}
-                          placeholder="Event id"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label>Event ID (Optional)</Label>
+                      <Input placeholder="EXT-101" className="focus:ring-emerald-500"
+                        value={formData.eventId} onChange={(e) => setFormData({ ...formData, eventId: e.target.value })} />
                     </div>
+                  </div>
 
-                    {/* Image Upload */}
-                    <div>
-                      <Label>Image</Label>
+                  <div className="space-y-2">
+                    <Label>Hotel Image</Label>
+                    <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all text-center relative group">
                       <input
                         type="file"
                         accept="image/*"
-                        className="mt-2 text-sm"
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                         onChange={(e) => {
                           const f = e.target.files?.[0] ?? null;
                           setHotelFile(f);
-                          if (!f) {
-                            // If cleared, revert preview to existing URL (when editing)
-                            setHotelPreviewUrl(formData.image || null);
-                          }
+                          if (!f) setHotelPreviewUrl(formData.image || null);
                         }}
                       />
-                      {hotelPreviewUrl && (
-                        <img
-                          src={hotelPreviewUrl}
-                          alt="Image Preview"
-                          className="w-full h-36 object-cover border rounded mt-2 bg-white"
-                          onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-                        />
+                      {hotelPreviewUrl ? (
+                        <div className="relative h-48 w-full rounded-lg overflow-hidden shadow-sm">
+                          <img src={hotelPreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <p className="text-white font-medium">Click to change</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-4">
+                          <div className="bg-emerald-100 p-3 rounded-full mb-3 text-emerald-600">
+                            <ImageIcon size={24} />
+                          </div>
+                          <p className="text-sm font-medium text-gray-700">Click or drag image here</p>
+                          <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG (Max 5MB)</p>
+                        </div>
                       )}
                     </div>
+                  </div>
 
-                    <div className="flex items-center justify-end gap-2 mt-4">
-                      <Button
-                        variant="ghost"
-                        onClick={() => {
-                          setFormOpen(false);
-                          setEditingId(null);
-                          setHotelFile(null);
-                          setHotelPreviewUrl(null);
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button onClick={handleSubmit} variant="primary" disabled={savingHotel}>
-                        {savingHotel ? "Saving..." : editingId ? "Update Hotel" : "Save Hotel"}
-                      </Button>
-                    </div>
+                  <div className="pt-4 flex gap-3">
+                    {/* Cancel button now also resets form for good measure */}
+                    <Button variant="outline" className="flex-1" onClick={() => {
+                      setFormOpen(false);
+                      resetHotelForm();
+                    }}>Cancel</Button>
+                    <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSubmit} disabled={savingHotel}>
+                      {savingHotel ? "Saving..." : "Save Hotel"}
+                    </Button>
                   </div>
                 </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      {/* grid */}
+      {/* Content Grid */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="rounded-2xl overflow-hidden">
-              <Skeleton className="h-44" />
-              <Skeleton className="h-20 mt-3" />
-            </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          {[...Array(8)].map((_, i) => (
+            <Skeleton key={i} className="h-[400px] rounded-2xl" />
           ))}
         </div>
       ) : visibleHotels.length === 0 ? (
-        <div className="text-center py-12 border rounded-2xl bg-gradient-to-r from-gray-50 to-white">
-          <p className="text-gray-500">No hotels match your search.</p>
-          <Button className="mt-4" onClick={() => setFormOpen(true)}>
-            <Plus size={16} /> Add your first hotel
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-3xl border border-dashed border-gray-200 text-center">
+          <div className="bg-emerald-50 p-5 rounded-full mb-4">
+            <Building2 size={48} className="text-emerald-500" />
+          </div>
+          <h3 className="text-xl font-bold text-gray-900">No hotels found</h3>
+          <p className="text-gray-500 max-w-md mt-2 mb-6">We couldn't find any hotels matching your criteria. Try adjusting your filters or add a new hotel.</p>
+          <Button className="bg-emerald-600 text-white hover:bg-emerald-700" onClick={handleOpenAddHotel}>
+            Add First Hotel
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {visibleHotels.map((hotel) => (
-            <HotelCard key={hotel.id} hotel={hotel} />
-          ))}
-        </div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
+        >
+          <AnimatePresence>
+            {visibleHotels.map((hotel) => (
+              <HotelCard key={hotel.id} hotel={hotel} />
+            ))}
+          </AnimatePresence>
+        </motion.div>
       )}
 
-      {/* Room Form */}
+      {/* Room Form Sheet */}
       <Sheet open={roomFormOpen} onOpenChange={setRoomFormOpen}>
-        <SheetContent side="right" className="w-full sm:w-[520px] bg-white text-gray-900">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2">{editingRoomId ? "Edit Room Type" : "Add Room Type"}</h2>
-            <p className="text-sm text-gray-500 mb-4">Attach room types to the selected hotel.</p>
+        <SheetContent side="right" className="w-full sm:w-[500px] bg-white">
+          <div className="py-6 space-y-6 h-full flex flex-col">
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">{editingRoomId ? "Edit Room" : "Add Room"}</h2>
+              <p className="text-sm text-gray-500">Configure room details and pricing.</p>
+            </div>
 
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <Label>Room Type</Label>
-                <Input
-                  value={roomFormData.roomType}
-                  onChange={(e) => setRoomFormData({ ...roomFormData, roomType: e.target.value })}
-                  placeholder="Deluxe / Suite"
-                />
+            <div className="space-y-4 flex-1 overflow-y-auto pr-2">
+              <div className="space-y-2">
+                <Label>Room Type Name</Label>
+                <Input placeholder="e.g. Deluxe Ocean View" className="focus:ring-emerald-500"
+                  value={roomFormData.roomType} onChange={(e) => setRoomFormData({ ...roomFormData, roomType: e.target.value })} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Price (₹)</Label>
-                  <Input
-                    value={roomFormData.price}
-                    onChange={(e) => setRoomFormData({ ...roomFormData, price: e.target.value })}
-                    placeholder="0"
-                  />
+                  <div className="relative">
+                    <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="5000" className="pl-9 focus:ring-emerald-500"
+                      value={roomFormData.price} onChange={(e) => setRoomFormData({ ...roomFormData, price: e.target.value })} />
+                  </div>
                 </div>
-                <div>
-                  <Label>Available Rooms</Label>
-                  <Input
-                    value={roomFormData.availableRooms}
-                    onChange={(e) => setRoomFormData({ ...roomFormData, availableRooms: e.target.value })}
-                    placeholder="0"
-                  />
+                <div className="space-y-2">
+                  <Label>Available Qty</Label>
+                  <div className="relative">
+                    <Bed size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="10" className="pl-9 focus:ring-emerald-500"
+                      value={roomFormData.availableRooms} onChange={(e) => setRoomFormData({ ...roomFormData, availableRooms: e.target.value })} />
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label>Max Occupancy</Label>
-                  <Input
-                    value={roomFormData.maxOccupancy}
-                    onChange={(e) => setRoomFormData({ ...roomFormData, maxOccupancy: e.target.value })}
-                    placeholder="2"
-                  />
+                  <div className="relative">
+                    <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="2" className="pl-9 focus:ring-emerald-500"
+                      value={roomFormData.maxOccupancy} onChange={(e) => setRoomFormData({ ...roomFormData, maxOccupancy: e.target.value })} />
+                  </div>
                 </div>
-                <div>
-                  <Label>Image</Label>
+                <div className="space-y-2">
+                  <Label>Amenities</Label>
+                  <div className="relative">
+                    <Wifi size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <Input placeholder="WiFi, AC..." className="pl-9 focus:ring-emerald-500"
+                      value={roomFormData.amenities} onChange={(e) => setRoomFormData({ ...roomFormData, amenities: e.target.value })} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Room Layout / Image</Label>
+                <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 hover:bg-gray-50 text-center relative group">
                   <input
                     type="file"
                     accept="image/*"
-                    className="mt-2 text-sm"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     onChange={(e) => {
                       const f = e.target.files?.[0] ?? null;
                       setRoomFile(f);
-                      if (!f) {
-                        setRoomPreviewUrl(roomFormData.image || null);
-                      }
+                      if (!f) setRoomPreviewUrl(roomFormData.image || null);
                     }}
                   />
-                  {roomPreviewUrl && (
-                    <img
-                      src={roomPreviewUrl}
-                      alt="Room Image Preview"
-                      className="w-full h-36 object-cover border rounded mt-2 bg-white"
-                      onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
-                    />
+                  {roomPreviewUrl ? (
+                    <div className="relative h-40 w-full rounded-lg overflow-hidden">
+                      <img src={roomPreviewUrl} alt="Room" className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center py-6 text-gray-400">
+                      <ImageIcon size={32} className="mb-2" />
+                      <span className="text-xs">Upload Room Image</span>
+                    </div>
                   )}
                 </div>
               </div>
+            </div>
 
-              <div>
-                <Label>Amenities</Label>
-                <Input
-                  value={roomFormData.amenities}
-                  onChange={(e) => setRoomFormData({ ...roomFormData, amenities: e.target.value })}
-                  placeholder="WiFi, AC, Breakfast"
-                />
-              </div>
-
-              <div className="flex items-center justify-end gap-2 mt-4">
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    setRoomFormOpen(false);
-                    setEditingRoomId(null);
-                    setRoomFile(null);
-                    setRoomPreviewUrl(null);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={handleRoomSubmit} variant="primary" disabled={savingRoom}>
-                  {savingRoom ? "Saving..." : editingRoomId ? "Update Room" : "Save Room"}
-                </Button>
-              </div>
+            <div className="pt-4 flex gap-3 mt-auto">
+              <Button variant="outline" className="flex-1" onClick={() => setRoomFormOpen(false)}>Cancel</Button>
+              <Button className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleRoomSubmit} disabled={savingRoom}>
+                {savingRoom ? "Saving..." : "Save Room"}
+              </Button>
             </div>
           </div>
         </SheetContent>
       </Sheet>
 
-      {/* Manage Rooms Sheet */}
+      {/* Manage Rooms List Sheet */}
       <Sheet open={manageRoomsOpen} onOpenChange={setManageRoomsOpen}>
-        <SheetContent side="right" className="w-full sm:w-[520px] bg-white text-gray-900">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold mb-2">Manage Rooms</h2>
-            <p className="text-sm text-gray-500 mb-4">Edit, delete or add room types for the selected hotel.</p>
+        <SheetContent side="right" className="w-full sm:w-[500px] overflow-y-auto">
+          <div className="py-6 space-y-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold text-gray-900">Room Inventory</h2>
+                <p className="text-sm text-gray-500">Manage rooms for the selected hotel.</p>
+              </div>
+              <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white" onClick={() => {
+                openRoomForm(selectedHotelId || "");
+                setManageRoomsOpen(false);
+              }}>
+                <Plus size={16} className="mr-1" /> Add
+              </Button>
+            </div>
 
-            <div className="space-y-3">
-              {selectedHotelId &&
-                (hotels.find((h) => h.id === selectedHotelId)?.roomTypes || []).map((r: any) => (
-                  <div key={r.id} className="flex items-center justify-between border rounded p-3">
-                    <div>
-                      <div className="font-medium">
-                        {r.roomType} • ₹{r.price}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        Available: {r.availableRooms} | Max: {r.maxOccupancy}
+            <div className="space-y-3 mt-6">
+              {selectedHotelId && (hotels.find(h => h.id === selectedHotelId)?.roomTypes || []).length === 0 ? (
+                <div className="text-center py-10 bg-gray-50 rounded-xl">
+                  <p className="text-gray-500">No rooms added yet.</p>
+                </div>
+              ) : (
+                selectedHotelId && (hotels.find(h => h.id === selectedHotelId)?.roomTypes || []).map((r: any) => (
+                  <div key={r.id} className="flex gap-4 p-3 rounded-xl border border-gray-100 bg-white hover:shadow-md transition-shadow">
+                    <div className="h-20 w-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                      {r.image ? (
+                        <img src={r.image} alt={r.roomType} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-300">
+                          <ImageIcon size={20} />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-900 truncate">{r.roomType}</h4>
+                      <p className="text-emerald-600 font-bold text-sm">₹{r.price}</p>
+                      <div className="flex gap-3 mt-1 text-xs text-gray-500">
+                        <span className="flex items-center gap-1"><Bed size={12} /> {r.availableRooms} Left</span>
+                        <span className="flex items-center gap-1"><Users size={12} /> Max {r.maxOccupancy}</span>
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          openRoomForm(selectedHotelId, r);
-                          setManageRoomsOpen(false);
-                        }}
-                      >
-                        <Edit size={14} /> Edit
+                    <div className="flex flex-col gap-1 justify-center">
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-emerald-600" onClick={() => {
+                        openRoomForm(selectedHotelId, r);
+                        setManageRoomsOpen(false);
+                      }}>
+                        <Edit size={16} />
                       </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600 hover:bg-red-50"
-                        onClick={() => handleRoomDelete(r.id)}
-                      >
-                        <Trash2 size={14} />
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-gray-400 hover:text-red-600" onClick={() => handleRoomDelete(r.id)}>
+                        <Trash2 size={16} />
                       </Button>
                     </div>
                   </div>
-                ))}
-
-              <div className="pt-3">
-                <Button
-                  onClick={() => {
-                    openRoomForm(selectedHotelId || "");
-                    setManageRoomsOpen(false);
-                  }}
-                >
-                  <Plus size={14} /> Add Room
-                </Button>
-              </div>
-            </div>
-
-            <div className="mt-4 text-right">
-              <Button variant="ghost" onClick={() => setManageRoomsOpen(false)}>
-                Close
-              </Button>
+                ))
+              )}
             </div>
           </div>
         </SheetContent>

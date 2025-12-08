@@ -1,12 +1,13 @@
-'use client'; 
+'use client';
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { Search, Clock, MapPin, Ship, Plane, Truck } from 'lucide-react';
+import Image from 'next/image';
+import { Search, Clock, MapPin, Ship, Plane, Truck, ArrowRight, Package } from 'lucide-react';
 import { format } from 'date-fns';
-import { useAuth } from '@/app/context/AuthContext'; 
+import { useAuth } from '@/app/context/AuthContext';
 
-// --- TYPE DEFINITION (Matching your API's select statement) ---
+// --- TYPE DEFINITION ---
 type Inquiry = {
     id: string;
     from: string;
@@ -18,34 +19,45 @@ type Inquiry = {
 
 // --- UI COMPONENTS ---
 
-// Filters are now "dumb" components that report changes up to the parent
 const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterChange: (name: string, value: string) => void }) => {
     return (
-        <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 items-center">
-                <input
-                    type="text"
-                    name="query"
-                    placeholder="Search From/To/Cargo..."
-                    className="w-full p-3 bg-white text-gray-800 border-gray-300 border rounded-md focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                    value={filters.query}
-                    onChange={(e) => onFilterChange(e.target.name, e.target.value)}
-                />
-                <select
-                    name="mode"
-                    className="w-full p-3 bg-white text-gray-800 border-gray-300 border rounded-md appearance-none"
-                    value={filters.mode}
-                    onChange={(e) => onFilterChange(e.target.name, e.target.value)}
-                >
-                    <option value="">All Shipment Modes</option>
-                    <option value="AIR">Air Freight</option>
-                    <option value="SEA">Sea Freight</option>
-                    <option value="LAND">Land Freight</option>
-                </select>
-            
-                <button className="bg-gray-800 text-white p-3 rounded-md flex items-center justify-center hover:bg-gray-900 h-full">
-                    <Search className="h-5 w-5" />
-                </button>
+        <div className="bg-white rounded-xl shadow-xl p-6 -mt-10 relative z-20 mx-4 lg:mx-0 border border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                <div className="md:col-span-5">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Search</label>
+                    <div className="relative">
+                        <input
+                            type="text"
+                            name="query"
+                            placeholder="Origin, Destination, or Cargo..."
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#5da765] focus:bg-white transition-all text-sm font-medium"
+                            value={filters.query}
+                            onChange={(e) => onFilterChange(e.target.name, e.target.value)}
+                        />
+                        <Search className="absolute left-3 top-3.5 h-4 w-4 text-gray-400" />
+                    </div>
+                </div>
+                <div className="md:col-span-4">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mode</label>
+                    <select
+                        name="mode"
+                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#5da765] focus:bg-white transition-all text-sm font-medium appearance-none"
+                        value={filters.mode}
+                        onChange={(e) => onFilterChange(e.target.name, e.target.value)}
+                    >
+                        <option value="">All Modes</option>
+                        <option value="AIR">Air Freight</option>
+                        <option value="SEA">Sea Freight</option>
+                        <option value="LAND">Land Freight</option>
+                    </select>
+                </div>
+
+                <div className="md:col-span-3 h-full flex items-end">
+                    <button className="w-full bg-[#5da765] text-white py-3 rounded-lg font-bold shadow-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2">
+                        <Search className="h-4 w-4" />
+                        Find Cargo
+                    </button>
+                </div>
             </div>
         </div>
     );
@@ -53,53 +65,61 @@ const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterCha
 
 const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
     const getShipmentIcon = (mode: string) => {
-        if (mode === 'AIR') return <Plane className="h-5 w-5 text-gray-500" />;
-        if (mode === 'SEA') return <Ship className="h-5 w-5 text-gray-500" />;
-        if (mode === 'LAND') return <Truck className="h-5 w-5 text-gray-500" />;
-        return null;
+        if (mode === 'AIR') return <Plane className="h-5 w-5" />;
+        if (mode === 'SEA') return <Ship className="h-5 w-5" />;
+        if (mode === 'LAND') return <Truck className="h-5 w-5" />;
+        return <Package className="h-5 w-5" />;
     };
 
-    // Wrap the whole card with Link so the entire card is clickable.
-    // We've removed the nested Link that used to live in the header.
     return (
         <Link
             href={`/inquiry/${inquiry.id}`}
-            className="block bg-white border rounded-lg shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col no-underline text-inherit"
+            className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col"
         >
-            <div className="p-4 border-b">
-                <div className="flex justify-between items-center">
-                    <p className="text-sm text-gray-500">Find Agent at</p>
-                    <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        {/* replaced inner Link with a styled badge to avoid nested links */}
-                        <span className="text-xs font-semibold text-background bg-secondary px-2 py-1 rounded-full">
-                            Detailed Inquiry
-                        </span>
+            <div className="absolute top-0 left-0 w-1 h-full bg-gray-200 group-hover:bg-[#5da765] transition-colors"></div>
+
+            <div className="p-6 flex-grow">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-2 text-gray-400 group-hover:text-[#5da765] transition-colors">
+                        {getShipmentIcon(inquiry.shipmentMode)}
+                        <span className="text-xs font-bold tracking-wider uppercase">{inquiry.shipmentMode}</span>
                     </div>
-                </div>
-                <div className="mt-2">
-                    <span className="inline-block bg-gray-100 text-gray-800 text-sm font-semibold px-3 py-1 rounded-md">
-                       Worldwide
+                    <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded">
+                        {format(new Date(inquiry.createdAt), 'MMM d, yyyy')}
                     </span>
                 </div>
-            </div>
-            <div className="p-4 flex-grow">
-                <div className="flex items-start">
-                    <MapPin className="h-5 w-5 text-gray-400 mt-1 mr-3" />
-                    <div className="flex-grow">
-                        <p className="font-semibold text-gray-800">{inquiry.from}</p>
-                        <div className="h-4 border-l-2 border-dotted border-gray-300 ml-2 my-1"></div>
-                        <p className="font-semibold text-gray-800">{inquiry.to}</p>
+
+                <div className="space-y-4">
+                    <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                            <div className="w-2 h-2 rounded-full bg-[#5da765]"></div>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase font-bold">Origin</p>
+                            <p className="font-bold text-gray-800 text-lg leading-tight">{inquiry.from}</p>
+                        </div>
+                    </div>
+
+                    <div className="ml-1 border-l-2 border-dashed border-gray-200 h-4"></div>
+
+                    <div className="flex items-start gap-3">
+                        <div className="mt-1">
+                            <div className="w-2 h-2 rounded-full border-2 border-[#5da765] bg-white"></div>
+                        </div>
+                        <div>
+                            <p className="text-xs text-gray-400 uppercase font-bold">Destination</p>
+                            <p className="font-bold text-gray-800 text-lg leading-tight">{inquiry.to}</p>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div className="p-4 bg-gray-50 border-t flex justify-between items-center text-sm text-gray-600 rounded-b-lg">
-                <div className="flex items-center gap-2">
-                    {getShipmentIcon(inquiry.shipmentMode)}
-                    <span>{inquiry.shipmentMode} - {inquiry.cargoType}</span>
-                </div>
-                <span>
-                    {format(new Date(inquiry.createdAt), 'd-MMM-yyyy')}
+
+            <div className="bg-[#f0f9f3] p-4 flex justify-between items-center group-hover:bg-[#5da765] transition-colors duration-300">
+                <span className="text-xs font-bold text-gray-600 uppercase group-hover:text-white transition-colors">
+                    {inquiry.cargoType}
+                </span>
+                <span className="text-xs font-bold text-[#5da765] flex items-center gap-1 group-hover:text-white transition-colors">
+                    View Details <ArrowRight className="h-3 w-3" />
                 </span>
             </div>
         </Link>
@@ -107,12 +127,14 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
 };
 
 const InquiryGridSkeleton = () => (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="bg-white border rounded-lg shadow-sm animate-pulse">
-                <div className="p-4 border-b h-24 bg-gray-200 rounded-t-lg"></div>
-                <div className="p-4 h-28 bg-gray-200"></div>
-                <div className="p-4 bg-gray-100 h-16 rounded-b-lg"></div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+        {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 animate-pulse h-80">
+                <div className="h-4 bg-gray-200 rounded w-1/4 mb-6"></div>
+                <div className="space-y-4">
+                    <div className="h-6 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-6 bg-gray-200 rounded w-1/2"></div>
+                </div>
             </div>
         ))}
     </div>
@@ -126,7 +148,6 @@ export default function InquiryBoardPage() {
     const [filters, setFilters] = useState({ query: '', mode: '' });
     const { user } = useAuth();
 
-    // 1. Fetch all data once
     useEffect(() => {
         const fetchInquiries = async () => {
             const companyId = user?.companyId;
@@ -134,7 +155,7 @@ export default function InquiryBoardPage() {
             if (companyId) {
                 params.set('excludeCompanyId', companyId);
             }
-            
+
             const response = await fetch(`/api/company/inquiry?excludeCompanyId=${companyId}`);
             if (response.ok) {
                 const data = await response.json();
@@ -143,28 +164,25 @@ export default function InquiryBoardPage() {
             setLoading(false);
         };
 
-        // Only fetch when user object is available
         if (user !== undefined) {
-             fetchInquiries();
+            fetchInquiries();
         }
     }, [user]);
 
-    // 2. Filter data on the client side whenever filters change
     const filteredInquiries = useMemo(() => {
         return allInquiries.filter(inquiry => {
-            const queryMatch = filters.query.toLowerCase() 
-                ? inquiry.from.toLowerCase().includes(filters.query.toLowerCase()) || 
-                  inquiry.to.toLowerCase().includes(filters.query.toLowerCase()) ||
-                  inquiry.cargoType.toLowerCase().includes(filters.query.toLowerCase())
+            const queryMatch = filters.query.toLowerCase()
+                ? inquiry.from.toLowerCase().includes(filters.query.toLowerCase()) ||
+                inquiry.to.toLowerCase().includes(filters.query.toLowerCase()) ||
+                inquiry.cargoType.toLowerCase().includes(filters.query.toLowerCase())
                 : true;
-            
+
             const modeMatch = filters.mode ? inquiry.shipmentMode === filters.mode : true;
 
             return queryMatch && modeMatch;
         });
     }, [allInquiries, filters]);
 
-    // 3. Handle filter changes
     const handleFilterChange = (name: string, value: string) => {
         setFilters(prevFilters => ({
             ...prevFilters,
@@ -172,55 +190,69 @@ export default function InquiryBoardPage() {
         }));
     };
 
-    const renderContent = () => {
-        if (loading) {
-            return <InquiryGridSkeleton />;
-        }
-        if (filteredInquiries.length === 0) {
-            return <p className="text-center text-gray-500 mt-8 col-span-full">No inquiries match the current filters.</p>;
-        }
-        return (
-             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {filteredInquiries.map(inquiry => (
-                    <InquiryCard key={inquiry.id} inquiry={inquiry} />
-                ))}
-            </div>
-        );
-    };
-
     return (
-        <div className="bg-gray-50 min-h-screen">
-            <header className="bg-gray-800 text-white p-6 shadow-lg bg-cover bg-center" style={{ backgroundImage: "url('/container-ship-bg.jpg')" }}>
-                <div className="container mx-auto">
-                    <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <h1 className="text-3xl font-bold">Inquiry Board</h1>
-                            {/* <p className="text-gray-300">Sign in to start quoting, <Link href="/login" className="text-orange-400 font-semibold hover:underline">Sign in now</Link></p> */}
-                        </div>
-                        <Link href= "inquiry/my-inquiries" className="border border-white/50 rounded-md px-4 py-2 text-sm flex items-center gap-2 hover:bg-white/10 transition-colors">
-                            <Clock className="h-4 w-4" />
-                            My History
-                        </Link>
-                    </div>
-                    {/* Pass filters and handler down */}
-                    <InquiryFilters filters={filters} onFilterChange={handleFilterChange} />
+        <div className="bg-white min-h-screen">
+            {/* Hero Section */}
+            <header className="relative h-[300px] lg:h-[400px] flex items-center justify-center text-center overflow-hidden">
+                <div className="absolute inset-0">
+                    <Image
+                        src="/images/bg-4.jpg"
+                        alt="Inquiry Background"
+                        fill
+                        className="object-cover"
+                    />
+                    <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+                </div>
+                <div className="relative z-10 px-4">
+                    <span className="text-white/80 font-bold tracking-widest uppercase text-sm mb-4 block">Opportunities Await</span>
+                    <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6">Global Inquiry Board</h1>
+                    <p className="text-white/90 text-lg max-w-2xl mx-auto">Connect with partners worldwide. Browse available cargo opportunities and expand your business.</p>
                 </div>
             </header>
 
-            <main className="container mx-auto py-10 px-4">
-                <section>
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-2xl font-bold text-gray-800">Inquiries</h2>
-                        {/* <Link href="/inquiries/all" className="text-orange-600 font-semibold hover:underline">
-                            View More &gt;
-                        </Link> */}
+            <main className="container mx-auto px-4 pb-20">
+                {/* Search Filters - Overlapping the Hero */}
+                <InquiryFilters filters={filters} onFilterChange={handleFilterChange} />
+
+                <div className="mt-16">
+                    <div className="flex justify-between items-end mb-8 relative">
+                        <div>
+                            <div className="flex items-center gap-2 mb-2">
+                                <span className="w-8 h-[2px] bg-[#5da765]"></span>
+                                <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">Available Opportunities</span>
+                            </div>
+                            <h2 className="text-3xl font-bold text-gray-800">Latest Inquiries</h2>
+                        </div>
+                        <div className="hidden md:block text-sm text-gray-500">
+                            Showing {filteredInquiries.length} results
+                        </div>
                     </div>
-                    {renderContent()}
-                </section>
+
+                    {loading ? (
+                        <InquiryGridSkeleton />
+                    ) : filteredInquiries.length === 0 ? (
+                        <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+                            <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                            <h3 className="text-lg font-bold text-gray-600 mb-2">No Inquiries Found</h3>
+                            <p className="text-gray-500">Try adjusting your filters to see more results.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            {filteredInquiries.map(inquiry => (
+                                <InquiryCard key={inquiry.id} inquiry={inquiry} />
+                            ))}
+                        </div>
+                    )}
+                </div>
             </main>
 
-            <Link href="/inquiry/new" className="fixed bottom-10 right-10 bg-primary text-white rounded-full shadow-lg p-4 hover:bg-orange-600 transition-colors flex items-center gap-2">
-                Post Inquiry
+            <Link href="/inquiry/new" className="fixed bottom-10 right-10 bg-[#5da765] hover:bg-[#4a8a52] text-white rounded-full shadow-2xl p-4 transition-all hover:scale-110 group z-50">
+                <div className="absolute -top-12 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg text-sm font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                    Post New Inquiry
+                </div>
+                <div className="flex items-center justify-center">
+                    <span className="text-2xl font-light leading-none pb-1">+</span>
+                </div>
             </Link>
         </div>
     );

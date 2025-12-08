@@ -1,24 +1,48 @@
 "use client";
 
-import { useEffect, useState, use } from 'react';
-import { notFound } from 'next/navigation';
-import Link from 'next/link';
+import { useEffect, useState, use } from "react";
+import { notFound } from "next/navigation";
+import Link from "next/link";
 import {
-  ArrowLeft, Hotel, Loader, MapPin, Calendar, Users,
-  AlertTriangle, ShoppingCart, X, Trash2, Plus, Minus
-} from 'lucide-react';
-import { format, parseISO } from 'date-fns';
-import { useCart, CartItem } from './CartContext';
-import { useAuth } from '@/app/context/AuthContext';
+  ArrowLeft,
+  ArrowRight,
+  Hotel,
+  Loader,
+  MapPin,
+  Calendar,
+  Users,
+  AlertTriangle,
+  ShoppingCart,
+  X,
+  Trash2,
+  Plus,
+  Minus,
+} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { useCart, CartItem } from "./CartContext";
+import { useAuth } from "@/app/context/AuthContext";
+import toast from "react-hot-toast";
 
 // --- TYPE DEFINITIONS ---
+
+interface BoothSubType {
+  id: string;
+  name: string;
+  price: number;
+  description?: string | null;
+  type?: string | null; // "BOOTH_NUMBER" | "TIME_SLOT" | "CUSTOM"
+  slotStart?: string | null;
+  slotEnd?: string | null;
+  isAvailable: boolean;
+}
+
 interface Booth {
   id: string;
   name: string;
   image: string | null;
   price: number;
   description: string | null;
-  subTypes?: { id: string; name: string; price: number; isAvailable: boolean }[];
+  subTypes?: BoothSubType[];
   quantity?: number; // optional, when derived from eventBooths
 }
 
@@ -118,7 +142,13 @@ interface Offer {
   code?: string | null;
   description?: string | null;
   percentage: number;
-  scope: "ALL" | "HOTELS" | "TICKETS" | "SPONSORS" | "CUSTOM";
+  scope:
+  | "ALL"
+  | "HOTELS"
+  | "TICKETS"
+  | "SPONSORS"
+  | "BOOTHS"
+  | "CUSTOM";
   startsAt?: string | null;
   endsAt?: string | null;
   isActive: boolean;
@@ -129,22 +159,43 @@ interface Offer {
 }
 
 // --- UI COMPONENTS ---
-const InfoPill = ({ icon: Icon, text }: { icon: React.ElementType; text: string }) => (
+
+const InfoPill = ({
+  icon: Icon,
+  text,
+}: {
+  icon: React.ElementType;
+  text: string;
+}) => (
   <div className="flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm text-white backdrop-blur-md border border-white/20">
     <Icon className="h-5 w-5" />
     <span>{text}</span>
   </div>
 );
 
-const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const Section = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg">
-    <h3 className="text-2xl font-bold text-slate-800 mb-6 pb-3 border-b-2 border-slate-100">{title}</h3>
+    <h3 className="text-2xl font-bold text-slate-800 mb-6 pb-3 border-b-2 border-slate-100">
+      {title}
+    </h3>
     {children}
   </div>
 );
 
 // Small badge component for discount
-const DiscountBadge = ({ pct, title }: { pct: number; title?: string }) => (
+const DiscountBadge = ({
+  pct,
+  title,
+}: {
+  pct: number;
+  title?: string;
+}) => (
   <div
     title={title}
     className="absolute top-3 left-3 bg-red-600 text-white px-2 py-1 rounded-md text-sm font-bold shadow"
@@ -153,7 +204,16 @@ const DiscountBadge = ({ pct, title }: { pct: number; title?: string }) => (
   </div>
 );
 
-// --- PriceCard now shows original price + offer price + badge ---
+// price helpers
+function formatPrice(n: number) {
+  return n % 1 === 0 ? n.toLocaleString() : n.toFixed(2);
+}
+function getDiscountedPrice(original: number, percent?: number | null) {
+  if (!percent || percent <= 0) return original;
+  return Math.max(0, +(original * (1 - percent / 100)).toFixed(2));
+}
+
+// --- Redesigned PriceCard with IGLA Theme ---
 const PriceCard = ({
   item,
   productType,
@@ -177,63 +237,112 @@ const PriceCard = ({
       price: effectivePrice,
       image: item.image || undefined,
     });
-    alert(`${item.name} added to cart!`);
+    toast.success(`${item.name} added to cart!`);
   };
 
   const discounted = !!offerPercent && offerPercent > 0;
   const newPrice = getDiscountedPrice(item.price, offerPercent);
 
   return (
-    <div className="rounded-lg border border-slate-200 bg-white shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 flex flex-col relative">
-      {discounted && <DiscountBadge pct={offerPercent!} title={offerName || `${offerPercent}% off`} />}
-      <div className="relative h-40 w-full bg-slate-100 rounded-t-lg">
+    <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative">
+      {discounted && (
+        <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+          {Math.round(offerPercent!)}% OFF
+        </div>
+      )}
+      <div className="relative h-48 w-full overflow-hidden">
         <img
           src={item.image || "/placeholder.png"}
           alt={item.name}
-          className="w-full h-full object-cover rounded-t-lg"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
+        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
       </div>
-      <div className="p-4 flex-grow">
-        <h4 className="text-lg font-semibold text-slate-800">{item.name}</h4>
 
-        {discounted ? (
-          <div className="mt-2">
-            <div className="text-sm text-slate-500 line-through">
-              ${item.price.toLocaleString()}
+      <div className="p-5 flex-grow flex flex-col">
+        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#5da765] transition-colors">{item.name}</h4>
+
+        <div className="mt-auto pt-4 border-t border-gray-100">
+          {discounted ? (
+            <div className="flex items-end gap-2 mb-4">
+              <span className="text-2xl font-bold text-[#5da765]">${formatPrice(newPrice)}</span>
+              <span className="text-sm text-gray-400 line-through mb-1">${item.price.toLocaleString()}</span>
             </div>
-            <div className="text-2xl font-bold text-indigo-600">
-              ${formatPrice(newPrice)}
-            </div>
-          </div>
-        ) : (
-          <p className="text-2xl font-bold text-indigo-600 mt-2">
-            ${item.price.toLocaleString()}
-          </p>
-        )}
-      </div>
-      <div className="p-4 bg-slate-50 rounded-b-lg">
-        <button
-          onClick={handleAddToCart}
-          className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-md hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2"
-        >
-          {actionText} <ShoppingCart className="h-4 w-4" />
-        </button>
+          ) : (
+            <div className="text-2xl font-bold text-[#5da765] mb-4">${item.price.toLocaleString()}</div>
+          )}
+
+          <button
+            onClick={handleAddToCart}
+            className="w-full bg-white border-2 border-[#5da765] text-[#5da765] font-bold py-2 rounded-lg hover:bg-[#5da765] hover:text-white transition-all flex items-center justify-center gap-2"
+          >
+            {actionText} <ShoppingCart className="h-4 w-4" />
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 
-// helpers
-function formatPrice(n: number) {
-  // show two decimals if needed, otherwise integer with commas
-  return n % 1 === 0 ? n.toLocaleString() : n.toFixed(2);
-}
-function getDiscountedPrice(original: number, percent?: number | null) {
-  if (!percent || percent <= 0) return original;
-  return Math.max(0, +(original * (1 - percent / 100)).toFixed(2));
-}
+const BoothCard = ({
+  booth,
+  offerPercent,
+  offerName,
+  onBook,
+}: {
+  booth: Booth;
+  offerPercent?: number | null;
+  offerName?: string | null;
+  onBook: () => void;
+}) => {
+  const discounted = !!offerPercent && offerPercent > 0;
+  const newPrice = getDiscountedPrice(booth.price, offerPercent);
 
-// --- Main Page Component Wrapper ---
+  return (
+    <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative">
+      {discounted && (
+        <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+          {Math.round(offerPercent!)}% OFF
+        </div>
+      )}
+      <div className="relative h-48 w-full overflow-hidden">
+        <img
+          src={booth.image || "/placeholder.png"}
+          alt={booth.name}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+      </div>
+      <div className="p-5 flex-grow flex flex-col">
+        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#5da765] transition-colors">{booth.name}</h4>
+        {booth.description && (
+          <p className="text-sm text-gray-500 line-clamp-2 mb-4">
+            {booth.description}
+          </p>
+        )}
+
+        <div className="mt-auto pt-4 border-t border-gray-100">
+          {discounted ? (
+            <div className="flex items-end gap-2 mb-4">
+              <span className="text-2xl font-bold text-[#5da765]">${formatPrice(newPrice)}</span>
+              <span className="text-sm text-gray-400 line-through mb-1">${booth.price.toLocaleString()}</span>
+            </div>
+          ) : (
+            <div className="text-2xl font-bold text-[#5da765] mb-4">${booth.price.toLocaleString()}</div>
+          )}
+
+          <button
+            onClick={onBook}
+            className="w-full bg-[#5da765] text-white font-bold py-2 rounded-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+          >
+            Book Booth <ShoppingCart className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Main Page Component Wrapper (Next.js route) ---
 export default function EventDetailPageWrapper({
   params,
 }: {
@@ -245,17 +354,36 @@ export default function EventDetailPageWrapper({
 // --- MAIN PAGE COMPONENT ---
 function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+
+  const { itemCount, addToCart } = useCart();
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("About");
   const [isCartOpen, setCartOpen] = useState(false);
 
-  const { itemCount } = useCart();
-
   // Offers loaded from backend
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
+
+  // Booth subtype modal state
+  const [boothModalOpen, setBoothModalOpen] = useState(false);
+  const [selectedBooth, setSelectedBooth] = useState<Booth | null>(null);
+  const [boothSubtypes, setBoothSubtypes] = useState<BoothSubType[]>([]);
+  const [boothSubtypesLoading, setBoothSubtypesLoading] = useState(false);
+  const [boothSubtypesError, setBoothSubtypesError] = useState<string | null>(
+    null
+  );
+  const [selectedSubtypeId, setSelectedSubtypeId] = useState<string | null>(
+    null
+  );
+  const [boothOffer, setBoothOffer] = useState<{
+    percent: number | null;
+    name?: string | null;
+  }>({ percent: null });
+
+  // Hotel expansion state
+  const [expandedHotelId, setExpandedHotelId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -279,7 +407,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       }
     };
 
-    // fetch offers concurrently
     const fetchOffers = async () => {
       setOffersLoading(true);
       try {
@@ -306,7 +433,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader className="h-16 w-16 animate-spin text-indigo-600" />
+        <Loader className="h-16 w-16 animate-spin text-[#5da765]" />
       </div>
     );
   if (error)
@@ -319,7 +446,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </h2>
           <p className="mt-2 text-red-600">{error}</p>
           <Link
-            href="/events"
+            href="/event/list"
             className="mt-6 inline-flex items-center gap-2 rounded-md bg-red-600 px-6 py-2 text-white hover:bg-red-700"
           >
             <ArrowLeft className="h-4 w-4" /> Go Back to Events
@@ -329,7 +456,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     );
   if (!eventData) notFound();
 
-  // base fields
   const {
     id,
     name,
@@ -341,24 +467,21 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     description,
   } = eventData;
 
-  // normalize lists so `.map` is always safe
   const venue = eventData.venue ?? null;
   const agendaItems = eventData.agendaItems ?? [];
   const eventTickets = eventData.eventTickets ?? [];
   const eventSponsorTypes = eventData.eventSponsorTypes ?? [];
   const hotels = eventData.hotels ?? [];
 
-  // booths can come as:
-  // - legacy: eventData.booths (Booth[])
-  // - new: eventData.eventBooths (EventBoothJoin[])
+  // booths can come as legacy or via join table
   const boothsList: Booth[] =
     eventData.eventBooths && Array.isArray(eventData.eventBooths)
       ? eventData.eventBooths
-          .filter((eb) => eb.booth) // safety
-          .map((eb) => ({
-            ...eb.booth,
-            quantity: eb.quantity,
-          }))
+        .filter((eb) => eb.booth)
+        .map((eb) => ({
+          ...eb.booth,
+          quantity: eb.quantity,
+        }))
       : eventData.booths ?? [];
 
   const tabs = ["About", "Agenda", "Tickets & Booths", "Sponsors", "Accommodation"];
@@ -376,11 +499,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       if (o.startsAt && new Date(o.startsAt) > now) return false;
       if (o.endsAt && new Date(o.endsAt) < now) return false;
 
-      // scope checks
       if (o.scope === "ALL") return true;
       if (productType === "TICKET" && o.scope === "TICKETS") return true;
       if (productType === "HOTEL" && o.scope === "HOTELS") return true;
       if (productType === "SPONSOR" && o.scope === "SPONSORS") return true;
+      if (productType === "BOOTH" && o.scope === "BOOTHS") return true;
 
       if (o.scope === "CUSTOM") {
         if (
@@ -418,302 +541,418 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return { percent: best.percentage, name: best.name };
   }
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case "About":
-        return (
-          <Section title="About The Event">
-            <p className="text-slate-600 leading-relaxed mb-8">
-              {description}
-            </p>
-            {venue ? (
-              <>
-                <h4 className="text-xl font-bold text-slate-800 mb-4">
-                  Venue: {venue.name}
-                </h4>
-                <p className="text-slate-600 leading-relaxed mb-6">
-                  {venue.description}
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {venue.imageUrls.map((url, i) => (
-                    <img
-                      key={i}
-                      src={url}
-                      alt={`Venue Image ${i + 1}`}
-                      className="rounded-lg object-cover w-full h-auto"
-                    />
-                  ))}
-                </div>
-              </>
-            ) : (
-              <p className="text-slate-500">
-                Venue details are not available for this event.
-              </p>
-            )}
-          </Section>
-        );
-      case "Agenda":
-        return (
-          <Section title="Event Agenda">
-            {agendaItems.length > 0 ? (
-              <div className="space-y-6">
-                {agendaItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex gap-4 p-4 rounded-lg bg-slate-50 border border-slate-200"
-                  >
-                    <div className="flex flex-col items-center text-indigo-600 font-semibold pt-1">
-                      <span className="text-2xl">
-                        {format(parseISO(item.date), "dd")}
-                      </span>
-                      <span>{format(parseISO(item.date), "MMM")}</span>
-                    </div>
-                    <div className="border-l-2 border-indigo-200 pl-4">
-                      <p className="font-bold text-lg text-slate-800">
-                        {item.title}
-                      </p>
-                      <p className="text-sm text-slate-500 my-1">
-                        {format(parseISO(item.startTime), "h:mm a")} -{" "}
-                        {format(parseISO(item.endTime), "h:mm a")}
-                      </p>
-                      <p className="text-slate-600">{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-500">
-                The agenda has not been published yet.
-              </p>
-            )}
-          </Section>
-        );
-      case "Tickets & Booths":
-        return (
-          <div className="space-y-8">
-            <Section title="Event Tickets">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {eventTickets.map(({ ticket }) => {
-                  const best = getBestOfferForItem("TICKET", ticket.id);
-                  return (
-                    <PriceCard
-                      key={ticket.id}
-                      item={{ ...ticket, image: ticket.logo }}
-                      productType="TICKET"
-                      actionText="Buy Ticket"
-                      offerPercent={best.percent ?? undefined}
-                      offerName={best.name}
-                    />
-                  );
-                })}
-              </div>
-            </Section>
+  // --- Booth subtype modal behaviour ---
 
-            <Section title="Exhibition Booths">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {boothsList.map((booth) => {
-                  const best = getBestOfferForItem("BOOTH", booth.id);
-                  return (
-                    <PriceCard
-                      key={booth.id}
-                      item={{
-                        id: booth.id,
-                        name: booth.name,
-                        image: booth.image,
-                        price: booth.price,
-                      }}
-                      productType="BOOTH"
-                      actionText="Book Booth"
-                      offerPercent={best.percent ?? undefined}
-                      offerName={best.name}
-                    />
-                  );
-                })}
-              </div>
-            </Section>
-          </div>
-        );
-      case "Sponsors":
-        return (
-          <Section title="Sponsorship Opportunities">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {eventSponsorTypes.map(({ sponsorType }) => {
-                const best = getBestOfferForItem("SPONSOR", sponsorType.id);
-                return (
-                  <PriceCard
-                    key={sponsorType.id}
-                    item={{ ...sponsorType }}
-                    productType="SPONSOR"
-                    actionText="Sponsor"
-                    offerPercent={best.percent ?? undefined}
-                    offerName={best.name}
-                  />
-                );
-              })}
-            </div>
-          </Section>
-        );
-      case "Accommodation":
-        return (
-          <Section title="Official Hotels & Rooms">
-            {hotels.length > 0 ? (
-              <div className="space-y-8">
-                {hotels.map((hotel) => (
-                  <div
-                    key={hotel.id}
-                    className="p-4 border rounded-lg hover:shadow-md transition-shadow bg-white"
-                  >
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <img
-                        src={hotel.image || "/placeholder.png"}
-                        alt={hotel.hotelName}
-                        className="w-full sm:w-48 h-40 sm:h-32 rounded-md object-cover"
-                      />
-                      <div className="flex-grow">
-                        <h4 className="text-xl font-bold flex items-center gap-2">
-                          <Hotel className="h-5 w-5 text-indigo-600" />{" "}
-                          {hotel.hotelName}
-                        </h4>
-                        <p className="text-slate-500 flex items-center gap-2 mt-1">
-                          <MapPin className="h-4 w-4" /> {hotel.address}
-                        </p>
-                        <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {hotel.roomTypes.map((rt) => {
-                            const best = getBestOfferForItem(
-                              "HOTEL",
-                              hotel.id
-                            );
-                            return (
-                              <div
-                                key={rt.id}
-                                className="border p-3 rounded bg-slate-50"
-                              >
-                                <div className="flex items-start justify-between">
-                                  <div>
-                                    <h5 className="font-semibold">
-                                      {rt.roomType}
-                                    </h5>
-                                    <p className="text-sm text-slate-500">
-                                      {rt.amenities}
-                                    </p>
-                                  </div>
-                                  <div className="text-right">
-                                    {best.percent ? (
-                                      <>
-                                        <div className="text-sm text-slate-500 line-through">
-                                          ${rt.price.toLocaleString()}
-                                        </div>
-                                        <div className="text-lg font-bold text-indigo-600">
-                                          $
-                                          {formatPrice(
-                                            getDiscountedPrice(
-                                              rt.price,
-                                              best.percent
-                                            )
-                                          )}
-                                        </div>
-                                        <div className="text-xs text-red-600 font-semibold">
-                                          -{Math.round(best.percent)}%
-                                        </div>
-                                      </>
-                                    ) : (
-                                      <div className="text-lg font-bold text-indigo-600">
-                                        ${rt.price.toLocaleString()}
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                                <div className="mt-3 flex gap-2">
-                                  <Link
-                                    href={`/event/${id}/hotel/${hotel.id}`}
-                                    className="px-3 py-2 bg-indigo-600 text-white rounded"
-                                  >
-                                    View Rooms
-                                  </Link>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <Link
-                        href={`/event/${id}/hotel/${hotel.id}`}
-                        className="bg-indigo-100 text-indigo-700 font-semibold py-2 px-4 rounded-md hover:bg-indigo-200 transition-colors self-start sm:self-center w-full sm:w-auto"
-                      >
-                        View Rooms
-                      </Link>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-500">
-                Official hotel information is not available.
-              </p>
-            )}
-          </Section>
-        );
-      default:
-        return null;
+  const fetchBoothSubtypes = async (boothId: string) => {
+    setBoothSubtypesLoading(true);
+    setBoothSubtypesError(null);
+    try {
+      const res = await fetch(
+        `/api/admin/booth-subtypes?boothId=${boothId}&eventId=${id}`
+      );
+      if (!res.ok) throw new Error("Failed to load booth options");
+      const data: BoothSubType[] = await res.json();
+      setBoothSubtypes(data);
+      const firstAvailable =
+        data.find((st) => st.isAvailable) ?? (data.length > 0 ? data[0] : null);
+      setSelectedSubtypeId(firstAvailable ? firstAvailable.id : null);
+    } catch (err) {
+      setBoothSubtypesError(
+        err instanceof Error ? err.message : "Failed to load booth options"
+      );
+      setBoothSubtypes([]);
+      setSelectedSubtypeId(null);
+    } finally {
+      setBoothSubtypesLoading(false);
     }
   };
 
+  const openBoothModal = (booth: Booth) => {
+    setSelectedBooth(booth);
+    setBoothModalOpen(true);
+    const offer = getBestOfferForItem("BOOTH", booth.id);
+    setBoothOffer(offer);
+    fetchBoothSubtypes(booth.id);
+  };
+
+  const closeBoothModal = () => {
+    setBoothModalOpen(false);
+    setSelectedBooth(null);
+    setBoothSubtypes([]);
+    setBoothSubtypesError(null);
+    setSelectedSubtypeId(null);
+  };
+
+  const handleConfirmBoothSubtype = () => {
+    if (!selectedBooth || !selectedSubtypeId) {
+      toast.error("Please select a booth option.");
+      return;
+    }
+    const subtype = boothSubtypes.find((st) => st.id === selectedSubtypeId);
+    if (!subtype) {
+      toast.error("Invalid booth option selected.");
+      return;
+    }
+
+    const basePrice = subtype.price;
+    const finalPrice = getDiscountedPrice(basePrice, boothOffer.percent);
+
+    // NOTE: make sure CartItem type (and checkout API) support boothSubTypeId
+    addToCart({
+      productId: selectedBooth.id,
+      productType: "BOOTH",
+      name: `${selectedBooth.name} - ${subtype.name}`,
+      price: finalPrice,
+      image: selectedBooth.image || undefined,
+      // @ts-ignore if your CartItem doesn't have this yet
+      boothSubTypeId: subtype.id,
+      boothSubTypeName: subtype.name,
+    });
+
+    toast.success("Booth added to cart!");
+    closeBoothModal();
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="relative h-[50vh] w-full">
-        <div className="absolute inset-0 bg-gradient-to-br from-indigo-900 to-cyan-800" />
+    <div className="min-h-screen bg-gray-50">
+      {/* --- HERO SECTION --- */}
+      <div className="relative h-[400px] w-full overflow-hidden">
         <img
-          src={thumbnail}
+          src={thumbnail || "/images/bg-2.jpg"}
           alt={name}
-          className="w-full h-full object-cover opacity-30"
+          className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12 text-white bg-gradient-to-t from-black/70 to-transparent">
-          <Link
-            href="/event/list"
-            className="absolute top-8 left-8 flex items-center gap-2 text-white bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full transition-colors"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            Back to Events
+        <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+        <div className="absolute inset-0 flex flex-col justify-center px-4 md:px-12 max-w-7xl mx-auto">
+          <Link href="/event/list" className="text-white/80 hover:text-white flex items-center gap-2 mb-4 font-medium transition-colors w-fit">
+            <ArrowLeft className="h-4 w-4" /> Back to Events
           </Link>
-          <h1 className="text-4xl md:text-6xl font-extrabold mb-4 drop-shadow-xl">
-            {name}
-          </h1>
-          <div className="flex flex-wrap gap-4">
-            <InfoPill
-              icon={Calendar}
-              text={`${format(parseISO(startDate), "MMM dd")} - ${format(
-                parseISO(endDate),
-                "MMM dd, yyyy"
-              )}`}
-            />
-            <InfoPill icon={MapPin} text={location} />
-            <InfoPill icon={Users} text={`${expectedAudience} Attendees`} />
+          <div className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full w-fit mb-4 border border-white/30 text-white text-xs font-bold uppercase tracking-wider">
+            {eventData.eventType} Event
           </div>
+          <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 leading-tight">{name}</h1>
+          <p className="text-white/90 text-xl font-light flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            {format(parseISO(startDate), "MMMM d, yyyy")}
+          </p>
         </div>
       </div>
-      <main className="container mx-auto p-4 md:p-8 -mt relative">
-        <div className="bg-white/70 backdrop-blur-md rounded-lg shadow-lg p-2 flex items-center justify-start space-x-2 overflow-x-auto mb-8 border border-slate-200/80">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`whitespace-nowrap rounded-md px-4 py-2 text-sm font-semibold transition-colors ${
-                activeTab === tab
-                  ? "bg-indigo-600 text-white shadow"
-                  : "text-slate-600 hover:bg-slate-100"
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
+
+      {/* --- CONTENT LAYOUT --- */}
+      <div className="max-w-7xl mx-auto px-4 py-12 -mt-20 relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+
+        {/* LEFT COLUMN: TABS & CONTENT */}
+        <div className="lg:col-span-2 space-y-8">
+          {/* Tabs Navigation */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2 sticky top-[80px] z-20">
+            {tabs.map(tab => (
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`px-5 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all ${activeTab === tab
+                  ? 'bg-[#5da765] text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-[#5da765]'
+                  }`}
+              >
+                {tab}
+              </button>
+            ))}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 min-h-[500px]">
+            {activeTab === "About" && (
+              <div className="animate-fadeIn">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">About the Event</h2>
+                <div className="prose prose-lg text-gray-600 max-w-none">
+                  <p>{description}</p>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Agenda" && (
+              <div className="animate-fadeIn space-y-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Event Schedule</h2>
+                {agendaItems.length > 0 ? agendaItems.map((item) => (
+                  <div key={item.id} className="flex gap-6 group">
+                    <div className="flex flex-col items-center min-w-[80px]">
+                      <span className="text-3xl font-black text-[#5da765]">{format(parseISO(item.date), "dd")}</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase">{format(parseISO(item.date), "MMM")}</span>
+                    </div>
+                    <div className="flex-grow pb-8 border-l-2 border-gray-100 pl-8 relative group-last:border-l-0">
+                      <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 rounded-full bg-gray-200 group-hover:bg-[#5da765] transition-colors"></div>
+                      <h3 className="text-xl font-bold text-gray-800">{item.title}</h3>
+                      <div className="text-sm font-medium text-[#5da765] mb-2">
+                        {format(parseISO(item.startTime), "h:mm a")} - {format(parseISO(item.endTime), "h:mm a")}
+                      </div>
+                      <p className="text-gray-600">{item.description}</p>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed text-gray-500">
+                    No agenda items published yet.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "Tickets & Booths" && (
+              <div className="animate-fadeIn space-y-12">
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span className="bg-[#5da765] w-2 h-8 rounded-full"></span>
+                    Event Tickets
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {eventTickets.map(({ ticket }) => {
+                      const best = getBestOfferForItem("TICKET", ticket.id);
+                      return <PriceCard key={ticket.id} item={{ ...ticket, image: ticket.logo }} productType="TICKET" actionText="Buy Ticket" offerPercent={best.percent ?? undefined} offerName={best.name} />
+                    })}
+                  </div>
+                </div>
+
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                    <span className="bg-[#5da765] w-2 h-8 rounded-full"></span>
+                    Exhibition Booths
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {boothsList.map((booth) => {
+                      const best = getBestOfferForItem("BOOTH", booth.id);
+                      return <BoothCard key={booth.id} booth={booth} offerPercent={best.percent ?? undefined} offerName={best.name} onBook={() => openBoothModal(booth)} />
+                    })}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Sponsors" && (
+              <div className="animate-fadeIn">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Sponsorship Opportunities</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {eventSponsorTypes.map(({ sponsorType }) => {
+                    const best = getBestOfferForItem("SPONSOR", sponsorType.id);
+                    return <PriceCard key={sponsorType.id} item={{ ...sponsorType }} productType="SPONSOR" actionText="Become Sponsor" offerPercent={best.percent ?? undefined} offerName={best.name} />
+                  })}
+                </div>
+              </div>
+            )}
+
+            {activeTab === "Accommodation" && (
+              <div className="animate-fadeIn">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Official Hotels</h2>
+                {hotels.length > 0 ? (
+                  <div className="space-y-6">
+                    {hotels.map((hotel) => {
+                      const isExpanded = expandedHotelId === hotel.id;
+                      return (
+                        <div key={hotel.id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white">
+                          <div
+                            className="flex flex-col md:flex-row cursor-pointer"
+                            onClick={() => setExpandedHotelId(isExpanded ? null : hotel.id)}
+                          >
+                            <div className="md:w-1/3 h-48 md:h-auto relative">
+                              <img src={hotel.image || "/placeholder.png"} className="absolute inset-0 w-full h-full object-cover" />
+                            </div>
+                            <div className="p-6 md:w-2/3 flex flex-col justify-between">
+                              <div>
+                                <div className="flex justify-between items-start">
+                                  <h3 className="text-xl font-bold text-gray-800 mb-1">{hotel.hotelName}</h3>
+                                  <div className="bg-gray-100 rounded-full p-2">
+                                    {isExpanded ? <Minus className="h-4 w-4 text-gray-600" /> : <Plus className="h-4 w-4 text-gray-600" />}
+                                  </div>
+                                </div>
+                                <p className="text-gray-500 text-sm flex items-center gap-1 mb-2"><MapPin className="h-4 w-4" /> {hotel.address}</p>
+                                <p className="text-sm text-[#5da765] font-medium">{hotel.roomTypes.length} Room Types Available</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Expanded content (Rooms) */}
+                          {isExpanded && (
+                            <div className="p-6 pt-0 border-t border-gray-100 bg-gray-50/50">
+                              <div className="mt-4 mb-2">
+                                <h4 className="font-bold text-gray-700 mb-3">Select a Room</h4>
+                                <div className="space-y-3">
+                                  {hotel.roomTypes.map((rt) => (
+                                    <div key={rt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between gap-4">
+                                      <div className="flex-grow">
+                                        <div className="flex justify-between items-start mb-1">
+                                          <p className="font-bold text-gray-800 text-lg">{rt.roomType}</p>
+                                          {/* Price displayed prominently on mobile, or right side on desktop */}
+                                          <p className="font-bold text-[#5da765] sm:hidden text-lg">${rt.price}</p>
+                                        </div>
+                                        <p className="text-sm text-gray-500 mb-2">{rt.amenities || "Standard amenities included."}</p>
+                                        <div className="flex flex-wrap gap-2">
+                                          {rt.amenities?.split(',').map((amenity, idx) => (
+                                            <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-full uppercase tracking-wide">{amenity.trim()}</span>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
+                                        <p className="font-bold text-[#5da765] text-xl hidden sm:block mb-2">${rt.price}</p>
+                                        <button onClick={(e) => {
+                                          e.stopPropagation();
+                                          addToCart({
+                                            productId: hotel.id,
+                                            roomTypeId: rt.id,
+                                            productType: "HOTEL",
+                                            name: `${hotel.hotelName} - ${rt.roomType}`,
+                                            price: rt.price,
+                                            image: hotel.image || undefined
+                                          });
+                                          toast.success("Room added to cart!");
+                                        }} className="w-full sm:w-auto bg-[#5da765] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#4a8a52] transition-colors shadow-sm flex items-center justify-center gap-2">
+                                          Add Room <ShoppingCart className="h-4 w-4" />
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : <p className="text-gray-500 italic">No accommodation details available.</p>}
+              </div>
+            )}
+          </div>
         </div>
-        {renderContent()}
-      </main>
+
+        {/* RIGHT COLUMN: SIDEBAR */}
+        <div className="lg:col-span-1 space-y-6">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 sticky top-[100px]">
+            <h3 className="text-lg font-bold text-gray-800 mb-6 pb-4 border-b">Event Details</h3>
+
+            <div className="space-y-6">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-[#5da765]">
+                  <Calendar className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Date & Time</p>
+                  <p className="font-bold text-gray-800">{format(parseISO(startDate), "MMM d, yyyy")} - {format(parseISO(endDate), "MMM d, yyyy")}</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                  <MapPin className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Location</p>
+                  <p className="font-bold text-gray-800">{location}</p>
+                  {venue && <p className="text-xs text-gray-500 mt-1">{venue.name}</p>}
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Expected Audience</p>
+                  <p className="font-bold text-gray-800">{expectedAudience} Attendees</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <button className="w-full bg-[#5da765] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2" onClick={() => setActiveTab("Tickets & Booths")}>
+                Register Now <ArrowRight className="h-5 w-5" />
+              </button>
+              <p className="text-center text-xs text-gray-400 mt-3">Secure your spot today.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      {/* --- CART FLOATING BUTTON --- */}
+      <div className="fixed bottom-8 right-8 z-50">
+        <Link href="/cart">
+          <div className="bg-gray-900 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform relative">
+            <ShoppingCart className="h-6 w-6" />
+            {itemCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white">
+                {itemCount}
+              </span>
+            )}
+          </div>
+        </Link>
+      </div>
+
+      {/* --- BOOTH MODAL --- */}
+      {boothModalOpen && selectedBooth && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <h3 className="text-xl font-bold text-gray-800">Select Booth Type</h3>
+              <button onClick={closeBoothModal} className="text-gray-400 hover:text-gray-600">
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="p-6">
+              <div className="flex gap-4 mb-6">
+                {selectedBooth.image && <img src={selectedBooth.image} className="w-20 h-20 rounded-lg object-cover bg-gray-100" />}
+                <div>
+                  <h4 className="font-bold text-lg">{selectedBooth.name}</h4>
+                  <p className="text-sm text-gray-500">{selectedBooth.description}</p>
+                </div>
+              </div>
+
+              {boothSubtypesLoading ? (
+                <div className="py-8 flex justify-center"><Loader className="animate-spin text-[#5da765]" /></div>
+              ) : boothSubtypesError ? (
+                <p className="text-red-500 text-center">{boothSubtypesError}</p>
+              ) : (
+                <div className="space-y-3">
+                  {boothSubtypes.map((st) => {
+                    const finalPrice = getDiscountedPrice(st.price, boothOffer.percent);
+                    const isSelected = selectedSubtypeId === st.id;
+                    return (
+                      <div
+                        key={st.id}
+                        onClick={() => st.isAvailable && setSelectedSubtypeId(st.id)}
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-[#5da765] bg-green-50' : 'border-gray-100 hover:border-gray-200'
+                          } ${!st.isAvailable ? 'opacity-50 pointer-events-none' : ''}`}
+                      >
+                        <div>
+                          <p className="font-bold text-gray-800">{st.name}</p>
+                          {st.description && <p className="text-xs text-gray-500">{st.description}</p>}
+                          {st.slotStart && st.slotEnd && (
+                            <p className="text-xs text-[#5da765] mt-1 font-medium bg-green-50 w-fit px-2 py-0.5 rounded">
+                              {format(new Date(st.slotStart), "MMM d, h:mm a")} - {format(new Date(st.slotEnd), "h:mm a")}
+                            </p>
+                          )}
+                          {!st.isAvailable && <span className="text-xs font-bold text-red-500">Sold Out</span>}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-bold text-[#5da765]">${finalPrice.toLocaleString()}</p>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+              <button onClick={closeBoothModal} className="px-6 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 transition-colors">Cancel</button>
+              <button onClick={handleConfirmBoothSubtype} className="px-6 py-2 rounded-lg font-bold bg-[#5da765] text-white hover:bg-[#4a8a52] transition-colors shadow-md">Confirm Booking</button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
 
-// --- CartSheet Component (your original, left as-is) ---
+// --- CartSheet Component ---
 const CartSheet = ({
   isOpen,
   onClose,
@@ -735,7 +974,7 @@ const CartSheet = ({
 
   const handleCheckout = async () => {
     if (!companyId) {
-      alert("You must be logged in to check out.");
+      toast.error("You must be logged in to check out.");
       return;
     }
     if (cart.length === 0) return;
@@ -750,13 +989,12 @@ const CartSheet = ({
         const errorData = await response.json();
         throw new Error(errorData.error || "Checkout failed");
       }
-      alert("Checkout successful!");
+      toast.success("Checkout successful!");
       clearCart();
       onClose();
     } catch (err) {
-      alert(
-        `Error: ${
-          err instanceof Error ? err.message : "An unknown error occurred"
+      toast.error(
+        `Error: ${err instanceof Error ? err.message : "An unknown error occurred"
         }`
       );
     } finally {
@@ -790,7 +1028,7 @@ const CartSheet = ({
           <div className="flex-grow overflow-y-auto p-4 space-y-4">
             {cart.map((item) => (
               <div
-                key={`${item.productId}-${item.roomTypeId || ""}`}
+                key={`${item.productId}-${item.roomTypeId || ""}-${(item as any).boothSubTypeId || ""}`}
                 className="flex gap-4"
               >
                 <img

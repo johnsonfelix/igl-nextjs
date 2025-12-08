@@ -7,14 +7,22 @@ import prisma from '@/app/lib/prisma';
 export async function GET() {
   try {
     const plans = await prisma.membershipPlan.findMany({
-      orderBy: {
-        price: 'asc', // Order plans by price
+      orderBy: { createdAt: "asc" },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        price: true,
       },
     });
+
     return NextResponse.json(plans);
-  } catch (error) {
-    console.error("Error fetching membership plans:", error);
-    return NextResponse.json({ message: 'Failed to fetch plans' }, { status: 500 });
+  } catch (err) {
+    console.error("GET /api/admin/membership-plans error:", err);
+    return NextResponse.json(
+      { error: "Failed to fetch membership plans" },
+      { status: 500 }
+    );
   }
 }
 

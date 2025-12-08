@@ -4,13 +4,17 @@ import React, { createContext, useContext, useEffect, useMemo, useState, ReactNo
 
 export interface CartItem {
   productId: string;
-  productType: 'TICKET' | 'BOOTH' | 'SPONSOR' | 'HOTEL';
+  productType: "TICKET" | "BOOTH" | "HOTEL" | "SPONSOR";
   name: string;
-  image?: string | null;
   price: number;
   quantity: number;
+  image?: string;
+
   roomTypeId?: string;
+
+  // for booth variant tracking
   boothSubTypeId?: string;
+  boothSubTypeName?: string; 
 }
 
 interface CartContextType {

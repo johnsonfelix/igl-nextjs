@@ -12,16 +12,13 @@ interface CartItem {
   price: number;
   name: string;
   roomTypeId?: string;
-  boothSubTypeId?: string; // optional; may be provided for BOOTH
+  boothSubTypeId?: string;
 }
 
-// helper to get the eventId from /api/events/[id]/checkout
 function getEventIdFromRequest(req: NextRequest): string {
   const url = new URL(req.url);
   const parts = url.pathname.split("/").filter(Boolean);
-  // pathname looks like: /api/events/{id}/checkout
-  // parts: ["api", "events", "{id}", "checkout"]
-  return parts[parts.length - 2]; // => {id}
+  return parts[parts.length - 2];
 }
 
 export async function POST(req: NextRequest) {
@@ -45,19 +42,22 @@ export async function POST(req: NextRequest) {
     coupon?: { id?: string; code?: string };
   } = body;
 
-  if (!eventId || !companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+  if (!companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  // Allow eventId to be empty for membership-only purchases
+  const finalEventId = eventId && eventId !== 'undefined' ? eventId : null;
 
   try {
     console.log("--- STARTING CHECKOUT TRANSACTION ---");
 
     const result = await prisma.$transaction(async (tx) => {
-      // Create a PurchaseOrder (initial stub)
+      // Create a PurchaseOrder
       const purchaseOrder = await tx.purchaseOrder.create({
         data: {
           companyId,
-          eventId,
+          eventId: finalEventId,
           totalAmount: 0,
           status: "PENDING",
         },
@@ -92,17 +92,20 @@ export async function POST(req: NextRequest) {
           boothSubTypeId: originalItem.boothSubTypeId ?? null,
         };
 
-        // inventory & booking logic
+        // Handle inventory & booking logic
         switch (productType) {
           case "TICKET": {
+            if (!finalEventId) {
+              throw new Error("Event ID is required for ticket purchases.");
+            }
             const eventTicket = await tx.eventTicket.findUnique({
-              where: { eventId_ticketId: { eventId, ticketId: item.productId } },
+              where: { eventId_ticketId: { eventId: finalEventId, ticketId: item.productId } },
             });
             if (!eventTicket || eventTicket.quantity < item.quantity) {
               throw new Error(`Ticket "${item.name}" is sold out or insufficient quantity.`);
             }
             await tx.eventTicket.update({
-              where: { eventId_ticketId: { eventId, ticketId: item.productId } },
+              where: { eventId_ticketId: { eventId: finalEventId, ticketId: item.productId } },
               data: { quantity: { decrement: item.quantity } },
             });
             console.log(`[OK] Decremented quantity for Ticket: ${item.name}`);
@@ -110,14 +113,17 @@ export async function POST(req: NextRequest) {
           }
 
           case "SPONSOR": {
+            if (!finalEventId) {
+              throw new Error("Event ID is required for sponsor purchases.");
+            }
             const eventSponsor = await tx.eventSponsorType.findUnique({
-              where: { eventId_sponsorTypeId: { eventId, sponsorTypeId: item.productId } },
+              where: { eventId_sponsorTypeId: { eventId: finalEventId, sponsorTypeId: item.productId } },
             });
             if (!eventSponsor || eventSponsor.quantity < item.quantity) {
               throw new Error(`Sponsor pack "${item.name}" is sold out or insufficient quantity.`);
             }
             await tx.eventSponsorType.update({
-              where: { eventId_sponsorTypeId: { eventId, sponsorTypeId: item.productId } },
+              where: { eventId_sponsorTypeId: { eventId: finalEventId, sponsorTypeId: item.productId } },
               data: { quantity: { decrement: item.quantity } },
             });
             console.log(`[OK] Decremented quantity for Sponsor: ${item.name}`);
@@ -125,9 +131,12 @@ export async function POST(req: NextRequest) {
           }
 
           case "HOTEL": {
+            if (!finalEventId) {
+              throw new Error("Event ID is required for hotel bookings.");
+            }
             if (!item.roomTypeId) throw new Error("Room Type ID is missing for hotel booking.");
             const eventRoomType = await tx.eventRoomType.findUnique({
-              where: { eventId_roomTypeId: { eventId, roomTypeId: item.roomTypeId } },
+              where: { eventId_roomTypeId: { eventId: finalEventId, roomTypeId: item.roomTypeId } },
             });
 
             console.log(
@@ -141,7 +150,7 @@ export async function POST(req: NextRequest) {
             }
 
             const updatedEventRoomType = await tx.eventRoomType.update({
-              where: { eventId_roomTypeId: { eventId, roomTypeId: item.roomTypeId } },
+              where: { eventId_roomTypeId: { eventId: finalEventId, roomTypeId: item.roomTypeId } },
               data: { quantity: { decrement: item.quantity } },
             });
 
@@ -152,12 +161,15 @@ export async function POST(req: NextRequest) {
           }
 
           case "BOOTH": {
+            if (!finalEventId) {
+              throw new Error("Event ID is required for booth purchases.");
+            }
             const needed = Math.max(1, item.quantity);
 
             const eventBooth = await tx.eventBooth.findUnique({
               where: {
                 eventId_boothId: {
-                  eventId,
+                  eventId: finalEventId,
                   boothId: item.productId,
                 },
               },
@@ -176,7 +188,7 @@ export async function POST(req: NextRequest) {
             const updated = await tx.eventBooth.update({
               where: {
                 eventId_boothId: {
-                  eventId,
+                  eventId: finalEventId,
                   boothId: item.productId,
                 },
               },
@@ -188,21 +200,45 @@ export async function POST(req: NextRequest) {
             console.log(
               `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
             );
-            // no special sub-type handling now; generic OrderItem creation below will handle the order line
             break;
           }
 
-          case "MEMBERSHIP":
-          case "PRODUCT": {
+          case "MEMBERSHIP": {
+            // Verify membership plan exists
+            const membershipPlan = await tx.membershipPlan.findUnique({
+              where: { id: item.productId },
+            });
+
+            if (!membershipPlan) {
+              throw new Error(`Membership plan "${item.name}" not found.`);
+            }
+
+            // Update company with membership details
+            const now = new Date();
+            const expiresAt = new Date(now);
+            expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Default 1 year
+
+            await tx.company.update({
+              where: { id: companyId },
+              data: {
+                membershipPlanId: item.productId,
+                purchasedMembership: membershipPlan.name, // Store membership name
+                purchasedMembershipId: item.productId,     // Store membership ID
+                purchasedAt: now,
+                membershipExpiresAt: expiresAt,
+              },
+            });
+
             console.log(
-              `[OK] Recording ${productType} item (no inventory changes): ${item.name}`
+              `[OK] Updated company ${companyId} with membership: ${membershipPlan.name} (ID: ${item.productId})`
             );
             break;
           }
 
+          case "PRODUCT":
           default: {
-            console.warn(
-              `Unhandled product type "${productType}" for item ${item.name} — treating as PRODUCT.`
+            console.log(
+              `[OK] Recording ${productType} item (no inventory changes): ${item.name}`
             );
             break;
           }
@@ -224,11 +260,11 @@ export async function POST(req: NextRequest) {
         console.log(`[OK] Created OrderItem for: ${item.name}`);
 
         calculatedTotal += item.price * item.quantity;
-      } // end for items
+      }
 
       console.log(`[INFO] Calculated subtotal: ${calculatedTotal}`);
 
-      // ---- COUPON VALIDATION & DISCOUNT calculation ----
+      // COUPON VALIDATION & DISCOUNT calculation
       let discountAmount = 0;
       let couponRecord: any = null;
 
@@ -253,7 +289,7 @@ export async function POST(req: NextRequest) {
           discountAmount = Math.round(discountAmount * 100) / 100;
         } else {
           console.log(
-            "[INFO] Coupon provided but not found in DB (id/code mismatch). Ignoring coupon for this checkout."
+            "[INFO] Coupon provided but not found in DB. Ignoring coupon."
           );
         }
       } else {
@@ -300,7 +336,8 @@ export async function POST(req: NextRequest) {
       msg.includes("insufficient quantity") ||
       msg.includes("missing") ||
       msg.includes("no longer available") ||
-      msg.includes("Not enough available");
+      msg.includes("Not enough available") ||
+      msg.includes("not found");
 
     return NextResponse.json(
       { error: msg || "An unexpected error occurred during checkout." },

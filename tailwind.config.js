@@ -8,10 +8,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-inter)", "sans-serif"],
+        alt: ["var(--font-plus-jakarta-sans)", "sans-serif"],
+      },
       colors: {
         primary: {
           DEFAULT: "#2ebb79",
-          50:  "#f3fbf8",
+          50: "#f3fbf8",
           100: "#e6f7ef",
           200: "#c8f0dd",
           300: "#9fe6c1",
@@ -26,6 +30,20 @@ module.exports = {
         border: "hsl(240, 5%, 84%)",
         card: "#FFFFFF",
         "card-foreground": "#000000",
+        // Custom colors from style.css
+        blue: "#004aad",
+        iglagreen: "#ceeba3",
+        base: "#2946f3",
+        red: "#dc3131",
+        "light-red": "#feedec",
+        "crusoe-green": "#d39121",
+        yellow: "#ffea23",
+        "dark-gray": "#232323",
+        "medium-gray": "#717580",
+        "extra-medium-gray": "#e4e4e4",
+        "light-gray": "#a8a8a8",
+        "very-light-gray": "#f7f7f7",
+        "light-medium-gray": "#eaeaeb",
       },
     },
   },

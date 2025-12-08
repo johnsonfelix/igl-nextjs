@@ -3,19 +3,20 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Plus, Trash2, Edit, Search, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit, Ticket, ImageIcon, Search, Loader2 } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
-import { uploadFileToS3 } from "@/app/lib/s3-upload"; // Reuse the helper used in Booths
+import { uploadFileToS3 } from "@/app/lib/s3-upload";
 
 export default function TicketsPage() {
   const [tickets, settickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Image upload states
   const [file, setFile] = useState<File | null>(null);
@@ -125,133 +126,189 @@ export default function TicketsPage() {
     setFormOpen(true);
   };
 
+  const filteredTickets = tickets.filter((ticket) =>
+    ticket.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="p-6 space-y-8 max-w-[1600px] mx-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">tickets</h1>
-          <p className="text-sm text-gray-500">Manage your event tickets efficiently</p>
+          <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Tickets</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage event tickets and pricing.</p>
         </div>
-        <Sheet open={formOpen} onOpenChange={setFormOpen}>
-          <SheetTrigger asChild>
-            <Button className="gap-2">
-              <Plus size={16} />
-              Add ticket
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="right" className="w-full sm:w-[420px]">
-            <div className="space-y-6 p-4">
-              <h2 className="text-lg font-semibold text-gray-900">
-                {editingId ? "Edit ticket" : "Add New ticket"}
-              </h2>
 
-              <div className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search tickets..."
+              className="pl-10 bg-white border-gray-200 focus:ring-emerald-500 focus:border-emerald-500 w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <Sheet open={formOpen} onOpenChange={setFormOpen}>
+            <SheetTrigger asChild>
+              <Button className="w-full sm:w-auto gap-2 bg-white hover:bg-emerald-50 text-emerald-600 border border-emerald-600 shadow-sm transition-all font-semibold">
+                <Plus size={18} />
+                Add Ticket
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-full sm:w-[480px]">
+              <div className="space-y-6 py-6">
                 <div>
-                  <Label className="text-gray-800">Name</Label>
-                  <Input
-                    className="text-gray-900 placeholder-gray-400"
-                    placeholder="ticket name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
+                  <h2 className="text-2xl font-bold text-gray-900">
+                    {editingId ? "Edit Ticket" : "Add New Ticket"}
+                  </h2>
+                  <p className="text-sm text-gray-500 mt-1">Set the details for the event ticket.</p>
                 </div>
 
-                <div>
-                  <Label className="text-gray-800">Price</Label>
-                  <Input
-                    className="text-gray-900 placeholder-gray-400"
-                    placeholder="$1000"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  />
-                </div>
-
-                {/* Logo upload */}
-                <div>
-                  <Label className="text-gray-800">Logo</Label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="mt-2 text-sm"
-                    onChange={(e) => {
-                      const f = e.target.files?.[0] ?? null;
-                      setFile(f);
-                      if (!f) {
-                        setPreviewUrl(formData.logo || null);
-                      }
-                    }}
-                  />
-                  {previewUrl && (
-                    <img
-                      src={previewUrl}
-                      alt="Logo Preview"
-                      className="w-32 h-32 object-contain border rounded mt-2 p-2 bg-white"
-                      onError={(e) => ((e.target as HTMLImageElement).style.display = "none")}
+                <div className="space-y-5">
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Ticket Name</Label>
+                    <Input
+                      className="focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="e.g. VIP Pass"
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     />
-                  )}
-                </div>
+                  </div>
 
-                <Button variant="primary" onClick={handleSubmit} disabled={saving}>
-                  {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : editingId ? "Update ticket" : "Save ticket"}
-                </Button>
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Price ($)</Label>
+                    <Input
+                      className="focus:ring-emerald-500 focus:border-emerald-500"
+                      placeholder="e.g. 1000"
+                      value={formData.price}
+                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    />
+                  </div>
+
+                  {/* Logo Upload Field */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Ticket Image / Logo</Label>
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer relative group">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0] ?? null;
+                          setFile(f);
+                          if (!f) {
+                            setPreviewUrl(formData.logo || null);
+                          }
+                        }}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                      />
+                      {previewUrl ? (
+                        <div className="relative w-full h-40">
+                          <img
+                            src={previewUrl}
+                            alt="Ticket Preview"
+                            className="w-full h-full object-contain"
+                          />
+                          <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white text-sm font-medium rounded-lg z-20 pointer-events-none">
+                            Change Image
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-gray-400">
+                          <ImageIcon className="h-10 w-10 mb-3 text-emerald-100" />
+                          <span className="text-sm text-gray-500 mb-2">Drag & drop or click to upload</span>
+                          <Button size="sm" variant="outline" className="mt-2 border-emerald-600 text-emerald-600 hover:bg-emerald-50 pointer-events-none">
+                            Choose File
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSubmit} disabled={saving}>
+                      {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Saving...</> : editingId ? "Update Ticket" : "Save Ticket"}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        </div>
       </div>
 
-      {/* tickets List */}
+      {/* Tickets List */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-40 rounded-lg" />
+            <Skeleton key={i} className="h-64 rounded-xl" />
           ))}
         </div>
-      ) : tickets.length === 0 ? (
-        <div className="text-center py-12 border border-dashed rounded-lg bg-gray-50">
-          <p className="text-gray-500">No tickets found. Add your first ticket to get started.</p>
+      ) : filteredTickets.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-xl border border-dashed border-gray-300">
+          <div className="bg-emerald-50 p-4 rounded-full mb-4">
+            <Ticket className="h-8 w-8 text-emerald-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900">No tickets found</h3>
+          <p className="text-gray-500 mt-1">
+            Get started by adding your first ticket type.
+          </p>
+          <Button variant="ghost" className="text-emerald-600 mt-2 hover:bg-emerald-50" onClick={() => setFormOpen(true)}>
+            Add a Ticket
+          </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {tickets.map((ticket) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredTickets.map((ticket) => (
             <Card
               key={ticket.id}
-              className="hover:shadow-md transition border border-gray-200 rounded-lg bg-white overflow-hidden"
+              className="group hover:shadow-xl transition-all duration-300 border border-gray-100 rounded-xl bg-white overflow-hidden flex flex-col h-full hover:-translate-y-1"
             >
-              <CardContent className="p-0">
+              <div className="relative h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-gray-100 group-hover:bg-gray-100/50 transition-colors">
                 {ticket.logo ? (
                   <img
                     src={ticket.logo}
                     alt={ticket.name}
-                    className="w-full h-40 object-contain bg-gray-50 p-4 border-b"
+                    className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-300"
                   />
                 ) : (
-                  <div className="w-full h-40 flex items-center justify-center bg-gray-50 text-gray-400">
-                    No Logo
+                  <div className="flex flex-col items-center justify-center text-gray-300">
+                    <Ticket size={48} strokeWidth={1} />
+                    <span className="text-xs mt-2 font-medium">No Logo</span>
                   </div>
                 )}
-                <div className="p-4 space-y-1">
-                  <h3 className="font-semibold text-lg truncate">{ticket.name}</h3>
-                  <p className="text-sm text-gray-600">Price: ${ticket.price}</p>
-                  <div className="flex gap-2 pt-3">
+                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-2">
                     <Button
-                      variant="outline"
                       size="sm"
-                      className="flex-1"
-                      onClick={() => openEditForm(ticket)}
+                      variant="outline"
+                      className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-emerald-600 flex items-center justify-center transition-transform hover:scale-105"
+                      onClick={(e) => { e.stopPropagation(); openEditForm(ticket); }}
                     >
-                      <Edit className="h-4 w-4 mr-1" /> Edit
+                      <Edit size={18} />
                     </Button>
                     <Button
-                      variant="outline"
                       size="sm"
-                      className="flex-1 text-red-600 hover:bg-red-50"
-                      onClick={() => handleDelete(ticket.id)}
+                      variant="outline"
+                      className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-red-600 flex items-center justify-center transition-transform hover:scale-105"
+                      onClick={(e) => { e.stopPropagation(); handleDelete(ticket.id); }}
                     >
-                      <Trash2 className="h-4 w-4 mr-1" /> Delete
+                      <Trash2 size={18} />
                     </Button>
                   </div>
+                </div>
+              </div>
+
+              <CardContent className="p-5 flex-1 flex flex-col">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={ticket.name}>{ticket.name}</h3>
+                </div>
+
+                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
+                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Price</span>
+                  <span className="font-mono font-bold text-emerald-600 text-lg">
+                    ${Number(ticket.price).toLocaleString()}
+                  </span>
                 </div>
               </CardContent>
             </Card>

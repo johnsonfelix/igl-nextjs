@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import {
   Loader2,
   Plus,
@@ -29,16 +29,17 @@ import BoothSubTypeManager from '@/app/components/BoothSubTypeManager';
 const formatDate = (date?: string) =>
   date
     ? new Date(date).toLocaleDateString('en-GB', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      })
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
     : '';
 const formatTime = (date?: string) =>
   date ? new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
 
 export default function EventViewPage() {
   const params = useParams();
+  const router = useRouter();
   const eventId = params.id as string;
 
   // State
@@ -251,474 +252,512 @@ export default function EventViewPage() {
   } = event;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-12">
-      {/* HERO */}
-      <section className="relative rounded-2xl overflow-hidden shadow-2xl bg-gradient-to-tr from-primary to-secondary text-white">
-        <div className="relative w-full h-72 sm:h-96">
-          {thumbnail ? (
-            <img src={thumbnail} alt={name} className="absolute inset-0 w-full h-full object-cover opacity-30" />
-          ) : (
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/40 to-secondary/30" />
-          )}
-          <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+    <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-8 font-sans">
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* HERO */}
+        <section className="relative rounded-3xl overflow-hidden shadow-xl bg-white border border-gray-100 group">
+          <div className="relative w-full h-80">
+            {thumbnail ? (
+              <img src={thumbnail} alt={name} className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+                <Boxes size={64} className="text-gray-300" />
+              </div>
+            )}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
 
-          <div className="absolute left-6 bottom-6 right-6 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 z-10">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="max-w-3xl"
-            >
-              <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight drop-shadow-lg">{name}</h1>
-              <div className="mt-3 flex flex-wrap gap-3 items-center text-sm font-medium">
-                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <MapPin size={16} /> {location}
-                </span>
-                <span className="inline-flex items-center gap-2 bg-white/10 px-3 py-1 rounded-full backdrop-blur-sm">
-                  <Calendar size={16} /> {formatDate(startDate)} — {formatDate(endDate)}
-                </span>
-                {eventType && <span className="px-3 py-1 rounded-full bg-white text-secondary font-semibold">{eventType}</span>}
-                {expectedAudience && (
-                  <span className="inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full backdrop-blur-sm">
-                    <User size={14} /> {expectedAudience}
+            <div className="absolute left-0 bottom-0 right-0 p-8 flex flex-col md:flex-row md:items-end md:justify-between gap-6 z-10">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="max-w-4xl"
+              >
+                <div className="flex gap-2 mb-3">
+                  {eventType && <span className="px-3 py-1 rounded-lg bg-[#5da765] text-white text-xs font-bold uppercase tracking-wider">{eventType}</span>}
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 leading-tight">{name}</h1>
+                <div className="flex flex-wrap gap-4 items-center text-sm font-medium text-gray-200">
+                  <span className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
+                    <MapPin size={16} className="text-[#5da765]" /> {location}
                   </span>
+                  <span className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
+                    <Calendar size={16} className="text-[#5da765]" /> {formatDate(startDate)} — {formatDate(endDate)}
+                  </span>
+                  {expectedAudience && (
+                    <span className="inline-flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl backdrop-blur-md border border-white/10">
+                      <User size={16} className="text-[#5da765]" /> {expectedAudience}
+                    </span>
+                  )}
+                </div>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex gap-3">
+                <Button
+                  onClick={() => router.push(`/admin/events/create?id=${eventId}`)}
+                  className="bg-[#5da765] hover:bg-[#4a8a52] text-white shadow-lg shadow-green-900/20 rounded-xl px-6 h-12 font-bold"
+                >
+                  <Plus size={18} className="mr-2" /> Manage Actions
+                </Button>
+              </motion.div>
+            </div>
+          </div>
+          <div className="p-8 bg-white border-t border-gray-100">
+            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Description</h3>
+            <p className="text-gray-600 leading-relaxed text-lg max-w-5xl">{description || 'No description provided for this event.'}</p>
+          </div>
+        </section>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left column */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* BOOTHS */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100"
+            >
+              <HeaderWithAction
+                title="Exhibitor Booths"
+                buttonLabel="Manage Booths"
+                icon={<Boxes size={24} className="text-[#5da765]" />}
+                onAction={() => setIsBoothSheetOpen(true)}
+              />
+
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {booths.length === 0 ? (
+                  <div className="col-span-full py-12 text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50">
+                    <Boxes size={40} className="mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 font-medium">No booths configured yet</p>
+                  </div>
+                ) : (
+                  booths.map((booth: any) => (
+                    <motion.div
+                      key={booth.id}
+                      whileHover={{ y: -4 }}
+                      className="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
+                    >
+                      <div className="relative h-48 w-full overflow-hidden">
+                        <img src={booth.image} alt={booth.name} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
+                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur rounded-lg px-3 py-1.5 text-sm font-bold text-gray-800 shadow-sm">
+                          ${booth.price}
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <h3 className="font-bold text-lg text-gray-800 mb-2">{booth.name}</h3>
+                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">{booth.description}</p>
+
+                        {booth.subTypes && booth.subTypes.length > 0 && (
+                          <div className="pt-4 border-t border-gray-50 flex flex-wrap gap-2">
+                            {booth.subTypes.map((sub: any) => (
+                              <span
+                                key={sub.id}
+                                className="px-2.5 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-semibold border border-gray-100"
+                              >
+                                {sub.name} <span className="text-[#5da765]">${sub.price}</span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))
                 )}
               </div>
-              <p className="mt-4 text-lg text-white/90">{description}</p>
-            </motion.div>
 
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex gap-3">
-              <Button className="bg-white text-primary hover:bg-white/90 flex items-center gap-2">
-                <Plus /> Manage
-              </Button>
-              <Button variant="ghost" className="hover:bg-white/10 flex items-center gap-2">
-                Share
-              </Button>
-            </motion.div>
-          </div>
-        </div>
-      </section>
+              <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
+                <SheetContent side="right" className="w-full sm:w-[680px] max-w-[95vw] p-6">
+                  <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
+                </SheetContent>
+              </Sheet>
+            </motion.section>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* BOOTHS */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <HeaderWithAction
-              title="Booth Types"
-              buttonLabel="Manage Booths"
-              icon={<Boxes size={18} className="text-primary" />}
-              onAction={() => setIsBoothSheetOpen(true)}
-            />
-
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {booths.length === 0 ? (
-                <div className="col-span-full text-center text-slate-500 italic py-6">No booths linked yet.</div>
-              ) : (
-                booths.map((booth: any) => (
-                  <motion.div
-                    key={booth.id}
-                    whileHover={{ y: -4 }}
-                    className="rounded-2xl overflow-hidden border bg-gradient-to-b from-white to-slate-50 shadow-sm transition-transform duration-200"
-                  >
-                    <div className="relative h-40 w-full">
-                      <img src={booth.image} alt={booth.name} className="object-cover w-full h-full" />
-                      <div className="absolute right-3 top-3 bg-white/95 text-primary font-bold px-3 py-1 rounded-lg shadow">
-                        ${booth.price}
-                      </div>
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-slate-800">{booth.name}</h3>
-                      <p className="text-sm text-slate-600 mt-2 line-clamp-2">{booth.description}</p>
-                      {booth.subTypes && booth.subTypes.length > 0 && (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {booth.subTypes.map((sub: any) => (
-                            <span
-                              key={sub.id}
-                              className="px-2 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold"
-                            >
-                              {sub.name} — ${sub.price}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                ))
-              )}
-            </div>
-
-            <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
-              <SheetContent side="right" className="w-full sm:w-[680px] max-w-[95vw] p-6">
-                <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
-              </SheetContent>
-            </Sheet>
-          </motion.section>
-
-          {/* AGENDA */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <div className="flex items-center justify-between mb-2">
-              <HeaderWithIcon title="Agenda" icon={<Calendar size={18} className="text-primary" />} />
-              <div className="flex items-center gap-2">
-                <Button size="sm" onClick={openNewAgenda} className="flex items-center gap-2">
-                  <Plus /> Add Agenda
+            {/* AGENDA */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100"
+            >
+              <div className="flex items-center justify-between mb-6">
+                <HeaderWithIcon title="Event Agenda" icon={<Calendar size={24} className="text-[#5da765]" />} />
+                <Button size="sm" onClick={openNewAgenda} className="bg-gray-900 text-white hover:bg-black rounded-lg px-4 h-10 font-medium">
+                  <Plus size={16} className="mr-2" /> Add Item
                 </Button>
               </div>
-            </div>
 
-            <div className="mt-4 space-y-4">
-              {agendaItems.length === 0 ? (
-                <div className="text-slate-500 italic text-center py-4">No agenda items yet.</div>
-              ) : (
-                agendaItems.map((item: any) => (
-                  <div key={item.id} className="flex gap-4 items-start bg-slate-50/70 rounded-xl p-4 border border-slate-100">
-                    <div className="flex-none w-14 h-14 rounded-full bg-gradient-to-br from-primary/20 to-secondary/10 flex items-center justify-center font-bold text-primary text-lg">
-                      {formatDate(item.date).split(' ')[0]}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-baseline justify-between gap-2">
-                        <h4 className="font-semibold text-lg text-slate-800">{item.title}</h4>
-                        <span className="text-xs text-slate-500 font-medium">
-                          {formatTime(item.startTime)} — {formatTime(item.endTime)}
-                        </span>
+              <div className="space-y-4">
+                {agendaItems.length === 0 ? (
+                  <div className="py-12 text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50">
+                    <Calendar size={40} className="mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 font-medium">No agenda items added</p>
+                  </div>
+                ) : (
+                  agendaItems.map((item: any) => (
+                    <div key={item.id} className="group flex gap-5 items-start bg-white hover:bg-gray-50 rounded-2xl p-5 border border-gray-100 transition-colors">
+                      <div className="flex-none w-16 h-16 rounded-2xl bg-[#5da765]/10 flex flex-col items-center justify-center text-[#5da765] border border-[#5da765]/20">
+                        <span className="text-xs font-bold uppercase">{new Date(item.date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                        <span className="text-xl font-bold">{new Date(item.date).getDate()}</span>
                       </div>
-                      <p className="text-slate-700 mt-1">{item.description}</p>
-                      <div className="mt-3 flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditAgenda(item)}
-                          className="flex items-center gap-2 text-slate-600 hover:text-primary"
-                        >
-                          <Edit2 size={14} /> Edit
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteAgenda(item.id)}
-                          className="flex items-center gap-2 text-slate-600 hover:text-red-500"
-                        >
-                          <Trash2 size={14} /> Delete
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h4 className="font-bold text-lg text-gray-800 mb-1">{item.title}</h4>
+                            <div className="flex items-center gap-2 text-sm text-gray-500 font-medium">
+                              <div className="w-1.5 h-1.5 rounded-full bg-[#5da765]" />
+                              {formatTime(item.startTime)} — {formatTime(item.endTime)}
+                            </div>
+                          </div>
 
-            <Sheet open={isAgendaSheetOpen} onOpenChange={setIsAgendaSheetOpen}>
-              <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
-                <h2 className="text-xl font-bold mb-4">{editingAgenda ? 'Edit Agenda' : 'Add Agenda'}</h2>
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSaveAgenda();
-                  }}
-                >
-                  <div>
-                    <Label>Date</Label>
-                    <Input
-                      type="date"
-                      value={agendaForm.date}
-                      onChange={(e) => setAgendaForm({ ...agendaForm, date: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <Label>Start Time</Label>
-                      <Input
-                        type="time"
-                        value={agendaForm.startTime}
-                        onChange={(e) => setAgendaForm({ ...agendaForm, startTime: e.target.value })}
-                      />
-                    </div>
-                    <div>
-                      <Label>End Time</Label>
-                      <Input
-                        type="time"
-                        value={agendaForm.endTime}
-                        onChange={(e) => setAgendaForm({ ...agendaForm, endTime: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Title</Label>
-                    <Input
-                      value={agendaForm.title}
-                      onChange={(e) => setAgendaForm({ ...agendaForm, title: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <Label>Description</Label>
-                    <Textarea
-                      value={agendaForm.description}
-                      onChange={(e) => setAgendaForm({ ...agendaForm, description: e.target.value })}
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Button className="flex-1" disabled={creatingAgenda}>
-                      {editingAgenda ? 'Update' : 'Create'}
-                    </Button>
-                    <Button
-                      variant="outline"
-                      type="button"
-                      onClick={() => {
-                        setIsAgendaSheetOpen(false);
-                        setEditingAgenda(null);
-                      }}
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </form>
-              </SheetContent>
-            </Sheet>
-          </motion.section>
-
-          {/* SPONSORS */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.11 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <HeaderWithIcon title="Sponsors" icon={<Star size={18} className="text-primary" />} />
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {eventSponsorTypes.length === 0 ? (
-                <div className="text-slate-500 italic text-center py-4">No sponsor packages defined.</div>
-              ) : (
-                eventSponsorTypes.map((es: any) => (
-                  <div
-                    key={es.sponsorTypeId}
-                    className="flex items-start gap-4 bg-slate-50/70 rounded-lg p-4 border border-slate-100"
-                  >
-                    <img
-                      src={es.sponsorType.image}
-                      alt={es.sponsorType.name}
-                      className="h-12 w-12 object-cover rounded-lg border"
-                    />
-                    <div>
-                      <div className="flex items-center gap-3">
-                        <span className="font-semibold text-slate-800">{es.sponsorType.name}</span>
-                        <span className="text-sm text-primary font-bold">${es.sponsorType.price}</span>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1">{es.sponsorType.description}</p>
-                      <div className="text-xs font-medium text-slate-500 mt-2">{es.quantity} slots available</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.section>
-        </div>
-
-        {/* Right column */}
-        <div className="space-y-6">
-          {/* TICKETS */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <HeaderWithIcon title="Tickets" icon={<Ticket size={18} className="text-primary" />} />
-            <div className="mt-4 flex flex-col gap-3">
-              {eventTickets.length === 0 ? (
-                <div className="text-slate-500 italic text-center py-4">No tickets defined.</div>
-              ) : (
-                eventTickets.map((et: any) => (
-                  <div
-                    key={et.ticketId}
-                    className="flex items-center gap-4 p-3 rounded-lg bg-slate-50/70 border border-slate-100"
-                  >
-                    <img src={et.ticket.logo} alt={et.ticket.name} className="h-14 w-14 object-cover rounded-lg border" />
-                    <div className="flex-1">
-                      <div className="font-semibold text-slate-800">{et.ticket.name}</div>
-                      <div className="text-sm text-primary font-bold">Price: ${et.ticket.price}</div>
-                      <div className="text-xs text-slate-500 font-medium">{et.quantity} available</div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </motion.section>
-
-          {/* HOTELS */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <HeaderWithIcon title="Hotels" icon={<Hotel size={18} className="text-primary" />} />
-            <div className="mt-4 grid grid-cols-1 gap-4">
-              {hotels.length === 0 ? (
-                <div className="text-slate-500 italic text-center py-4">No hotels linked.</div>
-              ) : (
-                hotels.map((hotel: any) => (
-                  <div
-                    key={hotel.id}
-                    className="flex items-start gap-3 bg-slate-50/70 rounded-xl p-3 border border-slate-100"
-                  >
-                    <img
-                      src={hotel.image}
-                      alt={hotel.hotelName}
-                      className="h-20 w-28 object-cover rounded-lg border"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-bold text-slate-800">{hotel.hotelName}</div>
-                          <div className="text-xs text-slate-600">{hotel.address}</div>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditAgenda(item)}
+                              className="h-8 w-8 text-gray-400 hover:text-[#5da765] hover:bg-green-50 rounded-lg"
+                            >
+                              <Edit2 size={14} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteAgenda(item.id)}
+                              className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                            >
+                              <Trash2 size={14} />
+                            </Button>
+                          </div>
                         </div>
+                        <p className="text-gray-600 mt-3 text-sm leading-relaxed">{item.description}</p>
                       </div>
-
-                      {hotel.roomTypes && (
-                        <ul className="mt-2 text-xs text-slate-700">
-                          {hotel.roomTypes.map((rt: any) => {
-                            const eventRoomType = event.eventRoomTypes?.find((ert: any) => ert.roomTypeId === rt.id);
-                            const available = eventRoomType ? eventRoomType.quantity : 0;
-                            return (
-                              <li
-                                key={rt.id}
-                                className="flex justify-between py-1 border-t border-slate-200/60 first:border-t-0"
-                              >
-                                <div>
-                                  {rt.roomType} — <span className="font-semibold text-primary">${rt.price}</span>
-                                </div>
-                                <div className="text-slate-600 font-medium">{available} available</div>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      )}
                     </div>
+                  ))
+                )}
+              </div>
+
+              <Sheet open={isAgendaSheetOpen} onOpenChange={setIsAgendaSheetOpen}>
+                <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
+                  <h2 className="text-2xl font-bold mb-6 text-gray-800">{editingAgenda ? 'Edit Item' : 'Add Item'}</h2>
+                  <form
+                    className="space-y-5"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveAgenda();
+                    }}
+                  >
+                    <div>
+                      <Label className="text-gray-700 font-semibold mb-1.5 block">Date</Label>
+                      <Input
+                        type="date"
+                        className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                        value={agendaForm.date}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, date: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="text-gray-700 font-semibold mb-1.5 block">Start Time</Label>
+                        <Input
+                          type="time"
+                          className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                          value={agendaForm.startTime}
+                          onChange={(e) => setAgendaForm({ ...agendaForm, startTime: e.target.value })}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-gray-700 font-semibold mb-1.5 block">End Time</Label>
+                        <Input
+                          type="time"
+                          className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                          value={agendaForm.endTime}
+                          onChange={(e) => setAgendaForm({ ...agendaForm, endTime: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-gray-700 font-semibold mb-1.5 block">Title</Label>
+                      <Input
+                        className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                        value={agendaForm.title}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, title: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-gray-700 font-semibold mb-1.5 block">Description</Label>
+                      <Textarea
+                        rows={4}
+                        className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                        value={agendaForm.description}
+                        onChange={(e) => setAgendaForm({ ...agendaForm, description: e.target.value })}
+                      />
+                    </div>
+                    <div className="flex gap-3 pt-4">
+                      <Button
+                        variant="outline"
+                        type="button"
+                        className="flex-1 rounded-xl h-12 font-semibold"
+                        onClick={() => {
+                          setIsAgendaSheetOpen(false);
+                          setEditingAgenda(null);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button className="flex-1 bg-[#5da765] hover:bg-[#4a8a52] text-white rounded-xl h-12 font-semibold" disabled={creatingAgenda}>
+                        {editingAgenda ? 'Update Item' : 'Create Item'}
+                      </Button>
+                    </div>
+                  </form>
+                </SheetContent>
+              </Sheet>
+            </motion.section>
+
+            {/* SPONSORS */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.11 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100"
+            >
+              <HeaderWithIcon title="Sponsorship Packages" icon={<Star size={24} className="text-[#5da765]" />} />
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {eventSponsorTypes.length === 0 ? (
+                  <div className="col-span-full py-8 text-center rounded-xl bg-gray-50 border border-dashed border-gray-200 text-gray-500 text-sm">
+                    No sponsor packages defined
                   </div>
-                ))
-              )}
-            </div>
-          </motion.section>
+                ) : (
+                  eventSponsorTypes.map((es: any) => (
+                    <div
+                      key={es.sponsorTypeId}
+                      className="flex items-start gap-4 bg-white rounded-xl p-4 border border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md transition-all"
+                    >
+                      <img
+                        src={es.sponsorType.image}
+                        alt={es.sponsorType.name}
+                        className="h-14 w-14 object-cover rounded-xl bg-gray-50"
+                      />
+                      <div>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-800">{es.sponsorType.name}</span>
+                          <span className="text-sm text-[#5da765] font-bold">${es.sponsorType.price}</span>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-1">{es.sponsorType.description}</p>
+                        <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wide">{es.quantity} slots left</div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.section>
+          </div>
 
-          {/* VENUE */}
-          <motion.section
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.11 }}
-            className="bg-white rounded-2xl p-6 shadow-md"
-          >
-            <HeaderWithAction
-              title="Venue"
-              buttonLabel={venue ? 'Edit Venue' : 'Add Venue'}
-              icon={<Landmark size={18} className="text-primary" />}
-              onAction={() => setIsVenueSheetOpen(true)}
-            />
+          {/* Right column */}
+          <div className="space-y-8">
+            {/* TICKETS */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+            >
+              <HeaderWithIcon title="Tickets" icon={<Ticket size={20} className="text-[#5da765]" />} />
+              <div className="mt-6 flex flex-col gap-3">
+                {eventTickets.length === 0 ? (
+                  <div className="py-6 text-center text-gray-400 text-sm">No tickets available</div>
+                ) : (
+                  eventTickets.map((et: any) => (
+                    <div
+                      key={et.ticketId}
+                      className="flex items-center gap-4 p-4 rounded-xl bg-gray-50/50 border border-gray-100 hover:bg-white hover:shadow-sm transition-all"
+                    >
+                      <div className="h-12 w-12 rounded-lg bg-white border border-gray-100 p-1">
+                        <img src={et.ticket.logo} alt={et.ticket.name} className="h-full w-full object-contain" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-800 text-sm">{et.ticket.name}</div>
+                        <div className="text-xs font-medium text-gray-500 mt-0.5">{et.quantity} available</div>
+                      </div>
+                      <div className="text-[#5da765] font-bold">${et.ticket.price}</div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.section>
 
-            <div className="mt-4">
-              {venue ? (
-                <div className="rounded-xl overflow-hidden border border-slate-200">
-                  <div className="grid grid-cols-1 gap-0">
-                    <div className="w-full h-36 bg-slate-100">
+            {/* HOTELS */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.08 }}
+              className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+            >
+              <HeaderWithIcon title="Hotels" icon={<Hotel size={20} className="text-[#5da765]" />} />
+              <div className="mt-6 grid grid-cols-1 gap-4">
+                {hotels.length === 0 ? (
+                  <div className="py-6 text-center text-gray-400 text-sm">No hotels linked</div>
+                ) : (
+                  hotels.map((hotel: any) => (
+                    <div
+                      key={hotel.id}
+                      className="group bg-white rounded-xl overflow-hidden border border-gray-100 hover:shadow-md transition-all"
+                    >
+                      <div className="h-32 w-full bg-gray-100">
+                        <img
+                          src={hotel.image}
+                          alt={hotel.hotelName}
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h4 className="font-bold text-gray-800 mb-1">{hotel.hotelName}</h4>
+                        <p className="text-xs text-gray-500 mb-4 flex items-center gap-1"><MapPin size={10} /> {hotel.address}</p>
+
+                        {hotel.roomTypes && (
+                          <div className="space-y-2">
+                            {hotel.roomTypes.map((rt: any) => {
+                              const eventRoomType = event.eventRoomTypes?.find((ert: any) => ert.roomTypeId === rt.id);
+                              const available = eventRoomType ? eventRoomType.quantity : 0;
+                              return (
+                                <div
+                                  key={rt.id}
+                                  className="flex justify-between items-center text-xs p-2 rounded bg-gray-50"
+                                >
+                                  <span className="font-medium text-gray-700">{rt.roomType}</span>
+                                  <div className="text-right">
+                                    <div className="font-bold text-[#5da765]">${rt.price}</div>
+                                    <div className="text-[10px] text-gray-400">{available} left</div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.section>
+
+            {/* VENUE */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.11 }}
+              className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100"
+            >
+              <HeaderWithAction
+                title="Venue Details"
+                buttonLabel={venue ? 'Edit' : 'Add'}
+                icon={<Landmark size={20} className="text-[#5da765]" />}
+                onAction={() => setIsVenueSheetOpen(true)}
+              />
+
+              <div className="mt-6">
+                {venue ? (
+                  <div className="rounded-2xl overflow-hidden border border-gray-100 bg-gray-50/50">
+                    <div className="w-full h-40 bg-gray-200">
                       {venue.imageUrls?.[0] && (
                         <img src={venue.imageUrls[0]} alt={venue.name} className="w-full h-full object-cover" />
                       )}
                     </div>
-                    <div className="p-4 bg-white">
-                      <h3 className="text-lg font-bold text-slate-800">{venue.name}</h3>
-                      {/* --- VENUE LOCATION DISPLAY --- */}
+                    <div className="p-5">
+                      <h3 className="text-lg font-bold text-gray-800">{venue.name}</h3>
                       {venue.location && (
-                        <p className="text-sm font-semibold text-primary mt-1 flex items-center gap-1.5">
-                          <MapPin size={14} /> {venue.location}
+                        <p className="text-xs font-bold text-[#5da765] mt-1 flex items-center gap-1.5 uppercase tracking-wide">
+                          <MapPin size={12} /> {venue.location}
                         </p>
                       )}
-                      <p className="text-sm text-slate-700 mt-2">{venue.description}</p>
-                      <div className="mt-3 grid grid-cols-1 gap-2 text-sm text-slate-600">
-                        <div className="flex items-center gap-2">
-                          <strong>Airport:</strong> {venue.closestAirport || 'N/A'}
+
+                      <div className="mt-4 space-y-3">
+                        <div className="flex items-start gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                          <div className="bg-blue-50 p-1.5 rounded-lg text-blue-600"><MapPin size={14} /></div>
+                          <div>
+                            <div className="text-xs font-bold text-gray-400 uppercase">Closest Airport</div>
+                            <div className="text-sm font-medium text-gray-800">{venue.closestAirport || 'N/A'}</div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <strong>Transport:</strong> {venue.publicTransport || 'N/A'}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <strong>Nearby:</strong> {venue.nearbyPlaces || 'N/A'}
+                        <div className="flex items-start gap-3 p-3 bg-white rounded-xl border border-gray-100">
+                          <div className="bg-purple-50 p-1.5 rounded-lg text-purple-600"><Boxes size={14} /></div>
+                          <div>
+                            <div className="text-xs font-bold text-gray-400 uppercase">Transport</div>
+                            <div className="text-sm font-medium text-gray-800">{venue.publicTransport || 'N/A'}</div>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="text-slate-500 italic text-center py-4">No venue linked.</div>
-              )}
-            </div>
+                ) : (
+                  <div className="py-8 text-center rounded-xl border border-dashed border-gray-200 bg-gray-50">
+                    <Landmark size={24} className="mx-auto text-gray-300 mb-2" />
+                    <p className="text-gray-400 text-sm">No venue assigned</p>
+                  </div>
+                )}
+              </div>
 
-            <Sheet open={isVenueSheetOpen} onOpenChange={setIsVenueSheetOpen}>
-              <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
-                <h2 className="text-xl font-bold mb-4">{venue ? 'Edit Venue' : 'Add Venue'}</h2>
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSaveVenue();
-                  }}
-                >
-                  {[
-                    { label: 'Venue Name', name: 'name' },
-                    { label: 'Location', name: 'location' }, // <-- ADDED
-                    { label: 'Description', name: 'description', textarea: true },
-                    { label: 'Image URLs (comma separated)', name: 'imageUrls', textarea: true },
-                    { label: 'Closest Airport', name: 'closestAirport' },
-                    { label: 'Public Transport', name: 'publicTransport' },
-                    { label: 'Nearby Places', name: 'nearbyPlaces' },
-                  ].map((field) => (
-                    <div key={field.name}>
-                      <Label>{field.label}</Label>
-                      {field.textarea ? (
-                        <Textarea
-                          value={(venueForm as any)[field.name]}
-                          onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
-                        />
-                      ) : (
-                        <Input
-                          value={(venueForm as any)[field.name]}
-                          onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
-                        />
-                      )}
-                    </div>
-                  ))}
-                  <Button disabled={savingVenue} className="w-full">
-                    {savingVenue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
-                    {venue ? 'Update Venue' : 'Add Venue'}
-                  </Button>
-                </form>
-              </SheetContent>
-            </Sheet>
-          </motion.section>
+              <Sheet open={isVenueSheetOpen} onOpenChange={setIsVenueSheetOpen}>
+                <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
+                  <h2 className="text-2xl font-bold mb-6 text-gray-800">{venue ? 'Edit Venue' : 'Add Venue'}</h2>
+                  <form
+                    className="space-y-5"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      handleSaveVenue();
+                    }}
+                  >
+                    {[
+                      { label: 'Venue Name', name: 'name' },
+                      { label: 'Location', name: 'location' },
+                      { label: 'Description', name: 'description', textarea: true },
+                      { label: 'Image URLs (comma separated)', name: 'imageUrls', textarea: true },
+                      { label: 'Closest Airport', name: 'closestAirport' },
+                      { label: 'Public Transport', name: 'publicTransport' },
+                      { label: 'Nearby Places', name: 'nearbyPlaces' },
+                    ].map((field) => (
+                      <div key={field.name}>
+                        <Label className="text-gray-700 font-semibold mb-1.5 block">{field.label}</Label>
+                        {field.textarea ? (
+                          <Textarea
+                            rows={3}
+                            className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                            value={(venueForm as any)[field.name]}
+                            onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
+                          />
+                        ) : (
+                          <Input
+                            className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                            value={(venueForm as any)[field.name]}
+                            onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
+                          />
+                        )}
+                      </div>
+                    ))}
+                    <Button disabled={savingVenue} className="w-full bg-[#5da765] hover:bg-[#4a8a52] text-white rounded-xl h-12 font-bold mt-4">
+                      {savingVenue ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
+                      {venue ? 'Update Venue' : 'Add Venue'}
+                    </Button>
+                  </form>
+                </SheetContent>
+              </Sheet>
+            </motion.section>
+          </div>
         </div>
       </div>
     </div>
   );
 }
 
-// HEADER helpers
 function HeaderWithAction({ title, buttonLabel, icon, onAction }: any) {
   return (
-    <div className="flex justify-between items-center mb-2">
-      <div className="flex items-center gap-3 text-xl font-bold text-slate-800">
-        {icon}
+    <div className="flex justify-between items-center mb-6">
+      <div className="flex items-center gap-3 text-xl font-bold text-gray-800">
+        <div className="p-2 bg-[#5da765]/10 rounded-lg text-[#5da765]">
+          {icon}
+        </div>
         <span>{title}</span>
       </div>
-      <Button variant="outline" size="sm" className="gap-2" onClick={onAction}>
+      <Button variant="outline" size="sm" className="gap-2 rounded-lg border-gray-200 text-gray-600 hover:text-[#5da765] hover:border-[#5da765] hover:bg-green-50" onClick={onAction}>
         {buttonLabel}
       </Button>
     </div>
@@ -727,8 +766,10 @@ function HeaderWithAction({ title, buttonLabel, icon, onAction }: any) {
 
 function HeaderWithIcon({ title, icon }: any) {
   return (
-    <h2 className="flex items-center gap-3 text-xl font-bold text-slate-800 mb-2">
-      {icon}
+    <h2 className="flex items-center gap-3 text-xl font-bold text-gray-800">
+      <div className="p-2 bg-[#5da765]/10 rounded-lg text-[#5da765]">
+        {icon}
+      </div>
       <span>{title}</span>
     </h2>
   );

@@ -617,70 +617,78 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   /** ---------- Submit checkout ---------- */
 
-  const submitCheckout = async () => {
-    if (!companyId) {
-      alert("You must be logged in to check out.");
-      return;
-    }
-    if (!cart.length) {
-      alert("Cart is empty.");
-      return;
-    }
-    if (!agreeTerms || !agreePolicies) {
-      alert("You must agree to the Terms & Policies.");
-      return;
-    }
+ // Update the submitCheckout function in your checkout page
 
-    setSubmitting(true);
-    try {
-      const payload: any = {
-        companyId,
-        account,
-        paymentMethod,
-        coupon: appliedCoupon.code ? { ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}), code: appliedCoupon.code } : undefined,
-        discount: {
-          amount: appliedCoupon.discountAmount,
-          percent: appliedCoupon.discountPercent,
-        },
-        appliedOffers: appliedOffersPayload, // which offers were applied
-        cartItems: cart.map((i) => ({
-          productId: String(i.productId),
-          productType: String(i.productType ?? "TICKET").toUpperCase(),
-          quantity: i.quantity,
-          price: i.price,
-          name: i.name,
-          ...(i.roomTypeId ? { roomTypeId: String(i.roomTypeId) } : {}),
-          ...(i.boothSubTypeId ? { boothSubTypeId: String(i.boothSubTypeId) } : {}),
-        })),
-        totals: {
-          subtotalBeforeOffers: computed.subtotalBeforeOffers,
-          offerDiscountTotal: computed.offerDiscountTotal,
-          subtotalAfterOffers: computed.subtotalAfterOffers,
-          couponDiscountValue,
-          total: finalTotal,
-        },
-      };
+const submitCheckout = async () => {
+  if (!companyId) {
+    alert("You must be logged in to check out.");
+    return;
+  }
+  if (!cart.length) {
+    alert("Cart is empty.");
+    return;
+  }
+  if (!agreeTerms || !agreePolicies) {
+    alert("You must agree to the Terms & Policies.");
+    return;
+  }
 
-      const res = await fetch(`/api/events/${eventId}/checkout`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+  setSubmitting(true);
+  try {
+    const payload: any = {
+      companyId,
+      account,
+      paymentMethod,
+      coupon: appliedCoupon.code ? { 
+        ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}), 
+        code: appliedCoupon.code 
+      } : undefined,
+      discount: {
+        amount: appliedCoupon.discountAmount,
+        percent: appliedCoupon.discountPercent,
+      },
+      appliedOffers: appliedOffersPayload, // which offers were applied
+      
+      // ✅ FIX: Send computed lines with effective (discounted) prices
+      cartItems: computed.lines.map((line) => ({
+        productId: String(line.productId),
+        productType: String(line.productType ?? "TICKET").toUpperCase(),
+        quantity: line.qty,
+        price: line.effective, // ✅ Use effective price (after offers)
+        name: line.name,
+        ...(line.roomTypeId ? { roomTypeId: String(line.roomTypeId) } : {}),
+        ...(line.boothSubTypeId ? { boothSubTypeId: String(line.boothSubTypeId) } : {}),
+      })),
+      
+      totals: {
+        subtotalBeforeOffers: computed.subtotalBeforeOffers,
+        offerDiscountTotal: computed.offerDiscountTotal,
+        subtotalAfterOffers: computed.subtotalAfterOffers,
+        couponDiscountValue,
+        total: finalTotal,
+      },
+    };
 
-      if (res.status === 201 || res.ok) {
-        alert("Checkout successful!");
-        clearCart();
-        window.location.href = `/event/${eventId}`;
-      } else {
-        const e = await res.json().catch(() => ({}));
-        alert(e?.error || e?.message || "Checkout failed");
-      }
-    } catch (e: any) {
-      alert(`Network error: ${e?.message || e}`);
-    } finally {
-      setSubmitting(false);
+    const res = await fetch(`/api/events/${eventId}/checkout`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    if (res.status === 201 || res.ok) {
+      alert("Checkout successful!");
+      clearCart();
+      window.location.href = `/event/${eventId}`;
+    } else {
+      const e = await res.json().catch(() => ({}));
+      alert(e?.error || e?.message || "Checkout failed");
     }
-  };
+  } catch (e: any) {
+    alert(`Network error: ${e?.message || e}`);
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   // helper: step state for StepDot
   const stepState = (index: 0 | 1 | 2): "completed" | "active" | "upcoming" => {

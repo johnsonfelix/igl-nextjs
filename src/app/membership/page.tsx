@@ -42,17 +42,17 @@ const HeroSection = ({ plans }: { plans: ApiPlan[] }) => {
     plans && plans.length > 0
       ? plans.map((p) => ({ name: p.name, path: `/membership/purchase/${toUrlSegment(p.slug || p.name)}` }))
       : [
-          { name: 'IGLA Elite', path: '/membership/purchase/elite' },
-          { name: 'IGLA Premium', path: '/membership/purchase/premium' },
-          { name: 'IGLA Rising', path: '/membership/purchase/rising' },
-          { name: 'IGLA Projects', path: '/membership/purchase/projects' },
-          { name: 'IGLA Dangerous Goods', path: '/membership/purchase/dangerous-goods' },
-          { name: 'IGLA eCommerce', path: '/membership/purchase/ecommerce' },
-        ];
+        { name: 'IGLA Elite', path: '/membership/purchase/elite' },
+        { name: 'IGLA Premium', path: '/membership/purchase/premium' },
+        { name: 'IGLA Rising', path: '/membership/purchase/rising' },
+        { name: 'IGLA Projects', path: '/membership/purchase/projects' },
+        { name: 'IGLA Dangerous Goods', path: '/membership/purchase/dangerous-goods' },
+        { name: 'IGLA eCommerce', path: '/membership/purchase/ecommerce' },
+      ];
 
   return (
     <div className="relative text-white bg-gray-900 bg-opacity-80 py-20 md:py-32 text-center overflow-hidden">
-      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/path/to/hero-background.jpg')", opacity: 0.28 }} />
+      <div className="absolute inset-0 bg-cover bg-center" style={{ backgroundImage: "url('/images/bg-4.jpg')", opacity: 0.28 }} />
       <div className="container mx-auto px-4 relative z-10">
         <h1 className="text-4xl md:text-6xl font-bold mb-8">IGLA Membership</h1>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-4xl mx-auto">
@@ -142,8 +142,8 @@ const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
                 <button className="mt-6 w-full bg-yellow-400 text-black font-bold py-3 rounded-lg">Become a Member</button>
               </div>
               <div className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className="text-2xl font-bold text-blue-400">02 <br /> IGLA Premium +</h3>
-                <button className="mt-6 w-full bg-blue-400 text-white font-bold py-3 rounded-lg">Become a Member</button>
+                <h3 className="text-2xl font-bold text-[#5da765]">02 <br /> IGLA Premium +</h3>
+                <button className="mt-6 w-full bg-[#5da765] text-white font-bold py-3 rounded-lg">Become a Member</button>
               </div>
               <div className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
                 <h3 className="text-2xl font-bold text-green-400">IGLA Rising +</h3>
@@ -157,7 +157,7 @@ const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
           ) : (
             top3.map((p, idx) => (
               <div key={p.id} className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className={`text-2xl font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-blue-400' : 'text-green-400'}`}>
+                <h3 className={`text-2xl font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-[#5da765]' : 'text-green-400'}`}>
                   {String(idx + 1).padStart(2, '0')} <br /> {p.name}
                 </h3>
                 <p className="mt-4 text-sm text-gray-200">{p.features?.slice(0, 2).join(' • ')}</p>
@@ -205,7 +205,7 @@ const SpecialtyMembership = ({ plans }: { plans: ApiPlan[] }) => {
                       <p>✓ Efficient logistics project cooperation among members.</p>
                       <div className="mt-6 flex gap-4">
                         <button className="bg-white border border-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">View More</button>
-                        <button className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg">Become a Member</button>
+                        <button className="bg-[#5da765] text-white font-semibold py-2 px-6 rounded-lg">Become a Member</button>
                       </div>
                     </div>
                   )}
@@ -220,7 +220,7 @@ const SpecialtyMembership = ({ plans }: { plans: ApiPlan[] }) => {
                     <p>✓ {plan.features?.[1] ?? 'Collaboration benefit'}</p>
                     <div className="mt-6 flex gap-4">
                       <Link href={`/membership/purchase/${toUrlSegment(plan.slug || plan.name)}`} className="bg-white border border-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">View More</Link>
-                      <Link href={`/membership/purchase/${toUrlSegment(plan.slug || plan.name)}`} className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg">Become a Member</Link>
+                      <Link href={`/membership/purchase/${toUrlSegment(plan.slug || plan.name)}`} className="bg-[#5da765] text-white font-semibold py-2 px-6 rounded-lg">Become a Member</Link>
                     </div>
                   </div>
                 </div>
@@ -325,7 +325,7 @@ const MembershipPage: NextPage = () => {
               <h2 className="text-2xl font-semibold mb-2">Failed to load membership plans</h2>
               <p className="text-gray-600 mb-6">{error}</p>
               <div className="flex justify-center">
-                <a href="/contact" className="inline-block bg-blue-600 text-white px-6 py-3 rounded">Contact Support</a>
+                <a href="/contact" className="inline-block bg-[#5da765] text-white px-6 py-3 rounded">Contact Support</a>
               </div>
             </div>
           </div>

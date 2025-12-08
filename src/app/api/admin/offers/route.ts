@@ -2,19 +2,29 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
+type OfferScopePayload =
+  | "ALL"
+  | "HOTELS"
+  | "TICKETS"
+  | "SPONSORS"
+  | "BOOTHS"
+  | "SUBSCRIPTIONS"
+  | "CUSTOM";
+
 type OfferPayload = {
   name: string;
   code?: string | null;
   description?: string | null;
   percentage: number;
-  scope: "ALL" | "HOTELS" | "TICKETS" | "SPONSORS" | "CUSTOM";
+  scope: OfferScopePayload;
   startsAt?: string | null;
   endsAt?: string | null;
   isActive?: boolean;
-  hotelIds?: string[];        // used when scope === 'CUSTOM'
+  hotelIds?: string[];
   ticketIds?: string[];
   sponsorTypeIds?: string[];
   boothIds?: string[];
+  membershipPlanIds?: string[]; // NEW
 };
 
 export async function GET() {
@@ -26,6 +36,7 @@ export async function GET() {
         tickets: { select: { id: true, name: true } },
         sponsorTypes: { select: { id: true, name: true } },
         booths: { select: { id: true, name: true } },
+        membershipPlans: { select: { id: true, name: true } }, // NEW
       },
     });
 
@@ -43,24 +54,34 @@ export async function GET() {
       ticketIds: (o.tickets || []).map((t) => t.id),
       sponsorTypeIds: (o.sponsorTypes || []).map((s) => s.id),
       boothIds: (o.booths || []).map((b) => b.id),
+      membershipPlanIds: (o.membershipPlans || []).map((m) => m.id), // NEW
     }));
 
     return NextResponse.json(result);
   } catch (err) {
     console.error("GET /api/admin/offers error:", err);
-    return NextResponse.json({ error: "Failed to fetch offers" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch offers" },
+      { status: 500 }
+    );
   }
 }
 
 export async function POST(req: Request) {
   try {
-    // TODO: add authentication/authorization here if required
     const body = (await req.json()) as OfferPayload;
 
-    // Basic validation
-    if (!body.name || typeof body.percentage !== "number" || body.percentage <= 0 || body.percentage > 100) {
+    if (
+      !body.name ||
+      typeof body.percentage !== "number" ||
+      body.percentage <= 0 ||
+      body.percentage > 100
+    ) {
       return NextResponse.json(
-        { error: "Invalid payload: name & percentage required (percentage must be 1-100)" },
+        {
+          error:
+            "Invalid payload: name & percentage required (percentage must be 1-100)",
+        },
         { status: 400 }
       );
     }
@@ -76,7 +97,7 @@ export async function POST(req: Request) {
       isActive: body.isActive ?? true,
     };
 
-    // Only connect many-to-many targets if CUSTOM scope (or arrays provided)
+    // Only connect many-to-many targets if CUSTOM scope
     if (body.scope === "CUSTOM") {
       if (Array.isArray(body.hotelIds) && body.hotelIds.length > 0) {
         data.hotels = { connect: body.hotelIds.map((id) => ({ id })) };
@@ -85,16 +106,32 @@ export async function POST(req: Request) {
         data.tickets = { connect: body.ticketIds.map((id) => ({ id })) };
       }
       if (Array.isArray(body.sponsorTypeIds) && body.sponsorTypeIds.length > 0) {
-        data.sponsorTypes = { connect: body.sponsorTypeIds.map((id) => ({ id })) };
+        data.sponsorTypes = {
+          connect: body.sponsorTypeIds.map((id) => ({ id })),
+        };
       }
       if (Array.isArray(body.boothIds) && body.boothIds.length > 0) {
         data.booths = { connect: body.boothIds.map((id) => ({ id })) };
+      }
+      if (
+        Array.isArray(body.membershipPlanIds) &&
+        body.membershipPlanIds.length > 0
+      ) {
+        data.membershipPlans = {
+          connect: body.membershipPlanIds.map((id) => ({ id })),
+        };
       }
     }
 
     const created = await prisma.offer.create({
       data,
-      include: { hotels: true, tickets: true, sponsorTypes: true, booths: true },
+      include: {
+        hotels: true,
+        tickets: true,
+        sponsorTypes: true,
+        booths: true,
+        membershipPlans: true, // NEW -> fixes TS error
+      },
     });
 
     return NextResponse.json({
@@ -111,9 +148,13 @@ export async function POST(req: Request) {
       ticketIds: (created.tickets || []).map((t) => t.id),
       sponsorTypeIds: (created.sponsorTypes || []).map((s) => s.id),
       boothIds: (created.booths || []).map((b) => b.id),
+      membershipPlanIds: (created.membershipPlans || []).map((m) => m.id), // NEW
     });
   } catch (err) {
     console.error("POST /api/admin/offers error:", err);
-    return NextResponse.json({ error: "Failed to create offer" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create offer" },
+      { status: 500 }
+    );
   }
 }

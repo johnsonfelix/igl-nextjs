@@ -48,19 +48,18 @@ export default function EventsPage() {
   }, []);
 
   return (
-    <div className="min-h-screen p-8 bg-gradient-to-b from-[#050816] via-[#07102a] to-[#081426] text-slate-100">
+    <div className="min-h-screen p-8 bg-[#f8f9fa] font-sans">
       <div className="max-w-7xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">Events</h1>
-            <p className="mt-1 text-sm text-slate-400">Futuristic dashboard with neon glass UI</p>
+            <h1 className="text-3xl font-bold text-gray-800 tracking-tight">Events Management</h1>
+            <p className="mt-1 text-sm text-gray-500">Manage your events, edit details, and track performance</p>
           </div>
 
           <Link href="/admin/events/create">
-            <Button className="relative overflow-hidden">
-              <span className="absolute -inset-0.5 bg-gradient-to-r from-cyan-400 to-violet-500 opacity-40 blur-lg animate-[pulse_4s_infinite] rounded-lg" />
-              <span className="relative flex items-center gap-2 z-10">
-                <Plus size={14} /> Create Event
+            <Button className="bg-[#5da765] hover:bg-[#4a8a52] text-white shadow-md hover:shadow-lg transition-all rounded-xl px-6 py-6 h-auto">
+              <span className="flex items-center gap-2 font-bold">
+                <Plus size={18} /> Create New Event
               </span>
             </Button>
           </Link>
@@ -69,7 +68,13 @@ export default function EventsPage() {
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="p-4 rounded-2xl bg-gradient-to-br from-white/3 to-white/2 border border-white/6 backdrop-blur-sm animate-pulse h-60" />
+              <div key={i} className="p-0 rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden h-80">
+                <div className="h-48 bg-gray-100 animate-pulse"></div>
+                <div className="p-5 space-y-3">
+                  <div className="h-6 bg-gray-100 rounded animate-pulse w-3/4"></div>
+                  <div className="h-4 bg-gray-100 rounded animate-pulse w-1/2"></div>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
@@ -77,72 +82,92 @@ export default function EventsPage() {
             {events.map(event => (
               <motion.div
                 key={event.id}
-                whileHover={{ translateY: -6, scale: 1.02 }}
-                className="relative rounded-2xl overflow-hidden"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                whileHover={{ y: -4 }}
+                transition={{ duration: 0.2 }}
+                className="group relative"
               >
-                <Card className="rounded-2xl bg-gradient-to-b from-[#07122b] to-[#021024] border border-white/6 shadow-[0_10px_30px_rgba(2,6,23,0.6)]">
-                  <CardContent className="p-0">
-                    <div className="relative h-40 w-full">
-                      {event.thumbnail ? (
-                        <img src={event.thumbnail} alt={event.name} className="object-cover w-full h-full" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#081428] to-[#031023] text-slate-500">
-                          No Thumbnail
-                        </div>
-                      )}
-
-                      <div className="absolute left-4 top-4 px-3 py-1 rounded-full bg-white/6 backdrop-blur-sm text-xs font-semibold border border-white/6">
-                        {event.location || '—'}
+                <Card className="rounded-2xl bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden h-full flex flex-col">
+                  <div className="relative h-48 w-full overflow-hidden bg-gray-100">
+                    {event.thumbnail ? (
+                      <img
+                        src={event.thumbnail}
+                        alt={event.name}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center bg-gray-50 text-gray-400 flex-col gap-2">
+                        <Eye size={32} className="opacity-20" />
+                        <span className="text-xs font-medium">No Thumbnail</span>
                       </div>
+                    )}
 
-                      <div className="absolute right-4 bottom-[-18px] transform">
-                        <div className="px-4 py-2 rounded-full bg-gradient-to-r from-cyan-400/20 to-violet-500/20 text-xs font-bold border border-cyan-500/20 backdrop-blur-sm shadow-md">
-                          {event.startDate ? new Date(event.startDate).toLocaleDateString() : 'No Date'}
-                        </div>
+                    <div className="absolute top-4 left-4">
+                      <div className="px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5">
+                        <Eye size={12} className="text-[#5da765]" />
+                        {event.location || 'Location Pending'}
                       </div>
                     </div>
 
-                    <div className="p-4 space-y-2">
-                      <h2 className="text-lg font-bold text-white">{event.name}</h2>
-                      <p className="text-sm text-slate-300 line-clamp-2">{event.description || ''}</p>
+                    <div className="absolute bottom-4 right-4">
+                      <div className="px-3 py-1.5 rounded-lg bg-[#5da765] text-white text-xs font-bold shadow-md">
+                        {event.startDate ? new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD'}
+                      </div>
+                    </div>
+                  </div>
 
-                      <div className="flex items-center gap-2 pt-4">
-                        <Link href={`/admin/events/${event.id}`}>
-                          <Button variant="ghost" size="sm" className="flex-1 justify-center gap-2 border border-white/6 hover:bg-white/4">
-                            <Eye size={14} /> View
-                          </Button>
-                        </Link>
+                  <CardContent className="p-5 flex flex-col flex-grow">
+                    <div className="mb-4 flex-grow">
+                      <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-[#5da765] transition-colors">{event.name}</h2>
+                      <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{event.description || 'No description provided.'}</p>
+                    </div>
 
-                        <Link href={`/admin/events/create?id=${event.id}`}>
-                          <Button variant="outline" size="sm" className="flex-1 justify-center gap-2 border border-white/6 hover:bg-white/4">
-                            <Edit size={14} /> Edit
-                          </Button>
-                        </Link>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(event.id)}
-                          disabled={deletingId === event.id}
-                          className="flex-1 justify-center gap-2 text-rose-400 hover:bg-rose-900/10"
-                        >
-                          {deletingId === event.id ? 'Deleting...' : <><Trash2 size={14} /> Delete</>}
+                    <div className="pt-4 border-t border-gray-50 grid grid-cols-3 gap-2">
+                      <Link href={`/admin/events/${event.id}`} className="w-full">
+                        <Button variant="ghost" size="sm" className="w-full justify-center gap-1.5 text-gray-600 hover:text-[#5da765] hover:bg-green-50 rounded-lg">
+                          <Eye size={16} /> <span className="text-xs font-bold">View</span>
                         </Button>
-                      </div>
-                    </div>
+                      </Link>
 
-                    {/* neon bottom accent */}
-                    <div className="h-1 bg-gradient-to-r from-cyan-400 via-pink-500 to-violet-500 opacity-80" />
+                      <Link href={`/admin/events/create?id=${event.id}`} className="w-full">
+                        <Button variant="ghost" size="sm" className="w-full justify-center gap-1.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                          <Edit size={16} /> <span className="text-xs font-bold">Edit</span>
+                        </Button>
+                      </Link>
+
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDelete(event.id)}
+                        disabled={deletingId === event.id}
+                        className="w-full justify-center gap-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg"
+                      >
+                        {deletingId === event.id ? (
+                          <span className="text-xs font-bold">...</span>
+                        ) : (
+                          <><Trash2 size={16} /> <span className="text-xs font-bold">Delete</span></>
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
-
-                {/* subtle holo glow */}
-                <div className="pointer-events-none absolute inset-0 rounded-2xl -z-10 blur-2xl opacity-40 bg-gradient-to-br from-cyan-400/8 to-violet-500/8" />
               </motion.div>
             ))}
 
             {events.length === 0 && (
-              <div className="col-span-full text-center py-16 text-slate-400">No events yet — create your first event.</div>
+              <div className="col-span-full py-16 px-6 bg-white rounded-2xl border border-dashed border-gray-200 text-center">
+                <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300">
+                  <Plus size={32} />
+                </div>
+                <h3 className="text-lg font-bold text-gray-800 mb-2">No events created yet</h3>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">Get started by creating your first event to manage logistics and registrations.</p>
+                <Link href="/admin/events/create">
+                  <Button className="bg-[#5da765] hover:bg-[#4a8a52] text-white font-bold">
+                    Create First Event
+                  </Button>
+                </Link>
+              </div>
             )}
           </div>
         )}
