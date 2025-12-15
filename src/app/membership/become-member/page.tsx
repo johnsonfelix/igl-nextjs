@@ -13,6 +13,8 @@ export default async function Page() {
       price: true,
       description: true,
       thumbnail: true,
+      paymentProtection: true,
+      discountPercentage: true,
       features: true,
     },
   });

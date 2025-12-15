@@ -12,6 +12,8 @@ type ApiPlan = {
   slug: string;
   price: number;
   features: string[];
+  paymentProtection?: string | null;
+  discountPercentage?: number | null;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -136,7 +138,7 @@ const PurchasePage: NextPage = () => {
         try {
           const errorData = await response.json();
           errorText = errorData.error || errorText;
-        } catch (_) {}
+        } catch (_) { }
         throw new Error(errorText);
       }
 
@@ -195,20 +197,33 @@ const PurchasePage: NextPage = () => {
             <div className="space-y-4">
               <div className="flex justify-between items-center pb-4 border-b">
                 <div className="flex items-center">
-                    <ShieldCheck className="h-8 w-8 text-blue-500 mr-4" />
-                    <div>
-                        <p className="font-semibold text-gray-700">{plan.name}</p>
-                        <p className="text-sm text-gray-500">Billed Annually</p>
-                    </div>
+                  <ShieldCheck className="h-8 w-8 text-blue-500 mr-4" />
+                  <div>
+                    <p className="font-semibold text-gray-700">{plan.name}</p>
+                    <p className="text-sm text-gray-500">Billed Annually</p>
+                  </div>
                 </div>
                 <p className="font-bold text-lg text-gray-800">${plan.price}</p>
               </div>
+
+              {plan.paymentProtection && (
+                <div className="mb-4 text-sm font-semibold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg inline-block">
+                  🛡️ {plan.paymentProtection}
+                </div>
+              )}
+              <br />
+              {plan.discountPercentage && plan.discountPercentage > 0 && (
+                <div className="mb-4 text-sm font-semibold text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg inline-block">
+                  🏷️ {plan.discountPercentage}% Discount
+                </div>
+              )}
+
               <ul className="space-y-2 pt-4 text-gray-600">
                 {plan.features.map((feature: string, idx: number) => (
-                    <li key={idx} className="flex items-center">
-                        <ShieldCheck className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
-                        <span>{feature}</span>
-                    </li>
+                  <li key={idx} className="flex items-center">
+                    <ShieldCheck className="h-4 w-4 text-green-500 mr-2 flex-shrink-0" />
+                    <span>{feature}</span>
+                  </li>
                 ))}
               </ul>
               <div className="flex justify-between items-center pt-6 border-t">
@@ -221,50 +236,50 @@ const PurchasePage: NextPage = () => {
           {/* Right Side: Payment Form */}
           <div className="order-1 lg:order-2">
             <div className="bg-white p-8 rounded-xl shadow-lg">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Purchase</h2>
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Company Display (Replaces Dropdown) */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Purchase For</label>
-                        <div className="relative">
-                            <div className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-50 rounded-md">
-                                <div className="flex items-center gap-2">
-                                  <Building className="h-5 w-5 text-gray-400" />
-                                  <span className="text-gray-800">{companyName}</span>
-                                </div>
-                            </div>
-                        </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Purchase</h2>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* Company Display (Replaces Dropdown) */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Purchase For</label>
+                  <div className="relative">
+                    <div className="w-full pl-10 pr-4 py-2.5 border border-gray-200 bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-5 w-5 text-gray-400" />
+                        <span className="text-gray-800">{companyName}</span>
+                      </div>
                     </div>
+                  </div>
+                </div>
 
-                    {/* Placeholder for Payment Details */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Payment Details</label>
-                        <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                            <div className="relative">
-                                <CreditCard className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                                <input type="text" placeholder="Card Number" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
-                            </div>
-                            <div className="flex space-x-3">
-                                <div className="relative w-1/2">
-                                     <Calendar className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                                    <input type="text" placeholder="MM / YY" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
-                                </div>
-                                <div className="relative w-1/2">
-                                    <Lock className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                                    <input type="text" placeholder="CVC" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
-                                </div>
-                            </div>
-                        </div>
-                         <p className="text-xs text-gray-500 mt-2">Your payment is securely processed.</p>
+                {/* Placeholder for Payment Details */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment Details</label>
+                  <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
+                    <div className="relative">
+                      <CreditCard className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                      <input type="text" placeholder="Card Number" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
                     </div>
+                    <div className="flex space-x-3">
+                      <div className="relative w-1/2">
+                        <Calendar className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                        <input type="text" placeholder="MM / YY" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                      <div className="relative w-1/2">
+                        <Lock className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
+                        <input type="text" placeholder="CVC" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-500 mt-2">Your payment is securely processed.</p>
+                </div>
 
-                    {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
-                    {status === 'success' && <p className="text-sm text-green-600">Payment successful! Redirecting...</p>}
+                {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
+                {status === 'success' && <p className="text-sm text-green-600">Payment successful! Redirecting...</p>}
 
-                    <button type="submit" disabled={status === 'loading' || !user?.companyId} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                        {status === 'loading' ? 'Processing...' : `Pay $${plan.price}`}
-                    </button>
-                </form>
+                <button type="submit" disabled={status === 'loading' || !user?.companyId} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
+                  {status === 'loading' ? 'Processing...' : `Pay $${plan.price}`}
+                </button>
+              </form>
             </div>
           </div>
         </div>

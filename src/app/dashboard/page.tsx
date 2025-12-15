@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
 import CompleteProfileButton from "@/app/components/CompleteProfileButton";
-import { User, Building2, Package, Activity, AlertCircle } from "lucide-react";
+import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag } from "lucide-react";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -30,6 +30,7 @@ export default async function DashboardPage() {
 
   const company = await prisma.company.findFirst({
     where: { userId: user.id },
+    include: { membershipPlan: true }
   });
 
   if (!company) {
@@ -80,17 +81,43 @@ export default async function DashboardPage() {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+          {/* Membership Card */}
+          <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
+            <div className="flex items-start justify-between mb-4">
+              <div className={`p-3 rounded-xl bg-purple-50`}>
+                <ShieldCheck className={`w-6 h-6 text-purple-600`} />
+              </div>
+              <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Current Plan</span>
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-gray-900 mb-1">
+                {company.membershipPlan?.name || "Free Member"}
+              </div>
+              <div className="space-y-1 mt-2">
+                {company.membershipPlan?.paymentProtection && (
+                  <div className="text-xs font-medium text-blue-700 bg-blue-50 px-2 py-1 rounded inline-block mr-1">
+                    🛡️ {company.membershipPlan.paymentProtection}
+                  </div>
+                )}
+                {(company.membershipPlan?.discountPercentage ?? 0) > 0 && (
+                  <div className="text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded inline-block">
+                    🏷️ {company.membershipPlan?.discountPercentage}% Off
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
           {[
             { label: "Network Partners", value: "7,000+", icon: GlobeIcon, color: "text-blue-600", bg: "bg-blue-50" },
             { label: "Pending Inquiries", value: "0", icon: Package, color: "text-orange-600", bg: "bg-orange-50" },
-            { label: "Profile Views", value: "12", icon: Activity, color: "text-[#5da765]", bg: "bg-green-50" }
           ].map((stat, i) => (
             <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div className={`p-3 rounded-xl ${stat.bg}`}>
                   <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 </div>
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">This Month</span>
+                <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">Overview</span>
               </div>
               <div>
                 <div className="text-3xl font-bold text-gray-900 mb-1">{stat.value}</div>

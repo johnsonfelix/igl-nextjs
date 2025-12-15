@@ -134,37 +134,35 @@ export async function POST(req: NextRequest) {
       originalPrice - membershipDiscountAmount - couponDiscountAmount
     );
 
-    // Optional: compare `payment?.amount` with `finalPrice` if you want strict enforcement
-    // if (payment && typeof payment.amount === "number" && payment.amount !== finalPrice) {
-    //   return NextResponse.json(
-    //     {
-    //       error: "Payment amount mismatch",
-    //       detail: `Expected ${finalPrice}, got ${payment.amount}`,
-    //     },
-    //     { status: 400 }
-    //   );
-    // }
+    // If final price is 0, allow basic "FREE" provider bypass
+    if (finalPrice > 0 && payment && typeof payment.amount === "number" && payment.amount !== finalPrice) {
+      // Optional: strict check
+      // return NextResponse.json({...}, {status:400})
+    }
+
 
     // ─────────────────────────────────────────────
     // 3. UPDATE MEMBERSHIP IN A TRANSACTION
     // ─────────────────────────────────────────────
     const baseStart =
       company.membershipExpiresAt &&
-      company.membershipExpiresAt > now
+        company.membershipExpiresAt > now
         ? company.membershipExpiresAt
         : now;
 
     const expires =
-      typeof durationDays === "number" && durationDays > 0
-        ? new Date(
+      durationDays === null // Lifetime
+        ? null
+        : typeof durationDays === "number" && durationDays > 0
+          ? new Date(
             baseStart.getTime() +
-              durationDays *
-                24 *
-                60 *
-                60 *
-                1000
+            durationDays *
+            24 *
+            60 *
+            60 *
+            1000
           )
-        : null;
+          : null;
 
     const updated = await prisma.$transaction(async (tx) => {
       const u = await tx.company.update({
@@ -203,11 +201,11 @@ export async function POST(req: NextRequest) {
           finalPrice,
           appliedOffer: bestOffer
             ? {
-                id: bestOffer.id,
-                name: bestOffer.name,
-                percentage: bestOffer.percentage,
-                scope: bestOffer.scope,
-              }
+              id: bestOffer.id,
+              name: bestOffer.name,
+              percentage: bestOffer.percentage,
+              scope: bestOffer.scope,
+            }
             : null,
           couponCode: coupon ?? null,
         },

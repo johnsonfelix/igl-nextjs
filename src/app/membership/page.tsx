@@ -11,6 +11,10 @@ type ApiPlan = {
   name: string;
   slug: string;
   price: number;
+  description?: string;
+  thumbnail?: string;
+  paymentProtection?: string;
+  discountPercentage?: number;
   features: string[];
   createdAt?: string;
   updatedAt?: string;
@@ -126,48 +130,96 @@ const WhyChooseSection = () => {
   );
 };
 
-// 3. Membership Tiers Section - now driven by plans (shows up to 3 plans)
+// 3. Membership Tiers Section - now driven by plans
 const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
-  const top3 = plans?.slice(0, 3) ?? [];
+  // Show all plans
+  const displayPlans = plans || [];
 
   return (
     <Section className="bg-gray-800 text-white">
       <div className="container mx-auto px-4 text-center">
-        <h2 className="text-3xl font-bold mb-4">General Membership</h2>
-        <div className="grid md:grid-cols-3 gap-8 mt-12">
-          {top3.length === 0 ? (
-            <>
-              <div className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className="text-2xl font-bold text-yellow-400">01 <br /> IGLA Elite +</h3>
-                <button className="mt-6 w-full bg-yellow-400 text-black font-bold py-3 rounded-lg">Become a Member</button>
-              </div>
-              <div className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className="text-2xl font-bold text-[#5da765]">02 <br /> IGLA Premium +</h3>
-                <button className="mt-6 w-full bg-[#5da765] text-white font-bold py-3 rounded-lg">Become a Member</button>
-              </div>
-              <div className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className="text-2xl font-bold text-green-400">IGLA Rising +</h3>
-                <p className="text-left mt-4 text-sm text-gray-300">✓ Providing emerging freight forwarding companies...</p>
-                <div className="flex gap-4 mt-6">
-                  <button className="w-full bg-gray-600 text-white font-bold py-3 rounded-lg">View More</button>
-                  <button className="w-full bg-green-500 text-white font-bold py-3 rounded-lg">Become a Member</button>
-                </div>
-              </div>
-            </>
+        <h2 className="text-3xl font-bold mb-4">Membership Plans</h2>
+        <p className="text-gray-400 mb-12 max-w-2xl mx-auto">
+          Choose the plan that best fits your business needs. Upgrade anytime to unlock more features and benefits.
+        </p>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mt-8">
+          {displayPlans.length === 0 ? (
+            <div className="col-span-full text-center text-gray-400">Loading plans...</div>
           ) : (
-            top3.map((p, idx) => (
-              <div key={p.id} className="bg-white bg-opacity-10 p-8 rounded-xl border border-white border-opacity-20 backdrop-blur-md">
-                <h3 className={`text-2xl font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-[#5da765]' : 'text-green-400'}`}>
-                  {String(idx + 1).padStart(2, '0')} <br /> {p.name}
-                </h3>
-                <p className="mt-4 text-sm text-gray-200">{p.features?.slice(0, 2).join(' • ')}</p>
-                <div className="mt-6">
-                  <Link href={`/membership/purchase/${toUrlSegment(p.slug || p.name)}`} className="w-full inline-block bg-white text-gray-900 font-bold py-3 px-6 rounded-lg">
-                    Become a Member
-                  </Link>
+            displayPlans.map((p, idx) => {
+              // Determine card styling based on plan name
+              let borderColor = "border-white border-opacity-20";
+              let textColor = "text-white";
+              let btnColor = "bg-white text-gray-900";
+
+              const name = p.name.toLowerCase();
+              if (name.includes('gold')) {
+                borderColor = "border-yellow-500/50";
+                textColor = "text-yellow-400";
+                btnColor = "bg-yellow-500 text-black hover:bg-yellow-400";
+              } else if (name.includes('platinum')) {
+                borderColor = "border-slate-300/50";
+                textColor = "text-slate-200";
+                btnColor = "bg-slate-200 text-slate-900 hover:bg-white";
+              } else if (name.includes('diamond')) {
+                borderColor = "border-cyan-400/50";
+                textColor = "text-cyan-400";
+                btnColor = "bg-gradient-to-r from-cyan-500 to-blue-500 text-white hover:opacity-90";
+              } else if (name.includes('silver')) {
+                borderColor = "border-gray-400/50";
+                textColor = "text-gray-300";
+                btnColor = "bg-gray-300 text-gray-900 hover:bg-gray-200";
+              } else if (name.includes('free')) {
+                borderColor = "border-emerald-500/30";
+                textColor = "text-emerald-400";
+                btnColor = "bg-emerald-600 text-white hover:bg-emerald-500";
+              }
+
+              return (
+                <div key={p.id} className={`flex flex-col h-full bg-white bg-opacity-5 p-6 rounded-xl border ${borderColor} backdrop-blur-md transition-transform hover:-translate-y-1`}>
+                  <h3 className={`text-xl font-bold ${textColor} mb-2`}>
+                    {p.name}
+                  </h3>
+                  <div className="mb-4">
+                    <span className="text-2xl font-bold text-white">${p.price.toLocaleString()}</span>
+                    <span className="text-xs text-gray-400 block mt-1">
+                      {p.price === 0 ? "Forever Free" : name.includes('diamond') ? "One-Time Fee" : "/ Year"}
+                    </span>
+                  </div>
+
+                  {p.paymentProtection && (
+                    <div className="mb-4 text-sm font-semibold text-blue-300 bg-blue-900/30 px-3 py-1.5 rounded-lg inline-block">
+                      🛡️ {p.paymentProtection}
+                    </div>
+                  )}
+
+                  {p.discountPercentage !== undefined && p.discountPercentage > 0 && (
+                    <div className="mb-4 ml-2 text-sm font-semibold text-purple-300 bg-purple-900/30 px-3 py-1.5 rounded-lg inline-block">
+                      🏷️ {p.discountPercentage}% Discount
+                    </div>
+                  )}
+
+                  <ul className="text-sm text-gray-300 space-y-2 mb-6 text-left flex-1">
+                    {p.features?.slice(0, 5).map((f, i) => (
+                      <li key={i} className="flex items-start gap-2">
+                        <span className="text-green-500 mt-0.5">✓</span>
+                        <span className="opacity-90">{f}</span>
+                      </li>
+                    ))}
+                    {(p.features?.length || 0) > 5 && (
+                      <li className="text-xs text-gray-500 italic">...and more</li>
+                    )}
+                  </ul>
+
+                  <div className="mt-auto pt-4">
+                    <Link href={`/membership/purchase/${toUrlSegment(p.slug || p.name)}`} className={`w-full inline-flex items-center justify-center font-bold py-3 px-4 rounded-lg transition-colors ${btnColor}`}>
+                      {p.price === 0 ? "Join Free" : "Choose Plan"}
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            ))
+              )
+            })
           )}
         </div>
       </div>
@@ -175,62 +227,10 @@ const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
   );
 };
 
-// 4. Specialty Membership Section - show specific specialties if found in plans
+// 4. Specialty Membership Section - Removed as per new requirement focusing on 5 specific tiers.
+// kept as null component or removed.
 const SpecialtyMembership = ({ plans }: { plans: ApiPlan[] }) => {
-  const specialties = ['projects', 'dangerous-goods', 'ecommerce', 'railway'];
-  const found = specialties
-    .map((s) => {
-      const p = plans.find((pl) => toUrlSegment(pl.slug || pl.name).includes(s));
-      return p ? { key: s, plan: p } : null;
-    })
-    .filter(Boolean) as { key: string; plan: ApiPlan }[];
-
-  return (
-    <Section className="bg-white">
-      <div className="container mx-auto px-4">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Specialty Membership</h2>
-        <div className="flex flex-col md:flex-row gap-8 items-center">
-          <div className="md:w-1/3">
-            <img src="https://static.vecteezy.com/system/resources/thumbnails/025/335/808/small_2x/specialty-program-concept-blue-gradient-icon-exclusivity-loyalty-customers-program-membership-advantages-abstract-idea-thin-line-illustration-isolated-outline-drawing-vector.jpg" alt="Specialty Membership" className="rounded-xl shadow-lg w-full" />
-          </div>
-
-          <div className="md:w-2/3">
-            {found.length === 0 ? (
-              ['IGLA Projects', 'IGLA Dangerous Goods', 'IGLA eCommerce', 'IGLA Railway'].map((specialty, i) => (
-                <div key={specialty} className={`p-6 rounded-lg ${i === 0 ? 'bg-gray-100' : ''}`}>
-                  <h3 className="text-xl font-bold flex items-center">{specialty} <span className="text-blue-500 ml-2">+</span></h3>
-                  {i === 0 && (
-                    <div className="mt-4 text-gray-600">
-                      <p className="mb-2">✓ Gathering professional companies with rich experience.</p>
-                      <p>✓ Efficient logistics project cooperation among members.</p>
-                      <div className="mt-6 flex gap-4">
-                        <button className="bg-white border border-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">View More</button>
-                        <button className="bg-[#5da765] text-white font-semibold py-2 px-6 rounded-lg">Become a Member</button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))
-            ) : (
-              found.map(({ key, plan }, idx) => (
-                <div key={key} className={`p-6 rounded-lg ${idx === 0 ? 'bg-gray-100' : ''}`}>
-                  <h3 className="text-xl font-bold flex items-center">{plan.name} <span className="text-blue-500 ml-2">+</span></h3>
-                  <div className="mt-4 text-gray-600">
-                    <p className="mb-2">✓ {plan.features?.[0] ?? 'Specialty benefit'}</p>
-                    <p>✓ {plan.features?.[1] ?? 'Collaboration benefit'}</p>
-                    <div className="mt-6 flex gap-4">
-                      <Link href={`/membership/purchase/${toUrlSegment(plan.slug || plan.name)}`} className="bg-white border border-gray-300 text-gray-800 font-semibold py-2 px-6 rounded-lg">View More</Link>
-                      <Link href={`/membership/purchase/${toUrlSegment(plan.slug || plan.name)}`} className="bg-[#5da765] text-white font-semibold py-2 px-6 rounded-lg">Become a Member</Link>
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-    </Section>
-  );
+  return null;
 };
 
 // 5. Success Stories Section (unchanged)
@@ -241,14 +241,18 @@ const SuccessStories = () => (
       <div className="grid md:grid-cols-3 gap-8">
         {[1, 2, 3].map((i) => (
           <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden">
-            <img src={`/path/to/story-${i}.jpg`} alt={`Success Story ${i}`} className="w-full h-48 object-cover" />
+            <div className="h-48 bg-gray-200 w-full flex items-center justify-center text-gray-400">
+              {/* Placeholder for image */}
+              [Story Image {i}]
+            </div>
+            {/* <img src={`/path/to/story-${i}.jpg`} alt={`Success Story ${i}`} className="w-full h-48 object-cover" /> */}
             <div className="p-6">
-              <h3 className="font-bold text-lg mb-2">IGLA & Thalis Logistics Co., Ltd Driving global Logistics Network...</h3>
+              <h3 className="font-bold text-lg mb-2">IGLA & Partner Success Story...</h3>
               <div className="flex items-center text-sm text-gray-500">
-                <span>Asia</span>
+                <span>Global</span>
                 <span className="mx-2">|</span>
-                <span>Business opportunities</span>
-                <span className="ml-auto">15-May-2025</span>
+                <span>Growth</span>
+                <span className="ml-auto">2025</span>
               </div>
             </div>
           </div>
@@ -265,7 +269,8 @@ const MembersWall = () => (
       <h2 className="text-3xl font-bold text-center mb-12">Our Members</h2>
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
         {[...Array(12)].map((_, i) => (
-          <img key={i} src={`/path/to/logo-${i + 1}.png`} alt="Member Logo" className="h-12 w-auto mx-auto" />
+          <div key={i} className="h-12 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">Logo {i + 1}</div>
+          // <img key={i} src={`/path/to/logo-${i + 1}.png`} alt="Member Logo" className="h-12 w-auto mx-auto" />
         ))}
       </div>
     </div>
@@ -289,7 +294,7 @@ const MembershipPage: NextPage = () => {
         if (!res.ok) throw new Error(`Failed to load plans (${res.status})`);
         const data: ApiPlan[] = await res.json();
         if (!mounted) return;
-        // sort by price ascending to keep consistent order (optional)
+        // sort by price ascending
         data.sort((a, b) => (a.price || 0) - (b.price || 0));
         setPlans(data);
       } catch (err) {
@@ -335,7 +340,6 @@ const MembershipPage: NextPage = () => {
             <WhyChooseSection />
             <MembershipTiers plans={plans} />
             <SpecialtyMembership plans={plans} />
-            {/* Uncomment if you want to show stories & logos */}
             {/* <SuccessStories /> */}
             {/* <MembersWall /> */}
           </>

@@ -356,6 +356,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
 
   const { itemCount, addToCart } = useCart();
+  const { user } = useAuth();
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -416,7 +417,34 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           setOffers([]);
           return;
         }
-        const data: Offer[] = await r.json();
+        let data: Offer[] = await r.json();
+
+        // --- INJECT MEMBERSHIP DISCOUNT ---
+        if (user?.companyId) {
+          try {
+            const compRes = await fetch(`/api/companies/${user.companyId}`);
+            if (compRes.ok) {
+              const compData = await compRes.json();
+              const discount = compData.membershipPlan?.discountPercentage;
+              if (discount && discount > 0) {
+                // Create a "Membership Discount" offer that applies to everything
+                const membershipOffer: Offer = {
+                  id: "membership-discount",
+                  name: `Membership Discount (${discount}%)`,
+                  percentage: discount,
+                  scope: "ALL",
+                  isActive: true,
+                  description: "Exclusive discount for your membership level",
+                };
+                // Add it to the list. logic below picks best offer, so if this is higher it wins.
+                data = [...data, membershipOffer];
+              }
+            }
+          } catch (e) {
+            console.error("Failed to fetch membership discount", e);
+          }
+        }
+
         setOffers(data || []);
       } catch (err) {
         console.error("Failed to load offers", err);
@@ -428,7 +456,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
     fetchEventData();
     fetchOffers();
-  }, [resolvedParams.id]);
+  }, [resolvedParams.id, user?.companyId]);
 
   if (loading)
     return (

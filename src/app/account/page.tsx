@@ -40,6 +40,11 @@ interface Company {
   location?: Location | null;
   isVerified?: boolean;
   status?: 'LIVE' | 'BLOCKLISTED' | 'SUSPENDED' | string;
+  membershipPlan?: {
+    name: string;
+    paymentProtection?: string | null;
+    discountPercentage?: number | null;
+  } | null;
 }
 
 export default function CompanyProfilePage() {
@@ -50,53 +55,54 @@ export default function CompanyProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
- useEffect(() => {
-  let isMounted = true;
-  const companyId = user?.companyId;
+  useEffect(() => {
+    let isMounted = true;
+    const companyId = user?.companyId;
 
-  if (!companyId) {
-    if (isMounted) {
-      setCompany(null);
-      setLoading(false);
+    if (!companyId) {
+      if (isMounted) {
+        setCompany(null);
+        setLoading(false);
+      }
+      return () => { isMounted = false; };
     }
+
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const resp = await fetch(`/api/companies/${companyId}`, { headers: { 'Content-Type': 'application/json' } });
+        if (!resp.ok) throw new Error(`Failed to fetch company (status ${resp.status})`);
+        const data = (await resp.json()) as Company;
+        if (!isMounted) return;
+        setCompany({
+          id: data.id,
+          memberId: data.memberId ?? '',
+          memberType: data.memberType ?? '',
+          name: data.name ?? 'Untitled Company',
+          website: data.website ?? null,
+          established: data.established ?? null,
+          size: data.size ?? null,
+          about: data.about ?? null,
+          memberSince: data.memberSince ?? null,
+          logoUrl: data.logoUrl ?? null,
+          media: Array.isArray(data.media) ? data.media : [],
+          location: data.location ?? null,
+          isVerified: (data as any).isVerified ?? false,
+          status: data.status ?? 'LIVE',
+          membershipPlan: data.membershipPlan ?? null,
+        });
+      } catch (err: any) {
+        if (!isMounted) return;
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    run();
     return () => { isMounted = false; };
-  }
-
-  const run = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const resp = await fetch(`/api/companies/${companyId}`, { headers: { 'Content-Type': 'application/json' } });
-      if (!resp.ok) throw new Error(`Failed to fetch company (status ${resp.status})`);
-      const data = (await resp.json()) as Company;
-      if (!isMounted) return;
-      setCompany({
-        id: data.id,
-        memberId: data.memberId ?? '',
-        memberType: data.memberType ?? '',
-        name: data.name ?? 'Untitled Company',
-        website: data.website ?? null,
-        established: data.established ?? null,
-        size: data.size ?? null,
-        about: data.about ?? null,
-        memberSince: data.memberSince ?? null,
-        logoUrl: data.logoUrl ?? null,
-        media: Array.isArray(data.media) ? data.media : [],
-        location: data.location ?? null,
-        isVerified: (data as any).isVerified ?? false,
-        status: data.status ?? 'LIVE',
-      });
-    } catch (err: any) {
-      if (!isMounted) return;
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      if (isMounted) setLoading(false);
-    }
-  };
-
-  run();
-  return () => { isMounted = false; };
-}, [user?.companyId]);
+  }, [user?.companyId]);
 
 
 
@@ -262,6 +268,34 @@ export default function CompanyProfilePage() {
                   <div className="mt-2 text-sm text-slate-700">{company.size ?? '—'}</div>
                 </div>
               </div>
+
+              {/* Membership Details */}
+              <div className="mt-6 rounded-md border p-4 bg-indigo-50 border-indigo-100">
+                <h4 className="text-sm font-bold text-indigo-900 mb-2">Membership Status</h4>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-lg font-bold text-indigo-700">
+                      {company.membershipPlan?.name || "Free Member"}
+                    </div>
+                    <div className="text-xs text-indigo-600 mt-1">
+                      Member since {getYear(company.memberSince)}
+                    </div>
+                  </div>
+                  <div className="text-right space-y-1">
+                    {company.membershipPlan?.paymentProtection && (
+                      <div className="text-xs font-semibold text-blue-700 bg-blue-100 px-2 py-1 rounded inline-block">
+                        🛡️ {company.membershipPlan.paymentProtection}
+                      </div>
+                    )}
+                    {(company.membershipPlan?.discountPercentage ?? 0) > 0 && (
+                      <div className="block mt-1 text-xs font-semibold text-purple-700 bg-purple-100 px-2 py-1 rounded">
+                        🏷️ {company.membershipPlan?.discountPercentage}% Off
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
             </div>
 
             {/* Right column: contact / location card */}

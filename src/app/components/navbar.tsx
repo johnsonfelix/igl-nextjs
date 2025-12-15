@@ -9,6 +9,7 @@ import Image from "next/image";
 
 interface User {
   email?: string;
+  role?: string;
 }
 
 function useUser(): User | null {
@@ -93,9 +94,11 @@ export default function Navbar() {
     }
   };
 
-  // Filter nav items: Hide "Admin" on home page
+  // Filter nav items: Hide "Admin" unless user is ADMIN
   const displayNavItems = navItems.filter((item) => {
-    if (pathname === "/" && item.name === "Admin") return false;
+    if (item.name === "Admin") {
+      return user?.role === 'ADMIN';
+    }
     return true;
   });
 

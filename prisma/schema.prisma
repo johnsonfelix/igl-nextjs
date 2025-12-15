@@ -497,6 +497,8 @@ model MembershipPlan {
   price       Float
   description String?
   thumbnail   String?
+  paymentProtection String? // e.g. "Coverage up to USD 8,000"
+  discountPercentage Float? // e.g. 10.0 for 10%
   features    String[]
   offers      Offer[]  @relation("OfferMembershipPlans")
   companies   Company[] // back-relation

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   CreditCard,
   CheckCircle,
@@ -28,6 +30,8 @@ type Plan = {
   price: number;
   description?: string | null;
   thumbnail?: string | null;
+  paymentProtection?: string | null;
+  discountPercentage?: number | null;
   features?: string[] | null;
 };
 
@@ -74,7 +78,8 @@ async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
 }
 
 export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
+  const router = useRouter();
 
   // --- companyId resolution (auto-detect or fallback input) ---
   const inferredCompanyId = useMemo(() => {
@@ -109,7 +114,6 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
   } | null>(null);
 
   const [account, setAccount] = useState<string>("");
-  const [durationDays, setDurationDays] = useState<number | "">(365);
   const [acceptTerms, setAcceptTerms] = useState<boolean>(false);
   const [acceptPolicy, setAcceptPolicy] = useState<boolean>(false);
 
@@ -265,15 +269,26 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     selectedPlanPriceAfterOffer - couponDiscount
   );
 
+  // Determine duration based on plan name (Diamond/Lifetime logic)
+  const durationDays = useMemo(() => {
+    if (selectedPlan?.name?.toLowerCase().includes("diamond")) return null; // Lifetime
+    return 365; // Default 1 year
+  }, [selectedPlan]);
+
+
   // --- simple color mapping for plan cards ---
   const planColor = (name: string) => {
     const key = name.toLowerCase();
     if (key.includes("gold"))
       return "from-yellow-100 to-amber-200 text-amber-800";
-    if (key.includes("platinum") || key.includes("diamond"))
-      return "from-violet-100 to-indigo-200 text-indigo-800";
+    if (key.includes("platinum"))
+      return "from-slate-200 to-slate-400 text-slate-800"; // Platinum color
+    if (key.includes("diamond"))
+      return "from-cyan-100 to-blue-200 text-blue-900"; // Diamond color
     if (key.includes("silver"))
-      return "from-purple-100 to-pink-100 text-pink-800";
+      return "from-gray-100 to-gray-300 text-gray-800";
+    if (key.includes("free"))
+      return "from-green-50 to-emerald-100 text-emerald-800";
     return "from-slate-50 to-slate-100 text-slate-800";
   };
 
@@ -282,10 +297,17 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     setError(null);
     setSuccessCompany(null);
 
+    if (!user) {
+      setError("Login before checkout");
+      return;
+    }
+
     if (!companyId) {
-      setError(
-        "Company ID required. Ensure your auth context has a company or paste the company id."
-      );
+      // Try refreshing user to see if company was just added
+      await refreshUser();
+      // If still no company, prompt to create
+      setError("Company profile required. Redirecting to registration...");
+      setTimeout(() => router.push("/company/register"), 1500);
       return;
     }
     if (!selectedPlanId) {
@@ -300,7 +322,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     setLoading(true);
     try {
       const payment: PaymentPayload = {
-        provider: paymentMethod,
+        provider: finalPrice === 0 ? "FREE" : paymentMethod,
         transactionId: account ?? undefined,
         amount: finalPrice, // includes membership offer + coupon
       };
@@ -314,10 +336,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
           payment,
           coupon: couponApplied?.code ?? null,
           account: account || null,
-          durationDays:
-            typeof durationDays === "number" && durationDays > 0
-              ? durationDays
-              : null,
+          durationDays, // Passed explicitly (null for lifetime)
         }),
       });
 
@@ -334,6 +353,25 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     }
   }
 
+  const toUrlSegment = (s?: string | null) =>
+    (s || "")
+      .toString()
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+
+  const handleSelectPlan = (plan: Plan) => {
+    if (!user || !user.companyId) {
+      // Optional: Redirect to login or register first?
+      // The layout likely handles auth, but for companyId:
+    }
+    const segment = toUrlSegment(plan.slug || plan.name);
+    router.push(`/membership/purchase/${segment}`);
+  };
+
   return (
     <div className="space-y-8">
       {/* Header / summary */}
@@ -342,33 +380,20 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
           <p className="mt-1 text-slate-600">
             Choose a plan, pay securely and unlock benefits for your company.
           </p>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="hidden md:block text-sm text-slate-500">
-            Signed in as{" "}
-            <span className="font-medium text-slate-800">
-              {(user as any)?.email ??
-                (user as any)?.name ??
-                "Guest"}
-            </span>
-            <div className="text-xs mt-1 text-slate-400">
-              Company {inferredCompanyId ? "auto-detected" : "not detected"}
+          {user && !companyId && (
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg flex items-center justify-between">
+              <div>
+                <h3 className="text-amber-800 font-semibold">Missing Company Profile</h3>
+                <p className="text-sm text-amber-700">You need a company profile to purchase a membership.</p>
+              </div>
+              <Link
+                href="/company/register"
+                className="px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700"
+              >
+                Register Company
+              </Link>
             </div>
-          </div>
-
-          {/* Company ID fallback input */}
-          <div className="flex items-center gap-2">
-            <input
-              aria-label="company id"
-              value={companyId ?? ""}
-              onChange={(e) => setCompanyId(e.target.value)}
-              placeholder={
-                inferredCompanyId ? "Company detected" : "Paste company id"
-              }
-              className="px-3 py-2 border rounded-md text-sm w-60"
-            />
-          </div>
+          )}
         </div>
       </div>
 
@@ -378,7 +403,6 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {plans.map((p) => {
-            const active = p.id === selectedPlanId;
             const {
               offer: planOffer,
               finalPrice: planFinalPrice,
@@ -387,12 +411,9 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
             return (
               <div
                 key={p.id}
-                onClick={() => setSelectedPlanId(p.id)}
-                className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-transform transform hover:-translate-y-1 shadow-sm ${
-                  active ? "ring-4 ring-indigo-200" : "hover:shadow-md"
-                }`}
+                onClick={() => handleSelectPlan(p)}
+                className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-transform transform hover:-translate-y-1 shadow-sm hover:shadow-md bg-white border border-slate-100`}
                 role="button"
-                aria-pressed={active}
               >
                 {/* offer badge */}
                 {planOffer && (
@@ -417,7 +438,8 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
                           className="h-full w-full object-cover rounded-lg"
                         />
                       ) : (
-                        <div className="text-sm text-white/90 font-semibold">
+                        <div className="text-xl font-bold text-white/90">
+                          {/* Short initial or icon if no image */}
                           {p.name.charAt(0)}
                         </div>
                       )}
@@ -437,7 +459,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
                             ${planFinalPrice.toFixed(2)}
                           </span>
                           <span className="text-xs text-slate-700">
-                            / year
+                            {p.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
                           </span>
                         </div>
                       ) : (
@@ -446,7 +468,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
                             ${p.price.toFixed(2)}
                           </div>
                           <div className="text-xs text-slate-700">
-                            / year
+                            {p.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
                           </div>
                         </div>
                       )}
@@ -454,246 +476,53 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
                   </div>
                 </div>
 
-                {/* features & CTA */}
-                <div className="mt-3 flex items-center justify-between">
-                  <ul className="text-sm text-slate-700 space-y-1">
-                    {(p.features ?? [])
-                      .slice(0, 3)
-                      .map((f, i) => (
-                        <li key={i} className="flex items-center gap-2">
-                          <CheckCircle className="h-4 w-4 text-green-500" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    {(!p.features || p.features.length === 0) && (
-                      <li className="text-slate-500">No features listed</li>
-                    )}
-                  </ul>
+                {/* content body */}
+                <div className="mt-3">
+                  {p.paymentProtection && (
+                    <div className="mb-2 text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded inline-block">
+                      🛡️ {p.paymentProtection}
+                    </div>
+                  )}
 
-                  <div className="flex flex-col items-end gap-2">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedPlanId(p.id);
-                      }}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold ${
-                        active
-                          ? "bg-indigo-700 text-white"
-                          : "bg-white border text-indigo-700"
-                      }`}
-                    >
-                      {active ? "Selected" : "Select"}
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
+                  {p.discountPercentage !== undefined && p.discountPercentage !== null && p.discountPercentage > 0 && (
+                    <div className="mb-2 ml-2 text-xs font-semibold text-purple-800 bg-purple-100 px-2 py-1 rounded inline-block">
+                      🏷️ {p.discountPercentage}% OFF
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <ul className="text-sm text-slate-700 space-y-1 w-full mb-2">
+                      {(p.features ?? [])
+                        .slice(0, 3)
+                        .map((f, i) => (
+                          <li key={i} className="flex items-start gap-2">
+                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                            <span className="line-clamp-2 text-xs">{f}</span>
+                          </li>
+                        ))}
+                      {(!p.features || p.features.length === 0) && (
+                        <li className="text-slate-500">No features listed</li>
+                      )}
+                    </ul>
+
+                    <div className="w-full flex justify-end">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectPlan(p);
+                        }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700`}
+                      >
+                        Select & Pay
+                        <ArrowRight className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             );
           })}
         </div>
-      </section>
-
-      {/* Payment & details */}
-      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 p-6 bg-white rounded-2xl shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-indigo-600" /> Payment & details
-          </h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <label className="col-span-2">
-              <span className="text-sm text-slate-600">Payment method</span>
-              <div className="mt-2 flex gap-3">
-                {["RAZORPAY", "PAYPAL", "OFFLINE"].map((method) => (
-                  <button
-                    key={method}
-                    onClick={() =>
-                      setPaymentMethod(method as any)
-                    }
-                    className={`flex-1 text-left px-3 py-2 rounded-lg border shadow-sm text-sm transition ${
-                      paymentMethod === method
-                        ? "bg-indigo-50 border-indigo-300"
-                        : "bg-white border-slate-200"
-                    }`}
-                    type="button"
-                  >
-                    <div className="font-medium">{method}</div>
-                    <div className="text-xs text-slate-500">
-                      Pay with{" "}
-                      {method === "OFFLINE"
-                        ? "bank transfer"
-                        : method}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </label>
-          </div>
-
-          {/* coupon & summary */}
-          <div className="mt-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-col gap-2">
-              {/* Coupon input (optional – uncomment when needed) */}
-              {/* <div className="flex items-center gap-2 bg-slate-50 px-3 py-2 rounded-md">
-                <Tag className="h-4 w-4 text-slate-600" />
-                <input
-                  value={coupon}
-                  onChange={(e) => setCoupon(e.target.value)}
-                  placeholder="Coupon code"
-                  className="bg-transparent outline-none text-sm flex-1"
-                />
-                <button
-                  onClick={applyCoupon}
-                  className="ml-2 px-3 py-1 bg-indigo-600 text-white rounded text-sm"
-                >
-                  Apply
-                </button>
-              </div> */}
-
-              {bestOfferForSelected && (
-                <div className="inline-flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-3 py-2 rounded-md border border-emerald-100">
-                  <Gift className="h-4 w-4" />
-                  <span>
-                    Membership offer{" "}
-                    <span className="font-semibold">
-                      {bestOfferForSelected.name}
-                    </span>{" "}
-                    applied: {bestOfferForSelected.percentage}% off
-                  </span>
-                </div>
-              )}
-
-              {couponApplied && (
-                <div className="text-sm text-green-700 font-medium">
-                  {couponApplied.code} applied — -$
-                  {(couponApplied.discount ?? 0).toFixed(2)}
-                </div>
-              )}
-
-              {offersLoading && (
-                <div className="text-xs text-slate-400">
-                  Checking membership offers…
-                </div>
-              )}
-              {offersError && (
-                <div className="text-xs text-red-500">
-                  {offersError}
-                </div>
-              )}
-            </div>
-
-            <div className="text-right">
-              <div className="text-sm text-slate-500">Subtotal</div>
-              <div className="text-xl font-extrabold">
-                ${previewPrice.toFixed(2)}
-              </div>
-              {(membershipDiscountAmount > 0 ||
-                couponDiscount > 0) && (
-                <>
-                  <div className="text-xs text-slate-500">
-                    Membership discount: -$
-                    {membershipDiscountAmount.toFixed(2)}
-                  </div>
-                  {couponDiscount > 0 && (
-                    <div className="text-xs text-slate-500">
-                      Coupon discount: -$
-                      {couponDiscount.toFixed(2)}
-                    </div>
-                  )}
-                  <div className="text-sm text-slate-700 mt-1">
-                    Final:{" "}
-                    <span className="font-bold">
-                      ${finalPrice.toFixed(2)}
-                    </span>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* terms & CTA */}
-        <aside className="p-6 bg-white rounded-2xl shadow-sm flex flex-col gap-4">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="h-6 w-6 text-indigo-600 mt-1" />
-            <div>
-              <div className="font-semibold">Terms & policies</div>
-              <div className="mt-1 text-sm text-slate-600">
-                You must agree before purchasing.
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="inline-flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={acceptTerms}
-                onChange={(e) =>
-                  setAcceptTerms(e.target.checked)
-                }
-                className="h-4 w-4"
-              />
-              <span className="text-sm">
-                I agree to the{" "}
-                <a className="text-indigo-600 underline">
-                  Terms & Conditions
-                </a>
-              </span>
-            </label>
-
-            <label className="inline-flex items-center gap-3">
-              <input
-                type="checkbox"
-                checked={acceptPolicy}
-                onChange={(e) =>
-                  setAcceptPolicy(e.target.checked)
-                }
-                className="h-4 w-4"
-              />
-              <span className="text-sm">
-                I agree to the{" "}
-                <a className="text-indigo-600 underline">
-                  Privacy Policy
-                </a>
-              </span>
-            </label>
-          </div>
-
-          <div className="mt-4">
-            <button
-              onClick={handleSubmit}
-              disabled={loading || !acceptTerms}
-              className={`w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-white font-semibold transition ${
-                loading || !acceptTerms
-                  ? "bg-indigo-300 cursor-not-allowed"
-                  : "bg-indigo-600 hover:bg-indigo-700"
-              }`}
-            >
-              {loading
-                ? "Processing..."
-                : `Become a Member — $${finalPrice.toFixed(
-                    2
-                  )}`}
-            </button>
-          </div>
-
-          {error && (
-            <div className="text-sm text-red-600">{error}</div>
-          )}
-          {successCompany && (
-            <div className="p-3 bg-green-50 rounded text-sm text-green-800">
-              <div className="font-semibold">Success!</div>
-              <div className="mt-1">
-                Membership updated for company{" "}
-                <span className="font-medium">
-                  {successCompany.id ?? ""}
-                </span>
-                .
-              </div>
-            </div>
-          )}
-        </aside>
       </section>
     </div>
   );

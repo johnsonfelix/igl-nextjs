@@ -27,7 +27,7 @@ const EventCard = ({ event }: { event: Event }) => {
   const formattedEndDate = format(parseISO(endDate), 'dd, yyyy');
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
+    <Link href={`/event/${id}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 group hover:shadow-xl hover:-translate-y-1">
       <div className="relative h-64 w-full overflow-hidden">
         <Image
           src={thumbnail || '/placeholder-event.jpg'}
@@ -72,12 +72,12 @@ const EventCard = ({ event }: { event: Event }) => {
           <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">
             IGLA Event
           </div>
-          <Link href={`/event/${id}`} className="inline-flex items-center gap-1 text-[#5da765] font-bold text-sm hover:gap-2 transition-all">
+          <span className="inline-flex items-center gap-1 text-[#5da765] font-bold text-sm hover:gap-2 transition-all">
             View Details <ArrowRight className="h-4 w-4" />
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

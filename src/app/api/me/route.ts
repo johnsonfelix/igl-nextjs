@@ -31,6 +31,7 @@ export async function GET() {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
         companyId: company?.id ?? null,
       },
       { headers }

@@ -16,6 +16,8 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
   const [price, setPrice] = useState<number | "">("");
   const [features, setFeatures] = useState("");
   const [description, setDescription] = useState("");
+  const [paymentProtection, setPaymentProtection] = useState("");
+  const [discountPercentage, setDiscountPercentage] = useState<number | "">("");
 
   // Image upload state replaces URL input
   const [thumbnail, setThumbnail] = useState(""); // holds existing or uploaded URL
@@ -31,6 +33,8 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
       setSlug(plan.slug || "");
       setPrice(plan.price);
       setDescription(plan.description || "");
+      setPaymentProtection(plan.paymentProtection || "");
+      setDiscountPercentage(plan.discountPercentage ?? "");
       setThumbnail(plan.thumbnail || "");
       setFeatures((plan.features || []).join("\n"));
       setFile(null);
@@ -40,6 +44,8 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
       setSlug("");
       setPrice("");
       setDescription("");
+      setPaymentProtection("");
+      setDiscountPercentage("");
       setThumbnail("");
       setFeatures("");
       setFile(null);
@@ -76,6 +82,8 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
         price: Number(price || 0),
         description: description.trim(),
         thumbnail: uploadedUrl ?? "",
+        paymentProtection: paymentProtection.trim() || null,
+        discountPercentage: discountPercentage === "" ? null : Number(discountPercentage),
         features: features
           .split("\n")
           .map((f) => f.trim())
@@ -175,6 +183,31 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
               rows={3}
               placeholder="Short plan description"
             />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Payment Protection</label>
+              <input
+                type="text"
+                value={paymentProtection}
+                onChange={(e) => setPaymentProtection(e.target.value)}
+                className="w-full border p-2 rounded-md"
+                placeholder="e.g. Coverage up to USD 8,000"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Discount %</label>
+              <input
+                type="number"
+                value={discountPercentage}
+                onChange={(e) => setDiscountPercentage(e.target.value === "" ? "" : Number(e.target.value))}
+                className="w-full border p-2 rounded-md"
+                placeholder="e.g. 10.5"
+                step="0.1"
+                min="0"
+              />
+            </div>
           </div>
 
           {/* Thumbnail upload */}

@@ -29,7 +29,11 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // success — navigate
+        // success — navigate based on role
+        if (data.role === 'ADMIN') {
+          window.location.assign('/admin/dashboard');
+          return;
+        }
         window.location.assign('/dashboard');
         return;
       } else {

@@ -1,8 +1,7 @@
 // app/api/companies/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
-// Prefer a shared prisma instance via "@/app/lib/prisma" in real apps
-const prisma = new PrismaClient();
+import prisma from "@/app/lib/prisma";
+import { cookies } from "next/headers";
 
 // GET a single company by ID
 export async function GET(
@@ -14,11 +13,45 @@ export async function GET(
   try {
     const company = await prisma.company.findUnique({
       where: { id },
-      include: { media: true, location: true, user: true, services: true },
+      include: { media: true, location: true, user: true, services: true, membershipPlan: true },
     });
 
     if (!company) {
       return NextResponse.json({ error: 'Company not found' }, { status: 404 });
+    }
+
+    // --- SECURITY CHECK ---
+    const cookieStore = await cookies();
+    const userId = cookieStore.get("userId")?.value;
+    let canView = false;
+
+    if (userId) {
+      // Allow if own company
+      if (company.userId === userId) {
+        canView = true;
+      } else {
+        // Check user's membership
+        const requestor = await prisma.company.findFirst({
+          where: { userId },
+          include: { membershipPlan: true }
+        });
+
+        const planName = requestor?.membershipPlan?.name?.toLowerCase() || "";
+        if (planName && !planName.includes("free")) {
+          canView = true;
+        }
+      }
+    }
+
+    if (!canView && company.location) {
+      company.location.phone = null;
+      company.location.fax = null;
+      company.location.email = null;
+      company.location.mobile = null;
+      company.location.skype = null;
+      company.location.wechat = null;
+      company.location.contactPerson = null;
+      company.location.contactPersonDesignation = null;
     }
 
     return NextResponse.json(company);
@@ -36,6 +69,22 @@ export async function PUT(
   const { id: companyId } = await params;
   if (!companyId) {
     return NextResponse.json({ error: 'Missing company id' }, { status: 400 });
+  }
+
+  // --- SECURITY CHECK ---
+  const cookieStore = await cookies();
+  const userId = cookieStore.get("userId")?.value;
+  if (!userId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  // Ensure user owns this company
+  const owningCompany = await prisma.company.findFirst({
+    where: { id: companyId, userId: userId }
+  });
+
+  if (!owningCompany) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
   let body: any;

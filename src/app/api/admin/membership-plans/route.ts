@@ -13,6 +13,11 @@ export async function GET() {
         name: true,
         slug: true,
         price: true,
+        description: true,
+        thumbnail: true,
+        paymentProtection: true,
+        discountPercentage: true,
+        features: true,
       },
     });
 
@@ -30,11 +35,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { name, slug, price, description, thumbnail, features } = data;
+    const { name, slug, price, description, thumbnail, paymentProtection, discountPercentage, features } = data;
 
     // Basic validation
     if (!name || typeof price !== 'number' || !Array.isArray(features)) {
-        return NextResponse.json({ message: 'Invalid data provided' }, { status: 400 });
+      return NextResponse.json({ message: 'Invalid data provided' }, { status: 400 });
     }
 
     const newPlan = await prisma.membershipPlan.create({
@@ -44,6 +49,8 @@ export async function POST(request: Request) {
         price,
         description,
         thumbnail,
+        paymentProtection,
+        discountPercentage,
         features,
       },
     });

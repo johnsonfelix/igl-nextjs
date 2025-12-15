@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { useAuth } from "@/app/context/AuthContext";
+import { Lock } from "lucide-react";
 import {
   Briefcase,
   Calendar,
@@ -68,6 +70,36 @@ export default function CompanyProfilePage(_props: PageProps) {
   const [companyData, setCompanyData] = useState<CompanyDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [canViewContact, setCanViewContact] = useState(false);
+
+  useEffect(() => {
+    // Check if user is logged in and has a paid membership
+    const checkAccess = async () => {
+      if (!user?.companyId) {
+        setCanViewContact(false);
+        return;
+      }
+
+      try {
+        // Fetch current user's company details to check membership
+        const res = await fetch(`/api/companies/${user.companyId}`);
+        if (res.ok) {
+          const data = await res.json();
+          // Logic: Paid plan if membershipPlan exists and name is NOT 'Free' (or whatever logic defines free)
+          // Adjust based on your actual plan naming. Assuming "Free" is the free plan name.
+          // Or check if discountPercentage > 0, or check plan slug.
+          const planName = data.membershipPlan?.name?.toLowerCase() || "";
+          const isPaid = planName && !planName.includes("free");
+          setCanViewContact(!!isPaid);
+        }
+      } catch (e) {
+        console.error("Failed to check membership status", e);
+        setCanViewContact(false);
+      }
+    };
+    checkAccess();
+  }, [user]);
 
   useEffect(() => {
     if (!companyId) return;
@@ -318,10 +350,10 @@ export default function CompanyProfilePage(_props: PageProps) {
           </div>
 
           {/* RIGHT COLUMN (Sidebar Stats & Contact) */}
-          <div className="space-y-6">
+          <div className="space-y-6 relative">
 
             {/* Key Contact Card */}
-            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden">
+            <div className={`bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden ${!canViewContact ? 'blur-sm select-none' : ''}`}>
               <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
                 <User className="w-32 h-32" />
               </div>
@@ -354,37 +386,81 @@ export default function CompanyProfilePage(_props: PageProps) {
               </div>
             </div>
 
-            {/* Location & Quick Stats */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Company Overview</h3>
-
-              <ul className="space-y-4">
-                <li className="flex items-start">
-                  <MapPin className="w-5 h-5 text-indigo-500 mt-0.5 mr-3" />
-                  <div className="text-sm text-gray-600">
-                    <strong className="block text-gray-900 mb-1">Headquarters</strong>
-                    {companyData.location.address}<br />
-                    {companyData.location.city}, {companyData.location.state} {companyData.location.zipCode}<br />
-                    {companyData.location.country}
+            {/* UPGRADE OVERLAY FOR CONTACT CARD */}
+            {!canViewContact && (
+              <div className="absolute top-0 left-0 w-full h-[300px] flex items-center justify-center z-20">
+                <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-2xl border border-indigo-100 text-center max-w-xs mx-auto">
+                  <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Lock className="w-6 h-6" />
                   </div>
-                </li>
+                  <h3 className="font-bold text-gray-900 mb-2">Member Exclusive</h3>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Please upgrade to a paid membership plan to view contact details.
+                  </p>
+                  {!user ? (
+                    <Link href="/company/login" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm">
+                      Login now
+                    </Link>
+                  ) : (
+                    <Link href="/membership/become-member" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 px-4 rounded-lg transition-colors text-sm">
+                      Upgrade Membership
+                    </Link>
+                  )}
+                </div>
+              </div>
+            )}
 
-                <li className="flex items-center">
-                  <Calendar className="w-5 h-5 text-indigo-500 mr-3" />
-                  <div className="text-sm text-gray-600">
-                    <strong className="text-gray-900">Established:</strong> {companyData.established}
+            {/* Wrapper for right column relative positioning */}
+          </div>
+
+          {/* Actual sidebar container adjustment needed? No, removing the outer div wrapper I just assumed might break layout. 
+               Wait, the original code had  <div className="space-y-6"> as the right column wrapper. 
+               I need to be careful with the overlay positioning. 
+               Let's attach the overlay to the "Key Contact Card" specifically, or replace the card content if restricted?
+               The user requirement: "hide the contact and place a info that show buy a membership".
+               
+               Better approach: 
+               If !canViewContact, render a "Locked Contact Card" component INSTEAD of the real one (or obscure it).
+            */}
+
+          {/* Location & Quick Stats */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Company Overview</h3>
+
+            <ul className="space-y-4">
+              <li className="flex items-start">
+                <MapPin className="w-5 h-5 text-indigo-500 mt-0.5 mr-3" />
+                <div className="text-sm text-gray-600">
+                  <strong className="block text-gray-900 mb-1">Headquarters</strong>
+                  {companyData.location.address}<br />
+                  {companyData.location.city}, {companyData.location.state} {companyData.location.zipCode}<br />
+                  {companyData.location.country}
+                </div>
+              </li>
+
+              <li className="flex items-center">
+                <Calendar className="w-5 h-5 text-indigo-500 mr-3" />
+                <div className="text-sm text-gray-600">
+                  <strong className="text-gray-900">Established:</strong> {companyData.established}
+                </div>
+              </li>
+
+              <li className="flex items-center">
+                <Users className="w-5 h-5 text-indigo-500 mr-3" />
+                <div className="text-sm text-gray-600">
+                  <strong className="text-gray-900">Size:</strong> {companyData.size}
+                </div>
+              </li>
+
+              <li className="pt-2 relative">
+                {/* CONNECT SECTION LOCK */}
+                <h4 className="text-xs uppercase text-gray-400 font-bold mb-2">Connect</h4>
+                {!canViewContact ? (
+                  <div className="bg-gray-100 rounded-lg p-3 text-center text-sm text-gray-500 flex flex-col items-center gap-2">
+                    <Lock className="w-4 h-4" />
+                    <span>Contacts hidden</span>
                   </div>
-                </li>
-
-                <li className="flex items-center">
-                  <Users className="w-5 h-5 text-indigo-500 mr-3" />
-                  <div className="text-sm text-gray-600">
-                    <strong className="text-gray-900">Size:</strong> {companyData.size}
-                  </div>
-                </li>
-
-                <li className="pt-2">
-                  <h4 className="text-xs uppercase text-gray-400 font-bold mb-2">Connect</h4>
+                ) : (
                   <div className="flex gap-2">
                     {companyData.location.skype && (
                       <div className="bg-sky-50 text-sky-600 px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5">
@@ -397,37 +473,37 @@ export default function CompanyProfilePage(_props: PageProps) {
                       </div>
                     )}
                   </div>
-                </li>
-              </ul>
-            </div>
+                )}
+              </li>
+            </ul>
+          </div>
 
-            {/* Directors & IGLA */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Leadership</h3>
-              {companyData.directors ? (
-                <div className="text-gray-600 text-sm leading-relaxed mb-6">
-                  {companyData.directors}
-                </div>
-              ) : (
-                <div className="text-gray-400 text-sm italic mb-6">Not listed</div>
-              )}
+          {/* Directors & IGLA */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Leadership</h3>
+            {companyData.directors ? (
+              <div className="text-gray-600 text-sm leading-relaxed mb-6">
+                {companyData.directors}
+              </div>
+            ) : (
+              <div className="text-gray-400 text-sm italic mb-6">Not listed</div>
+            )}
 
-              <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">IGLA Network</h3>
-              <div className="flex items-center gap-3 text-sm text-gray-700">
-                <div className="bg-indigo-50 p-2 rounded-lg">
-                  <Award className="w-6 h-6 text-indigo-600" />
-                </div>
-                <div>
-                  <div className="font-bold">Participation</div>
-                  <div className="text-gray-500">{companyData.participationYears || "New Member"}</div>
-                </div>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">IGLA Network</h3>
+            <div className="flex items-center gap-3 text-sm text-gray-700">
+              <div className="bg-indigo-50 p-2 rounded-lg">
+                <Award className="w-6 h-6 text-indigo-600" />
+              </div>
+              <div>
+                <div className="font-bold">Participation</div>
+                <div className="text-gray-500">{companyData.participationYears || "New Member"}</div>
               </div>
             </div>
-
           </div>
-        </div>
 
+        </div>
       </div>
+
     </div>
   );
 }

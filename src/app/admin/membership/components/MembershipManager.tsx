@@ -107,6 +107,20 @@ export default function MembershipManager({ initialPlans }: Props) {
                 </div>
               </div>
 
+              <div className="mb-4 space-y-2">
+                {plan.paymentProtection && (
+                  <div className="text-xs font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded inline-block">
+                    🛡️ {plan.paymentProtection}
+                  </div>
+                )}
+                <br />
+                {plan.discountPercentage !== undefined && plan.discountPercentage !== null && plan.discountPercentage > 0 && (
+                  <div className="text-xs font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded inline-block">
+                    🏷️ {plan.discountPercentage}% Discount
+                  </div>
+                )}
+              </div>
+
               {/* Features */}
               <ul className="space-y-2 pt-2 text-gray-600">
                 {(plan.features || []).length === 0 ? (

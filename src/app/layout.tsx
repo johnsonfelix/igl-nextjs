@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/navbar";
+import Footer from "@/components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
@@ -42,6 +43,7 @@ export default function RootLayout({
         <AuthProvider>
           {children}
         </AuthProvider>
+        <Footer />
       </body>
     </html>
   );
