@@ -101,7 +101,7 @@ const StatusSeal = ({ status }: { status?: string }) => {
 };
 
 // --- Main Page Component ---
-export default function CompaniesListPage() {
+function CompaniesListContent() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -307,7 +307,7 @@ export default function CompaniesListPage() {
                   </div>
 
                   <div className="flex-grow flex flex-col min-w-0">
-                    <Link href={`/company/ details/${company.id}`}>
+                    <Link href={`/company/details/${company.id}`}>
                       <h2 className="text-xl font-bold text-gray-800 group-hover:text-red-600 transition-colors truncate">{company.name}</h2>
                     </Link>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-2">
@@ -449,5 +449,13 @@ export default function CompaniesListPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CompaniesListPage() {
+  return (
+    <React.Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <CompaniesListContent />
+    </React.Suspense>
   );
 }
