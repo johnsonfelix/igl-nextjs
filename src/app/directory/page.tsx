@@ -117,7 +117,7 @@ export default function CompaniesListPage() {
   const countryOptions = useMemo(() => ['All', 'India', 'United States', 'China', 'United Kingdom'], []);
 
   const renderSearchInputs = () => {
-    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#5da765] focus:border-[#5da765] transition shadow-sm";
+    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#004aad] focus:border-[#004aad] transition shadow-sm";
     switch (activeTab) {
       case 'Location':
         return (
@@ -143,7 +143,7 @@ export default function CompaniesListPage() {
         {/* Page Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-1.5 h-8 bg-[#5da765] rounded-full"></div>
+            <div className="w-1.5 h-8 bg-[#004aad] rounded-full"></div>
             <h1 className="text-3xl font-bold text-gray-800">Company Directory</h1>
           </div>
           <p className="text-gray-500 ml-6">Discover and connect with verified logistics companies worldwide</p>
@@ -157,13 +157,13 @@ export default function CompaniesListPage() {
                 key={t}
                 onClick={() => setActiveTab(t)}
                 className={`px-6 py-3 font-bold text-sm transition-all duration-300 relative ${activeTab === t
-                  ? 'text-[#5da765]'
+                  ? 'text-[#004aad]'
                   : 'text-gray-400 hover:text-gray-600'
                   }`}
               >
                 {t}
                 {activeTab === t && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#5da765] rounded-full"></div>
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#004aad] rounded-full"></div>
                 )}
               </button>
             ))}
@@ -175,7 +175,7 @@ export default function CompaniesListPage() {
             </div>
             <button
               onClick={fetchCompanies}
-              className="group flex h-12 px-6 items-center justify-center gap-2 rounded-xl bg-[#5da765] text-white hover:bg-[#4a8a52] transition-all shadow-lg shadow-green-200 hover:shadow-xl hover:translate-y-[-2px] focus:outline-none focus:ring-4 focus:ring-green-100 font-bold"
+              className="group flex h-12 px-6 items-center justify-center gap-2 rounded-xl bg-[#004aad] text-white hover:bg-[#4a8a52] transition-all shadow-lg shadow-green-200 hover:shadow-xl hover:translate-y-[-2px] focus:outline-none focus:ring-4 focus:ring-green-100 font-bold"
             >
               <Search size={20} className="group-hover:rotate-90 transition-transform" />
               <span className="hidden md:inline">Search</span>
@@ -188,7 +188,7 @@ export default function CompaniesListPage() {
             {loading && (
               <div className="flex h-64 items-center justify-center bg-white rounded-2xl border border-gray-100">
                 <div className="flex flex-col items-center">
-                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#5da765]"></div>
+                  <div className="h-12 w-12 animate-spin rounded-full border-4 border-gray-200 border-t-[#004aad]"></div>
                   <p className="text-gray-500 font-medium mt-4">Loading companies...</p>
                 </div>
               </div>
@@ -215,12 +215,12 @@ export default function CompaniesListPage() {
               const displayLocation = `${company.location?.city || ''}${company.location?.country ? `, ${company.location.country}` : ''}`;
 
               return (
-                <div key={company.id} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#5da765]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative">
+                <div key={company.id} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#004aad]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative">
                   {/* Decorative border on hover */}
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#5da765] to-[#4a8a52] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#004aad] to-[#4a8a52] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                   <div className="flex-shrink-0 flex md:flex-col items-center gap-3">
-                    <div className="relative h-24 w-24 flex-shrink-0 border-2 border-gray-100 rounded-xl p-2 bg-gradient-to-br from-gray-50 to-white shadow-sm group-hover:border-[#5da765]/30 transition-colors">
+                    <div className="relative h-24 w-24 flex-shrink-0 border-2 border-gray-100 rounded-xl p-2 bg-gradient-to-br from-gray-50 to-white shadow-sm group-hover:border-[#004aad]/30 transition-colors">
                       {logoUrl ? (
                         <Image src={logoUrl} alt={`${company.name} logo`} fill style={{ objectFit: 'contain' }} className="rounded-lg" />
                       ) : (
@@ -239,7 +239,7 @@ export default function CompaniesListPage() {
 
                   <div className="flex-grow flex flex-col min-w-0">
                     <Link href={`/company/details/${company.id}`}>
-                      <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#5da765] transition-colors truncate">{company.name}</h2>
+                      <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#004aad] transition-colors truncate">{company.name}</h2>
                     </Link>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-2">
                       <MapPin size={14} className="shrink-0" />
@@ -255,7 +255,7 @@ export default function CompaniesListPage() {
                   <div className="flex-shrink-0 flex items-center justify-end mt-4 md:mt-0">
                     <Link
                       href={`/company/details/${company.id}`}
-                      className="group/btn flex items-center gap-2 rounded-xl bg-[#5da765] px-6 py-3 text-sm font-bold text-white shadow-md shadow-green-200 hover:bg-[#4a8a52] hover:shadow-lg hover:translate-y-[-2px] transition-all focus:outline-none focus:ring-4 focus:ring-green-100 whitespace-nowrap"
+                      className="group/btn flex items-center gap-2 rounded-xl bg-[#004aad] px-6 py-3 text-sm font-bold text-white shadow-md shadow-green-200 hover:bg-[#4a8a52] hover:shadow-lg hover:translate-y-[-2px] transition-all focus:outline-none focus:ring-4 focus:ring-green-100 whitespace-nowrap"
                     >
                       View Profile
                       <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -268,7 +268,7 @@ export default function CompaniesListPage() {
             })}
           </div>
 
-          <aside className="hidden lg:block space-y-6">
+          {/* <aside className="hidden lg:block space-y-6">
             <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-gray-800 text-white rounded-xl p-3 shadow-md"><TrendingUp size={20} /></div>
@@ -279,7 +279,7 @@ export default function CompaniesListPage() {
                 View Hotlists
               </button>
             </div>
-            <div className="rounded-2xl bg-gradient-to-br from-[#5da765] to-[#4a8a52] p-6 text-white shadow-xl relative overflow-hidden">
+            <div className="rounded-2xl bg-gradient-to-br from-[#004aad] to-[#4a8a52] p-6 text-white shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 opacity-10">
                 <Award size={120} />
               </div>
@@ -289,12 +289,12 @@ export default function CompaniesListPage() {
                   <h3 className="font-bold text-lg">Become Verified</h3>
                 </div>
                 <p className="text-sm text-white/95 leading-relaxed">Increase trust and visibility in the network by getting your profile verified today.</p>
-                <button className="w-full mt-5 rounded-xl bg-white text-[#5da765] py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]">
+                <button className="w-full mt-5 rounded-xl bg-white text-[#004aad] py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]">
                   Learn More
                 </button>
               </div>
             </div>
-          </aside>
+          </aside> */}
         </div>
       </main>
     </div>

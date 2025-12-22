@@ -333,7 +333,7 @@ export default function EventFormPage() {
   if (fetching) {
     return (
       <div className="flex justify-center items-center h-screen bg-[#f8f9fa]">
-        <Loader2 className="animate-spin h-10 w-10 text-[#5da765]" />
+        <Loader2 className="animate-spin h-10 w-10 text-[#004aad]" />
       </div>
     );
   }
@@ -356,7 +356,7 @@ export default function EventFormPage() {
             <Button variant="outline" className="h-11 rounded-xl" onClick={() => router.push("/admin/events")}>
               Cancel
             </Button>
-            <Button onClick={handleSubmit} disabled={loading} className="h-11 rounded-xl bg-[#5da765] hover:bg-[#4a8a52] text-white font-semibold min-w-[140px] shadow-lg shadow-green-900/10">
+            <Button onClick={handleSubmit} disabled={loading} className="h-11 rounded-xl bg-[#004aad] hover:bg-[#4a8a52] text-white font-semibold min-w-[140px] shadow-lg shadow-green-900/10">
               {loading ? <Loader2 className="animate-spin mr-2 h-4 w-4" /> : null}
               {isEditMode ? "Save Changes" : "Create Event"}
             </Button>
@@ -372,7 +372,7 @@ export default function EventFormPage() {
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100"
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-[#5da765]/10 p-2.5 rounded-xl text-[#5da765]">
+                <div className="bg-[#004aad]/10 p-2.5 rounded-xl text-[#004aad]">
                   <LayoutGrid size={20} />
                 </div>
                 <h2 className="text-xl font-bold text-gray-800">Basic Information</h2>
@@ -383,7 +383,7 @@ export default function EventFormPage() {
                   <Label className="text-gray-700 font-semibold">Event Name <span className="text-red-500">*</span></Label>
                   <Input
                     placeholder="e.g. Asia International Logistics Summit 2025"
-                    className="h-12 rounded-xl text-lg focus:ring-[#5da765] focus:border-[#5da765]"
+                    className="h-12 rounded-xl text-lg focus:ring-[#004aad] focus:border-[#004aad]"
                     value={formData.name}
                     onChange={e => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -394,7 +394,7 @@ export default function EventFormPage() {
                     <Label className="text-gray-700 font-semibold flex items-center gap-2"><MapPin size={14} /> Location <span className="text-red-500">*</span></Label>
                     <Input
                       placeholder="City, Country"
-                      className="h-11 rounded-xl focus:ring-[#5da765] focus:border-[#5da765]"
+                      className="h-11 rounded-xl focus:ring-[#004aad] focus:border-[#004aad]"
                       value={formData.location}
                       onChange={e => setFormData({ ...formData, location: e.target.value })}
                     />
@@ -402,7 +402,7 @@ export default function EventFormPage() {
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-semibold">Event Type</Label>
                     <select
-                      className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#5da765]/20 focus:border-[#5da765]"
+                      className="w-full h-11 rounded-xl border border-gray-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#004aad]/20 focus:border-[#004aad]"
                       value={formData.eventType}
                       onChange={e => setFormData({ ...formData, eventType: e.target.value })}
                     >
@@ -416,11 +416,11 @@ export default function EventFormPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-semibold flex items-center gap-2"><Calendar size={14} /> Start Date <span className="text-red-500">*</span></Label>
-                    <Input type="date" className="h-11 rounded-xl focus:ring-[#5da765] focus:border-[#5da765]" value={formData.startDate} onChange={e => setFormData({ ...formData, startDate: e.target.value })} />
+                    <Input type="date" className="h-11 rounded-xl focus:ring-[#004aad] focus:border-[#004aad]" value={formData.startDate} onChange={e => setFormData({ ...formData, startDate: e.target.value })} />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-semibold flex items-center gap-2"><Calendar size={14} /> End Date <span className="text-red-500">*</span></Label>
-                    <Input type="date" className="h-11 rounded-xl focus:ring-[#5da765] focus:border-[#5da765]" value={formData.endDate} onChange={e => setFormData({ ...formData, endDate: e.target.value })} />
+                    <Input type="date" className="h-11 rounded-xl focus:ring-[#004aad] focus:border-[#004aad]" value={formData.endDate} onChange={e => setFormData({ ...formData, endDate: e.target.value })} />
                   </div>
                 </div>
 
@@ -429,7 +429,7 @@ export default function EventFormPage() {
                   <Textarea
                     rows={5}
                     placeholder="Detailed description of the event..."
-                    className="rounded-xl focus:ring-[#5da765] focus:border-[#5da765]"
+                    className="rounded-xl focus:ring-[#004aad] focus:border-[#004aad]"
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                   />
@@ -444,7 +444,7 @@ export default function EventFormPage() {
             >
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="bg-[#5da765]/10 p-2.5 rounded-xl text-[#5da765]">
+                  <div className="bg-[#004aad]/10 p-2.5 rounded-xl text-[#004aad]">
                     <Briefcase size={20} />
                   </div>
                   <div>
@@ -454,7 +454,7 @@ export default function EventFormPage() {
                 </div>
                 <Button
                   variant="outline"
-                  className="rounded-xl border-dashed border-gray-300 hover:border-[#5da765] hover:text-[#5da765]"
+                  className="rounded-xl border-dashed border-gray-300 hover:border-[#004aad] hover:text-[#004aad]"
                   onClick={() => setIsAttachmentsModalOpen(true)}
                 >
                   <Plus size={16} className="mr-2" /> Manage Items
@@ -491,7 +491,7 @@ export default function EventFormPage() {
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100"
             >
               <div className="flex items-center gap-3 mb-6">
-                <div className="bg-[#5da765]/10 p-2.5 rounded-xl text-[#5da765]">
+                <div className="bg-[#004aad]/10 p-2.5 rounded-xl text-[#004aad]">
                   <ImageIcon size={20} />
                 </div>
                 <h2 className="text-xl font-bold text-gray-800">Media</h2>
@@ -500,7 +500,7 @@ export default function EventFormPage() {
               <div className="space-y-4">
                 <Label className="text-gray-700 font-semibold">Event Thumbnail</Label>
                 <div
-                  className="relative rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-white hover:border-[#5da765]/50 transition-all p-8 flex flex-col items-center justify-center text-center cursor-pointer group overflow-hidden"
+                  className="relative rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50 hover:bg-white hover:border-[#004aad]/50 transition-all p-8 flex flex-col items-center justify-center text-center cursor-pointer group overflow-hidden"
                   onClick={() => document.getElementById('thumb-upload')?.click()}
                 >
                   {thumbPreview ? (
@@ -508,7 +508,7 @@ export default function EventFormPage() {
                   ) : (
                     <>
                       <div className="bg-white p-3 rounded-full shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                        <Plus size={24} className="text-gray-400 group-hover:text-[#5da765]" />
+                        <Plus size={24} className="text-gray-400 group-hover:text-[#004aad]" />
                       </div>
                       <p className="text-sm text-gray-500 font-medium group-hover:text-gray-700">Click to upload image</p>
                       <p className="text-xs text-gray-400 mt-1">PNG, JPG up to 5MB</p>
@@ -554,7 +554,7 @@ export default function EventFormPage() {
                   <Label className="text-gray-700 font-semibold">Expected Audience</Label>
                   <Input
                     placeholder="e.g. 5,000+ Attendees"
-                    className="h-11 rounded-xl focus:ring-[#5da765] focus:border-[#5da765]"
+                    className="h-11 rounded-xl focus:ring-[#004aad] focus:border-[#004aad]"
                     value={formData.expectedAudience}
                     onChange={e => setFormData({ ...formData, expectedAudience: e.target.value })}
                   />
@@ -591,7 +591,7 @@ export default function EventFormPage() {
               <div className="p-6 overflow-y-auto space-y-8 flex-1">
                 {/* BOOTHS SELECTOR */}
                 <div className="space-y-4">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2"><Briefcase size={16} className="text-[#5da765]" /> Booths</h3>
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2"><Briefcase size={16} className="text-[#004aad]" /> Booths</h3>
                   <div className="space-y-2">
                     {booths.map(booth => (
                       <div key={booth.id} className="flex items-start gap-3 p-3 rounded-xl border border-gray-100 hover:bg-gray-50 transition-colors">
@@ -604,7 +604,7 @@ export default function EventFormPage() {
                             if (checked) setBoothQuantities(prev => ({ ...prev, [booth.id]: prev[booth.id] || 1 }));
                             else setBoothQuantities(prev => { const copy = { ...prev }; delete copy[booth.id]; return copy; });
                           }}
-                          className="mt-1 data-[state=checked]:bg-[#5da765] data-[state=checked]:border-[#5da765] data-[state=checked]:text-white"
+                          className="mt-1 data-[state=checked]:bg-[#004aad] data-[state=checked]:border-[#004aad] data-[state=checked]:text-white"
                         />
                         <div className="flex-1">
                           <Label htmlFor={`booth-${booth.id}`} className="font-bold text-gray-700 cursor-pointer">{booth.name}</Label>
@@ -615,12 +615,12 @@ export default function EventFormPage() {
                                 <span className="text-xs text-gray-400 font-medium uppercase">Qty</span>
                                 <Input
                                   type="number" min={1}
-                                  className="w-16 h-7 text-sm border-none shadow-none focus-visible:ring-0 p-0 text-right font-bold text-[#5da765]"
+                                  className="w-16 h-7 text-sm border-none shadow-none focus-visible:ring-0 p-0 text-right font-bold text-[#004aad]"
                                   value={boothQuantities[booth.id] || 1}
                                   onChange={(e) => setBoothQuantities({ ...boothQuantities, [booth.id]: parseInt(e.target.value) || 1 })}
                                 />
                               </div>
-                              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs text-[#5da765] hover:bg-green-50" onClick={() => openSubtypeManager(booth)} disabled={!eventId}>
+                              <Button type="button" size="sm" variant="ghost" className="h-7 text-xs text-[#004aad] hover:bg-green-50" onClick={() => openSubtypeManager(booth)} disabled={!eventId}>
                                 Configure Slots
                               </Button>
                             </div>
@@ -633,7 +633,7 @@ export default function EventFormPage() {
 
                 {/* HOTELS SELECTOR */}
                 <div className="space-y-4">
-                  <h3 className="font-bold text-gray-800 flex items-center gap-2"><Hotel size={16} className="text-[#5da765]" /> Hotels</h3>
+                  <h3 className="font-bold text-gray-800 flex items-center gap-2"><Hotel size={16} className="text-[#004aad]" /> Hotels</h3>
                   <div className="space-y-2">
                     {hotels.map(hotel => (
                       <div key={hotel.id} className="border border-gray-100 rounded-xl overflow-hidden">
@@ -648,7 +648,7 @@ export default function EventFormPage() {
                                 setSelectedRoomTypeIds(prev => prev.filter(rtId => !hotel.roomTypes.find((r: any) => r.id === rtId)));
                               }
                             }}
-                            className="data-[state=checked]:bg-[#5da765] data-[state=checked]:border-[#5da765] data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-[#004aad] data-[state=checked]:border-[#004aad] data-[state=checked]:text-white"
                           />
                           <span className="font-bold text-gray-700">{hotel.hotelName}</span>
                         </div>
@@ -667,7 +667,7 @@ export default function EventFormPage() {
                                   className="h-4 w-4 data-[state=checked]:bg-gray-700 data-[state=checked]:border-gray-700 data-[state=checked]:text-white"
                                 />
                                 <div className="flex-1 flex justify-between items-center">
-                                  <span className="text-sm text-gray-600">{rt.roomType} <span className="text-[#5da765] font-bold text-xs ml-1">${rt.price}</span></span>
+                                  <span className="text-sm text-gray-600">{rt.roomType} <span className="text-[#004aad] font-bold text-xs ml-1">${rt.price}</span></span>
                                   {selectedRoomTypeIds.includes(rt.id) && (
                                     <Input
                                       type="number" min={1}
@@ -689,7 +689,7 @@ export default function EventFormPage() {
                 {/* TICKETS & SPONSORS grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-4">
-                    <h3 className="font-bold text-gray-800 flex items-center gap-2"><Ticket size={16} className="text-[#5da765]" /> Tickets</h3>
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2"><Ticket size={16} className="text-[#004aad]" /> Tickets</h3>
                     <div className="space-y-2">
                       {tickets.map(ticket => (
                         <div key={ticket.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-gray-50">
@@ -701,12 +701,12 @@ export default function EventFormPage() {
                               if (checked) setTicketQuantities(prev => ({ ...prev, [ticket.id]: prev[ticket.id] || 1 }));
                               else setTicketQuantities(prev => { const copy = { ...prev }; delete copy[ticket.id]; return copy; });
                             }}
-                            className="data-[state=checked]:bg-[#5da765] data-[state=checked]:border-[#5da765] data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-[#004aad] data-[state=checked]:border-[#004aad] data-[state=checked]:text-white"
                           />
                           <div className="flex-1">
                             <div className="flex justify-between font-medium text-gray-700 text-sm">
                               <span>{ticket.name}</span>
-                              <span className="text-[#5da765] font-bold">${ticket.price}</span>
+                              <span className="text-[#004aad] font-bold">${ticket.price}</span>
                             </div>
                           </div>
                           {selectedTicketIds.includes(ticket.id) && (
@@ -723,7 +723,7 @@ export default function EventFormPage() {
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="font-bold text-gray-800 flex items-center gap-2"><Star size={16} className="text-[#5da765]" /> Sponsor Packages</h3>
+                    <h3 className="font-bold text-gray-800 flex items-center gap-2"><Star size={16} className="text-[#004aad]" /> Sponsor Packages</h3>
                     <div className="space-y-2">
                       {sponsorTypes.map(st => (
                         <div key={st.id} className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:bg-gray-50">
@@ -735,7 +735,7 @@ export default function EventFormPage() {
                               if (checked) setSponsorQuantities(prev => ({ ...prev, [st.id]: prev[st.id] || 1 }));
                               else setSponsorQuantities(prev => { const copy = { ...prev }; delete copy[st.id]; return copy; });
                             }}
-                            className="data-[state=checked]:bg-[#5da765] data-[state=checked]:border-[#5da765] data-[state=checked]:text-white"
+                            className="data-[state=checked]:bg-[#004aad] data-[state=checked]:border-[#004aad] data-[state=checked]:text-white"
                           />
                           <div className="flex-1">
                             <div className="font-medium text-gray-700 text-sm">{st.name}</div>
@@ -757,7 +757,7 @@ export default function EventFormPage() {
 
               <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
                 <Button variant="outline" className="rounded-xl h-11" onClick={() => setIsAttachmentsModalOpen(false)}>Cancel</Button>
-                <Button onClick={() => setIsAttachmentsModalOpen(false)} className="rounded-xl h-11 bg-[#5da765] hover:bg-[#4a8a52] text-white min-w-[100px]">Done</Button>
+                <Button onClick={() => setIsAttachmentsModalOpen(false)} className="rounded-xl h-11 bg-[#004aad] hover:bg-[#4a8a52] text-white min-w-[100px]">Done</Button>
               </div>
             </motion.div>
           </div>
@@ -767,7 +767,7 @@ export default function EventFormPage() {
       {/* BOOTH SUBTYPE SHEET (Hidden Logic UI) */}
       <Sheet open={subtypeSheetOpen} onOpenChange={setSubtypeSheetOpen}>
         <SheetContent side="right" className="w-full sm:w-[480px] bg-white overflow-auto p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">Manage Slots for <span className="text-[#5da765]">{selectedBoothForSubtype?.name}</span></h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-6">Manage Slots for <span className="text-[#004aad]">{selectedBoothForSubtype?.name}</span></h2>
 
           {/* LIST */}
           <div className="space-y-3 mb-8">
@@ -788,7 +788,7 @@ export default function EventFormPage() {
                       ) : (
                         <span className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">{st.type.replace('_', ' ')}</span>
                       )}
-                      <span className="ml-2 text-[#5da765] font-bold text-sm">${st.price}</span>
+                      <span className="ml-2 text-[#004aad] font-bold text-sm">${st.price}</span>
                     </div>
                   </div>
                   <Button variant="ghost" size="icon" className="text-red-400 hover:text-red-600 hover:bg-red-50" onClick={() => deleteSubtype(st.id)}>
@@ -827,7 +827,7 @@ export default function EventFormPage() {
                 <div>
                   <Label className="text-xs uppercase font-bold text-gray-500">Type</Label>
                   <select
-                    className="w-full h-10 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#5da765]/20"
+                    className="w-full h-10 rounded-md border border-gray-200 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#004aad]/20"
                     value={subtypeForm.type}
                     onChange={e => setSubtypeForm({ ...subtypeForm, type: e.target.value })}
                   >
@@ -863,7 +863,7 @@ export default function EventFormPage() {
                 </div>
               )}
 
-              <Button onClick={saveSubtype} className="w-full bg-[#5da765] hover:bg-[#4a8a52] text-white font-bold rounded-xl mt-2">
+              <Button onClick={saveSubtype} className="w-full bg-[#004aad] hover:bg-[#4a8a52] text-white font-bold rounded-xl mt-2">
                 Add Slot
               </Button>
             </div>

@@ -252,33 +252,58 @@ const PurchasePage: NextPage = () => {
                 </div>
 
                 {/* Placeholder for Payment Details */}
+                {/* Payment Details - Offline Bank Transfer */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Payment Details</label>
-                  <div className="space-y-3 p-4 border border-gray-200 rounded-lg bg-gray-50">
-                    <div className="relative">
-                      <CreditCard className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                      <input type="text" placeholder="Card Number" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
+                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Building className="h-5 w-5 text-gray-500" />
+                    Bank Transfer Details
+                  </label>
+
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 space-y-4">
+                    <p className="text-sm text-blue-900 font-medium">Please transfer the amount to the following bank account:</p>
+
+                    <div className="bg-white p-4 rounded border border-blue-200 space-y-2 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-gray-500 font-medium">Bank Name:</span>
+                        <span className="col-span-2 font-bold text-gray-800 select-all">HDFC Bank Limited</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-gray-500 font-medium">Branch:</span>
+                        <span className="col-span-2 font-bold text-gray-800 select-all">G N Chetty rd Branch, TNagar</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-gray-500 font-medium">Account Name:</span>
+                        <span className="col-span-2 font-bold text-gray-800 select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-gray-500 font-medium">Account No:</span>
+                        <span className="col-span-2 font-bold text-gray-800 select-all">50200035538980</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-gray-500 font-medium">SWIFT Code:</span>
+                        <span className="col-span-2 font-bold text-gray-800 select-all">HDFCINBBCHE</span>
+                      </div>
                     </div>
-                    <div className="flex space-x-3">
-                      <div className="relative w-1/2">
-                        <Calendar className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                        <input type="text" placeholder="MM / YY" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
-                      </div>
-                      <div className="relative w-1/2">
-                        <Lock className="pointer-events-none absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-gray-400" />
-                        <input type="text" placeholder="CVC" className="w-full pl-10 py-2 border border-gray-300 rounded-md" />
-                      </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
+                      <p className="font-semibold mb-1">⚠️ Important:</p>
+                      <p>
+                        After creating the payment, please email the transaction details / proof of payment to{" "}
+                        <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
+                          sales@igla.asia
+                        </a>
+                        . Your membership will be activated once we verify the payment.
+                      </p>
                     </div>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2">Your payment is securely processed.</p>
                 </div>
 
                 {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
                 {status === 'success' && <p className="text-sm text-green-600">Payment successful! Redirecting...</p>}
 
-                <button type="submit" disabled={status === 'loading' || !user?.companyId} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                  {status === 'loading' ? 'Processing...' : `Pay $${plan.price}`}
-                </button>
+                {/* <button type="submit" disabled={status === 'loading' || !user?.companyId} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
+                  {status === 'loading' ? 'Processing...' : `Confirm Purchase (Offline)`}
+                </button> */}
               </form>
             </div>
           </div>

@@ -15,7 +15,8 @@ import {
   Users,
   CreditCard,
   Tags,
-  LogOut
+  LogOut,
+  AlertTriangle
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -29,6 +30,7 @@ const MENU_ITEMS = [
   { name: "Users", href: "/admin/users", icon: <Users className="h-5 w-5" /> },
   { name: "Membership", href: "/admin/membership", icon: <CreditCard className="h-5 w-5" /> },
   { name: "Coupons", href: "/admin/coupon", icon: <Tags className="h-5 w-5" /> },
+  { name: "Reports", href: "/admin/reports", icon: <AlertTriangle className="h-5 w-5" /> },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

@@ -51,10 +51,10 @@ export default async function DashboardPage() {
         <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-500 mt-2 text-lg">Welcome back, <span className="text-[#5da765] font-semibold">{user.name || 'Partner'}</span></p>
+            <p className="text-gray-500 mt-2 text-lg">Welcome back, <span className="text-[#004aad] font-semibold">{user.name || 'Partner'}</span></p>
           </div>
           <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2 text-sm text-gray-600">
-            <Building2 className="w-4 h-4 text-[#5da765]" />
+            <Building2 className="w-4 h-4 text-[#004aad]" />
             {company.name}
           </div>
         </div>

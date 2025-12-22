@@ -67,8 +67,8 @@ export default function EventHighlights() {
                 <div className="flex flex-col lg:flex-row items-center mb-12 text-center lg:text-left gap-8">
                     <div className="lg:w-5/12">
                         <span className="flex items-center justify-center lg:justify-start gap-2 mb-2">
-                            <span className="w-8 h-0.5 bg-[#5da765]"></span>
-                            <span className="text-[#5da765] font-bold uppercase text-sm tracking-wider">Event Highlights</span>
+                            <span className="w-8 h-0.5 bg-[#004aad]"></span>
+                            <span className="text-[#004aad] font-bold uppercase text-sm tracking-wider">Event Highlights</span>
                         </span>
                         <h3 className="text-3xl font-bold text-gray-900 leading-tight">
                             Real Partnerships. Real Results.
@@ -129,7 +129,7 @@ export default function EventHighlights() {
                                     <div className="absolute inset-0 p-6 flex flex-col justify-end text-white z-10">
                                         <h4 className="font-bold text-lg mb-1 leading-tight">{event.title}</h4>
                                         <p className="text-sm font-medium uppercase tracking-wider mb-2 text-gray-300">{event.date}</p>
-                                        <Link href={event.link} className="text-sm font-bold uppercase border-b border-white/50 inline-block self-start hover:text-[#5da765] hover:border-[#5da765] transition-colors">
+                                        <Link href={event.link} className="text-sm font-bold uppercase border-b border-white/50 inline-block self-start hover:text-[#004aad] hover:border-[#004aad] transition-colors">
                                             Know More
                                         </Link>
                                     </div>

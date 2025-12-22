@@ -36,10 +36,14 @@ export async function POST(req: NextRequest) {
     cartItems,
     companyId,
     coupon: couponInput,
+    shippingAddress,
+    billingAddress,
   }: {
     cartItems: CartItem[];
     companyId: string;
     coupon?: { id?: string; code?: string };
+    shippingAddress?: any;
+    billingAddress?: any;
   } = body;
 
   if (!companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -60,6 +64,19 @@ export async function POST(req: NextRequest) {
           eventId: finalEventId,
           totalAmount: 0,
           status: "PENDING",
+          // Save address fields
+          shippingAddressLine1: shippingAddress?.line1,
+          shippingAddressLine2: shippingAddress?.line2,
+          shippingCity: shippingAddress?.city,
+          shippingState: shippingAddress?.state,
+          shippingZip: shippingAddress?.zip,
+          shippingCountry: shippingAddress?.country,
+          billingAddressLine1: billingAddress?.line1,
+          billingAddressLine2: billingAddress?.line2,
+          billingCity: billingAddress?.city,
+          billingState: billingAddress?.state,
+          billingZip: billingAddress?.zip,
+          billingCountry: billingAddress?.country,
         },
       });
       console.log(`[OK] Created PurchaseOrder ${purchaseOrder.id}`);
@@ -77,8 +94,7 @@ export async function POST(req: NextRequest) {
         const productType = allowedTypes.includes(rawType) ? rawType : "PRODUCT";
 
         console.log(
-          `Processing item: ${originalItem.name} (incoming: ${
-            originalItem.productType ?? originalItem.clientProductType
+          `Processing item: ${originalItem.name} (incoming: ${originalItem.productType ?? originalItem.clientProductType
           }, mapped: ${productType})`
         );
 

@@ -30,7 +30,7 @@ const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterCha
                             type="text"
                             name="query"
                             placeholder="Origin, Destination, or Cargo..."
-                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#5da765] focus:bg-white transition-all text-sm font-medium"
+                            className="w-full pl-10 pr-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#004aad] focus:bg-white transition-all text-sm font-medium"
                             value={filters.query}
                             onChange={(e) => onFilterChange(e.target.name, e.target.value)}
                         />
@@ -41,7 +41,7 @@ const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterCha
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Mode</label>
                     <select
                         name="mode"
-                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#5da765] focus:bg-white transition-all text-sm font-medium appearance-none"
+                        className="w-full px-4 py-3 bg-gray-50 border-none rounded-lg focus:ring-2 focus:ring-[#004aad] focus:bg-white transition-all text-sm font-medium appearance-none"
                         value={filters.mode}
                         onChange={(e) => onFilterChange(e.target.name, e.target.value)}
                     >
@@ -53,7 +53,7 @@ const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterCha
                 </div>
 
                 <div className="md:col-span-3 h-full flex items-end">
-                    <button className="w-full bg-[#5da765] text-white py-3 rounded-lg font-bold shadow-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2">
+                    <button className="w-full bg-[#004aad] text-white py-3 rounded-lg font-bold shadow-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2">
                         <Search className="h-4 w-4" />
                         Find Cargo
                     </button>
@@ -76,11 +76,11 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
             href={`/inquiry/${inquiry.id}`}
             className="group relative bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden flex flex-col"
         >
-            <div className="absolute top-0 left-0 w-1 h-full bg-gray-200 group-hover:bg-[#5da765] transition-colors"></div>
+            <div className="absolute top-0 left-0 w-1 h-full bg-gray-200 group-hover:bg-[#004aad] transition-colors"></div>
 
             <div className="p-6 flex-grow">
                 <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-2 text-gray-400 group-hover:text-[#5da765] transition-colors">
+                    <div className="flex items-center gap-2 text-gray-400 group-hover:text-[#004aad] transition-colors">
                         {getShipmentIcon(inquiry.shipmentMode)}
                         <span className="text-xs font-bold tracking-wider uppercase">{inquiry.shipmentMode}</span>
                     </div>
@@ -92,7 +92,7 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
                 <div className="space-y-4">
                     <div className="flex items-start gap-3">
                         <div className="mt-1">
-                            <div className="w-2 h-2 rounded-full bg-[#5da765]"></div>
+                            <div className="w-2 h-2 rounded-full bg-[#004aad]"></div>
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 uppercase font-bold">Origin</p>
@@ -104,7 +104,7 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
 
                     <div className="flex items-start gap-3">
                         <div className="mt-1">
-                            <div className="w-2 h-2 rounded-full border-2 border-[#5da765] bg-white"></div>
+                            <div className="w-2 h-2 rounded-full border-2 border-[#004aad] bg-white"></div>
                         </div>
                         <div>
                             <p className="text-xs text-gray-400 uppercase font-bold">Destination</p>
@@ -114,11 +114,11 @@ const InquiryCard = ({ inquiry }: { inquiry: Inquiry }) => {
                 </div>
             </div>
 
-            <div className="bg-[#f0f9f3] p-4 flex justify-between items-center group-hover:bg-[#5da765] transition-colors duration-300">
+            <div className="bg-[#f0f9f3] p-4 flex justify-between items-center group-hover:bg-[#004aad] transition-colors duration-300">
                 <span className="text-xs font-bold text-gray-600 uppercase group-hover:text-white transition-colors">
                     {inquiry.cargoType}
                 </span>
-                <span className="text-xs font-bold text-[#5da765] flex items-center gap-1 group-hover:text-white transition-colors">
+                <span className="text-xs font-bold text-[#004aad] flex items-center gap-1 group-hover:text-white transition-colors">
                     View Details <ArrowRight className="h-3 w-3" />
                 </span>
             </div>
@@ -201,12 +201,12 @@ export default function InquiryBoardPage() {
                         fill
                         className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+                    <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
                 </div>
                 <div className="relative z-10 px-4">
-                    <span className="text-white/80 font-bold tracking-widest uppercase text-sm mb-4 block">Opportunities Await</span>
+                    <span className="text-white/80 font-bold tracking-widest uppercase text-sm mb-4 block">Opportunity Awaits</span>
                     <h1 className="text-4xl lg:text-6xl font-bold text-white mb-6">Global Inquiry Board</h1>
-                    <p className="text-white/90 text-lg max-w-2xl mx-auto">Connect with partners worldwide. Browse available cargo opportunities and expand your business.</p>
+                    <p className="text-white/90 text-lg max-w-2xl mx-auto">Browse available cargo opportunities and expand your business. Connect with partners worldwide.</p>
                 </div>
             </header>
 
@@ -215,13 +215,18 @@ export default function InquiryBoardPage() {
                 <InquiryFilters filters={filters} onFilterChange={handleFilterChange} />
 
                 <div className="mt-16">
-                    <div className="flex justify-between items-end mb-8 relative">
+                    <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 relative gap-4">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <span className="w-8 h-[2px] bg-[#5da765]"></span>
-                                <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">Available Opportunities</span>
+                                <span className="w-8 h-[2px] bg-[#004aad]"></span>
+                                <span className="text-[#004aad] font-bold uppercase text-sm tracking-widest">Available Opportunities</span>
                             </div>
-                            <h2 className="text-3xl font-bold text-gray-800">Latest Inquiries</h2>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <h2 className="text-3xl font-bold text-gray-800">Latest Inquiries</h2>
+                                <Link href="/inquiry/new" className="inline-flex items-center gap-2 bg-[#004aad] hover:bg-[#4a8a52] text-white px-5 py-2 rounded-full font-bold text-sm shadow-md transition-all">
+                                    <span>+</span> Post New Inquiry
+                                </Link>
+                            </div>
                         </div>
                         <div className="hidden md:block text-sm text-gray-500">
                             Showing {filteredInquiries.length} results
@@ -246,14 +251,7 @@ export default function InquiryBoardPage() {
                 </div>
             </main>
 
-            <Link href="/inquiry/new" className="fixed bottom-10 right-10 bg-[#5da765] hover:bg-[#4a8a52] text-white rounded-full shadow-2xl p-4 transition-all hover:scale-110 group z-50">
-                <div className="absolute -top-12 right-0 bg-white text-gray-800 px-4 py-2 rounded-lg shadow-lg text-sm font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                    Post New Inquiry
-                </div>
-                <div className="flex items-center justify-center">
-                    <span className="text-2xl font-light leading-none pb-1">+</span>
-                </div>
-            </Link>
+
         </div>
     );
 }

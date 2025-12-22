@@ -23,7 +23,7 @@ type FormInputProps = {
 const FormInput = ({ label, value, onChange, icon: Icon, required = false, ...props }: FormInputProps) => (
     <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-            {label} {required && <span className="text-[#5da765]">*</span>}
+            {label} {required && <span className="text-[#004aad]">*</span>}
         </label>
         <div className="relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
@@ -181,7 +181,7 @@ export default function NewInquiryPage() {
                     <div className="mt-8">
                         {error && <div className="bg-red-50 text-red-700 p-3 rounded-md flex items-center gap-2 mb-4"><AlertTriangle />{error}</div>}
                         {success && <div className="bg-green-50 text-green-700 p-3 rounded-md flex items-center gap-2 mb-4"><CheckCircle />{success}</div>}
-                        <button type="submit" disabled={loading || !!success} className="w-full flex justify-center items-center gap-2 bg-[#5da765] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-[#4a8a52] disabled:bg-gray-400 transition-all">
+                        <button type="submit" disabled={loading || !!success} className="w-full flex justify-center items-center gap-2 bg-[#004aad] text-white font-bold py-3 px-4 rounded-lg shadow-md hover:bg-[#4a8a52] disabled:bg-gray-400 transition-all">
                             <Send className="h-5 w-5" />
                             {loading ? "Submitting..." : "Submit Inquiry"}
                         </button>

@@ -672,7 +672,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         {/* LEFT COLUMN: TABS & CONTENT */}
         <div className="lg:col-span-2 space-y-8">
           {/* Tabs Navigation */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2 sticky top-[80px] z-20">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2">
             {tabs.map(tab => (
               <button
                 key={tab}
@@ -698,24 +698,53 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             )}
 
             {activeTab === "Agenda" && (
-              <div className="animate-fadeIn space-y-6">
+              <div className="animate-fadeIn space-y-8">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Event Schedule</h2>
-                {agendaItems.length > 0 ? agendaItems.map((item) => (
-                  <div key={item.id} className="flex gap-6 group">
-                    <div className="flex flex-col items-center min-w-[80px]">
-                      <span className="text-3xl font-black text-[#5da765]">{format(parseISO(item.date), "dd")}</span>
-                      <span className="text-xs font-bold text-gray-400 uppercase">{format(parseISO(item.date), "MMM")}</span>
-                    </div>
-                    <div className="flex-grow pb-8 border-l-2 border-gray-100 pl-8 relative group-last:border-l-0">
-                      <div className="absolute left-[-5px] top-2 w-2.5 h-2.5 rounded-full bg-gray-200 group-hover:bg-[#5da765] transition-colors"></div>
-                      <h3 className="text-xl font-bold text-gray-800">{item.title}</h3>
-                      <div className="text-sm font-medium text-[#5da765] mb-2">
-                        {format(parseISO(item.startTime), "h:mm a")} - {format(parseISO(item.endTime), "h:mm a")}
+                {agendaItems.length > 0 ? (
+                  Object.entries(
+                    agendaItems.reduce((acc, item) => {
+                      const dateKey = item.date.split('T')[0];
+                      if (!acc[dateKey]) acc[dateKey] = [];
+                      acc[dateKey].push(item);
+                      return acc;
+                    }, {} as Record<string, typeof agendaItems>)
+                  )
+                    .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
+                    .map(([date, items]) => (
+                      <div key={date} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
+                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
+                          <div className="bg-[#5da765] text-white rounded-lg p-2 shadow-sm">
+                            <Calendar className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-bold text-gray-800">
+                              {format(parseISO(date), "EEEE, MMMM d, yyyy")}
+                            </h3>
+                            <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                              Day {Math.ceil((new Date(date).getTime() - new Date(agendaItems[0].date).getTime()) / (1000 * 60 * 60 * 24)) + 1}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="divide-y divide-gray-100">
+                          {items
+                            .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                            .map((item) => (
+                              <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row gap-6">
+                                <div className="min-w-[140px] flex-shrink-0">
+                                  <div className="inline-flex items-center justify-center bg-green-50 text-[#5da765] px-3 py-1.5 rounded-lg text-sm font-bold border border-green-100">
+                                    {format(parseISO(item.startTime), "h:mm a")} - {format(parseISO(item.endTime), "h:mm a")}
+                                  </div>
+                                </div>
+                                <div>
+                                  <h4 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h4>
+                                  <p className="text-gray-600 leading-relaxed text-sm">{item.description}</p>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
                       </div>
-                      <p className="text-gray-600">{item.description}</p>
-                    </div>
-                  </div>
-                )) : (
+                    ))
+                ) : (
                   <div className="text-center py-12 bg-gray-50 rounded-lg border border-dashed text-gray-500">
                     No agenda items published yet.
                   </div>
@@ -899,18 +928,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* --- CART FLOATING BUTTON --- */}
-      <div className="fixed bottom-8 right-8 z-50">
-        <Link href="/cart">
-          <div className="bg-gray-900 text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-transform relative">
-            <ShoppingCart className="h-6 w-6" />
-            {itemCount > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold w-6 h-6 flex items-center justify-center rounded-full border-2 border-white">
-                {itemCount}
-              </span>
-            )}
-          </div>
-        </Link>
-      </div>
+
 
       {/* --- BOOTH MODAL --- */}
       {boothModalOpen && selectedBooth && (

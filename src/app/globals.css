@@ -3,7 +3,13 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --primary: #5da765;
+  --primary: #004aad;
+  --iglagreen: #ceeba3;
+  --base-color: #2ebb79;
+  --blue: #004aad;
+  --dark-gray: #232323;
+  --medium-gray: #717580;
+  --very-light-gray: #f7f7f7;
   --secondary: #004aad;
   --background-color: #ffffff;
   --text-color: #333333;
@@ -28,5 +34,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+  overflow-y: auto;
 }

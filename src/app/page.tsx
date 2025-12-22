@@ -14,6 +14,7 @@ import {
   Shield,
   ChevronDown,
   ChevronRight,
+  ChevronLeft,
   ThumbsUp,
   Box,
 } from "lucide-react";
@@ -68,6 +69,20 @@ export default function Home() {
     { id: 5, img: '/images/Member5.jpg' },
     { id: 6, img: '/images/Member6.png' },
     { id: 7, img: '/images/Member7.png' },
+    // Duplicate 1
+    { id: 22, img: '/images/Member2.png' },
+    { id: 33, img: '/images/Member3.jpg' },
+    { id: 44, img: '/images/Member4.jpg' },
+    { id: 55, img: '/images/Member5.jpg' },
+    { id: 66, img: '/images/Member6.png' },
+    { id: 77, img: '/images/Member7.png' },
+    // Duplicate 2
+    { id: 222, img: '/images/Member2.png' },
+    { id: 333, img: '/images/Member3.jpg' },
+    { id: 444, img: '/images/Member4.jpg' },
+    { id: 555, img: '/images/Member5.jpg' },
+    { id: 666, img: '/images/Member6.png' },
+    { id: 777, img: '/images/Member7.png' },
   ];
 
   return (
@@ -81,7 +96,11 @@ export default function Home() {
             autoplay={{ delay: 4000, disableOnInteraction: false }}
             loop={true}
             pagination={{ clickable: true }}
-            className="h-[600px] lg:h-[750px] w-full"
+            navigation={{
+              nextEl: ".swiper-button-next-custom",
+              prevEl: ".swiper-button-prev-custom",
+            }}
+            className="h-[600px] lg:h-[750px] w-full group"
           >
             {bannerSlides.map((slide) => (
               <SwiperSlide key={slide.id}>
@@ -95,7 +114,7 @@ export default function Home() {
                         fill
                         className="object-cover"
                       />
-                      <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+
                     </div>
                     <div className="relative z-10 h-full flex flex-col justify-center px-8 lg:px-16 text-white">
                       <span className="text-sm tracking-widest uppercase border-b-2 border-white/30 inline-block mb-6 pb-1 w-fit">
@@ -103,7 +122,7 @@ export default function Home() {
                       </span>
                       <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-8">
                         {slide.title1}<br />
-                        <span className="relative">
+                        {/* <span className="relative">
                           {slide.title2}
                           {slide.separator && (
                             <Image
@@ -114,7 +133,7 @@ export default function Home() {
                               className="absolute -bottom-2 left-0 w-full -z-10"
                             />
                           )}
-                        </span><br />
+                        </span><br /> */}
                         {slide.title3}
                       </h1>
                       <div className="flex flex-wrap gap-4">
@@ -144,22 +163,32 @@ export default function Home() {
             ))}
           </Swiper>
 
+          {/* Custom Navigation Buttons */}
+          <div className="swiper-button-prev-custom absolute left-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-white/70 hover:text-white transition-all hidden md:flex items-center justify-center hover:scale-125">
+            <ChevronLeft className="w-10 h-10" />
+          </div>
+          <div className="swiper-button-next-custom absolute right-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-white/70 hover:text-white transition-all hidden md:flex items-center justify-center hover:scale-125">
+            <ChevronRight className="w-10 h-10" />
+          </div>
+
           {/* Floating Popup Box */}
-          <div className="hidden md:flex absolute bottom-0 right-0 lg:right-16 z-20 max-w-2xl bg-white rounded-t-xl shadow-2xl overflow-hidden animate-fade-in-up">
-            {/* <div className="w-[200px] relative bg-gray-200 min-h-[150px]">
-              <div className="absolute inset-0 flex items-center justify-center bg-gray-300 text-gray-500">
-                Video Placeholder
-              </div>
-            </div> */}
-            <div className="flex-1 p-6 flex flex-col justify-center">
-              <h3 className="text-xl font-bold mb-2">Connecting You to Partners <span className="text-gray-900">Across the World.</span></h3>
+          <div className="hidden md:flex absolute bottom-0 right-4 lg:right-16 z-20 w-[380px] bg-white rounded-t-3xl shadow-2xl animate-fade-in-up">
+            <div className="w-full p-8 flex flex-col justify-center text-center">
+              <h3 className="text-2xl font-normal leading-tight text-gray-900 mb-6">
+                Connecting You to <br />
+                Partners <span className="font-bold">Across the World.</span>
+              </h3>
               <div className="relative w-full">
-                <input type="email" placeholder="Enter your email" className="w-full border rounded-full px-4 py-2 pr-12 text-sm focus:outline-none focus:border-[#5da765]" />
-                <button className="absolute right-1 top-1 bg-[#5da765] text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-[#4a8a52]">
-                  <ArrowRight className="w-4 h-4" />
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="w-full border border-gray-300 rounded-full py-3 pl-6 pr-14 text-sm text-gray-700 outline-none focus:border-[#004aad] placeholder-gray-400 transition-colors"
+                />
+                <button className="absolute right-1.5 top-1.5 bg-[#004aad] hover:bg-[#003882] text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-md">
+                  <ArrowRight className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">*Your Global Logistics Partner Awaits.</p>
+              <p className="text-[11px] text-gray-500 mt-3">*Your Global Logistics Partner Awaits.</p>
             </div>
           </div>
         </section>
@@ -170,8 +199,8 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div className="lg:w-10/12">
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-[#5da765]"></span>
-                  <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">About Us</span>
+                  <span className="w-8 h-[2px] bg-primary"></span>
+                  <span className="text-primary font-bold uppercase text-sm tracking-widest">About Us</span>
                 </div>
                 <h2 className="text-4xl text-gray-900 font-bold mb-6 tracking-tight">Innovative Global Logistics Allianz</h2>
                 <p className="text-gray-600 text-lg leading-relaxed">
@@ -182,7 +211,7 @@ export default function Home() {
                 <div className="mb-8 p-6 bg-white/50 rounded-lg">
                   <p className="text-xl font-semibold text-gray-800">Established in 2012, Innovative Global Logistics Allianz (IGLA).</p>
                 </div>
-                <div className="bg-[#5da765] p-8 rounded-lg flex items-center justify-center gap-6 text-white shadow-xl">
+                <div className="bg-primary p-8 rounded-lg flex items-center justify-center gap-6 text-white shadow-xl">
                   <div className="w-16">
                     <Image src="/images/handshake.png" alt="Handshake" width={64} height={64} className="brightness-0 invert" />
                   </div>
@@ -202,8 +231,8 @@ export default function Home() {
             <div className="grid md:grid-cols-2 gap-8 mb-16 items-end">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-[#5da765]"></span>
-                  <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">Why Choose Us</span>
+                  <span className="w-8 h-[2px] bg-primary"></span>
+                  <span className="text-primary font-bold uppercase text-sm tracking-widest">Why Choose Us</span>
                 </div>
                 <h3 className="text-3xl font-bold text-black">Your Global Partner in Secure</h3>
               </div>
@@ -218,12 +247,12 @@ export default function Home() {
               {/* Feature 1 */}
               <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
                 <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-[#5da765] rounded-full opacity-10"></span>
+                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
                   <Image src="/images/growth.png" alt="Growth" width={60} height={60} className="relative z-10 mx-auto top-4" />
                 </div>
                 <h4 className="font-bold text-lg mb-3">Grow Your Business</h4>
                 <p className="text-sm text-gray-500 mb-6 leading-relaxed">Connect with pre-qualified partners who offer real opportunities, helping you build lasting relationships.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-[#5da765] font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
+                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
                   Know More <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -231,12 +260,12 @@ export default function Home() {
               {/* Feature 2 */}
               <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
                 <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-[#5da765] rounded-full opacity-10"></span>
+                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
                   <Image src="/images/ai.png" alt="AI" width={60} height={60} className="relative z-10 mx-auto top-4" />
                 </div>
                 <h4 className="font-bold text-lg mb-3">AI-Driven Matching</h4>
                 <p className="text-sm text-gray-500 mb-6 leading-relaxed">Our intelligent system matches you with ideal global partners based on trade lanes and goal.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-[#5da765] font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
+                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
                   Know More <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -244,12 +273,12 @@ export default function Home() {
               {/* Feature 3 */}
               <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
                 <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-[#5da765] rounded-full opacity-10"></span>
+                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
                   <Image src="/images/global.png" alt="Global" width={60} height={60} className="relative z-10 mx-auto top-4" />
                 </div>
                 <h4 className="font-bold text-lg mb-3">Global Footprint</h4>
                 <p className="text-sm text-gray-500 mb-6 leading-relaxed">IGLA's global network spans five continents, offering diverse connections to expand your reach.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-[#5da765] font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
+                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
                   Know More <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -257,12 +286,12 @@ export default function Home() {
               {/* Feature 4 */}
               <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
                 <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-[#5da765] rounded-full opacity-10"></span>
+                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
                   <Image src="/images/marketing.png" alt="Marketing" width={60} height={60} className="relative z-10 mx-auto top-4" />
                 </div>
                 <h4 className="font-bold text-lg mb-3">Marketing & Promotion</h4>
                 <p className="text-sm text-gray-500 mb-6 leading-relaxed">Boost your visibility through targeted social media, newsletters, and a dedicated company page.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-[#5da765] font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
+                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
                   Know More <ArrowRight className="w-4 h-4 ml-1" />
                 </Link>
               </div>
@@ -279,8 +308,8 @@ export default function Home() {
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-[#5da765]"></span>
-                  <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">Why Partner with IGLA?</span>
+                  <span className="w-8 h-[2px] bg-primary"></span>
+                  <span className="text-primary font-bold uppercase text-sm tracking-widest">Why Partner with IGLA?</span>
                 </div>
                 <h3 className="text-3xl font-bold mb-8">Unlock Global Business Potential</h3>
 
@@ -360,8 +389,8 @@ export default function Home() {
             <div className="grid lg:grid-cols-2 gap-12 mb-12">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-[#5da765]"></span>
-                  <span className="text-[#5da765] font-bold uppercase text-sm tracking-widest">Financial Protection</span>
+                  <span className="w-8 h-[2px] bg-primary"></span>
+                  <span className="text-primary font-bold uppercase text-sm tracking-widest">Financial Protection</span>
                 </div>
                 <h3 className="text-3xl font-bold">Up to $20,000 Annual Financial Protection</h3>
               </div>
@@ -380,7 +409,7 @@ export default function Home() {
                 <div key={i} className="bg-[#f0f9f3] p-8 rounded-lg group hover:shadow-lg transition-all duration-300">
                   <h4 className="font-bold text-lg mb-3">{item.title}</h4>
                   <p className="text-gray-600 text-sm mb-6 leading-relaxed">{item.desc}</p>
-                  <Link href="/membership/become-member" className="inline-flex items-center bg-[#5da765] text-white px-6 py-3 rounded-full font-bold uppercase text-xs shadow-md hover:bg-[#4a8a52] transition-colors">
+                  <Link href="/membership/become-member" className="inline-flex items-center bg-primary text-white px-6 py-3 rounded-full font-bold uppercase text-xs shadow-md hover:bg-green-700 transition-colors">
                     <Shield className="w-4 h-4 mr-2" /> Become a Member
                   </Link>
                 </div>
@@ -392,14 +421,43 @@ export default function Home() {
         {/* Team Members Section */}
         <section className="py-20 bg-white" style={{ backgroundImage: "url('/images/demo-it-business-testimonial-bg.png')", backgroundRepeat: 'no-repeat', backgroundPosition: 'center top' }}>
           <div className="container mx-auto px-4 text-center">
-            <h2 className="text-3xl font-medium mb-12">Our Team <span className="font-bold border-b-4 border-[#5da765]">Members</span></h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-              {teamMembers.map(member => (
-                <div key={member.id} className="p-4 flex items-center justify-center h-32 hover:scale-110 transition-transform duration-300">
-                  <Image src={member.img} alt={`Member ${member.id}`} width={120} height={120} className="max-h-full w-auto object-contain" />
-                </div>
+            <h2 className="text-3xl font-medium mb-12">Our Team <span className="font-bold border-b-4 border-primary">Members</span></h2>
+            <Swiper
+              modules={[Autoplay]}
+              spaceBetween={30}
+              slidesPerView={2}
+              loop={true}
+              autoplay={{
+                delay: 2500,
+                disableOnInteraction: false,
+              }}
+              breakpoints={{
+                640: {
+                  slidesPerView: 3,
+                },
+                768: {
+                  slidesPerView: 4,
+                },
+                1024: {
+                  slidesPerView: 6,
+                },
+              }}
+              className="w-full py-8"
+            >
+              {teamMembers.map((member) => (
+                <SwiperSlide key={member.id}>
+                  <div className="p-4 flex items-center justify-center h-32 transition-transform duration-300 hover:scale-110 grayscale hover:grayscale-0">
+                    <Image
+                      src={member.img}
+                      alt={`Member ${member.id}`}
+                      width={120}
+                      height={120}
+                      className="max-h-full w-auto object-contain"
+                    />
+                  </div>
+                </SwiperSlide>
               ))}
-            </div>
+            </Swiper>
           </div>
         </section>
 

@@ -180,27 +180,35 @@ function CartSummary({
         ))}
       </div>
 
-      {/* Coupon */}
-      <div className="mt-4 space-y-2">
-        <div className="font-semibold">Have a coupon?</div>
-        <div className="flex gap-2">
+      {/* Coupon - Concise & Good looking */}
+      <div className="mt-4 flex items-center gap-2 max-w-sm">
+        <div className="flex-1 relative">
           <input
-            value={appliedCoupon.code ? `Applied: ${appliedCoupon.code}` : couponCode}
+            value={appliedCoupon.code ? appliedCoupon.code : couponCode}
             onChange={(e) => setCouponCode(e.target.value)}
             disabled={!!appliedCoupon.code}
-            placeholder="Enter coupon code"
-            className="flex-1 rounded border px-3 py-2"
+            placeholder="Coupon code"
+            className="w-full rounded-l-md border border-r-0 border-gray-300 px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
           />
-          {!appliedCoupon.code ? (
-            <button onClick={applyCoupon} disabled={couponBusy || !couponCode.trim()} className="px-4 py-2 rounded bg-indigo-600 text-white disabled:bg-slate-400">
-              {couponBusy ? "Applying…" : "Apply"}
-            </button>
-          ) : (
-            <button onClick={removeCoupon} className="px-4 py-2 rounded border">
-              Remove
-            </button>
-          )}
+          {appliedCoupon.code && <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none text-green-600 font-bold text-xs">APPLIED</div>}
         </div>
+
+        {!appliedCoupon.code ? (
+          <button
+            onClick={applyCoupon}
+            disabled={couponBusy || !couponCode.trim()}
+            className="px-4 py-2 rounded-r-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors -ml-2 z-10"
+          >
+            {couponBusy ? "..." : "Apply"}
+          </button>
+        ) : (
+          <button
+            onClick={removeCoupon}
+            className="px-4 py-2 rounded-r-md bg-red-50 text-red-600 border border-l-0 border-gray-100 text-sm font-medium hover:bg-red-100 transition-colors -ml-2 z-10"
+          >
+            Remove
+          </button>
+        )}
       </div>
     </div>
   );
@@ -228,6 +236,32 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     address2: "",
   });
 
+  // Addresses
+  const [billingAddress, setBillingAddress] = useState({
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "",
+  });
+  const [shippingAddress, setShippingAddress] = useState({
+    line1: "",
+    line2: "",
+    city: "",
+    state: "",
+    zip: "",
+    country: "",
+  });
+  const [sameAsBilling, setSameAsBilling] = useState(true);
+
+  // Effect to copy billing to shipping when checkbox is checked
+  useEffect(() => {
+    if (sameAsBilling) {
+      setShippingAddress(billingAddress);
+    }
+  }, [billingAddress, sameAsBilling]);
+
   // coupon
   const [couponCode, setCouponCode] = useState("");
   const [couponBusy, setCouponBusy] = useState(false);
@@ -239,7 +273,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   });
 
   // payment
-  const [paymentMethod, setPaymentMethod] = useState<"razorpay" | "paypal">("razorpay");
+  const [paymentMethod, setPaymentMethod] = useState<"offline">("offline");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePolicies, setAgreePolicies] = useState(false);
 
@@ -283,6 +317,16 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
             phone: phone || prev.phone,
             address1: address1 || prev.address1,
           }));
+
+          // Prefill Billing Address
+          setBillingAddress({
+            line1: (location.address || "").toString(),
+            line2: "",
+            city: (location.city || "").toString(),
+            state: (location.state || "").toString(),
+            zip: (location.zipCode || "").toString(),
+            country: (location.country || "").toString(),
+          });
         }
       } catch {
         // ignore
@@ -617,78 +661,81 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   /** ---------- Submit checkout ---------- */
 
- // Update the submitCheckout function in your checkout page
+  // Update the submitCheckout function in your checkout page
 
-const submitCheckout = async () => {
-  if (!companyId) {
-    alert("You must be logged in to check out.");
-    return;
-  }
-  if (!cart.length) {
-    alert("Cart is empty.");
-    return;
-  }
-  if (!agreeTerms || !agreePolicies) {
-    alert("You must agree to the Terms & Policies.");
-    return;
-  }
-
-  setSubmitting(true);
-  try {
-    const payload: any = {
-      companyId,
-      account,
-      paymentMethod,
-      coupon: appliedCoupon.code ? { 
-        ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}), 
-        code: appliedCoupon.code 
-      } : undefined,
-      discount: {
-        amount: appliedCoupon.discountAmount,
-        percent: appliedCoupon.discountPercent,
-      },
-      appliedOffers: appliedOffersPayload, // which offers were applied
-      
-      // ✅ FIX: Send computed lines with effective (discounted) prices
-      cartItems: computed.lines.map((line) => ({
-        productId: String(line.productId),
-        productType: String(line.productType ?? "TICKET").toUpperCase(),
-        quantity: line.qty,
-        price: line.effective, // ✅ Use effective price (after offers)
-        name: line.name,
-        ...(line.roomTypeId ? { roomTypeId: String(line.roomTypeId) } : {}),
-        ...(line.boothSubTypeId ? { boothSubTypeId: String(line.boothSubTypeId) } : {}),
-      })),
-      
-      totals: {
-        subtotalBeforeOffers: computed.subtotalBeforeOffers,
-        offerDiscountTotal: computed.offerDiscountTotal,
-        subtotalAfterOffers: computed.subtotalAfterOffers,
-        couponDiscountValue,
-        total: finalTotal,
-      },
-    };
-
-    const res = await fetch(`/api/events/${eventId}/checkout`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    if (res.status === 201 || res.ok) {
-      alert("Checkout successful!");
-      clearCart();
-      window.location.href = `/event/${eventId}`;
-    } else {
-      const e = await res.json().catch(() => ({}));
-      alert(e?.error || e?.message || "Checkout failed");
+  const submitCheckout = async () => {
+    if (!companyId) {
+      alert("You must be logged in to check out.");
+      return;
     }
-  } catch (e: any) {
-    alert(`Network error: ${e?.message || e}`);
-  } finally {
-    setSubmitting(false);
-  }
-};
+    if (!cart.length) {
+      alert("Cart is empty.");
+      return;
+    }
+    if (!agreeTerms || !agreePolicies) {
+      alert("You must agree to the Terms & Policies.");
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload: any = {
+        companyId,
+        account,
+        paymentMethod,
+        // Pass addresses
+        billingAddress,
+        shippingAddress: sameAsBilling ? billingAddress : shippingAddress,
+        coupon: appliedCoupon.code ? {
+          ...(appliedCoupon.id ? { id: appliedCoupon.id } : {}),
+          code: appliedCoupon.code
+        } : undefined,
+        discount: {
+          amount: appliedCoupon.discountAmount,
+          percent: appliedCoupon.discountPercent,
+        },
+        appliedOffers: appliedOffersPayload, // which offers were applied
+
+        // ✅ FIX: Send computed lines with effective (discounted) prices
+        cartItems: computed.lines.map((line) => ({
+          productId: String(line.productId),
+          productType: String(line.productType ?? "TICKET").toUpperCase(),
+          quantity: line.qty,
+          price: line.effective, // ✅ Use effective price (after offers)
+          name: line.name,
+          ...(line.roomTypeId ? { roomTypeId: String(line.roomTypeId) } : {}),
+          ...(line.boothSubTypeId ? { boothSubTypeId: String(line.boothSubTypeId) } : {}),
+        })),
+
+        totals: {
+          subtotalBeforeOffers: computed.subtotalBeforeOffers,
+          offerDiscountTotal: computed.offerDiscountTotal,
+          subtotalAfterOffers: computed.subtotalAfterOffers,
+          couponDiscountValue,
+          total: finalTotal,
+        },
+      };
+
+      const res = await fetch(`/api/events/${eventId}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 201 || res.ok) {
+        alert("Checkout successful!");
+        clearCart();
+        window.location.href = `/event/${eventId}`;
+      } else {
+        const e = await res.json().catch(() => ({}));
+        alert(e?.error || e?.message || "Checkout failed");
+      }
+    } catch (e: any) {
+      alert(`Network error: ${e?.message || e}`);
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   // helper: step state for StepDot
   const stepState = (index: 0 | 1 | 2): "completed" | "active" | "upcoming" => {
@@ -764,6 +811,46 @@ const submitCheckout = async () => {
               <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Address 2" className="w-full rounded border px-3 py-2" />
             </div>
 
+            {/* Address Details */}
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="font-semibold text-slate-800">BILLING ADDRESS</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input value={billingAddress.line1} onChange={(e) => setBillingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Address Line 1" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.line2} onChange={(e) => setBillingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.city} onChange={(e) => setBillingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.state} onChange={(e) => setBillingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.zip} onChange={(e) => setBillingAddress(p => ({ ...p, zip: e.target.value }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.country} onChange={(e) => setBillingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
+              </div>
+
+              <div className="flex items-center gap-2 mt-4 mb-2">
+                <input
+                  type="checkbox"
+                  id="sameAsBilling"
+                  checked={sameAsBilling}
+                  onChange={(e) => setSameAsBilling(e.target.checked)}
+                  className="w-4 h-4 text-indigo-600 rounded"
+                />
+                <label htmlFor="sameAsBilling" className="text-sm font-medium text-gray-700 cursor-pointer select-none">
+                  Shipping address is same as billing address
+                </label>
+              </div>
+
+              {!sameAsBilling && (
+                <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-lg animate-fadeIn">
+                  <h3 className="font-semibold text-slate-800">SHIPPING ADDRESS</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input value={shippingAddress.line1} onChange={(e) => setShippingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Address Line 1" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.line2} onChange={(e) => setShippingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.city} onChange={(e) => setShippingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.state} onChange={(e) => setShippingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.zip} onChange={(e) => setShippingAddress(p => ({ ...p, zip: e.target.value }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.country} onChange={(e) => setShippingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Totals below account */}
             <div>
               <Totals
@@ -788,37 +875,77 @@ const submitCheckout = async () => {
         )}
 
         {step === 2 && (
-          <div className="space-y-4">
-            <div>
-              <div className="font-semibold mb-2">PAYMENT METHOD :</div>
-              <div className="flex gap-6">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="payment" value="razorpay" checked={paymentMethod === "razorpay"} onChange={() => setPaymentMethod("razorpay")} />
-                  <span className="font-medium">Razorpay</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="payment" value="paypal" checked={paymentMethod === "paypal"} onChange={() => setPaymentMethod("paypal")} />
-                  <span className="font-medium">PayPal</span>
-                </label>
+          <div className="space-y-6">
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                <LockKeyhole className="w-5 h-5" />
+                Bank Transfer Details
+              </h3>
+
+              <div className="space-y-4 text-sm text-indigo-900">
+                <p className="font-medium">Please transfer the total amount to the following bank account:</p>
+
+                <div className="bg-white p-4 rounded border border-indigo-200 space-y-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <span className="text-slate-500 font-medium">Bank Name:</span>
+                    <span className="col-span-2 font-bold select-all">HDFC Bank Limited</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <span className="text-slate-500 font-medium">Branch:</span>
+                    <span className="col-span-2 font-bold select-all">G N Chetty rd Branch, TNagar</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <span className="text-slate-500 font-medium">Account Name:</span>
+                    <span className="col-span-2 font-bold select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <span className="text-slate-500 font-medium">Account No:</span>
+                    <span className="col-span-2 font-bold select-all">50200035538980</span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <span className="text-slate-500 font-medium">SWIFT Code:</span>
+                    <span className="col-span-2 font-bold select-all">HDFCINBBCHE</span>
+                  </div>
+                </div>
+
+                <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-yellow-800">
+                  <p className="font-semibold mb-1">⚠️ Important:</p>
+                  <p>
+                    After creating the payment, please email the transaction details / proof of payment to{" "}
+                    <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
+                      sales@igla.asia
+                    </a>
+                    . Your order will be confirmed once we verify the payment.
+                  </p>
+                </div>
               </div>
             </div>
 
-            <div>
-              <div className="font-semibold mb-2">TERMS & CONDITIONS:</div>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} />
-                <span>Agree to Terms & Conditions:</span>
-                <Link href="/terms" className="text-indigo-700 underline">
-                  Condition Name
-                </Link>
-              </label>
-              <label className="flex items-center gap-2">
-                <input type="checkbox" checked={agreePolicies} onChange={(e) => setAgreePolicies(e.target.checked)} />
-                <span>Agree to Policies:</span>
-                <Link href="/privacy" className="text-indigo-700 underline">
-                  Policy Name
-                </Link>
-              </label>
+            <div className="space-y-4 pt-4 border-t">
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="terms"
+                  checked={agreeTerms}
+                  onChange={(e) => setAgreeTerms(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-indigo-600 rounded"
+                />
+                <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">
+                  I agree to the <Link href="/terms" target="_blank" className="text-indigo-600 hover:underline">Terms & Conditions</Link>
+                </label>
+              </div>
+              <div className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  id="privacy"
+                  checked={agreePolicies}
+                  onChange={(e) => setAgreePolicies(e.target.checked)}
+                  className="mt-1 w-4 h-4 text-indigo-600 rounded"
+                />
+                <label htmlFor="privacy" className="text-sm text-slate-600 cursor-pointer">
+                  I agree to the <Link href="/privacy" target="_blank" className="text-indigo-600 hover:underline">Privacy Policy</Link>
+                </label>
+              </div>
             </div>
 
             <Totals
@@ -831,12 +958,25 @@ const submitCheckout = async () => {
             />
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(1)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center" title="Back">
+              <button
+                onClick={() => setStep(1)}
+                className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-indigo-50 transition-colors"
+                title="Back"
+              >
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <button onClick={submitCheckout} disabled={isSubmitting || !agreeTerms || !agreePolicies} className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400 inline-flex items-center justify-center gap-2">
-                {isSubmitting ? <Loader className="w-5 h-5 animate-spin" /> : <LockKeyhole className="w-5 h-5" />}
-                {isSubmitting ? "Processing…" : "Proceed Payment"}
+              <button
+                onClick={submitCheckout}
+                disabled={isSubmitting || !agreeTerms || !agreePolicies}
+                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader className="w-5 h-5 animate-spin" /> Processing...
+                  </>
+                ) : (
+                  "Confirm Order"
+                )}
               </button>
             </div>
           </div>

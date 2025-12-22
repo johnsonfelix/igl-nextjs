@@ -38,7 +38,7 @@ const EventCard = ({ event }: { event: Event }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
 
         {/* Badge */}
-        <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg flex items-center gap-1 ${eventType === 'Hot' ? 'bg-rose-600 text-white' : 'bg-[#5da765] text-white'}`}>
+        <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg flex items-center gap-1 ${eventType === 'Hot' ? 'bg-rose-600 text-white' : 'bg-[#004aad] text-white'}`}>
           {eventType === 'Hot' && <Star className="w-3 h-3 fill-current" />}
           {eventType}
         </div>
@@ -53,26 +53,27 @@ const EventCard = ({ event }: { event: Event }) => {
       </div>
 
       <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 leading-tight group-hover:text-[#5da765] transition-colors" title={name}>
+        <h3 className="text-xl font-bold text-gray-900 mb-4 line-clamp-2 leading-tight group-hover:text-[#004aad] transition-colors" title={name}>
           {name}
         </h3>
 
         <div className="space-y-3 text-sm text-gray-600 mb-6">
           <div className="flex items-center gap-3">
-            <MapPin className="h-4 w-4 text-[#5da765]" />
+            <MapPin className="h-4 w-4 text-[#004aad]" />
             <span className="font-medium">{location}</span>
           </div>
           <div className="flex items-center gap-3">
-            <Users className="h-4 w-4 text-[#5da765]" />
+            <Users className="h-4 w-4 text-[#004aad]" />
             <span>{expectedAudience} Attendees Expected</span>
           </div>
         </div>
 
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-          <div className="text-xs font-medium text-gray-400 uppercase tracking-wider">
-            IGLA Event
+          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+            <Calendar className="h-4 w-4 text-[#004aad]" />
+            {formattedStartDate} - {formattedEndDate}
           </div>
-          <span className="inline-flex items-center gap-1 text-[#5da765] font-bold text-sm hover:gap-2 transition-all">
+          <span className="inline-flex items-center gap-1 text-[#004aad] font-bold text-sm hover:gap-2 transition-all">
             View Details <ArrowRight className="h-4 w-4" />
           </span>
         </div>
@@ -125,7 +126,7 @@ export default function EventsListPage() {
             fill
             className="object-cover"
           />
-          <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
         </div>
         <div className="relative z-10 px-4 max-w-4xl mx-auto">
           <span className="text-white/80 font-bold tracking-widest uppercase text-sm mb-4 block animate-fadeIn">Networking & Growth</span>
@@ -141,7 +142,7 @@ export default function EventsListPage() {
       <main className="container mx-auto px-4 py-16 -mt-20 relative z-20">
         {loading ? (
           <div className="bg-white rounded-xl shadow-lg p-12 flex justify-center items-center min-h-[400px]">
-            <Loader className="h-12 w-12 animate-spin text-[#5da765]" />
+            <Loader className="h-12 w-12 animate-spin text-[#004aad]" />
           </div>
         ) : error && events.length === 0 ? (
           <div className="bg-white rounded-xl shadow-lg p-12 flex flex-col items-center justify-center text-center">

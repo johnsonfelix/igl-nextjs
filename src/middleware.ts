@@ -10,13 +10,18 @@ const publicPrefixes = [
   "/company/login",
   "/company/register",
   "/register",
+  "/company/forgot-password",
+  "/company/reset-password",
 
   // backend API registration/auth endpoints
   "/api/register",
   "/api/company/register",
   "/api/auth/register",
   "/api/company/login",
+  "/api/company/login",
   "/api/auth/login",
+  "/api/company/forgot-password",
+  "/api/company/reset-password",
 
   // open/public APIs & upload presign endpoint used by the app
   "/api/public",

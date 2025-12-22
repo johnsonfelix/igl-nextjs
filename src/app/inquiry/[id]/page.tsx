@@ -348,22 +348,22 @@ export default function InquiryDetailsPage() {
                         )}
                     </div>
                 </div>
+
+                {/* Bottom Action Button */}
+                {user && !isOwner && !hasResponded && (
+                    <div className="mt-8 flex justify-end">
+                        <Link
+                            href={`/inquiry/${inquiry.id}/respond`}
+                            className="bg-[#5da765] hover:bg-[#4a8a52] text-white text-lg px-8 py-4 rounded-xl font-bold shadow-lg hover:shadow-xl transition-all flex items-center gap-3"
+                        >
+                            <span>Send Quote Now</span>
+                            <Send className="h-5 w-5" />
+                        </Link>
+                    </div>
+                )}
             </main>
 
-            {/* Smart Floating Action Button */}
-            {user && !isOwner && !hasResponded && (
-                <div className="fixed bottom-8 right-8 z-40 animate-bounce-in">
-                    <Link
-                        href={`/inquiry/${inquiry.id}/respond`}
-                        className="group flex items-center gap-3 bg-[#5da765] text-white rounded-full shadow-2xl pl-6 pr-2 py-2 hover:bg-[#4a8a52] transition-all hover:pr-6"
-                    >
-                        <span className="font-bold whitespace-nowrap">Send Quote</span>
-                        <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:rotate-45 transition-transform">
-                            <Send className="h-5 w-5" />
-                        </div>
-                    </Link>
-                </div>
-            )}
+
         </div>
     );
 }

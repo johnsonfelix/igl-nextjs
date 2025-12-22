@@ -53,7 +53,7 @@ export default function LoginPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
         <div className="absolute inset-0">
           <Image src="/images/bg-4.jpg" alt="Login Background" fill className="object-cover opacity-60" />
-          <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
         </div>
         <div className="relative z-10 p-12 text-center">
           <h2 className="text-5xl font-bold mb-6">Welcome Back</h2>
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 placeholder="Enter your email"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#5da765] focus:border-[#5da765] outline-none transition-all placeholder:text-gray-400"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#004aad] focus:border-[#004aad] outline-none transition-all placeholder:text-gray-400"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -92,10 +92,19 @@ export default function LoginPage() {
                 type="password"
                 required
                 placeholder="Enter your password"
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#5da765] focus:border-[#5da765] outline-none transition-all placeholder:text-gray-400"
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#004aad] focus:border-[#004aad] outline-none transition-all placeholder:text-gray-400"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+
+            <div className="flex justify-end">
+              <Link
+                href="/company/forgot-password"
+                className="text-sm text-[#004aad] hover:underline"
+              >
+                Forgot password?
+              </Link>
             </div>
 
             {error && (
@@ -107,7 +116,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex items-center justify-center gap-2 bg-[#5da765] text-white font-bold py-3.5 rounded-full hover:bg-[#4a8a52] transition-colors shadow-lg hover:shadow-xl disabled:opacity-70"
+              className="w-full flex items-center justify-center gap-2 bg-[#004aad] text-white font-bold py-3.5 rounded-full hover:bg-[#4a8a52] transition-colors shadow-lg hover:shadow-xl disabled:opacity-70"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <LogIn className="h-5 w-5" />}
               {loading ? 'Logging in...' : 'Login'}
@@ -119,7 +128,7 @@ export default function LoginPage() {
               Don’t have an account?{' '}
               <Link
                 href="/company/register"
-                className="text-[#5da765] font-bold hover:underline"
+                className="text-[#004aad] font-bold hover:underline"
               >
                 Register here
               </Link>

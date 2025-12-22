@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   title: "IGLA - Global Logistics Alliance",
   description: "The premier network for logistics professionals",
   icons: {
-    icon: '/images/favicon.jpg',
+    icon: '/images/favicon.png',
   },
 };
 

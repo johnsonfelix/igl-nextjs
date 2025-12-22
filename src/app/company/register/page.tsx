@@ -62,7 +62,7 @@ export default function RegisterCompanyPage() {
   };
 
   const inputBase =
-    'w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#5da765] focus:border-[#5da765] outline-none transition-all bg-white placeholder:text-gray-400';
+    'w-full rounded-lg border border-gray-300 px-4 py-3 focus:ring-2 focus:ring-[#004aad] focus:border-[#004aad] outline-none transition-all bg-white placeholder:text-gray-400';
 
   return (
     <div className="min-h-screen flex">
@@ -70,7 +70,7 @@ export default function RegisterCompanyPage() {
       <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
         <div className="absolute inset-0">
           <Image src="/images/bg-2.jpg" alt="Register Background" fill className="object-cover opacity-60" />
-          <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+          <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
         </div>
         <div className="relative z-10 p-12 text-center">
           <h2 className="text-5xl font-bold mb-6">Join the Network</h2>
@@ -195,7 +195,7 @@ export default function RegisterCompanyPage() {
                 <button
                   type="button"
                   onClick={() => setShowPwd(v => !v)}
-                  className="absolute right-3 top-3.5 text-xs font-semibold text-[#5da765] hover:underline"
+                  className="absolute right-3 top-3.5 text-xs font-semibold text-[#004aad] hover:underline"
                 >
                   {showPwd ? 'Hide' : 'Show'}
                 </button>
@@ -211,15 +211,15 @@ export default function RegisterCompanyPage() {
                 type="checkbox"
                 checked={form.agreeToTerms}
                 onChange={handleChange}
-                className="mt-1 accent-[#5da765]"
+                className="mt-1 accent-[#004aad]"
               />
               <label htmlFor="agreeToTerms" className="text-sm text-gray-700">
                 I agree to the{' '}
-                <Link href="/terms" className="text-[#5da765] font-semibold hover:underline">
+                <Link href="/terms" className="text-[#004aad] font-semibold hover:underline">
                   user agreement
                 </Link>{' '}
                 and{' '}
-                <Link href="/privacy" className="text-[#5da765] font-semibold hover:underline">
+                <Link href="/privacy" className="text-[#004aad] font-semibold hover:underline">
                   privacy policy
                 </Link>.
               </label>
@@ -234,7 +234,7 @@ export default function RegisterCompanyPage() {
             <button
               type="submit"
               disabled={loading || !form.agreeToTerms}
-              className="w-full flex items-center justify-center gap-2 bg-[#5da765] text-white font-bold py-3.5 rounded-full hover:bg-[#4a8a52] transition-colors shadow-lg hover:shadow-xl disabled:opacity-70"
+              className="w-full flex items-center justify-center gap-2 bg-[#004aad] text-white font-bold py-3.5 rounded-full hover:bg-[#4a8a52] transition-colors shadow-lg hover:shadow-xl disabled:opacity-70"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <ShieldCheck className="h-5 w-5" />}
               {loading ? 'Registering...' : 'Create Account'}
@@ -245,7 +245,7 @@ export default function RegisterCompanyPage() {
           <div className="mt-8 text-center border-t pt-6">
             <p className="text-gray-600 text-sm">
               Already have an account?{' '}
-              <Link href="/company/login" className="text-[#5da765] font-bold hover:underline">
+              <Link href="/company/login" className="text-[#004aad] font-bold hover:underline">
                 Log in
               </Link>
             </p>

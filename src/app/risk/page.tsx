@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Search, MapPin, Building, Award, Star, TrendingUp, CheckCircle } from 'lucide-react';
 
@@ -112,11 +113,26 @@ export default function CompaniesListPage() {
   const [memberId, setMemberId] = useState('');
   const [port, setPort] = useState('');
 
+  // --- Report Modal State ---
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [reportReason, setReportReason] = useState('');
+  const [selectedCompanyId, setSelectedCompanyId] = useState('');
+  const [reportCompanies, setReportCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
   // --- UI State ---
   const tabs = ['Location', 'Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Location');
 
   // --- Data Fetching ---
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'report') {
+      setIsReportModalOpen(true);
+    }
+  }, [searchParams]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies();
@@ -145,6 +161,16 @@ export default function CompaniesListPage() {
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data = await res.json();
       setCompanies(data || []);
+
+      // Fetch simplified company list for report dropdown if not already fetched
+      if (reportCompanies.length === 0) {
+        fetch('/api/companies/list')
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) setReportCompanies(data);
+          })
+          .catch(err => console.error("Failed to load companies for report", err));
+      }
     } catch (err) {
       setCompanies([]);
       setError(err instanceof Error ? err.message : String(err));
@@ -156,7 +182,7 @@ export default function CompaniesListPage() {
   const countryOptions = useMemo(() => ['All', 'India', 'United States', 'China', 'United Kingdom'], []);
 
   const renderSearchInputs = () => {
-    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#5da765] focus:border-[#5da765] transition shadow-sm";
+    const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#004aad] focus:border-[#004aad] transition shadow-sm";
     switch (activeTab) {
       case 'Location':
         return (
@@ -312,7 +338,7 @@ export default function CompaniesListPage() {
           </div>
 
           <aside className="hidden lg:block space-y-6">
-            <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
+            {/* <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
               <div className="flex items-center gap-3 mb-4">
                 <div className="bg-red-600 text-white rounded-xl p-3 shadow-md"><TrendingUp size={20} /></div>
                 <h3 className="font-bold text-lg text-gray-800">Risk Alerts</h3>
@@ -321,7 +347,7 @@ export default function CompaniesListPage() {
               <button className="w-full mt-5 rounded-xl bg-red-600 text-white py-3 text-sm font-bold hover:bg-red-700 transition-all shadow-md hover:shadow-lg hover:translate-y-[-2px]">
                 View Alerts
               </button>
-            </div>
+            </div> */}
             <div className="rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-6 text-white shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 opacity-10">
                 <Award size={120} />
@@ -332,7 +358,10 @@ export default function CompaniesListPage() {
                   <h3 className="font-bold text-lg">Report an Issue</h3>
                 </div>
                 <p className="text-sm text-white/95 leading-relaxed">Help maintain network integrity by reporting suspicious companies or activities.</p>
-                <button className="w-full mt-5 rounded-xl bg-white text-gray-800 py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]">
+                <button
+                  onClick={() => setIsReportModalOpen(true)}
+                  className="w-full mt-5 rounded-xl bg-white text-gray-800 py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]"
+                >
                   Submit Report
                 </button>
               </div>
@@ -340,6 +369,85 @@ export default function CompaniesListPage() {
           </aside>
         </div>
       </main>
+
+      {/* Report Modal */}
+      {isReportModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-gray-800">Submit a Report</h3>
+              <button onClick={() => setIsReportModalOpen(false)} className="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <form onSubmit={async (e) => {
+              e.preventDefault();
+              if (!selectedCompanyId || !reportReason) return;
+
+              setIsSubmittingReport(true);
+              try {
+                const res = await fetch('/api/reports', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ companyId: selectedCompanyId, reason: reportReason })
+                });
+
+                if (res.ok) {
+                  alert('Report submitted successfully. Thank you for helping keep the network safe.');
+                  setIsReportModalOpen(false);
+                  setReportReason('');
+                  setSelectedCompanyId('');
+                } else {
+                  alert('Failed to submit report. Please try again.');
+                }
+              } catch (error) {
+                console.error(error);
+                alert('An error occurred. Please try again.');
+              } finally {
+                setIsSubmittingReport(false);
+              }
+            }} className="p-6 space-y-4">
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Company Name</label>
+                <select
+                  value={selectedCompanyId}
+                  onChange={(e) => setSelectedCompanyId(e.target.value)}
+                  className="w-full rounded-xl border-gray-300 p-3 text-sm focus:ring-[#004aad] focus:border-[#004aad] transition shadow-sm"
+                  required
+                >
+                  <option value="">Select a company</option>
+                  {reportCompanies.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Reason for Report</label>
+                <textarea
+                  value={reportReason}
+                  onChange={(e) => setReportReason(e.target.value)}
+                  className="w-full rounded-xl border-gray-300 p-3 text-sm focus:ring-[#004aad] focus:border-[#004aad] transition shadow-sm min-h-[120px]"
+                  placeholder="Describe the suspicious activity or reason for reporting..."
+                  required
+                ></textarea>
+              </div>
+
+              <div className="pt-2">
+                <button
+                  type="submit"
+                  disabled={isSubmittingReport}
+                  className="w-full rounded-xl bg-red-600 text-white py-3 text-sm font-bold hover:bg-red-700 transition-all shadow-lg hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingReport ? 'Submitting...' : 'Submit Report'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

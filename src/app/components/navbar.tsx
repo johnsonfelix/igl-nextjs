@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Menu, X, User } from "lucide-react";
+import { Menu, X, User, Phone, Mail, Download, LogIn } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import Image from "next/image";
 
@@ -105,20 +105,22 @@ export default function Navbar() {
   return (
     <div className="flex flex-col">
       {/* Top Bar - Integrated to be Global */}
-      <div className="bg-[#5da765] text-white py-2 px-4 text-sm">
+      <div className="bg-[#ceeba3] text-gray-700 py-2 px-4 text-sm font-medium">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="font-medium">
+          <div className="font-medium text-black fs-15">
             Early Bird Offer for Members!{" "}
-            <Link href="#" className="underline font-bold text-blue-900">
+            <Link href="#" className="underline font-bold text-[#004aad]">
               Grab now
             </Link>
-          </p>
-          <div className="flex gap-4 mt-2 md:mt-0">
-            <a href="tel:+919940100929" className="hover:text-black">
-              +91 99401 00929
+          </div>
+          <div className="flex gap-4 mt-2 md:mt-0 text-black">
+            <a href="tel:+919940100929" className="hover:text-black flex items-center gap-2">
+              <Phone className="w-4 h-4 text-black" />
+              <span className="text-black">+91 99401 00929</span>
             </a>
-            <a href="mailto:sales@igla.asia" className="hover:text-black">
-              sales@igla.asia
+            <a href="mailto:sales@igla.asia" className="hover:text-black flex items-center gap-2">
+              <Mail className="w-4 h-4 text-black" />
+              <span className="text-black">sales@igla.asia</span>
             </a>
           </div>
         </div>
@@ -143,7 +145,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`transition hover:text-[#5da765] ${pathname === item.href ? "text-[#5da765]" : ""
+                className={`transition font-medium text-[15px] hover:text-[#2ebb79] ${pathname === item.href ? "text-[#2ebb79]" : "text-[#232323]"
                   }`}
               >
                 {item.name}
@@ -154,24 +156,20 @@ export default function Navbar() {
           {/* Right Side Actions */}
           <div className="hidden sm:flex items-center gap-4">
             {/* Secure Pay - Only on Home */}
-            {pathname === "/" && (
-              <Link
-                href="/risk"
-                className="flex items-center gap-2 font-bold text-gray-700"
-              >
-                <span className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                  🛡️
-                </span>
-                <span className="hidden xl:inline">SecurePay</span>
-              </Link>
-            )}
+            <Link
+              href="/secure-pay"
+              className="flex items-center gap-2 font-medium text-[16px] text-gray-700"
+            >
+              <span className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                🛡️
+              </span>
+              <span className="hidden xl:inline">SecurePay</span>
+            </Link>
 
-            {/* Download App - Only on Home */}
-            {pathname === "/" && (
-              <button className="bg-[#5da765] hover:bg-[#4a8a52] text-white px-6 py-2 rounded-full font-medium transition-colors shadow-lg flex items-center gap-2">
-                📱 Download the App
-              </button>
-            )}
+            {/* Download App - Global */}
+            <button className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
+              <Download className="w-4 h-4" /> Download the App
+            </button>
 
             {/* Account Menu (Desktop) */}
             {user ? (
@@ -207,8 +205,8 @@ export default function Navbar() {
               // If user is not logged in, show a login button
               <div className="hidden md:block">
                 <Link href="/company/login">
-                  <button className="bg-[#5da765] hover:bg-[#4a8a52] text-white px-6 py-2 rounded-full font-medium transition-colors shadow-md">
-                    Login
+                  <button className="bg-gradient-to-r from-[#2ebb79] to-[#12ade8] hover:opacity-90 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-all shadow-md flex items-center gap-2">
+                    <LogIn className="w-4 h-4" /> Login
                   </button>
                 </Link>
               </div>
@@ -276,21 +274,17 @@ export default function Navbar() {
               ))}
               {/* Mobile Actions */}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-                {pathname === "/" && (
-                  <>
-                    <Link href="/risk" className="flex items-center gap-2 font-bold text-gray-700 p-2">
-                      <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-600">🛡️</span>
-                      SecurePay
-                    </Link>
-                    <button className="bg-[#5da765] text-white px-4 py-2 rounded-lg font-medium w-full">
-                      Download App
-                    </button>
-                  </>
-                )}
+                <Link href="/secure-pay" className="flex items-center gap-2 font-medium text-[16px] text-gray-700 p-2">
+                  <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-600">🛡️</span>
+                  SecurePay
+                </Link>
+                <button className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-4 py-2 rounded-lg font-medium text-[16px] w-full flex items-center justify-center gap-2">
+                  <Download className="w-4 h-4" /> Download App
+                </button>
                 {!user && (
                   <Link href="/company/login" className="block">
-                    <button className="w-full bg-[#5da765] text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-[#4a8a52] transition-colors shadow-sm">
-                      Login
+                    <button className="w-full bg-gradient-to-r from-[#2ebb79] to-[#12ade8] text-white px-4 py-2 rounded-md font-medium text-[16px] text-center hover:opacity-90 transition-all shadow-sm flex items-center justify-center gap-2">
+                      <LogIn className="w-4 h-4" /> Login
                     </button>
                   </Link>
                 )}

@@ -330,7 +330,7 @@ const MembershipPage: NextPage = () => {
               <h2 className="text-2xl font-semibold mb-2">Failed to load membership plans</h2>
               <p className="text-gray-600 mb-6">{error}</p>
               <div className="flex justify-center">
-                <a href="/contact" className="inline-block bg-[#5da765] text-white px-6 py-3 rounded">Contact Support</a>
+                <a href="/contact" className="inline-block bg-[#004aad] text-white px-6 py-3 rounded">Contact Support</a>
               </div>
             </div>
           </div>

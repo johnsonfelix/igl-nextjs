@@ -480,7 +480,7 @@ export default function CompanyProfilePage(_props: PageProps) {
 
           {/* Directors & IGLA */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Leadership</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Board Members</h3>
             {companyData.directors ? (
               <div className="text-gray-600 text-sm leading-relaxed mb-6">
                 {companyData.directors}

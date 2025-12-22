@@ -57,7 +57,7 @@ export default function EventsPage() {
           </div>
 
           <Link href="/admin/events/create">
-            <Button className="bg-[#5da765] hover:bg-[#4a8a52] text-white shadow-md hover:shadow-lg transition-all rounded-xl px-6 py-6 h-auto">
+            <Button className="bg-[#004aad] hover:bg-[#4a8a52] text-white shadow-md hover:shadow-lg transition-all rounded-xl px-6 py-6 h-auto">
               <span className="flex items-center gap-2 font-bold">
                 <Plus size={18} /> Create New Event
               </span>
@@ -105,13 +105,13 @@ export default function EventsPage() {
 
                     <div className="absolute top-4 left-4">
                       <div className="px-3 py-1.5 rounded-lg bg-white/90 backdrop-blur-sm text-xs font-bold text-gray-800 shadow-sm flex items-center gap-1.5">
-                        <Eye size={12} className="text-[#5da765]" />
+                        <Eye size={12} className="text-[#004aad]" />
                         {event.location || 'Location Pending'}
                       </div>
                     </div>
 
                     <div className="absolute bottom-4 right-4">
-                      <div className="px-3 py-1.5 rounded-lg bg-[#5da765] text-white text-xs font-bold shadow-md">
+                      <div className="px-3 py-1.5 rounded-lg bg-[#004aad] text-white text-xs font-bold shadow-md">
                         {event.startDate ? new Date(event.startDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Date TBD'}
                       </div>
                     </div>
@@ -119,13 +119,13 @@ export default function EventsPage() {
 
                   <CardContent className="p-5 flex flex-col flex-grow">
                     <div className="mb-4 flex-grow">
-                      <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-[#5da765] transition-colors">{event.name}</h2>
+                      <h2 className="text-xl font-bold text-gray-800 mb-2 line-clamp-1 group-hover:text-[#004aad] transition-colors">{event.name}</h2>
                       <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed">{event.description || 'No description provided.'}</p>
                     </div>
 
                     <div className="pt-4 border-t border-gray-50 grid grid-cols-3 gap-2">
                       <Link href={`/admin/events/${event.id}`} className="w-full">
-                        <Button variant="ghost" size="sm" className="w-full justify-center gap-1.5 text-gray-600 hover:text-[#5da765] hover:bg-green-50 rounded-lg">
+                        <Button variant="ghost" size="sm" className="w-full justify-center gap-1.5 text-gray-600 hover:text-[#004aad] hover:bg-green-50 rounded-lg">
                           <Eye size={16} /> <span className="text-xs font-bold">View</span>
                         </Button>
                       </Link>
@@ -163,7 +163,7 @@ export default function EventsPage() {
                 <h3 className="text-lg font-bold text-gray-800 mb-2">No events created yet</h3>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">Get started by creating your first event to manage logistics and registrations.</p>
                 <Link href="/admin/events/create">
-                  <Button className="bg-[#5da765] hover:bg-[#4a8a52] text-white font-bold">
+                  <Button className="bg-[#004aad] hover:bg-[#4a8a52] text-white font-bold">
                     Create First Event
                   </Button>
                 </Link>
