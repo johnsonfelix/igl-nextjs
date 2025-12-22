@@ -260,21 +260,21 @@ const PriceCard = ({
       </div>
 
       <div className="p-5 flex-grow flex flex-col">
-        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#5da765] transition-colors">{item.name}</h4>
+        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#004aad] transition-colors">{item.name}</h4>
 
         <div className="mt-auto pt-4 border-t border-gray-100">
           {discounted ? (
             <div className="flex items-end gap-2 mb-4">
-              <span className="text-2xl font-bold text-[#5da765]">${formatPrice(newPrice)}</span>
+              <span className="text-2xl font-bold text-[#004aad]">${formatPrice(newPrice)}</span>
               <span className="text-sm text-gray-400 line-through mb-1">${item.price.toLocaleString()}</span>
             </div>
           ) : (
-            <div className="text-2xl font-bold text-[#5da765] mb-4">${item.price.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-[#004aad] mb-4">${item.price.toLocaleString()}</div>
           )}
 
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white border-2 border-[#5da765] text-[#5da765] font-bold py-2 rounded-lg hover:bg-[#5da765] hover:text-white transition-all flex items-center justify-center gap-2"
+            className="w-full bg-white border-2 border-[#004aad] text-[#004aad] font-bold py-2 rounded-lg hover:bg-[#004aad] hover:text-white transition-all flex items-center justify-center gap-2"
           >
             {actionText} <ShoppingCart className="h-4 w-4" />
           </button>
@@ -313,7 +313,7 @@ const BoothCard = ({
         />
       </div>
       <div className="p-5 flex-grow flex flex-col">
-        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#5da765] transition-colors">{booth.name}</h4>
+        <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#004aad] transition-colors">{booth.name}</h4>
         {booth.description && (
           <p className="text-sm text-gray-500 line-clamp-2 mb-4">
             {booth.description}
@@ -323,16 +323,16 @@ const BoothCard = ({
         <div className="mt-auto pt-4 border-t border-gray-100">
           {discounted ? (
             <div className="flex items-end gap-2 mb-4">
-              <span className="text-2xl font-bold text-[#5da765]">${formatPrice(newPrice)}</span>
+              <span className="text-2xl font-bold text-[#004aad]">${formatPrice(newPrice)}</span>
               <span className="text-sm text-gray-400 line-through mb-1">${booth.price.toLocaleString()}</span>
             </div>
           ) : (
-            <div className="text-2xl font-bold text-[#5da765] mb-4">${booth.price.toLocaleString()}</div>
+            <div className="text-2xl font-bold text-[#004aad] mb-4">${booth.price.toLocaleString()}</div>
           )}
 
           <button
             onClick={onBook}
-            className="w-full bg-[#5da765] text-white font-bold py-2 rounded-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+            className="w-full bg-[#004aad] text-white font-bold py-2 rounded-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
           >
             Book Booth <ShoppingCart className="h-4 w-4" />
           </button>
@@ -461,7 +461,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
-        <Loader className="h-16 w-16 animate-spin text-[#5da765]" />
+        <Loader className="h-16 w-16 animate-spin text-[#004aad]" />
       </div>
     );
   if (error)
@@ -650,7 +650,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           alt={name}
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-[#5da765]/80 mix-blend-multiply"></div>
+        <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
         <div className="absolute inset-0 flex flex-col justify-center px-4 md:px-12 max-w-7xl mx-auto">
           <Link href="/event/list" className="text-white/80 hover:text-white flex items-center gap-2 mb-4 font-medium transition-colors w-fit">
             <ArrowLeft className="h-4 w-4" /> Back to Events
@@ -678,8 +678,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 className={`px-5 py-2.5 rounded-lg font-bold text-sm whitespace-nowrap transition-all ${activeTab === tab
-                  ? 'bg-[#5da765] text-white shadow-md'
-                  : 'text-gray-600 hover:bg-gray-50 hover:text-[#5da765]'
+                  ? 'bg-[#004aad] text-white shadow-md'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-[#004aad]'
                   }`}
               >
                 {tab}
@@ -713,7 +713,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     .map(([date, items]) => (
                       <div key={date} className="border border-gray-200 rounded-xl overflow-hidden bg-white shadow-sm hover:shadow-md transition-shadow">
                         <div className="bg-gray-50 px-6 py-4 border-b border-gray-100 flex items-center gap-3">
-                          <div className="bg-[#5da765] text-white rounded-lg p-2 shadow-sm">
+                          <div className="bg-[#004aad] text-white rounded-lg p-2 shadow-sm">
                             <Calendar className="h-5 w-5" />
                           </div>
                           <div>
@@ -731,7 +731,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             .map((item) => (
                               <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row gap-6">
                                 <div className="min-w-[140px] flex-shrink-0">
-                                  <div className="inline-flex items-center justify-center bg-green-50 text-[#5da765] px-3 py-1.5 rounded-lg text-sm font-bold border border-green-100">
+                                  <div className="inline-flex items-center justify-center bg-blue-50 text-[#004aad] px-3 py-1.5 rounded-lg text-sm font-bold border border-blue-100">
                                     {format(parseISO(item.startTime), "h:mm a")} - {format(parseISO(item.endTime), "h:mm a")}
                                   </div>
                                 </div>
@@ -756,7 +756,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="animate-fadeIn space-y-12">
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span className="bg-[#5da765] w-2 h-8 rounded-full"></span>
+                    <span className="bg-[#004aad] w-2 h-8 rounded-full"></span>
                     Event Tickets
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -769,7 +769,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
                 <div>
                   <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span className="bg-[#5da765] w-2 h-8 rounded-full"></span>
+                    <span className="bg-[#004aad] w-2 h-8 rounded-full"></span>
                     Exhibition Booths
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -819,7 +819,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   </div>
                                 </div>
                                 <p className="text-gray-500 text-sm flex items-center gap-1 mb-2"><MapPin className="h-4 w-4" /> {hotel.address}</p>
-                                <p className="text-sm text-[#5da765] font-medium">{hotel.roomTypes.length} Room Types Available</p>
+                                <p className="text-sm text-[#004aad] font-medium">{hotel.roomTypes.length} Room Types Available</p>
                               </div>
                             </div>
                           </div>
@@ -836,7 +836,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                         <div className="flex justify-between items-start mb-1">
                                           <p className="font-bold text-gray-800 text-lg">{rt.roomType}</p>
                                           {/* Price displayed prominently on mobile, or right side on desktop */}
-                                          <p className="font-bold text-[#5da765] sm:hidden text-lg">${rt.price}</p>
+                                          <p className="font-bold text-[#004aad] sm:hidden text-lg">${rt.price}</p>
                                         </div>
                                         <p className="text-sm text-gray-500 mb-2">{rt.amenities || "Standard amenities included."}</p>
                                         <div className="flex flex-wrap gap-2">
@@ -846,7 +846,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                         </div>
                                       </div>
                                       <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                        <p className="font-bold text-[#5da765] text-xl hidden sm:block mb-2">${rt.price}</p>
+                                        <p className="font-bold text-[#004aad] text-xl hidden sm:block mb-2">${rt.price}</p>
                                         <button onClick={(e) => {
                                           e.stopPropagation();
                                           addToCart({
@@ -858,7 +858,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                             image: hotel.image || undefined
                                           });
                                           toast.success("Room added to cart!");
-                                        }} className="w-full sm:w-auto bg-[#5da765] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#4a8a52] transition-colors shadow-sm flex items-center justify-center gap-2">
+                                        }} className="w-full sm:w-auto bg-[#004aad] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#00317a] transition-colors shadow-sm flex items-center justify-center gap-2">
                                           Add Room <ShoppingCart className="h-4 w-4" />
                                         </button>
                                       </div>
@@ -885,7 +885,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             <div className="space-y-6">
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-[#5da765]">
+                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#004aad]">
                   <Calendar className="h-5 w-5" />
                 </div>
                 <div>
@@ -895,7 +895,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               </div>
 
               <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-[#2ebb79]">
                   <MapPin className="h-5 w-5" />
                 </div>
                 <div>
@@ -917,7 +917,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <button className="w-full bg-[#5da765] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#4a8a52] transition-colors flex items-center justify-center gap-2" onClick={() => setActiveTab("Tickets & Booths")}>
+              <button className="w-full bg-[#004aad] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2" onClick={() => setActiveTab("Tickets & Booths")}>
                 Register Now <ArrowRight className="h-5 w-5" />
               </button>
               <p className="text-center text-xs text-gray-400 mt-3">Secure your spot today.</p>
@@ -951,7 +951,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               </div>
 
               {boothSubtypesLoading ? (
-                <div className="py-8 flex justify-center"><Loader className="animate-spin text-[#5da765]" /></div>
+                <div className="py-8 flex justify-center"><Loader className="animate-spin text-[#004aad]" /></div>
               ) : boothSubtypesError ? (
                 <p className="text-red-500 text-center">{boothSubtypesError}</p>
               ) : (
@@ -963,21 +963,21 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       <div
                         key={st.id}
                         onClick={() => st.isAvailable && setSelectedSubtypeId(st.id)}
-                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-[#5da765] bg-green-50' : 'border-gray-100 hover:border-gray-200'
+                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-[#004aad] bg-blue-50' : 'border-gray-100 hover:border-gray-200'
                           } ${!st.isAvailable ? 'opacity-50 pointer-events-none' : ''}`}
                       >
                         <div>
                           <p className="font-bold text-gray-800">{st.name}</p>
                           {st.description && <p className="text-xs text-gray-500">{st.description}</p>}
                           {st.slotStart && st.slotEnd && (
-                            <p className="text-xs text-[#5da765] mt-1 font-medium bg-green-50 w-fit px-2 py-0.5 rounded">
+                            <p className="text-xs text-[#004aad] mt-1 font-medium bg-blue-50 w-fit px-2 py-0.5 rounded">
                               {format(new Date(st.slotStart), "MMM d, h:mm a")} - {format(new Date(st.slotEnd), "h:mm a")}
                             </p>
                           )}
                           {!st.isAvailable && <span className="text-xs font-bold text-red-500">Sold Out</span>}
                         </div>
                         <div className="text-right">
-                          <p className="font-bold text-[#5da765]">${finalPrice.toLocaleString()}</p>
+                          <p className="font-bold text-[#004aad]">${finalPrice.toLocaleString()}</p>
                         </div>
                       </div>
                     )
@@ -988,7 +988,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
               <button onClick={closeBoothModal} className="px-6 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 transition-colors">Cancel</button>
-              <button onClick={handleConfirmBoothSubtype} className="px-6 py-2 rounded-lg font-bold bg-[#5da765] text-white hover:bg-[#4a8a52] transition-colors shadow-md">Confirm Booking</button>
+              <button onClick={handleConfirmBoothSubtype} className="px-6 py-2 rounded-lg font-bold bg-[#004aad] text-white hover:bg-[#00317a] transition-colors shadow-md">Confirm Booking</button>
             </div>
           </div>
         </div>

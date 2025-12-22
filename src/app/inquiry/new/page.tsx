@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import CityAutocompleteField from '@/app/components/CityAutocompleteField';
 import {
-    AlertTriangle, CheckCircle, Send, Package, Anchor, Plane, Truck, Calendar, User, Mail, Phone, Hash, FileText, Receipt
+    AlertTriangle, CheckCircle, Send, Package, Anchor, Plane, Truck, Calendar, User, Mail, Phone, Hash, FileText, Receipt, ClipboardList
 } from 'lucide-react';
 
 // --- Type Definition for FormInput props ---
@@ -162,7 +162,7 @@ export default function NewInquiryPage() {
 
                     {sectionHeader("Additional Details")}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <FormInput label="Freight Term" value={freightTerm} onChange={(e: ChangeEvent<HTMLInputElement>) => setFreightTerm(e.target.value)} placeholder="e.g., Prepaid, Collect" icon={Receipt} />
+                        <FormInput label="Freight Term" value={freightTerm} onChange={(e: ChangeEvent<HTMLInputElement>) => setFreightTerm(e.target.value)} placeholder="e.g., Prepaid, Collect" icon={ClipboardList} />
                         <FormInput label="Incoterms" value={incoterms} onChange={(e: ChangeEvent<HTMLInputElement>) => setIncoterms(e.target.value)} placeholder="e.g., FOB, EXW" icon={FileText} />
                         <FormInput label="Dimensions" value={dimensions} onChange={(e: ChangeEvent<HTMLInputElement>) => setDimensions(e.target.value)} placeholder="e.g., 120x80x100 cm" icon={Hash} />
                         <div className="md:col-span-2">

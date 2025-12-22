@@ -2,7 +2,7 @@
 
 import React, { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { Loader, Check, ArrowLeft, LockKeyhole } from "lucide-react";
+import { Loader, Check, ArrowLeft, LockKeyhole, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/app/event/[id]/CartContext";
 import { useAuth } from "@/app/context/AuthContext";
 
@@ -136,6 +136,8 @@ function CartSummary({
   removeCoupon,
   couponBusy,
   linesWithOffers,
+  updateQuantity,
+  removeFromCart,
 }: {
   cart: Array<any>;
   couponCode: string;
@@ -144,7 +146,9 @@ function CartSummary({
   applyCoupon: () => void;
   removeCoupon: () => void;
   couponBusy: boolean;
-  linesWithOffers: Array<any>; // items augmented with offers & computed prices
+  linesWithOffers: Array<any>;
+  updateQuantity: (pid: string, qty: number, rtid?: string) => void;
+  removeFromCart: (pid: string, rtid?: string) => void;
 }) {
   return (
     <div>
@@ -157,58 +161,91 @@ function CartSummary({
             key={`${item.productId}-${item.roomTypeId || item.boothSubTypeId || ""}`}
             className="flex items-center gap-3 border-b pb-3"
           >
-            <img src={item.image || "/placeholder.png"} alt={item.name} className="w-12 h-12 rounded-md object-cover border" />
+            <img src={item.image || "/placeholder.png"} alt={item.name} className="w-16 h-16 rounded-md object-cover border" />
             <div className="flex-1">
-              <div className="font-medium">
+              <div className="font-medium text-slate-900">
                 {idx + 1}. {item.name}
               </div>
-              <div className="text-sm text-slate-500">
-                Qty: {item.quantity} •{" "}
+
+              {/* Quantity Controls */}
+              <div className="flex items-center gap-3 mt-2">
+                <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId)}
+                    className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </button>
+                  <span className="w-8 text-center text-sm font-semibold text-gray-700">{item.quantity}</span>
+                  <button
+                    onClick={() => updateQuantity(item.productId, item.quantity + 1, item.roomTypeId)}
+                    className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => removeFromCart(item.productId, item.roomTypeId)}
+                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                  title="Remove item"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+
+              {/* Price Breakdown */}
+              <div className="mt-1 text-sm text-slate-500">
                 {item.appliedOfferPercent ? (
                   <>
-                    <span className="line-through mr-2">${Number(item.original).toFixed(2)}</span>
-                    <span className="font-semibold">${Number(item.effective).toFixed(2)}</span>
-                    <span className="ml-2 text-xs text-rose-600 font-medium">-{Math.round(item.appliedOfferPercent)}%</span>
+                    <span className="line-through mr-2 text-gray-400">${Number(item.original).toFixed(2)}</span>
+                    <span className="font-semibold text-indigo-600">${Number(item.effective).toFixed(2)}</span>
+                    <span className="ml-2 text-xs bg-rose-100 text-rose-600 font-medium px-1.5 py-0.5 rounded">-{Math.round(item.appliedOfferPercent)}%</span>
                   </>
                 ) : (
-                  <span className="font-semibold">${Number(item.original).toFixed(2)}</span>
+                  <span className="font-semibold text-gray-600">${Number(item.original).toFixed(2)}</span>
                 )}
               </div>
             </div>
-            <div className="font-semibold">${Number(item.lineTotal).toFixed(2)}</div>
+            <div className="flex flex-col items-end">
+              <span className="font-bold text-slate-800">${Number(item.lineTotal).toFixed(2)}</span>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Coupon - Concise & Good looking */}
-      <div className="mt-4 flex items-center gap-2 max-w-sm">
-        <div className="flex-1 relative">
-          <input
-            value={appliedCoupon.code ? appliedCoupon.code : couponCode}
-            onChange={(e) => setCouponCode(e.target.value)}
-            disabled={!!appliedCoupon.code}
-            placeholder="Coupon code"
-            className="w-full rounded-l-md border border-r-0 border-gray-300 px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500 disabled:bg-gray-50 disabled:text-gray-500"
-          />
-          {appliedCoupon.code && <div className="absolute inset-y-0 right-2 flex items-center pointer-events-none text-green-600 font-bold text-xs">APPLIED</div>}
-        </div>
+      <div className="mt-6 pt-4 border-t border-gray-100">
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code</label>
+        <div className="flex items-center gap-2 max-w-sm">
+          <div className="flex-1 relative">
+            <input
+              value={appliedCoupon.code ? appliedCoupon.code : couponCode}
+              onChange={(e) => setCouponCode(e.target.value)}
+              disabled={!!appliedCoupon.code}
+              placeholder="Enter code"
+              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all disabled:opacity-60"
+            />
+            {appliedCoupon.code && <Check className="absolute top-1/2 -translate-y-1/2 right-3 h-4 w-4 text-green-500" />}
+          </div>
 
-        {!appliedCoupon.code ? (
-          <button
-            onClick={applyCoupon}
-            disabled={couponBusy || !couponCode.trim()}
-            className="px-4 py-2 rounded-r-md bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:bg-indigo-300 transition-colors -ml-2 z-10"
-          >
-            {couponBusy ? "..." : "Apply"}
-          </button>
-        ) : (
-          <button
-            onClick={removeCoupon}
-            className="px-4 py-2 rounded-r-md bg-red-50 text-red-600 border border-l-0 border-gray-100 text-sm font-medium hover:bg-red-100 transition-colors -ml-2 z-10"
-          >
-            Remove
-          </button>
-        )}
+          {!appliedCoupon.code ? (
+            <button
+              onClick={applyCoupon}
+              disabled={couponBusy || !couponCode.trim()}
+              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-all shadow-sm active:scale-95"
+            >
+              {couponBusy ? "..." : "Apply"}
+            </button>
+          ) : (
+            <button
+              onClick={removeCoupon}
+              className="px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 text-sm font-bold hover:bg-red-100 transition-all"
+            >
+              Remove
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -221,7 +258,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const { user } = useAuth();
   const companyId = user?.companyId ?? "";
 
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
 
   // steps: 0 = cart, 1 = account, 2 = payment
   const [step, setStep] = useState<0 | 1 | 2>(0);
@@ -780,6 +817,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               removeCoupon={removeCoupon}
               couponBusy={couponBusy}
               linesWithOffers={computed.lines}
+              updateQuantity={updateQuantity}
+              removeFromCart={removeFromCart}
             />
 
             <div className="mt-4">

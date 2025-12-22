@@ -43,9 +43,9 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         <div className="p-6 pb-8 border-b border-gray-50">
           <Link
             href="/admin/dashboard"
-            className="text-2xl font-extrabold flex items-center gap-3 text-emerald-600 tracking-tight transition-opacity hover:opacity-80"
+            className="text-2xl font-extrabold flex items-center gap-3 text-blue-600 tracking-tight transition-opacity hover:opacity-80"
           >
-            <div className="h-10 w-10 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-emerald-200">
+            <div className="h-10 w-10 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
               <LayoutDashboard className="h-6 w-6" />
             </div>
             <span>IGLA<span className="text-gray-400 font-light hidden sm:inline">Admin</span></span>
@@ -63,19 +63,19 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
                 className={cn(
                   "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group",
                   isActive
-                    ? "bg-emerald-50 text-emerald-700 shadow-sm ring-1 ring-emerald-100"
-                    : "text-gray-600 hover:bg-gray-50 hover:text-emerald-600 hover:translate-x-1"
+                    ? "bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100"
+                    : "text-gray-600 hover:bg-gray-50 hover:text-blue-600 hover:translate-x-1"
                 )}
               >
                 <span className={cn(
                   "transition-colors duration-200",
-                  isActive ? "text-emerald-600" : "text-gray-400 group-hover:text-emerald-500"
+                  isActive ? "text-blue-600" : "text-gray-400 group-hover:text-blue-500"
                 )}>
                   {item.icon}
                 </span>
                 <span>{item.name}</span>
                 {isActive && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-blue-500" />
                 )}
               </Link>
             );
@@ -89,7 +89,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           </button>
           <div className="mt-4 px-2 flex items-center justify-between">
             <p className="text-xs text-gray-400 font-medium">&copy; 2025 IGLA</p>
-            <span className="text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full font-medium">v1.2</span>
+            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full font-medium">v1.2</span>
           </div>
         </div>
       </aside>

@@ -430,12 +430,12 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
                   )}`}
                 >
                   <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 rounded-lg bg-white/30 flex items-center justify-center">
+                    <div className="h-20 w-20 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 shrink-0">
                       {p.thumbnail ? (
                         <img
                           src={p.thumbnail}
                           alt={p.name}
-                          className="h-full w-full object-cover rounded-lg"
+                          className="h-full w-full object-contain"
                         />
                       ) : (
                         <div className="text-xl font-bold text-white/90">

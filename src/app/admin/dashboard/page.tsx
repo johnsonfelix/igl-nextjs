@@ -18,8 +18,8 @@ const stats = [
         change: "+12.5%",
         trend: "up",
         icon: DollarSign,
-        color: "text-emerald-600",
-        bg: "bg-emerald-50",
+        color: "text-blue-600",
+        bg: "bg-blue-50",
     },
     {
         title: "Total Registrations",
@@ -27,8 +27,8 @@ const stats = [
         change: "+8.2%",
         trend: "up",
         icon: Users,
-        color: "text-blue-600",
-        bg: "bg-blue-50",
+        color: "text-emerald-600",
+        bg: "bg-emerald-50",
     },
     {
         title: "Active Booths",
@@ -57,7 +57,7 @@ const activity = [
         time: "2 mins ago",
         amount: "₹5,000",
         avatar: "SJ",
-        color: "bg-emerald-100 text-emerald-600"
+        color: "bg-blue-100 text-blue-600"
     },
     {
         user: "TechCorp Ltd.",
@@ -65,7 +65,7 @@ const activity = [
         time: "1 hour ago",
         amount: "₹50,000",
         avatar: "TC",
-        color: "bg-blue-100 text-blue-600"
+        color: "bg-emerald-100 text-emerald-600"
     },
     {
         user: "Michael Chen",
@@ -119,7 +119,7 @@ export default function DashboardPage() {
                     <p className="text-gray-500 mt-1">Welcome back, Admin. Here's what's happening today.</p>
                 </div>
                 <div className="flex items-center gap-3 bg-white p-2 rounded-xl border border-gray-100 shadow-sm">
-                    <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
+                    <div className="bg-blue-50 p-2 rounded-lg text-blue-600">
                         <Calendar size={20} />
                     </div>
                     <div className="pr-4">
@@ -145,7 +145,7 @@ export default function DashboardPage() {
                                         <stat.icon size={22} />
                                     </div>
                                     <Badge variant={stat.trend === "up" ? "default" : "secondary"} className={
-                                        stat.trend === "up" ? "bg-emerald-100 text-white hover:bg-emerald-200" :
+                                        stat.trend === "up" ? "bg-blue-100 text-white hover:bg-blue-200" :
                                             stat.trend === "down" ? "bg-red-50 text-white hover:bg-red-100" :
                                                 "bg-gray-100 text-white"
                                     }>
@@ -174,12 +174,12 @@ export default function DashboardPage() {
                             <div className="h-[300px] w-full flex items-end justify-between px-4 pt-10 pb-2 gap-4">
                                 {overviewData.map((d, i) => (
                                     <div key={i} className="flex flex-col items-center gap-2 flex-1 group cursor-pointer">
-                                        <div className="relative w-full bg-gray-100 rounded-t-lg overflow-hidden h-full flex items-end hover:bg-emerald-50 transition-colors">
+                                        <div className="relative w-full bg-gray-100 rounded-t-lg overflow-hidden h-full flex items-end hover:bg-blue-50 transition-colors">
                                             <motion.div
                                                 initial={{ height: 0 }}
                                                 animate={{ height: `${d.value}%` }}
                                                 transition={{ duration: 0.8, delay: i * 0.1, type: "spring" }}
-                                                className="w-full bg-emerald-500 opacity-80 group-hover:opacity-100 transition-opacity rounded-t-lg relative"
+                                                className="w-full bg-blue-500 opacity-80 group-hover:opacity-100 transition-opacity rounded-t-lg relative"
                                             >
                                                 <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-xs py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10">
                                                     {d.value}%
@@ -215,21 +215,21 @@ export default function DashboardPage() {
                             </CardContent>
                         </Card>
 
-                        <Card className="border-gray-100 shadow-sm bg-gradient-to-br from-emerald-600 to-emerald-700 text-white">
+                        <Card className="border-gray-100 shadow-sm bg-gradient-to-br from-blue-600 to-blue-700 text-white">
                             <CardContent className="p-6 flex flex-col justify-between h-full">
                                 <div>
                                     <div className="bg-white/20 w-fit p-2 rounded-lg mb-4">
                                         <CreditCard size={20} className="text-white" />
                                     </div>
                                     <h3 className="text-xl font-bold mb-1">Recent Transactions</h3>
-                                    <p className="text-emerald-100 text-sm">Monitor incoming payments and refunds.</p>
+                                    <p className="text-blue-100 text-sm">Monitor incoming payments and refunds.</p>
                                 </div>
                                 <div className="mt-8 flex items-center justify-between">
                                     <div>
                                         <p className="text-3xl font-extrabold">₹1.2M</p>
-                                        <p className="text-xs text-emerald-200">Processing</p>
+                                        <p className="text-xs text-blue-200">Processing</p>
                                     </div>
-                                    <Button size="sm" className="bg-white text-emerald-600 hover:bg-emerald-50 border-0">
+                                    <Button size="sm" className="bg-white text-blue-600 hover:bg-blue-50 border-0">
                                         View All
                                     </Button>
                                 </div>
@@ -243,7 +243,7 @@ export default function DashboardPage() {
                     <Card className="border-gray-100 shadow-sm h-full">
                         <CardHeader className="pb-2">
                             <CardTitle className="text-lg font-bold text-gray-800 flex items-center gap-2">
-                                <Activity size={18} className="text-emerald-500" />
+                                <Activity size={18} className="text-blue-500" />
                                 Recent Activity
                             </CardTitle>
                         </CardHeader>
@@ -264,14 +264,14 @@ export default function DashboardPage() {
                                             </div>
                                         </div>
                                         {item.amount && (
-                                            <span className="text-sm font-semibold text-emerald-600 whitespace-nowrap">
+                                            <span className="text-sm font-semibold text-blue-600 whitespace-nowrap">
                                                 {item.amount}
                                             </span>
                                         )}
                                     </div>
                                 ))}
                             </div>
-                            <Button variant="ghost" className="w-full mt-6 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50">
+                            <Button variant="ghost" className="w-full mt-6 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
                                 View All Activity
                             </Button>
                         </CardContent>
