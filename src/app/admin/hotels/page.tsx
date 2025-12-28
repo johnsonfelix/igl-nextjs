@@ -341,7 +341,7 @@ export default function HotelsPage() {
             <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
               {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
                 hotel.roomTypes.slice(0, 3).map((r: any) => (
-                  <Badge key={r.id} variant="secondary" className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-0 font-medium">
+                  <Badge key={r.id} variant="secondary" className="bg-emerald-50 text-white border-0 font-medium">
                     {r.roomType} <span className="mx-1">•</span> ₹{r.price}
                   </Badge>
                 ))

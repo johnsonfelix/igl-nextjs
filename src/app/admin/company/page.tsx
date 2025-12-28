@@ -170,8 +170,10 @@ export default function AdminCompaniesListPage() {
       const url = buildQuery();
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data = await res.json();
-      setCompanies(Array.isArray(data) ? data : []);
+      const json = await res.json();
+      // Handle both old array format (fallback) and new object format
+      const data = Array.isArray(json) ? json : (json.data || []);
+      setCompanies(data);
     } catch (err) {
       setCompanies([]);
       setError(err instanceof Error ? err.message : String(err));
@@ -225,7 +227,7 @@ export default function AdminCompaniesListPage() {
   async function handleToggleActive(company: Company) {
     const companyId = company.id;
     // optional confirmation
-    const confirmMsg = company.isActive ? 'Disable this company? It will remain in the system but become inactive.' : 'Enable this company?';
+    const confirmMsg = company.isActive ? 'Deactivate this company? It will remain in the system but become inactive.' : 'Enable this company?';
     if (!confirm(confirmMsg)) return;
 
     setCompanyActionLoading(companyId, true);
@@ -493,7 +495,7 @@ export default function AdminCompaniesListPage() {
                             disabled={isActionLoading}
                             className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium focus:outline-none border ${company.isActive ? 'bg-white hover:bg-gray-50' : 'bg-yellow-600 text-white hover:bg-yellow-700'}`}
                           >
-                            {company.isActive ? 'Disable' : 'Enable'}
+                            {company.isActive ? 'Deactivate' : 'Enable'}
                           </button>
 
                           <button

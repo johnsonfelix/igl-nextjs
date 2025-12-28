@@ -18,6 +18,7 @@ type OfferScope =
   | "CUSTOM";
 
 export async function POST(req: NextRequest) {
+
   try {
     const body = await req.json();
     const {
@@ -164,25 +165,56 @@ export async function POST(req: NextRequest) {
           )
           : null;
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const u = await tx.company.update({
-        where: { id: companyId },
-        data: {
-          membershipPlan: {
-            connect: { id: membershipPlanId },
-          }, // sets FK and relation
-          purchasedMembership: plan.name, // legacy display
-          purchasedAt: now,
-          membershipExpiresAt: expires,
-          memberType: "PAID",
-          memberSince: company.memberSince ?? now,
-          // If you want to store applied offer on company, you can
-          // add fields like appliedOfferId, lastMembershipDiscount, etc.
-        },
-        include: { membershipPlan: true },
-      });
+    const isOffline =
+      body.isOffline === true ||
+      body.isOffline === "true" ||
+      (payment?.provider && payment.provider.toUpperCase() === "OFFLINE");
 
-      // Optionally, you could store a purchase record here as well.
+    console.log("DEBUG PURCHASE: payment=", payment, "body.isOffline=", body.isOffline, "FINAL isOffline=", isOffline);
+
+
+    const updated = await prisma.$transaction(async (tx) => {
+      let u = company;
+
+      // Only update company membership immediately if NOT offline
+      if (!isOffline) {
+        console.log("DEBUG: PERFORMING COMPANY UPDATE (Online)");
+        u = await tx.company.update({
+          where: { id: companyId },
+          data: {
+            membershipPlan: {
+              connect: { id: membershipPlanId },
+            },
+            purchasedMembership: plan.name,
+            purchasedAt: now,
+            membershipExpiresAt: expires,
+            memberType: "PAID",
+            memberSince: company.memberSince ?? now,
+          },
+          include: { membershipPlan: true },
+        });
+      } else {
+        console.log("DEBUG: SKIPPING COMPANY UPDATE (Offline)");
+      }
+
+      // Create Purchase Order for this membership
+      await tx.purchaseOrder.create({
+        data: {
+          companyId: companyId,
+          totalAmount: finalPrice,
+          status: "PENDING",
+          offlinePayment: isOffline,
+          items: {
+            create: {
+              productType: "MEMBERSHIP",
+              productId: membershipPlanId,
+              name: `Membership: ${plan.name}`,
+              quantity: 1,
+              price: finalPrice
+            }
+          },
+        }
+      });
 
       return u;
     });

@@ -64,59 +64,24 @@ export async function GET(request: Request) {
     if (city) locationWhere.city = { contains: city, mode: 'insensitive' };
     if (port) locationWhere.port = { contains: port, mode: 'insensitive' };
 
-    let companies;
+    // ------------------ execute query ------------------
+    const [total, companies] = await prisma.$transaction([
+      prisma.company.count({ where }),
+      prisma.company.findMany({
+        where,
+        include: { location: true, media: true }, // Default include
+        skip: offset,
+        take: limit,
+        orderBy: { name: 'asc' },
+      }),
+    ]);
 
-    // Try one-to-one "location" first, then fallback to hypothetical one-to-many "locations"
-    if (Object.keys(locationWhere).length > 0) {
-      try {
-        companies = await prisma.company.findMany({
-          where: { ...where, location: locationWhere },
-          include: { location: true, media: true },
-          skip: offset,
-          take: limit,
-          orderBy: { name: 'asc' },
-        });
-      } catch (errOne) {
-        try {
-          companies = await prisma.company.findMany({
-            where: { ...where, locations: { some: locationWhere } }, // if you have a one-to-many relation
-            include: { media: true }, // adjust if you also want to include locations
-            skip: offset,
-            take: limit,
-            orderBy: { name: 'asc' },
-          });
-        } catch (errMany) {
-          console.warn('Both location strategies failed, falling back to company-only query.', { errOne, errMany });
-          companies = await prisma.company.findMany({
-            where,
-            include: { media: true },
-            skip: offset,
-            take: limit,
-            orderBy: { name: 'asc' },
-          });
-        }
-      }
-    } else {
-      try {
-        companies = await prisma.company.findMany({
-          where,
-          include: { location: true, media: true },
-          skip: offset,
-          take: limit,
-          orderBy: { name: 'asc' },
-        });
-      } catch {
-        companies = await prisma.company.findMany({
-          where,
-          include: { media: true },
-          skip: offset,
-          take: limit,
-          orderBy: { name: 'asc' },
-        });
-      }
-    }
-
-    return NextResponse.json(companies);
+    return NextResponse.json({
+      data: companies,
+      total,
+      page: Math.floor(offset / limit) + 1,
+      totalPages: Math.ceil(total / limit),
+    });
   } catch (error) {
     console.error('API /api/companies/search error:', error);
     return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });

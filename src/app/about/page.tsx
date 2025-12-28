@@ -250,7 +250,7 @@ export default function AboutPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-800 mb-2">Email</h4>
-                                    <a href="mailto:info@igla.asia" className="text-[#004aad] hover:underline">info@igla.asia</a>
+                                    <a href="mailto:sales@igla.asia" className="text-[#004aad] hover:underline">info@igla.asia</a>
                                 </div>
                             </div>
 
@@ -260,7 +260,7 @@ export default function AboutPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-800 mb-2">Phone</h4>
-                                    <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+1 (234) 567-890</a>
+                                    <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+91 99401 00929</a>
                                 </div>
                             </div>
 
@@ -270,7 +270,8 @@ export default function AboutPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-800 mb-2">Headquarters</h4>
-                                    <p className="text-gray-600">Global Network</p>
+                                    <p className="text-gray-600">Amber 16 F 2, Olympia Opaline 33,
+                                        Rajiv Gandhi Road, Navalur - 600 130</p>
                                 </div>
                             </div>
                         </div>

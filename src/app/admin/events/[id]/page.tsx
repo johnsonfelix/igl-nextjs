@@ -15,6 +15,7 @@ import {
   Star,
   Edit2,
   Trash2,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -24,6 +25,7 @@ import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import BoothSubTypeManager from '@/app/components/BoothSubTypeManager';
+import { uploadFileToS3 } from '@/app/lib/s3-upload';
 
 // Helpers
 const formatDate = (date?: string) =>
@@ -63,6 +65,8 @@ export default function EventViewPage() {
     nearbyPlaces: '',
   });
   const [savingVenue, setSavingVenue] = useState(false);
+  const [venueFile, setVenueFile] = useState<File | null>(null);
+  const [venuePreviewUrl, setVenuePreviewUrl] = useState<string | null>(null);
 
   // Agenda form/logic
   const [agendaForm, setAgendaForm] = useState({
@@ -100,6 +104,7 @@ export default function EventViewPage() {
         publicTransport: event.venue.publicTransport || '',
         nearbyPlaces: event.venue.nearbyPlaces || '',
       });
+      setVenueFile(null);
     }
   }, [isVenueSheetOpen, event?.venue]);
 
@@ -107,13 +112,30 @@ export default function EventViewPage() {
     fetchEvent();
   }, [eventId]);
 
+  useEffect(() => {
+    if (!venueFile) {
+      const existing = venueForm.imageUrls ? venueForm.imageUrls.split(',')[0].trim() : null;
+      setVenuePreviewUrl(existing || null);
+      return;
+    }
+    const url = URL.createObjectURL(venueFile);
+    setVenuePreviewUrl(url);
+    return () => URL.revokeObjectURL(url);
+  }, [venueFile, venueForm.imageUrls]);
+
   // Save Venue
   const handleSaveVenue = async () => {
     setSavingVenue(true);
     try {
+      let imageUrlsStr = venueForm.imageUrls;
+      if (venueFile) {
+        const uploadedUrl = await uploadFileToS3(venueFile);
+        imageUrlsStr = uploadedUrl;
+      }
+
       const payload = {
         ...venueForm,
-        imageUrls: venueForm.imageUrls.split(',').map((url) => url.trim()),
+        imageUrls: imageUrlsStr.split(',').map((url) => url.trim()).filter(Boolean),
       };
       const method = event?.venue ? 'PUT' : 'POST';
       const res = await fetch(`/api/events/${eventId}/venue`, {
@@ -710,27 +732,70 @@ export default function EventViewPage() {
                       { label: 'Venue Name', name: 'name' },
                       { label: 'Location', name: 'location' },
                       { label: 'Description', name: 'description', textarea: true },
-                      { label: 'Image URLs (comma separated)', name: 'imageUrls', textarea: true },
-                      { label: 'Closest Airport', name: 'closestAirport' },
-                      { label: 'Public Transport', name: 'publicTransport' },
-                      { label: 'Nearby Places', name: 'nearbyPlaces' },
                     ].map((field) => (
                       <div key={field.name}>
                         <Label className="text-gray-700 font-semibold mb-1.5 block">{field.label}</Label>
                         {field.textarea ? (
                           <Textarea
                             rows={3}
-                            className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                            className="rounded-xl border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
                             value={(venueForm as any)[field.name]}
                             onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
                           />
                         ) : (
                           <Input
-                            className="rounded-xl border-gray-200 focus:ring-[#5da765] focus:border-[#5da765]"
+                            className="rounded-xl border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
                             value={(venueForm as any)[field.name]}
                             onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
                           />
                         )}
+                      </div>
+                    ))}
+
+                    {/* Image Upload UI */}
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 font-semibold mb-1.5 block">Venue Image</Label>
+                      <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all text-center relative group">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0] ?? null;
+                            setVenueFile(f);
+                          }}
+                        />
+                        {venuePreviewUrl ? (
+                          <div className="relative h-48 w-full rounded-lg overflow-hidden shadow-sm">
+                            <img src={venuePreviewUrl} alt="Preview" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                              <p className="text-white font-medium">Click to change</p>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex flex-col items-center justify-center py-4">
+                            <div className="bg-emerald-100 p-3 rounded-full mb-3 text-emerald-600">
+                              <ImageIcon size={24} />
+                            </div>
+                            <p className="text-sm font-medium text-gray-700">Click or drag image here</p>
+                            <p className="text-xs text-gray-500 mt-1">Supports JPG, PNG (Max 5MB)</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {[
+                      { label: 'Closest Airport', name: 'closestAirport' },
+                      { label: 'Public Transport', name: 'publicTransport' },
+                      { label: 'Nearby Places', name: 'nearbyPlaces' },
+                    ].map((field) => (
+                      <div key={field.name}>
+                        <Label className="text-gray-700 font-semibold mb-1.5 block">{field.label}</Label>
+                        <Input
+                          className="rounded-xl border-gray-200 focus:ring-emerald-500 focus:border-emerald-500"
+                          value={(venueForm as any)[field.name]}
+                          onChange={(e) => setVenueForm({ ...venueForm, [field.name]: e.target.value })}
+                        />
                       </div>
                     ))}
                     <Button disabled={savingVenue} className="w-full bg-[#5da765] hover:bg-[#4a8a52] text-white rounded-xl h-12 font-bold mt-4">

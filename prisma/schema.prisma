@@ -445,6 +445,8 @@ model PurchaseOrder {
   billingState        String?
   billingZip          String?
   billingCountry      String?
+
+  offlinePayment      Boolean     @default(false)
 }
 
 enum OrderStatus {

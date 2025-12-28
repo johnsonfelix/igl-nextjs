@@ -3,8 +3,9 @@
 import type { NextPage } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ShieldCheck, CreditCard, Calendar, Lock, Building } from 'lucide-react';
+import { ShieldCheck, CreditCard, Calendar, Lock, Building, Check, LockKeyhole, Loader } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext'; // Your authentication context
+import Link from 'next/link';
 
 type ApiPlan = {
   id: string;
@@ -38,6 +39,12 @@ const PurchasePage: NextPage = () => {
   const [plan, setPlan] = useState<ApiPlan | null>(null);
   const [loadingPlans, setLoadingPlans] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string>('');
+
+  // Payment UI state
+  const [paymentMethod, setPaymentMethod] = useState<'offline'>('offline');
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [agreePolicies, setAgreePolicies] = useState(false);
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
 
   // Fetch membership plans from API
   useEffect(() => {
@@ -130,6 +137,11 @@ const PurchasePage: NextPage = () => {
           membershipPlanId: plan.id,
           membershipType: plan.name,
           amount: plan.price,
+          isOffline: true,
+          payment: {
+            provider: 'OFFLINE',
+            amount: plan.price
+          }
         }),
       });
 
@@ -143,10 +155,8 @@ const PurchasePage: NextPage = () => {
       }
 
       setStatus('success');
-      // redirect after short delay so user can see the success message
-      setTimeout(() => {
-        router.push('/dashboard');
-      }, 1800);
+      setOrderConfirmed(true);
+      // Removed auto-redirect to show bank details
     } catch (error) {
       setStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'Failed to process payment.');
@@ -251,59 +261,147 @@ const PurchasePage: NextPage = () => {
                   </div>
                 </div>
 
-                {/* Placeholder for Payment Details */}
-                {/* Payment Details - Offline Bank Transfer */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-                    <Building className="h-5 w-5 text-gray-500" />
-                    Bank Transfer Details
-                  </label>
+                {/* Payment Selection & Form */}
+                {!orderConfirmed ? (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Payment Method</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Offline */}
+                        <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-gray-300'}`}>
+                          <input
+                            type="radio"
+                            name="pm"
+                            value="offline"
+                            checked={paymentMethod === 'offline'}
+                            onChange={() => setPaymentMethod('offline')}
+                            className="sr-only"
+                          />
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-gray-800">Offline Payment</span>
+                            <div className="w-5 h-5 rounded-full border border-blue-600 flex items-center justify-center">
+                              {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500">Bank Transfer. Details shown after confirmation.</p>
+                        </label>
 
-                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 space-y-4">
-                    <p className="text-sm text-blue-900 font-medium">Please transfer the amount to the following bank account:</p>
-
-                    <div className="bg-white p-4 rounded border border-blue-200 space-y-2 text-sm">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-gray-500 font-medium">Bank Name:</span>
-                        <span className="col-span-2 font-bold text-gray-800 select-all">HDFC Bank Limited</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-gray-500 font-medium">Branch:</span>
-                        <span className="col-span-2 font-bold text-gray-800 select-all">G N Chetty rd Branch, TNagar</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-gray-500 font-medium">Account Name:</span>
-                        <span className="col-span-2 font-bold text-gray-800 select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-gray-500 font-medium">Account No:</span>
-                        <span className="col-span-2 font-bold text-gray-800 select-all">50200035538980</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-gray-500 font-medium">SWIFT Code:</span>
-                        <span className="col-span-2 font-bold text-gray-800 select-all">HDFCINBBCHE</span>
+                        {/* Online (Disabled) */}
+                        <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-gray-400">Online Payment</span>
+                            <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
+                          </div>
+                          <p className="text-xs text-gray-400">Credit Card, Debit Card, Net Banking</p>
+                        </label>
                       </div>
                     </div>
 
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-                      <p className="font-semibold mb-1">⚠️ Important:</p>
-                      <p>
-                        After creating the payment, please email the transaction details / proof of payment to{" "}
-                        <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
-                          sales@igla.asia
-                        </a>
-                        . Your membership will be activated once we verify the payment.
-                      </p>
+                    {/* Terms */}
+                    <div className="space-y-3 pt-2 border-t">
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="terms"
+                          checked={agreeTerms}
+                          onChange={(e) => setAgreeTerms(e.target.checked)}
+                          className="mt-1 w-4 h-4 text-blue-600 rounded"
+                        />
+                        <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
+                          I agree to the <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">Terms & Conditions</Link>
+                        </label>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <input
+                          type="checkbox"
+                          id="privacy"
+                          checked={agreePolicies}
+                          onChange={(e) => setAgreePolicies(e.target.checked)}
+                          className="mt-1 w-4 h-4 text-blue-600 rounded"
+                        />
+                        <label htmlFor="privacy" className="text-sm text-gray-600 cursor-pointer">
+                          I agree to the <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>
+                        </label>
+                      </div>
+                    </div>
+
+                    {status === 'error' && <p className="text-sm text-red-600 bg-red-50 p-3 rounded">{errorMessage}</p>}
+
+                    <button
+                      type="submit"
+                      disabled={status === 'loading' || !user?.companyId || !agreeTerms || !agreePolicies}
+                      className="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                    >
+                      {status === 'loading' ? (
+                        <>
+                          <Loader className="w-5 h-5 animate-spin" /> Processing...
+                        </>
+                      ) : (
+                        `Confirm Purchase`
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  // Success State - Show Bank Details
+                  <div className="space-y-6 animate-fadeIn">
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                      <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                        <Check className="w-8 h-8" />
+                      </div>
+                      <h2 className="text-xl font-bold text-green-800 mb-2">Order Confirmed!</h2>
+                      <p className="text-sm text-green-700">Thank you for your purchase. Please complete your payment below.</p>
+                    </div>
+
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 shadow-sm">
+                      <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
+                        <LockKeyhole className="w-5 h-5" />
+                        Bank Transfer Details
+                      </h3>
+
+                      <div className="space-y-4 text-sm text-blue-900">
+                        <div className="bg-white p-4 rounded border border-blue-200 space-y-2">
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <span className="text-gray-500 font-medium">Bank Name:</span>
+                            <span className="col-span-2 font-bold text-gray-800 select-all">HDFC Bank Limited</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <span className="text-gray-500 font-medium">Branch:</span>
+                            <span className="col-span-2 font-bold text-gray-800 select-all">G N Chetty rd Branch, TNagar</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <span className="text-gray-500 font-medium">Account Name:</span>
+                            <span className="col-span-2 font-bold text-gray-800 select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <span className="text-gray-500 font-medium">Account No:</span>
+                            <span className="col-span-2 font-bold text-gray-800 select-all">50200035538980</span>
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <span className="text-gray-500 font-medium">SWIFT Code:</span>
+                            <span className="col-span-2 font-bold text-gray-800 select-all">HDFCINBBCHE</span>
+                          </div>
+                        </div>
+
+                        <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
+                          <p className="font-semibold mb-1">⚠️ Important:</p>
+                          <p>
+                            After creating the payment, please email the transaction details / proof of payment to{" "}
+                            <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
+                              sales@igla.asia
+                            </a>
+                            . Your membership will be activated once we verify the payment.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-center pt-4">
+                      <Link href="/dashboard" className="text-blue-600 font-semibold hover:underline">
+                        Go to Dashboard
+                      </Link>
                     </div>
                   </div>
-                </div>
-
-                {status === 'error' && <p className="text-sm text-red-600">{errorMessage}</p>}
-                {status === 'success' && <p className="text-sm text-green-600">Payment successful! Redirecting...</p>}
-
-                {/* <button type="submit" disabled={status === 'loading' || !user?.companyId} className="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400">
-                  {status === 'loading' ? 'Processing...' : `Confirm Purchase (Offline)`}
-                </button> */}
+                )}
               </form>
             </div>
           </div>

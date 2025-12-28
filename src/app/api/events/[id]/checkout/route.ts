@@ -38,12 +38,14 @@ export async function POST(req: NextRequest) {
     coupon: couponInput,
     shippingAddress,
     billingAddress,
+    paymentMethod,
   }: {
     cartItems: CartItem[];
     companyId: string;
     coupon?: { id?: string; code?: string };
     shippingAddress?: any;
     billingAddress?: any;
+    paymentMethod?: string;
   } = body;
 
   if (!companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
@@ -58,6 +60,8 @@ export async function POST(req: NextRequest) {
 
     const result = await prisma.$transaction(async (tx) => {
       // Create a PurchaseOrder
+      const isOffline = paymentMethod === 'offline';
+
       const purchaseOrder = await tx.purchaseOrder.create({
         data: {
           companyId,
@@ -77,9 +81,10 @@ export async function POST(req: NextRequest) {
           billingState: billingAddress?.state,
           billingZip: billingAddress?.zip,
           billingCountry: billingAddress?.country,
+          offlinePayment: isOffline,
         },
       });
-      console.log(`[OK] Created PurchaseOrder ${purchaseOrder.id}`);
+      console.log(`[OK] Created PurchaseOrder ${purchaseOrder.id} (Offline: ${isOffline})`);
 
       let calculatedTotal = 0;
 
@@ -220,34 +225,40 @@ export async function POST(req: NextRequest) {
           }
 
           case "MEMBERSHIP": {
-            // Verify membership plan exists
-            const membershipPlan = await tx.membershipPlan.findUnique({
-              where: { id: item.productId },
-            });
+            // For offline payments, we DO NOT activate membership yet.
+            // It will be activated upon admin approval.
+            if (isOffline) {
+              console.log(`[INFO] Offline payment for membership: ${item.name}. activation deferred.`);
+            } else {
+              // Verify membership plan exists
+              const membershipPlan = await tx.membershipPlan.findUnique({
+                where: { id: item.productId },
+              });
 
-            if (!membershipPlan) {
-              throw new Error(`Membership plan "${item.name}" not found.`);
+              if (!membershipPlan) {
+                throw new Error(`Membership plan "${item.name}" not found.`);
+              }
+
+              // Update company with membership details
+              const now = new Date();
+              const expiresAt = new Date(now);
+              expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Default 1 year
+
+              await tx.company.update({
+                where: { id: companyId },
+                data: {
+                  membershipPlanId: item.productId,
+                  purchasedMembership: membershipPlan.name, // Store membership name
+                  purchasedMembershipId: item.productId,     // Store membership ID
+                  purchasedAt: now,
+                  membershipExpiresAt: expiresAt,
+                },
+              });
+
+              console.log(
+                `[OK] Updated company ${companyId} with membership: ${membershipPlan.name} (ID: ${item.productId})`
+              );
             }
-
-            // Update company with membership details
-            const now = new Date();
-            const expiresAt = new Date(now);
-            expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Default 1 year
-
-            await tx.company.update({
-              where: { id: companyId },
-              data: {
-                membershipPlanId: item.productId,
-                purchasedMembership: membershipPlan.name, // Store membership name
-                purchasedMembershipId: item.productId,     // Store membership ID
-                purchasedAt: now,
-                membershipExpiresAt: expiresAt,
-              },
-            });
-
-            console.log(
-              `[OK] Updated company ${companyId} with membership: ${membershipPlan.name} (ID: ${item.productId})`
-            );
             break;
           }
 
@@ -319,9 +330,16 @@ export async function POST(req: NextRequest) {
 
       const updateData: any = {
         totalAmount: finalTotal,
-        status: "COMPLETED",
         discountAmount: discountAmount,
       };
+
+      // If offline -> keep PENDING, otherwise COMPLETED
+      // (Assuming online payment means instant success for now, as no gateway integration visible here)
+      if (isOffline) {
+        updateData.status = "PENDING";
+      } else {
+        updateData.status = "COMPLETED";
+      }
 
       if (couponRecord) {
         updateData.couponId = couponRecord.id;
@@ -334,7 +352,7 @@ export async function POST(req: NextRequest) {
       });
 
       console.log(
-        `[OK] Finalized PurchaseOrder ${finalOrder.id} with total ${finalOrder.totalAmount} (discount ${discountAmount})`
+        `[OK] Finalized PurchaseOrder ${finalOrder.id} with total ${finalOrder.totalAmount}. Status: ${finalOrder.status}`
       );
 
       return finalOrder;

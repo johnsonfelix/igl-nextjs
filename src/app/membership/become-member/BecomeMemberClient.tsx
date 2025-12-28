@@ -279,16 +279,31 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
   // --- simple color mapping for plan cards ---
   const planColor = (name: string) => {
     const key = name.toLowerCase();
+
+    // Specific Badge Colors (matching Directory Logic)
+    if (key.includes("elite")) return "from-blue-100 to-blue-200 text-blue-900";
+    if (key.includes("premium"))
+      return "from-amber-100 to-yellow-200 text-yellow-900";
+    if (key.includes("projects"))
+      return "from-purple-100 to-purple-200 text-purple-900";
+    if (key.includes("dangerous") || key.includes("goods"))
+      return "from-red-100 to-red-200 text-red-900";
+
+    // Standard Metals
     if (key.includes("gold"))
-      return "from-yellow-100 to-amber-200 text-amber-800";
+      return "from-yellow-100 to-amber-200 text-amber-900";
     if (key.includes("platinum"))
-      return "from-slate-200 to-slate-400 text-slate-800"; // Platinum color
+      return "from-slate-200 to-slate-400 text-slate-900";
     if (key.includes("diamond"))
-      return "from-cyan-100 to-blue-200 text-blue-900"; // Diamond color
+      return "from-cyan-100 to-cyan-300 text-cyan-900";
     if (key.includes("silver"))
-      return "from-gray-100 to-gray-300 text-gray-800";
-    if (key.includes("free"))
-      return "from-green-50 to-emerald-100 text-emerald-800";
+      return "from-gray-100 to-gray-300 text-gray-900";
+
+    // Free / Regular -> Brand Blue
+    if (key.includes("free") || key.includes("regular"))
+      return "from-blue-50 to-blue-100 text-blue-900";
+
+    // Default
     return "from-slate-50 to-slate-100 text-slate-800";
   };
 
@@ -402,128 +417,160 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
         <h2 className="text-lg font-semibold mb-4">Choose membership</h2>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plans.map((p) => {
-            const {
-              offer: planOffer,
-              finalPrice: planFinalPrice,
-            } = getBestOfferForPlan(p);
-
-            return (
-              <div
-                key={p.id}
-                onClick={() => handleSelectPlan(p)}
-                className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-transform transform hover:-translate-y-1 shadow-sm hover:shadow-md bg-white border border-slate-100`}
-                role="button"
-              >
-                {/* offer badge */}
-                {planOffer && (
-                  <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
-                    <Gift className="h-3 w-3" />
-                    {planOffer.percentage}% OFF
-                  </div>
-                )}
-
-                {/* top gradient / thumbnail */}
-                <div
-                  className={`rounded-xl overflow-hidden p-3 bg-gradient-to-br ${planColor(
-                    p.name
-                  )}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 shrink-0">
-                      {p.thumbnail ? (
-                        <img
-                          src={p.thumbnail}
-                          alt={p.name}
-                          className="h-full w-full object-contain"
-                        />
-                      ) : (
-                        <div className="text-xl font-bold text-white/90">
-                          {/* Short initial or icon if no image */}
-                          {p.name.charAt(0)}
-                        </div>
-                      )}
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold tracking-wide">
-                        {p.name}
-                      </div>
-                    </div>
-                    <div className="ml-auto text-right">
-                      {planOffer ? (
-                        <div className="flex flex-col items-end">
-                          <span className="text-xs text-slate-700 line-through">
-                            ${p.price.toFixed(2)}
-                          </span>
-                          <span className="text-lg font-bold">
-                            ${planFinalPrice.toFixed(2)}
-                          </span>
-                          <span className="text-xs text-slate-700">
-                            {p.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
-                          </span>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-end">
-                          <div className="text-lg font-bold">
-                            ${p.price.toFixed(2)}
-                          </div>
-                          <div className="text-xs text-slate-700">
-                            {p.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {/* content body */}
-                <div className="mt-3">
-                  {p.paymentProtection && (
-                    <div className="mb-2 text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded inline-block">
-                      🛡️ {p.paymentProtection}
-                    </div>
-                  )}
-
-                  {p.discountPercentage !== undefined && p.discountPercentage !== null && p.discountPercentage > 0 && (
-                    <div className="mb-2 ml-2 text-xs font-semibold text-purple-800 bg-purple-100 px-2 py-1 rounded inline-block">
-                      🏷️ {p.discountPercentage}% OFF
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <ul className="text-sm text-slate-700 space-y-1 w-full mb-2">
-                      {(p.features ?? [])
-                        .slice(0, 3)
-                        .map((f, i) => (
-                          <li key={i} className="flex items-start gap-2">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
-                            <span className="line-clamp-2 text-xs">{f}</span>
-                          </li>
-                        ))}
-                      {(!p.features || p.features.length === 0) && (
-                        <li className="text-slate-500">No features listed</li>
-                      )}
-                    </ul>
-
-                    <div className="w-full flex justify-end">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleSelectPlan(p);
-                        }}
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700`}
-                      >
-                        Select & Pay
-                        <ArrowRight className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {plans.map((p) => (
+            <PlanCard
+              key={p.id}
+              plan={p}
+              offer={getBestOfferForPlan(p).offer}
+              finalPrice={getBestOfferForPlan(p).finalPrice}
+              onSelect={handleSelectPlan}
+              planColor={planColor}
+            />
+          ))}
         </div>
       </section>
     </div>
   );
 }
+
+function PlanCard({
+  plan,
+  offer,
+  finalPrice,
+  onSelect,
+  planColor,
+}: {
+  plan: Plan;
+  offer: MembershipOffer | null;
+  finalPrice: number;
+  onSelect: (p: Plan) => void;
+  planColor: (name: string) => string;
+}) {
+  const features = plan.features ?? [];
+  const hasMoreFeatures = features.length > 3;
+  const displayFeatures = features.slice(0, 3);
+
+  return (
+    <div
+      onClick={() => onSelect(plan)}
+      className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-transform transform hover:-translate-y-1 shadow-sm hover:shadow-md bg-white border border-slate-100 flex flex-col`}
+      role="button"
+    >
+      {/* offer badge */}
+      {offer && (
+        <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
+          <Gift className="h-3 w-3" />
+          {offer.percentage}% OFF
+        </div>
+      )}
+
+      {/* top gradient / thumbnail */}
+      <div
+        className={`rounded-xl overflow-hidden p-3 bg-gradient-to-br ${planColor(
+          plan.name
+        )}`}
+      >
+        <div className="flex items-center gap-4">
+          <div className="h-20 w-20 rounded-xl bg-white shadow-sm flex items-center justify-center p-2 shrink-0">
+            {plan.thumbnail ? (
+              <img
+                src={plan.thumbnail}
+                alt={plan.name}
+                className="h-full w-full object-contain"
+              />
+            ) : (
+              <div className="text-xl font-bold text-white/90">
+                {/* Short initial or icon if no image */}
+                {plan.name.charAt(0)}
+              </div>
+            )}
+          </div>
+          <div>
+            <div className="text-sm font-semibold tracking-wide">
+              {plan.name}
+            </div>
+          </div>
+          <div className="ml-auto text-right">
+            {offer ? (
+              <div className="flex flex-col items-end">
+                <span className="text-xs text-slate-700 line-through">
+                  ${plan.price.toFixed(2)}
+                </span>
+                <span className="text-lg font-bold">
+                  ${finalPrice.toFixed(2)}
+                </span>
+                <span className="text-xs text-slate-700">
+                  {plan.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
+                </span>
+              </div>
+            ) : (
+              <div className="flex flex-col items-end">
+                <div className="text-lg font-bold">
+                  ${plan.price.toFixed(2)}
+                </div>
+                <div className="text-xs text-slate-700">
+                  {plan.name.toLowerCase().includes("diamond") ? "/ one-time" : "/ year"}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* content body */}
+      <div className="mt-3 flex-grow flex flex-col">
+        {plan.paymentProtection && (
+          <div className="mb-2 text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded inline-block self-start">
+            🛡️ {plan.paymentProtection}
+          </div>
+        )}
+
+        {plan.discountPercentage !== undefined && plan.discountPercentage !== null && plan.discountPercentage > 0 && (
+          <div className="mb-2 text-xs font-semibold text-purple-800 bg-purple-100 px-2 py-1 rounded inline-block self-start">
+            🏷️ {plan.discountPercentage}% OFF
+          </div>
+        )}
+
+        <div className="flex flex-col flex-grow">
+          <ul className="text-sm text-slate-700 space-y-1 w-full mb-2">
+            {displayFeatures.map((f, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
+                <span className="text-xs">{f}</span>
+              </li>
+            ))}
+            {(!features || features.length === 0) && (
+              <li className="text-slate-500">No features listed</li>
+            )}
+          </ul>
+
+          {hasMoreFeatures && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(plan);
+              }}
+              className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors mb-4 self-start"
+            >
+              View More
+            </button>
+          )}
+
+          <div className="mt-auto w-full flex justify-end">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onSelect(plan);
+              }}
+              className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700`}
+            >
+              Select & Pay
+              <ArrowRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+

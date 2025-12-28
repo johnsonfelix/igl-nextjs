@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, use } from "react";
-import { notFound } from "next/navigation";
+import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -17,6 +17,11 @@ import {
   Trash2,
   Plus,
   Minus,
+  Check,
+  Plane,
+  Train,
+  Coffee,
+  Info,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useCart, CartItem } from "./CartContext";
@@ -109,6 +114,10 @@ interface Venue {
   name: string;
   description: string;
   imageUrls: string[];
+  location?: string | null;
+  closestAirport?: string | null;
+  publicTransport?: string | null;
+  nearbyPlaces?: string | null;
 }
 
 interface EventData {
@@ -157,6 +166,16 @@ interface Offer {
   sponsorTypeIds?: string[];
   boothIds?: string[]; // booths support
 }
+
+// --- CONFIG ---
+const TICKET_VARIANTS: Record<string, { name: string; price: number }[]> = {
+  // Mapping by ticket name. In a real app, this should be DB driven or ID based.
+  "Regular Ticket": [
+    { name: "Regular Ticket", price: 850 },
+    { name: "Accompanying Member", price: 650 },
+    { name: "Meeting Package", price: 600 },
+  ],
+};
 
 // --- UI COMPONENTS ---
 
@@ -354,6 +373,7 @@ export default function EventDetailPageWrapper({
 // --- MAIN PAGE COMPONENT ---
 function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
+  const router = useRouter();
 
   const { itemCount, addToCart } = useCart();
   const { user } = useAuth();
@@ -385,6 +405,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   // Hotel expansion state
   const [expandedHotelId, setExpandedHotelId] = useState<string | null>(null);
+
+  // --- BOOKING WIZARD STATE ---
+  const [bookingStep, setBookingStep] = useState<"TICKET" | "BOOTH" | "SUMMARY">("TICKET");
+  const [wizardOpen, setWizardOpen] = useState(false);
+
+  // Selection state
+  const [wizardSelectedTicket, setWizardSelectedTicket] = useState<{ id: string; name: string; price: number; image: string | null } | null>(null);
+  const [wizardSelectedVariant, setWizardSelectedVariant] = useState<{ name: string; price: number } | null>(null);
+  const [wizardSelectedBooth, setWizardSelectedBooth] = useState<Booth | null>(null);
+  const [wizardSelectedBoothSlot, setWizardSelectedBoothSlot] = useState<BoothSubType | null>(null);
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -641,8 +671,337 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     closeBoothModal();
   };
 
+  // --- BOOKING WIZARD LOGIC ---
+
+  const openBookingWizard = (ticket: { id: string; name: string; price: number; image: string | null }) => {
+    setWizardSelectedTicket(ticket);
+    const variants = TICKET_VARIANTS[ticket.name];
+    if (variants && variants.length > 0) {
+      setWizardSelectedVariant(variants[0]); // Default to first (usually Regular)
+    } else {
+      setWizardSelectedVariant({ name: ticket.name, price: ticket.price });
+    }
+    setWizardSelectedBooth(null); // Reset booth
+    setWizardSelectedBoothSlot(null); // Reset slot
+    setBookingStep("TICKET");
+    setWizardOpen(true);
+  };
+
+  const closeWizard = () => {
+    setWizardOpen(false);
+    setWizardSelectedTicket(null);
+    setWizardSelectedVariant(null);
+    setWizardSelectedBooth(null);
+    setWizardSelectedBoothSlot(null);
+  };
+
+  const handleWizardBoothSelect = (booth: Booth) => {
+    if (wizardSelectedBooth?.id === booth.id) {
+      // Deselect if already selected
+      setWizardSelectedBooth(null);
+      setWizardSelectedBoothSlot(null);
+      setBoothSubtypes([]);
+      return;
+    }
+    setWizardSelectedBooth(booth);
+    setWizardSelectedBoothSlot(null);
+    fetchBoothSubtypes(booth.id);
+  };
+
+  const handleWizardAddToCart = () => {
+    if (!wizardSelectedTicket || !wizardSelectedVariant) return;
+
+    // 1. Add Ticket (Variant)
+    addToCart({
+      productId: wizardSelectedTicket.id,
+      productType: "TICKET",
+      name: wizardSelectedVariant.name, // Use variant name
+      price: wizardSelectedVariant.price, // Use variant price
+      image: wizardSelectedTicket.image || undefined,
+    });
+
+    // 2. Add Booth (if selected)
+    if (wizardSelectedBooth) {
+      const price = 0; // Booth is included with ticket
+      const name = wizardSelectedBoothSlot
+        ? `${wizardSelectedBooth.name} - ${wizardSelectedBoothSlot.name}`
+        : wizardSelectedBooth.name;
+
+      addToCart({
+        productId: wizardSelectedBooth.id,
+        productType: "BOOTH",
+        name: name,
+        price: price, // Set to 0 as requested
+        image: wizardSelectedBooth.image || undefined,
+        boothSubTypeId: wizardSelectedBoothSlot?.id,
+        boothSubTypeName: wizardSelectedBoothSlot?.name,
+      });
+    }
+
+    toast.success("Items added to cart!");
+    closeWizard();
+    setCartOpen(true); // Open cart to show user
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* --- WIZARD MODAL --- */}
+      {wizardOpen && wizardSelectedTicket && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
+          <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+
+            {/* Header */}
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+              <div>
+                <h2 className="text-2xl font-bold text-gray-800">Complete Your Booking</h2>
+                <div className="flex gap-2 mt-2">
+                  <div className={`h-2 w-12 rounded-full ${bookingStep === 'TICKET' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
+                  <div className={`h-2 w-12 rounded-full ${bookingStep === 'BOOTH' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
+                  <div className={`h-2 w-12 rounded-full ${bookingStep === 'SUMMARY' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
+                </div>
+              </div>
+              <button onClick={closeWizard} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X size={24} /></button>
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-8">
+
+              {/* STEP 1: SELECT TICKET VARIANT */}
+              {bookingStep === "TICKET" && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-800">Select Ticket Type</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    {eventTickets.flatMap(({ ticket }) => {
+                      const variants = TICKET_VARIANTS[ticket.name];
+                      if (variants && variants.length > 0) {
+                        return variants.map(variant => ({
+                          id: ticket.id, // Keep parent ID for cart
+                          name: variant.name,
+                          price: variant.price,
+                          image: ticket.logo,
+                          parentTicket: ticket // Keep ref
+                        }));
+                      }
+                      return [{
+                        id: ticket.id,
+                        name: ticket.name,
+                        price: ticket.price,
+                        image: ticket.logo,
+                        parentTicket: ticket
+                      }];
+                    }).map((option) => (
+                      <div
+                        key={`${option.id}-${option.name}`}
+                        onClick={() => {
+                          setWizardSelectedTicket({ ...option.parentTicket, image: option.parentTicket.logo });
+                          setWizardSelectedVariant({ name: option.name, price: option.price });
+                        }}
+                        className={`cursor-pointer rounded-xl border-2 p-6 transition-all ${wizardSelectedVariant?.name === option.name ? 'border-[#004aad] bg-blue-50 ring-2 ring-blue-200' : 'border-gray-100 hover:border-blue-200'}`}
+                      >
+                        <div className="mb-2 font-bold text-gray-500 uppercase text-xs tracking-wider">
+                          {option.parentTicket.name !== option.name ? option.parentTicket.name : 'Standard'}
+                        </div>
+                        <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
+                        <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Policy & Details Section */}
+                  <div className="mt-8 bg-blue-50/50 rounded-xl p-6 border border-blue-100">
+                    <h4 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+                      <InfoPill icon={AlertTriangle} text="Important Information" />
+                    </h4>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+                      <div className="space-y-4">
+                        <div className="flex gap-3">
+                          <div className="mt-1 bg-emerald-100 text-emerald-600 rounded-full p-1 h-fit"><Check size={14} /></div>
+                          <div>
+                            <span className="font-bold text-gray-800 block mb-1">Accommodation Included:</span>
+                            Registration fees includes <span className="font-semibold text-gray-900">2 nights (February 12 & 13) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
+                          </div>
+                        </div>
+                        <div className="flex gap-3">
+                          <div className="mt-1 bg-amber-100 text-amber-600 rounded-full p-1 h-fit"><X size={14} /></div>
+                          <div>
+                            <span className="font-bold text-gray-800 block mb-1">Accommodation Excluded:</span>
+                            Certain packages may exclude Accommodation at the conference hotel, but provide full access to all Sessions, Two lunches, Dinners, Refreshment, welcome cocktail, Gala Dinner and Conference material.
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm h-fit">
+                        <h5 className="font-bold text-red-600 mb-2 flex items-center gap-2">
+                          <Trash2 size={16} /> Cancellation & Refund Policy
+                        </h5>
+                        <ul className="space-y-2 list-disc list-inside marker:text-red-300">
+                          <li>
+                            Registration cancellations received prior to <span className="font-semibold text-gray-900">February 10, 2026</span> will be eligible to receive a <span className="font-bold text-red-500">50% refund</span>.
+                          </li>
+                          <li>
+                            Cancellations received after the stated deadline will <span className="font-bold">not be eligible for a refund</span>.
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 2: SELECT BOOTH */}
+              {bookingStep === "BOOTH" && (
+                <div className="space-y-6">
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-800">Add an Exhibition Booth (Optional)</h3>
+                    <button onClick={() => { setWizardSelectedBooth(null); setWizardSelectedBoothSlot(null); }} className="text-sm text-gray-500 hover:text-gray-800 underline">
+                      I don't need a booth
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-4">
+                    {boothsList.map((booth) => (
+                      <div key={booth.id} className={`rounded-xl border-2 transition-all overflow-hidden ${wizardSelectedBooth?.id === booth.id ? 'border-[#004aad] bg-blue-50/50' : 'border-gray-100 hover:border-blue-200'}`}>
+                        <div
+                          onClick={() => handleWizardBoothSelect(booth)}
+                          className="cursor-pointer group flex gap-4 p-4"
+                        >
+                          <div className="h-20 w-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
+                            {booth.image && <img src={booth.image} className="h-full w-full object-cover" alt={booth.name} />}
+                          </div>
+                          <div className="flex-grow">
+                            <h4 className="font-semibold text-gray-900">{booth.name}</h4>
+                            <p className="text-[#004aad] font-bold">Included</p>
+                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{booth.description}</p>
+                          </div>
+                          <div className="flex items-center px-2">
+                            {wizardSelectedBooth?.id === booth.id ? (
+                              <div className="bg-[#004aad] text-white p-1 rounded-full"><Users size={16} /></div>
+                            ) : (
+                              <div className="h-6 w-6 rounded-full border-2 border-gray-300" />
+                            )}
+                          </div>
+                        </div>
+
+                        {/* SLOTS EXPANSION */}
+                        {wizardSelectedBooth?.id === booth.id && (
+                          <div className="px-4 pb-4 animate-fadeIn border-t border-blue-100 mt-2 pt-2">
+                            <h5 className="text-sm font-bold text-gray-700 mb-2">Select a Slot / Type:</h5>
+                            {boothSubtypesLoading ? (
+                              <div className="flex justify-center py-4"><Loader className="animate-spin text-[#004aad]" /></div>
+                            ) : boothSubtypes.length > 0 ? (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {boothSubtypes.map(slot => (
+                                  <button
+                                    key={slot.id}
+                                    onClick={() => setWizardSelectedBoothSlot(slot)}
+                                    className={`text-left text-sm p-3 rounded-lg border flex justify-between items-center transition-all ${wizardSelectedBoothSlot?.id === slot.id ? 'bg-[#004aad] text-white border-[#004aad] shadow-md' : 'bg-white border-gray-200 hover:border-[#004aad] text-gray-700'}`}
+                                  >
+                                    <div className="flex flex-col">
+                                      <span className="font-semibold">{slot.name}</span>
+                                      {slot.slotStart && (
+                                        <span className={`text-xs mt-0.5 ${wizardSelectedBoothSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-500'}`}>
+                                          {format(parseISO(slot.slotStart), "MMM d, h:mm a")}
+                                          {slot.slotEnd && ` - ${format(parseISO(slot.slotEnd), "h:mm a")}`}
+                                        </span>
+                                      )}
+                                    </div>
+                                    <span className="font-bold whitespace-nowrap ml-2">Included</span>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm text-gray-500 italic py-2">No specific slots available. The base booth will be booked.</p>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* STEP 3: SUMMARY */}
+              {bookingStep === "SUMMARY" && (
+                <div className="space-y-6">
+                  <h3 className="text-xl font-bold text-gray-800">Confirm Your Selection</h3>
+                  <div className="bg-gray-50 rounded-xl p-6 space-y-4">
+                    <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                      <div>
+                        <p className="font-bold text-gray-900">{wizardSelectedVariant?.name}</p>
+                        <p className="text-sm text-gray-500">Ticket</p>
+                      </div>
+                      <p className="font-bold text-[#004aad]">${wizardSelectedVariant?.price}</p>
+                    </div>
+                    {wizardSelectedBooth ? (
+                      <div className="flex justify-between items-center pt-2">
+                        <div>
+                          <p className="font-bold text-gray-900">{wizardSelectedBooth.name}</p>
+                          <p className="text-sm text-gray-500">
+                            Exhibition Booth
+                            {wizardSelectedBoothSlot && <span className="block text-xs font-semibold text-[#004aad]">Slot: {wizardSelectedBoothSlot.name}</span>}
+                          </p>
+                        </div>
+                        <p className="font-bold text-[#004aad]">
+                          Included
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-400 italic">No booth selected</div>
+                    )}
+                    <div className="flex justify-between items-center pt-4 border-t-2 border-dashed border-gray-200">
+                      <p className="font-extrabold text-lg">Total</p>
+                      <p className="font-extrabold text-xl text-[#004aad]">
+                        ${(wizardSelectedVariant?.price || 0)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer / Controls */}
+            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between">
+              {bookingStep === "TICKET" && (
+                <>
+                  <div />
+                  <button
+                    onClick={() => setBookingStep("BOOTH")}
+                    disabled={!wizardSelectedVariant}
+                    className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Next: Select Booth
+                  </button>
+                </>
+              )}
+              {bookingStep === "BOOTH" && (
+                <>
+                  <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                  <button
+                    onClick={() => setBookingStep("SUMMARY")}
+                    className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all"
+                  >
+                    Next: Review
+                  </button>
+                </>
+              )}
+              {bookingStep === "SUMMARY" && (
+                <>
+                  <button onClick={() => setBookingStep("BOOTH")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                  <button
+                    onClick={handleWizardAddToCart}
+                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
+                  >
+                    Add to Cart
+                  </button>
+                </>
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
         <img
@@ -688,12 +1047,178 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 min-h-[500px]">
+
             {activeTab === "About" && (
-              <div className="animate-fadeIn">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">About the Event</h2>
-                <div className="prose prose-lg text-gray-600 max-w-none">
-                  <p>{description}</p>
+              <div className="animate-fadeIn space-y-10">
+                {/* 2. Description Content */}
+                <div className="flex flex-col gap-10">
+                  {/* HERO TEXT */}
+                  <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 p-8 rounded-2xl border border-blue-100 text-center">
+                    <h2 className="text-3xl font-extrabold text-[#004aad] mb-4">
+                      IGLA Global Logistics Conference 2026
+                    </h2>
+                    <p className="text-lg text-gray-700 leading-relaxed max-w-4xl mx-auto">
+                      Join the <span className="font-bold text-[#004aad]">Innovative Global Logistics Allianz (IGLA)</span> at its prestigious 3-day flagship event in the heart of Bangkok, Thailand.
+                      This premier gathering brings together logistics professionals, freight forwarders, supply chain innovators, transport experts, and industry leaders from around the world for immersive learning, collaboration, and business development.
+                    </p>
+                    {/* <a href="https://igla.asia" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-6 text-[#004aad] font-bold hover:underline">
+                      Visit igla.asia <ArrowRight size={16} />
+                    </a> */}
+                  </div>
+
+                  {/* WHAT TO EXPECT GRID */}
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                      <div className="bg-[#004aad] p-1.5 rounded-lg"><Check className="text-white h-5 w-5" /></div>
+                      What to Expect
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Global Networking */}
+                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4">
+                          <Users className="h-6 w-6" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-800 mb-2">Global Networking</h4>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Connect with hundreds of logistics leaders, decision-makers, and service providers to expand your professional network.
+                        </p>
+                      </div>
+
+                      {/* Insightful Sessions */}
+                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                          <Info className="h-6 w-6" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-800 mb-2">Insightful Sessions</h4>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Engage with expert-led discussions, industry panels, and keynote presentations focusing on the latest trends, technologies, and strategies shaping the future of global logistics.
+                        </p>
+                      </div>
+
+                      {/* Business Opportunities */}
+                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                          <Check className="h-6 w-6" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-800 mb-2">Business Opportunities</h4>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Explore new partnerships, discover innovative solutions, and participate in curated sessions designed to accelerate business growth and cross-border collaboration.
+                        </p>
+                      </div>
+
+                      {/* Strategic Venue */}
+                      <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
+                        <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center mb-4">
+                          <Hotel className="h-6 w-6" />
+                        </div>
+                        <h4 className="text-xl font-bold text-gray-800 mb-2">Strategic Venue</h4>
+                        <p className="text-gray-600 text-sm leading-relaxed">
+                          Hosted at the elegant <span className="font-semibold text-orange-600">Radisson Suites Bangkok Sukhumvit</span>, providing a premium setting for high-impact exchanges in one of Southeast Asia’s busiest logistics hubs.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OUTRO */}
+                  <div className="bg-[#004aad]/5 border-l-4 border-[#004aad] p-6 rounded-r-xl">
+                    <p className="text-gray-700 italic font-medium leading-relaxed">
+                      "Whether you’re looking to stay ahead of industry trends, build strategic alliances, or explore new market opportunities, the IGLA Global Logistics Conference 2026 is the place to be for professionals committed to shaping the future of global supply chains."
+                    </p>
+                  </div>
                 </div>
+
+                {/* 2. Venue Information Section */}
+                {(() => {
+                  // Fallback/Override for the specific event reqested by user
+                  const targetId = "cmjn1f6ih0000gad4xa4j7dp3";
+                  const showVenue = venue || (id === targetId ? {
+                    name: "RADISSON SUITES BANGKOK SUKHUMVIT",
+                    description: "An upscale hotel located in the bustling Sukhumvit area, offering spacious suites and world-class amenities.",
+                    imageUrls: ["/images/venue-placeholder.jpg"],
+                    closestAirport: "Suvarnabhumi Airport (BKK) - 28km (approx. 30-45 min by taxi). Don Mueang (DMK) - 20km.",
+                    publicTransport: "Free shuttle to BTS Nana Skytrain & Sukhumvit MRT station. Excellent connectivity to the city.",
+                    nearbyPlaces: "Terminal 21 Shopping Mall, Benjakitti Park, Sukhumvit Soi 11 Nightlife, Erawan Shrine."
+                  } : null);
+
+                  if (!showVenue) return null;
+
+                  return (
+                    <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden animate-fadeIn">
+                      <div className="p-0 grid grid-cols-1 lg:grid-cols-3">
+                        {/* LEFT: GOOGLE MAP */}
+                        <div className="lg:col-span-1 h-[400px] lg:h-auto min-h-[400px] relative">
+                          <iframe
+                            title="Venue Map"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0, minHeight: '400px' }}
+                            loading="lazy"
+                            allowFullScreen
+                            referrerPolicy="no-referrer-when-downgrade"
+                            src={`https://maps.google.com/maps?q=${encodeURIComponent(showVenue.name + " " + showVenue.location || "")}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                            className="absolute inset-0"
+                          />
+                        </div>
+
+                        {/* RIGHT: DETAILS LIST */}
+                        <div className="lg:col-span-2 p-8 lg:p-10 flex flex-col justify-center">
+                          <div className="mb-8 border-b border-gray-100 pb-6">
+                            <h3 className="text-3xl font-bold text-gray-900 mb-2">{showVenue.name}</h3>
+                            <p className="text-gray-500 font-medium flex items-center gap-2">
+                              <MapPin className="h-5 w-5 text-[#004aad]" />
+                              {showVenue.location || "Bangkok, Thailand"}
+                            </p>
+                            <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(showVenue.name)}`} target="_blank" rel="noreferrer" className="inline-block mt-4 text-[#004aad] font-bold text-sm hover:underline">
+                              View larger map →
+                            </a>
+                          </div>
+
+                          <div className="space-y-8">
+                            {/* Airport */}
+                            <div className="flex gap-4 items-start">
+                              <div className="flex-shrink-0 mt-1">
+                                <Plane className="h-6 w-6 text-[#004aad] fill-blue-50" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg mb-1">Airport</h4>
+                                <p className="text-gray-600 leading-relaxed text-sm">
+                                  {showVenue.closestAirport || "Suvarnabhumi Airport (BKK) is approximately 30-45 minutes by taxi."}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* METRO */}
+                            <div className="flex gap-4 items-start">
+                              <div className="flex-shrink-0 mt-1">
+                                <Train className="h-6 w-6 text-[#004aad] fill-blue-50" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg mb-1">METRO</h4>
+                                <p className="text-gray-600 leading-relaxed text-sm">
+                                  {showVenue.publicTransport || "Easy access via BTS Nana Skytrain (Exit 3) and MRT Sukhumvit Station, providing seamless connectivity to the city."}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Nearby / Parking */}
+                            <div className="flex gap-4 items-start">
+                              <div className="flex-shrink-0 mt-1">
+                                <Coffee className="h-6 w-6 text-[#004aad] fill-blue-50" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-800 text-lg mb-1">Nearby & Parking</h4>
+                                <p className="text-gray-600 leading-relaxed text-sm">
+                                  {showVenue.nearbyPlaces || "Located near Terminal 21 Shopping Mall. Free private parking is available on site for guests."}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
 
@@ -753,32 +1278,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             )}
 
             {activeTab === "Tickets & Booths" && (
-              <div className="animate-fadeIn space-y-12">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span className="bg-[#004aad] w-2 h-8 rounded-full"></span>
-                    Event Tickets
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {eventTickets.map(({ ticket }) => {
-                      const best = getBestOfferForItem("TICKET", ticket.id);
-                      return <PriceCard key={ticket.id} item={{ ...ticket, image: ticket.logo }} productType="TICKET" actionText="Buy Ticket" offerPercent={best.percent ?? undefined} offerName={best.name} />
-                    })}
+              <div className="animate-fadeIn py-12 flex flex-col items-center justify-center text-center">
+                <div className="bg-[#004aad]/5 p-4 rounded-full mb-6">
+                  <div className="bg-[#004aad]/10 p-6 rounded-full">
+                    <ShoppingCart className="h-12 w-12 text-[#004aad]" />
                   </div>
                 </div>
-
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-                    <span className="bg-[#004aad] w-2 h-8 rounded-full"></span>
-                    Exhibition Booths
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {boothsList.map((booth) => {
-                      const best = getBestOfferForItem("BOOTH", booth.id);
-                      return <BoothCard key={booth.id} booth={booth} offerPercent={best.percent ?? undefined} offerName={best.name} onBook={() => openBoothModal(booth)} />
-                    })}
-                  </div>
-                </div>
+                <h2 className="text-3xl font-bold text-gray-800 mb-4">Ready to Join Us?</h2>
+                <p className="text-gray-500 max-w-lg mx-auto mb-8 text-lg">
+                  Secure your spot at {name}. Choose from a variety of ticket options to make the most of your experience.
+                </p>
+                <button
+                  onClick={() => {
+                    // Default to first ticket if available
+                    if (eventTickets.length > 0) {
+                      openBookingWizard({ ...eventTickets[0].ticket, image: eventTickets[0].ticket.logo });
+                    } else {
+                      toast.error("No tickets available for this event.");
+                    }
+                  }}
+                  className="bg-[#004aad] hover:bg-[#00317a] text-white text-xl font-bold px-12 py-5 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3"
+                >
+                  <span>Book Your Tickets</span>
+                  <ArrowRight className="h-6 w-6" />
+                </button>
               </div>
             )}
 
@@ -917,84 +1440,90 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100">
-              <button className="w-full bg-[#004aad] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2" onClick={() => setActiveTab("Tickets & Booths")}>
-                Register Now <ArrowRight className="h-5 w-5" />
+              <button
+                className="w-full bg-[#004aad] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2"
+                onClick={() => router.push(`/event/${id}/cart`)}
+              >
+                <ShoppingCart className="h-5 w-5" />
+                <span>Your Cart ({itemCount})</span>
               </button>
-              <p className="text-center text-xs text-gray-400 mt-3">Secure your spot today.</p>
+              {/* <p className="text-center text-xs text-gray-400 mt-3">Proceed to checkout.</p> */}
             </div>
           </div>
         </div>
 
-      </div>
+      </div >
 
       {/* --- CART FLOATING BUTTON --- */}
 
 
       {/* --- BOOTH MODAL --- */}
-      {boothModalOpen && selectedBooth && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn">
-            <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <h3 className="text-xl font-bold text-gray-800">Select Booth Type</h3>
-              <button onClick={closeBoothModal} className="text-gray-400 hover:text-gray-600">
-                <X className="h-6 w-6" />
-              </button>
-            </div>
-
-            <div className="p-6">
-              <div className="flex gap-4 mb-6">
-                {selectedBooth.image && <img src={selectedBooth.image} className="w-20 h-20 rounded-lg object-cover bg-gray-100" />}
-                <div>
-                  <h4 className="font-bold text-lg">{selectedBooth.name}</h4>
-                  <p className="text-sm text-gray-500">{selectedBooth.description}</p>
-                </div>
+      {
+        boothModalOpen && selectedBooth && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-scaleIn">
+              <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="text-xl font-bold text-gray-800">Select Booth Type</h3>
+                <button onClick={closeBoothModal} className="text-gray-400 hover:text-gray-600">
+                  <X className="h-6 w-6" />
+                </button>
               </div>
 
-              {boothSubtypesLoading ? (
-                <div className="py-8 flex justify-center"><Loader className="animate-spin text-[#004aad]" /></div>
-              ) : boothSubtypesError ? (
-                <p className="text-red-500 text-center">{boothSubtypesError}</p>
-              ) : (
-                <div className="space-y-3">
-                  {boothSubtypes.map((st) => {
-                    const finalPrice = getDiscountedPrice(st.price, boothOffer.percent);
-                    const isSelected = selectedSubtypeId === st.id;
-                    return (
-                      <div
-                        key={st.id}
-                        onClick={() => st.isAvailable && setSelectedSubtypeId(st.id)}
-                        className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-[#004aad] bg-blue-50' : 'border-gray-100 hover:border-gray-200'
-                          } ${!st.isAvailable ? 'opacity-50 pointer-events-none' : ''}`}
-                      >
-                        <div>
-                          <p className="font-bold text-gray-800">{st.name}</p>
-                          {st.description && <p className="text-xs text-gray-500">{st.description}</p>}
-                          {st.slotStart && st.slotEnd && (
-                            <p className="text-xs text-[#004aad] mt-1 font-medium bg-blue-50 w-fit px-2 py-0.5 rounded">
-                              {format(new Date(st.slotStart), "MMM d, h:mm a")} - {format(new Date(st.slotEnd), "h:mm a")}
-                            </p>
-                          )}
-                          {!st.isAvailable && <span className="text-xs font-bold text-red-500">Sold Out</span>}
-                        </div>
-                        <div className="text-right">
-                          <p className="font-bold text-[#004aad]">${finalPrice.toLocaleString()}</p>
-                        </div>
-                      </div>
-                    )
-                  })}
+              <div className="p-6">
+                <div className="flex gap-4 mb-6">
+                  {selectedBooth.image && <img src={selectedBooth.image} className="w-20 h-20 rounded-lg object-cover bg-gray-100" />}
+                  <div>
+                    <h4 className="font-bold text-lg">{selectedBooth.name}</h4>
+                    <p className="text-sm text-gray-500">{selectedBooth.description}</p>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
-              <button onClick={closeBoothModal} className="px-6 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 transition-colors">Cancel</button>
-              <button onClick={handleConfirmBoothSubtype} className="px-6 py-2 rounded-lg font-bold bg-[#004aad] text-white hover:bg-[#00317a] transition-colors shadow-md">Confirm Booking</button>
+                {boothSubtypesLoading ? (
+                  <div className="py-8 flex justify-center"><Loader className="animate-spin text-[#004aad]" /></div>
+                ) : boothSubtypesError ? (
+                  <p className="text-red-500 text-center">{boothSubtypesError}</p>
+                ) : (
+                  <div className="space-y-3">
+                    {boothSubtypes.map((st) => {
+                      const finalPrice = getDiscountedPrice(st.price, boothOffer.percent);
+                      const isSelected = selectedSubtypeId === st.id;
+                      return (
+                        <div
+                          key={st.id}
+                          onClick={() => st.isAvailable && setSelectedSubtypeId(st.id)}
+                          className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex justify-between items-center ${isSelected ? 'border-[#004aad] bg-blue-50' : 'border-gray-100 hover:border-gray-200'
+                            } ${!st.isAvailable ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                          <div>
+                            <p className="font-bold text-gray-800">{st.name}</p>
+                            {st.description && <p className="text-xs text-gray-500">{st.description}</p>}
+                            {st.slotStart && st.slotEnd && (
+                              <p className="text-xs text-[#004aad] mt-1 font-medium bg-blue-50 w-fit px-2 py-0.5 rounded">
+                                {format(new Date(st.slotStart), "MMM d, h:mm a")} - {format(new Date(st.slotEnd), "h:mm a")}
+                              </p>
+                            )}
+                            {!st.isAvailable && <span className="text-xs font-bold text-red-500">Sold Out</span>}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-[#004aad]">${finalPrice.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3">
+                <button onClick={closeBoothModal} className="px-6 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 transition-colors">Cancel</button>
+                <button onClick={handleConfirmBoothSubtype} className="px-6 py-2 rounded-lg font-bold bg-[#004aad] text-white hover:bg-[#00317a] transition-colors shadow-md">Confirm Booking</button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )
+      }
 
-    </div>
+    </div >
   );
 }
 

@@ -15,14 +15,17 @@ interface Company {
   isVerified: boolean;
   purchasedMembership: string;
   memberSince: string;
+  established?: string; // or Date, depending on how it's serialized
   services?: string[];
   specialties?: string[];
+  logoUrl?: string;
   media?: Media[];
 }
 
 // --- Helper Components & Functions ---
-const getMembershipYears = (memberSince: string) => {
-  const d = new Date(memberSince);
+const getEstablishedYears = (establishedDate?: string) => {
+  if (!establishedDate) return 0;
+  const d = new Date(establishedDate);
   if (isNaN(d.getTime())) return 0;
   const diff = Date.now() - d.getTime();
   return Math.floor(diff / (1000 * 3600 * 24 * 365));
@@ -74,6 +77,15 @@ export default function CompaniesListPage() {
   const [memberId, setMemberId] = useState('');
   const [port, setPort] = useState('');
 
+  // --- Pagination State ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [country, city, companyName, memberId, port]);
+
   // --- UI State ---
   const tabs = ['Location', 'Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Location');
@@ -85,7 +97,7 @@ export default function CompaniesListPage() {
     }, 400); // Debounce API calls
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, city, companyName, memberId, port]);
+  }, [country, city, companyName, memberId, port, currentPage]);
 
   const buildQuery = () => {
     const params: Record<string, string> = {};
@@ -94,7 +106,15 @@ export default function CompaniesListPage() {
     if (companyName) params.name = companyName;
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
-    return `/api/companies/search?${new URLSearchParams(params).toString()}`;
+    // Pagination: calculate offset based on page (1-based)
+    const limit = 10;
+    const offset = (currentPage - 1) * limit;
+
+    return `/api/companies/search?${new URLSearchParams({
+      ...params,
+      limit: limit.toString(),
+      offset: offset.toString()
+    }).toString()}`;
   };
 
   async function fetchCompanies() {
@@ -104,15 +124,32 @@ export default function CompaniesListPage() {
       const url = buildQuery();
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
-      const data = await res.json();
-      setCompanies(data || []);
+      const response = await res.json();
+      // Handle response structure { data, total, page, totalPages }
+      const data = Array.isArray(response) ? response : (response.data || []);
+      const total = response.totalPages || 0;
+
+      setCompanies(data);
+      setTotalPages(Math.max(1, total));
     } catch (err) {
       setCompanies([]);
+      setTotalPages(1);
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
   }
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    // Clear all filters when switching tabs to ensure exclusive search mode
+    setCountry('All');
+    setCity('');
+    setCompanyName('');
+    setMemberId('');
+    setPort('');
+    setCurrentPage(1);
+  };
 
   const countryOptions = useMemo(() => ['All', 'India', 'United States', 'China', 'United Kingdom'], []);
 
@@ -155,7 +192,7 @@ export default function CompaniesListPage() {
             {tabs.map(t => (
               <button
                 key={t}
-                onClick={() => setActiveTab(t)}
+                onClick={() => handleTabChange(t)}
                 className={`px-6 py-3 font-bold text-sm transition-all duration-300 relative ${activeTab === t
                   ? 'text-[#004aad]'
                   : 'text-gray-400 hover:text-gray-600'
@@ -210,12 +247,12 @@ export default function CompaniesListPage() {
             )}
 
             {!loading && companies.length > 0 && companies.map(company => {
-              const logoUrl = company.media?.[0]?.url || null;
-              const memberYears = getMembershipYears(company.memberSince);
-              const displayLocation = `${company.location?.city || ''}${company.location?.country ? `, ${company.location.country}` : ''}`;
+              const logoUrl = company.logoUrl || company.media?.[0]?.url || null;
+              const establishedYears = getEstablishedYears(company.established);
+              const displayLocation = [company.location?.city, company.location?.country].filter(Boolean).join(', ');
 
               return (
-                <div key={company.id} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#004aad]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative">
+                <Link key={company.id} href={`/company/details/${company.id}`} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#004aad]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative block text-left">
                   {/* Decorative border on hover */}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#004aad] to-[#4a8a52] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
@@ -229,18 +266,16 @@ export default function CompaniesListPage() {
                         </div>
                       )}
                     </div>
-                    {memberYears > 0 && (
+                    {establishedYears > 0 && (
                       <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 shadow-sm border border-amber-200/50">
                         <Star size={12} className="text-amber-500 fill-amber-500" />
-                        {memberYears}Y
+                        {establishedYears}Y
                       </div>
                     )}
                   </div>
 
                   <div className="flex-grow flex flex-col min-w-0">
-                    <Link href={`/company/details/${company.id}`}>
-                      <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#004aad] transition-colors truncate">{company.name}</h2>
-                    </Link>
+                    <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#004aad] transition-colors truncate">{company.name}</h2>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-2">
                       <MapPin size={14} className="shrink-0" />
                       <span className="truncate">{displayLocation || 'Location not specified'}</span>
@@ -253,20 +288,64 @@ export default function CompaniesListPage() {
                   </div>
 
                   <div className="flex-shrink-0 flex items-center justify-end mt-4 md:mt-0">
-                    <Link
-                      href={`/company/details/${company.id}`}
-                      className="group/btn flex items-center gap-2 rounded-xl bg-[#004aad] px-6 py-3 text-sm font-bold text-white shadow-md shadow-green-200 hover:bg-[#4a8a52] hover:shadow-lg hover:translate-y-[-2px] transition-all focus:outline-none focus:ring-4 focus:ring-green-100 whitespace-nowrap"
+                    <div
+                      className="group/btn flex items-center gap-2 rounded-xl bg-[#004aad] px-6 py-3 text-sm font-bold text-white shadow-md shadow-green-200 hover:bg-[#4a8a52] hover:shadow-lg hover:translate-y-[-2px] transition-all whitespace-nowrap"
                     >
                       View Profile
                       <svg className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                       </svg>
-                    </Link>
+                    </div>
                   </div>
-                </div>
+                </Link>
               );
             })}
           </div>
+
+          {/* Pagination Controls */}
+          {!loading && companies.length > 0 && (
+            <div className="mt-12 flex justify-center items-center gap-2">
+              <button
+                onClick={() => {
+                  setCurrentPage(p => Math.max(1, p - 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                disabled={currentPage === 1}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                Previous
+              </button>
+
+              <div className="flex gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => {
+                      setCurrentPage(page);
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    className={`w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-all ${currentPage === page
+                      ? 'bg-[#004aad] text-white shadow-md shadow-blue-200'
+                      : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200'
+                      }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => {
+                  setCurrentPage(p => Math.min(totalPages, p + 1));
+                  window.scrollTo({ top: 0, behavior: 'smooth' });
+                }}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 border border-gray-200 rounded-lg text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+              >
+                Next
+              </button>
+            </div>
+          )}
 
           {/* <aside className="hidden lg:block space-y-6">
             <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">

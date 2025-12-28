@@ -69,9 +69,10 @@ function Dashed() {
 
 function HeaderLabels() {
   return (
-    <div className="flex justify-between text-xs text-slate-600">
+    <div className="flex justify-between text-xs text-slate-500 font-medium tracking-wide uppercase px-1">
       <span>Cart</span>
-      <span>Conditions/Payment method</span>
+      <span>Account</span>
+      <span>Details</span>
       <span>Payment</span>
     </div>
   );
@@ -260,9 +261,18 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
 
-  // steps: 0 = cart, 1 = account, 2 = payment
-  const [step, setStep] = useState<0 | 1 | 2>(0);
+  // steps: 0 = cart, 1 = account, 2 = details, 3 = payment
+  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [isSubmitting, setSubmitting] = useState(false);
+  const [orderConfirmed, setOrderConfirmed] = useState(false);
+
+  // New state for additional info
+  const [companyName, setCompanyName] = useState("");
+  const [tshirtSize, setTshirtSize] = useState("");
+  const [referralSource, setReferralSource] = useState("");
+
+  const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2"];
+  const referralOptions = ["Reference", "Word of Mouth", "Website", "Others"];
 
   // account
   const [account, setAccount] = useState<Account>({
@@ -719,6 +729,11 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       const payload: any = {
         companyId,
         account,
+        additionalDetails: {
+          companyName,
+          tshirtSize,
+          referralSource,
+        },
         paymentMethod,
         // Pass addresses
         billingAddress,
@@ -760,9 +775,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       });
 
       if (res.status === 201 || res.ok) {
-        alert("Checkout successful!");
+        setOrderConfirmed(true);
         clearCart();
-        window.location.href = `/event/${eventId}`;
+        // Don't redirect, show success state with bank details
+        // window.location.href = `/event/${eventId}`;
       } else {
         const e = await res.json().catch(() => ({}));
         alert(e?.error || e?.message || "Checkout failed");
@@ -775,7 +791,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   };
 
   // helper: step state for StepDot
-  const stepState = (index: 0 | 1 | 2): "completed" | "active" | "upcoming" => {
+  const stepState = (index: 0 | 1 | 2 | 3): "completed" | "active" | "upcoming" => {
     if (step > index) return "completed";
     if (step === index) return "active";
     return "upcoming";
@@ -798,6 +814,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           <StepDot state={stepState(1)} />
           <Dashed />
           <StepDot state={stepState(2)} />
+          <Dashed />
+          <StepDot state={stepState(3)} />
         </div>
         <div className="mt-2">
           <HeaderLabels />
@@ -903,121 +921,260 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
             </div>
 
             <div className="flex gap-3">
-              <button onClick={() => setStep(0)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center" title="Back">
+              <button onClick={() => setStep(0)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-slate-50 transition-colors" title="Back">
                 <ArrowLeft className="w-5 h-5" />
               </button>
-              <button onClick={() => setStep(2)} className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md">
-                Proceed Payment
+              <button
+                onClick={() => {
+                  if (!account.name || !account.email || !billingAddress.line1) {
+                    alert("Please fill in required fields");
+                    return;
+                  }
+                  setStep(2);
+                }}
+                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+              >
+                Continue to Details
               </button>
             </div>
           </div>
         )}
 
         {step === 2 && (
-          <div className="space-y-6">
-            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6">
-              <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                <LockKeyhole className="w-5 h-5" />
-                Bank Transfer Details
-              </h3>
+          <div className="space-y-6 animate-fadeIn">
+            <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Additional Information</h3>
 
-              <div className="space-y-4 text-sm text-indigo-900">
-                <p className="font-medium">Please transfer the total amount to the following bank account:</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Company Name */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">Company Name</label>
+                <input
+                  value={companyName}
+                  onChange={(e) => setCompanyName(e.target.value)}
+                  placeholder="Enter your company name"
+                  className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
+                />
+              </div>
 
-                <div className="bg-white p-4 rounded border border-indigo-200 space-y-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <span className="text-slate-500 font-medium">Bank Name:</span>
-                    <span className="col-span-2 font-bold select-all">HDFC Bank Limited</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <span className="text-slate-500 font-medium">Branch:</span>
-                    <span className="col-span-2 font-bold select-all">G N Chetty rd Branch, TNagar</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <span className="text-slate-500 font-medium">Account Name:</span>
-                    <span className="col-span-2 font-bold select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <span className="text-slate-500 font-medium">Account No:</span>
-                    <span className="col-span-2 font-bold select-all">50200035538980</span>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <span className="text-slate-500 font-medium">SWIFT Code:</span>
-                    <span className="col-span-2 font-bold select-all">HDFCINBBCHE</span>
-                  </div>
-                </div>
-
-                <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-yellow-800">
-                  <p className="font-semibold mb-1">⚠️ Important:</p>
-                  <p>
-                    After creating the payment, please email the transaction details / proof of payment to{" "}
-                    <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
-                      sales@igla.asia
-                    </a>
-                    . Your order will be confirmed once we verify the payment.
-                  </p>
-                </div>
+              {/* T-Shirt Size */}
+              <div className="space-y-2">
+                <label className="text-sm font-semibold text-slate-700">T-Shirt Size</label>
+                <select
+                  value={tshirtSize}
+                  onChange={(e) => setTshirtSize(e.target.value)}
+                  className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 transition-all outline-none bg-white"
+                >
+                  <option value="">Select Size</option>
+                  {tshirtOptions.map(opt => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
               </div>
             </div>
 
-            <div className="space-y-4 pt-4 border-t">
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="terms"
-                  checked={agreeTerms}
-                  onChange={(e) => setAgreeTerms(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-indigo-600 rounded"
-                />
-                <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">
-                  I agree to the <Link href="/terms" target="_blank" className="text-indigo-600 hover:underline">Terms & Conditions</Link>
-                </label>
-              </div>
-              <div className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  id="privacy"
-                  checked={agreePolicies}
-                  onChange={(e) => setAgreePolicies(e.target.checked)}
-                  className="mt-1 w-4 h-4 text-indigo-600 rounded"
-                />
-                <label htmlFor="privacy" className="text-sm text-slate-600 cursor-pointer">
-                  I agree to the <Link href="/privacy" target="_blank" className="text-indigo-600 hover:underline">Privacy Policy</Link>
-                </label>
+            {/* Referral Source */}
+            <div className="space-y-3 pt-2">
+              <label className="text-sm font-semibold text-slate-700 block">How did you know about our website?</label>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {referralOptions.map((opt) => (
+                  <label key={opt} className={`cursor-pointer border rounded-lg p-3 text-sm font-medium text-center transition-all ${referralSource === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300 text-slate-600'}`}>
+                    <input
+                      type="radio"
+                      name="referral"
+                      value={opt}
+                      checked={referralSource === opt}
+                      onChange={(e) => setReferralSource(e.target.value)}
+                      className="sr-only"
+                    />
+                    {opt}
+                  </label>
+                ))}
               </div>
             </div>
 
-            <Totals
-              subtotal={computed.subtotalBeforeOffers}
-              offerLabel={offerLabel}
-              offerValue={computed.offerDiscountTotal}
-              discountCode={appliedCoupon.code}
-              discountValue={couponDiscountValue}
-              total={finalTotal}
-            />
-
-            <div className="flex gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-indigo-50 transition-colors"
-                title="Back"
-              >
+            <div className="flex gap-3 pt-6 border-t mt-4">
+              <button onClick={() => setStep(1)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-slate-50 transition-colors" title="Back">
                 <ArrowLeft className="w-5 h-5" />
               </button>
               <button
-                onClick={submitCheckout}
-                disabled={isSubmitting || !agreeTerms || !agreePolicies}
-                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex items-center justify-center gap-2"
+                onClick={() => {
+                  if (!tshirtSize || !referralSource) {
+                    alert("Please select your T-Shirt size and tell us how you heard about us.");
+                    return;
+                  }
+                  setStep(3);
+                }}
+                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
               >
-                {isSubmitting ? (
-                  <>
-                    <Loader className="w-5 h-5 animate-spin" /> Processing...
-                  </>
-                ) : (
-                  "Confirm Order"
-                )}
+                Proceed to Payment
               </button>
             </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="space-y-6">
+
+            {/* Show Payment Methods & Confirm IF not confirmed yet */}
+            {!orderConfirmed && (
+              <div className="space-y-6 animate-fadeIn">
+                <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Payment Method</h3>
+
+                {/* Method Selector */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Offline */}
+                  <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300'}`}>
+                    <input
+                      type="radio"
+                      name="pm"
+                      value="offline"
+                      checked={paymentMethod === 'offline'}
+                      onChange={() => setPaymentMethod('offline')}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-800">Offline Payment</span>
+                      <div className="w-5 h-5 rounded-full border border-indigo-600 flex items-center justify-center">
+                        {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-500">Bank Transfer or Cheque payment. Details shown after confirmation.</p>
+                  </label>
+
+                  {/* Online (Disabled) */}
+                  <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-slate-400">Online Payment</span>
+                      <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
+                    </div>
+                    <p className="text-sm text-slate-400">Credit Card, Debit Card, Net Banking</p>
+                  </label>
+                </div>
+
+                {/* Terms and Totals */}
+                <div className="space-y-4 pt-4 border-t">
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="terms"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-indigo-600 rounded"
+                    />
+                    <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">
+                      I agree to the <Link href="/terms" target="_blank" className="text-indigo-600 hover:underline">Terms & Conditions</Link>
+                    </label>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <input
+                      type="checkbox"
+                      id="privacy"
+                      checked={agreePolicies}
+                      onChange={(e) => setAgreePolicies(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-indigo-600 rounded"
+                    />
+                    <label htmlFor="privacy" className="text-sm text-slate-600 cursor-pointer">
+                      I agree to the <Link href="/privacy" target="_blank" className="text-indigo-600 hover:underline">Privacy Policy</Link>
+                    </label>
+                  </div>
+                </div>
+
+                <Totals
+                  subtotal={computed.subtotalBeforeOffers}
+                  offerLabel={offerLabel}
+                  offerValue={computed.offerDiscountTotal}
+                  discountCode={appliedCoupon.code}
+                  discountValue={couponDiscountValue}
+                  total={finalTotal}
+                />
+
+                <div className="flex gap-3 pt-2">
+                  <button
+                    onClick={() => setStep(2)}
+                    className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-indigo-50 transition-colors"
+                    title="Back"
+                  >
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={submitCheckout}
+                    disabled={isSubmitting || !agreeTerms || !agreePolicies}
+                    className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader className="w-5 h-5 animate-spin" /> Processing...
+                      </>
+                    ) : (
+                      "Confirm Order"
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Success State - Show Bank Details ONLY Here */}
+            {orderConfirmed && (
+              <div className="space-y-6 animate-fadeIn">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                    <Check className="w-8 h-8" />
+                  </div>
+                  <h2 className="text-2xl font-bold text-green-800 mb-2">Order Confirmed!</h2>
+                  <p className="text-green-700">Thank you for your registration. Please complete your payment using the details below.</p>
+                </div>
+
+                <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6 shadow-sm">
+                  <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
+                    <LockKeyhole className="w-5 h-5" />
+                    Bank Transfer Details
+                  </h3>
+
+                  <div className="space-y-4 text-sm text-indigo-900">
+                    <div className="bg-white p-4 rounded border border-indigo-200 space-y-2">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-slate-500 font-medium">Bank Name:</span>
+                        <span className="col-span-2 font-bold select-all">HDFC Bank Limited</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-slate-500 font-medium">Branch:</span>
+                        <span className="col-span-2 font-bold select-all">G N Chetty rd Branch, TNagar</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-slate-500 font-medium">Account Name:</span>
+                        <span className="col-span-2 font-bold select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-slate-500 font-medium">Account No:</span>
+                        <span className="col-span-2 font-bold select-all">50200035538980</span>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <span className="text-slate-500 font-medium">SWIFT Code:</span>
+                        <span className="col-span-2 font-bold select-all">HDFCINBBCHE</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-yellow-800">
+                      <p className="font-semibold mb-1">⚠️ Important:</p>
+                      <p>
+                        After creating the payment, please email the transaction details / proof of payment to{" "}
+                        <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
+                          sales@igla.asia
+                        </a>
+                        . Your order will be confirmed once we verify the payment.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-center pt-4">
+                  <Link href={`/event/${eventId}`} className="text-indigo-600 font-semibold hover:underline">
+                    Return to Event Page
+                  </Link>
+                </div>
+              </div>
+            )}
+
           </div>
         )}
       </div>

@@ -32,6 +32,7 @@ const publicPrefixes = [
   "/api/companies", // e.g. directory search
   "/api/admin/membership-plans", // for membership page
   "/api/admin/offers", // for event discounts
+  "/api/admin/booth-subtypes", // public booth options
   "/api/inquiries", // for submitting inquiries
 
   // Public pages
@@ -48,7 +49,7 @@ const publicPrefixes = [
  * Allow static assets through quickly
  */
 function isStaticAsset(pathname: string) {
-  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || pathname === "/favicon.ico";
+  return pathname.startsWith("/_next/") || pathname.startsWith("/static/") || pathname.startsWith("/images/") || pathname === "/favicon.ico";
 }
 
 export function middleware(request: NextRequest) {

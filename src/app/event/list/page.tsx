@@ -93,20 +93,30 @@ export default function EventsListPage() {
       setLoading(true);
       setError(null);
       try {
+        // Fetch events from API
         const res = await fetch('/api/events');
-        if (!res.ok) {
-          throw new Error(`Failed to fetch events. Status: ${res.status}`);
+        let data: Event[] = [];
+
+        if (res.ok) {
+          data = await res.json();
+        } else {
+          // Fallback to mock data if API fails or for demo
+          data = [
+            { "id": "1", "name": "The 20th Global Freight Forwarders Conference", "startDate": "2026-08-14T00:00:00.000Z", "endDate": "2026-08-30T00:00:00.000Z", "location": "Shanghai, China", "thumbnail": "https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=2070&auto=format&fit=crop", "eventType": "Hot", "expectedAudience": "2000+" },
+            { "id": "2", "name": "Indonesia Regional Conference 2026", "startDate": "2026-10-23T00:00:00.000Z", "endDate": "2026-10-30T00:00:00.000Z", "location": "Bali, Indonesia", "thumbnail": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1938&auto=format&fit=crop", "eventType": "New", "expectedAudience": "1200" }
+          ];
         }
-        const data: Event[] = await res.json();
-        setEvents(data);
+
+        // Filter for upcoming events only
+        const now = new Date();
+        const upcomingEvents = data.filter(event => parseISO(event.startDate) > now);
+
+        // Sort by date (soonest first)
+        upcomingEvents.sort((a, b) => parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime());
+
+        setEvents(upcomingEvents);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
-        // Fallback to mock data on error for demo purposes
-        const mockData = [
-          { "id": "1", "name": "The 20th Global Freight Forwarders Conference", "startDate": "2025-08-14T00:00:00.000Z", "endDate": "2025-08-30T00:00:00.000Z", "location": "Shanghai, China", "thumbnail": "https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=2070&auto=format&fit=crop", "eventType": "Hot", "expectedAudience": "2000+" },
-          { "id": "2", "name": "Indonesia Regional Conference 2025", "startDate": "2025-10-23T00:00:00.000Z", "endDate": "2025-10-30T00:00:00.000Z", "location": "Bali, Indonesia", "thumbnail": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1938&auto=format&fit=crop", "eventType": "New", "expectedAudience": "1200" }
-        ];
-        setEvents(mockData);
       } finally {
         setLoading(false);
       }
@@ -153,7 +163,7 @@ export default function EventsListPage() {
             <p className="text-gray-500">{error}</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="max-w-4xl mx-auto flex flex-col gap-10">
             {events.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}
