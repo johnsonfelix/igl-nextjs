@@ -43,6 +43,7 @@ const publicPrefixes = [
   "/risk",
   "/about",
   "/company/details", // Public profile view
+  "/secure-pay",
 ];
 
 /**

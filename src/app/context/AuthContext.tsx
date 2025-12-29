@@ -3,6 +3,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 
 type AuthContextType = {
   user: any;
+  loading: boolean;
   refreshUser: () => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -11,10 +12,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const refreshUser = async () => {
-    const res = await fetch("/api/me");
-    setUser(res.ok ? await res.json() : null);
+    try {
+      const res = await fetch("/api/me");
+      setUser(res.ok ? await res.json() : null);
+    } catch {
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { refreshUser(); }, []);
@@ -25,7 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, refreshUser, logout }}>
+    <AuthContext.Provider value={{ user, loading, refreshUser, logout }}>
       {children}
     </AuthContext.Provider>
   );

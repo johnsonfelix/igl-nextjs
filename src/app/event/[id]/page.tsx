@@ -411,10 +411,58 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [wizardOpen, setWizardOpen] = useState(false);
 
   // Selection state
-  const [wizardSelectedTicket, setWizardSelectedTicket] = useState<{ id: string; name: string; price: number; image: string | null } | null>(null);
-  const [wizardSelectedVariant, setWizardSelectedVariant] = useState<{ name: string; price: number } | null>(null);
+  // const [wizardSelectedTicket, setWizardSelectedTicket] = useState<{ id: string; name: string; price: number; image: string | null } | null>(null);
+  // const [wizardSelectedVariant, setWizardSelectedVariant] = useState<{ name: string; price: number } | null>(null);
+
+  // NEW: Multi-ticket state
+  // Key: `${ticket.id}__${variant.name}` -> Value: quantity
+  const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+
   const [wizardSelectedBooth, setWizardSelectedBooth] = useState<Booth | null>(null);
   const [wizardSelectedBoothSlot, setWizardSelectedBoothSlot] = useState<BoothSubType | null>(null);
+
+  // Helper to manage Ticket Quantities
+  const handleTicketQuantityChange = (ticketId: string, variantName: string, delta: number) => {
+    const key = `${ticketId}__${variantName}`;
+    setTicketQuantities((prev) => {
+      const current = prev[key] || 0;
+      const next = Math.max(0, current + delta);
+      if (next === 0) {
+        const { [key]: _, ...rest } = prev;
+        return rest;
+      }
+      return { ...prev, [key]: next };
+    });
+  };
+
+  const totalTicketsSelected = Object.values(ticketQuantities).reduce((a, b) => a + b, 0);
+
+  const getTicketSubtotal = () => {
+    let total = 0;
+    Object.entries(ticketQuantities).forEach(([key, qty]) => {
+      // We need to find the price for this key. 
+      // This is slightly inefficient but safe. 
+      // Ideally we store price in the key or a separate lookup, but looking up in eventTickets is fine.
+      // key format: `${ticketId}__${variantName}`
+      const [tId, vName] = key.split('__');
+
+      // Find the ticket parent
+      const parent = eventTickets.find(et => et.ticket.id === tId);
+      if (!parent) return;
+
+      // Find variant price
+      let price = 0;
+      const variants = TICKET_VARIANTS[parent.ticket.name];
+      if (variants) {
+        const variant = variants.find(v => v.name === vName);
+        if (variant) price = variant.price;
+      } else {
+        price = parent.ticket.price;
+      }
+      total += price * qty;
+    });
+    return total;
+  };
 
   useEffect(() => {
     const fetchEventData = async () => {
@@ -673,14 +721,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   // --- BOOKING WIZARD LOGIC ---
 
-  const openBookingWizard = (ticket: { id: string; name: string; price: number; image: string | null }) => {
-    setWizardSelectedTicket(ticket);
-    const variants = TICKET_VARIANTS[ticket.name];
-    if (variants && variants.length > 0) {
-      setWizardSelectedVariant(variants[0]); // Default to first (usually Regular)
-    } else {
-      setWizardSelectedVariant({ name: ticket.name, price: ticket.price });
-    }
+  // --- BOOKING WIZARD LOGIC ---
+
+  const openBookingWizard = () => {
+    // Reset or Keep? Usually fresh start is better.
+    setTicketQuantities({});
     setWizardSelectedBooth(null); // Reset booth
     setWizardSelectedBoothSlot(null); // Reset slot
     setBookingStep("TICKET");
@@ -689,8 +734,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   const closeWizard = () => {
     setWizardOpen(false);
-    setWizardSelectedTicket(null);
-    setWizardSelectedVariant(null);
+    setTicketQuantities({});
     setWizardSelectedBooth(null);
     setWizardSelectedBoothSlot(null);
   };
@@ -709,18 +753,37 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const handleWizardAddToCart = () => {
-    if (!wizardSelectedTicket || !wizardSelectedVariant) return;
+    if (totalTicketsSelected === 0) return;
 
-    // 1. Add Ticket (Variant)
-    addToCart({
-      productId: wizardSelectedTicket.id,
-      productType: "TICKET",
-      name: wizardSelectedVariant.name, // Use variant name
-      price: wizardSelectedVariant.price, // Use variant price
-      image: wizardSelectedTicket.image || undefined,
+    // 1. Add All Selected Tickets
+    Object.entries(ticketQuantities).forEach(([key, qty]) => {
+      const [tId, vName] = key.split('__');
+      const parent = eventTickets.find(et => et.ticket.id === tId);
+      if (!parent) return;
+
+      let price = 0;
+      const variants = TICKET_VARIANTS[parent.ticket.name];
+      if (variants) {
+        const variant = variants.find(v => v.name === vName);
+        if (variant) price = variant.price;
+      } else {
+        price = parent.ticket.price;
+      }
+
+      // Add each unit
+      for (let i = 0; i < qty; i++) {
+        addToCart({
+          productId: parent.ticket.id,
+          productType: "TICKET",
+          name: vName, // Variant name
+          price: price,
+          image: parent.ticket.logo || undefined,
+        });
+      }
     });
 
     // 2. Add Booth (if selected)
+    // NOTE: Booth logic remains "one per booking flow" for now, as requested/implied
     if (wizardSelectedBooth) {
       const price = 0; // Booth is included with ticket
       const name = wizardSelectedBoothSlot
@@ -746,7 +809,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* --- WIZARD MODAL --- */}
-      {wizardOpen && wizardSelectedTicket && (
+      {wizardOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
           <div className="bg-white w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
 
@@ -789,22 +852,44 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         image: ticket.logo,
                         parentTicket: ticket
                       }];
-                    }).map((option) => (
-                      <div
-                        key={`${option.id}-${option.name}`}
-                        onClick={() => {
-                          setWizardSelectedTicket({ ...option.parentTicket, image: option.parentTicket.logo });
-                          setWizardSelectedVariant({ name: option.name, price: option.price });
-                        }}
-                        className={`cursor-pointer rounded-xl border-2 p-6 transition-all ${wizardSelectedVariant?.name === option.name ? 'border-[#004aad] bg-blue-50 ring-2 ring-blue-200' : 'border-gray-100 hover:border-blue-200'}`}
-                      >
-                        <div className="mb-2 font-bold text-gray-500 uppercase text-xs tracking-wider">
-                          {option.parentTicket.name !== option.name ? option.parentTicket.name : 'Standard'}
+                    }).map((option) => {
+                      const key = `${option.id}__${option.name}`;
+                      const qty = ticketQuantities[key] || 0;
+
+                      return (
+                        <div
+                          key={key}
+                          className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}
+                        >
+                          <div className="flex-grow">
+                            <div className="mb-2 font-bold text-gray-500 uppercase text-xs tracking-wider">
+                              {option.parentTicket.name !== option.name ? option.parentTicket.name : 'Standard'}
+                            </div>
+                            <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
+                            <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
+                          </div>
+
+                          {/* Quantity Control */}
+                          <div className="mt-6 flex items-center justify-between bg-gray-50 rounded-lg p-1 border border-gray-200">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleTicketQuantityChange(option.id, option.name, -1); }}
+                              className={`p-2 rounded-md transition-colors ${qty === 0 ? 'text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 shadow-sm hover:text-[#004aad]'}`}
+                              disabled={qty === 0}
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className={`font-bold text-lg w-8 text-center ${qty > 0 ? 'text-[#004aad]' : 'text-gray-400'}`}>{qty}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleTicketQuantityChange(option.id, option.name, 1); }}
+                              className="p-2 rounded-md bg-white text-gray-700 shadow-sm hover:text-[#004aad] hover:bg-white transition-colors"
+                            >
+                              <Plus size={16} />
+                            </button>
+                          </div>
+
                         </div>
-                        <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
-                        <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
 
                   {/* Policy & Details Section */}
@@ -853,10 +938,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               {bookingStep === "BOOTH" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-800">Add an Exhibition Booth (Optional)</h3>
-                    <button onClick={() => { setWizardSelectedBooth(null); setWizardSelectedBoothSlot(null); }} className="text-sm text-gray-500 hover:text-gray-800 underline">
-                      I don't need a booth
-                    </button>
+                    <h3 className="text-xl font-bold text-gray-800">Select Exhibition Booth</h3>
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
@@ -926,12 +1008,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 <div className="space-y-6">
                   <h3 className="text-xl font-bold text-gray-800">Confirm Your Selection</h3>
                   <div className="bg-gray-50 rounded-xl p-6 space-y-4">
-                    <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                      <div>
-                        <p className="font-bold text-gray-900">{wizardSelectedVariant?.name}</p>
-                        <p className="text-sm text-gray-500">Ticket</p>
-                      </div>
-                      <p className="font-bold text-[#004aad]">${wizardSelectedVariant?.price}</p>
+                    <div className="pb-4 border-b border-gray-200 space-y-3">
+                      <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Selected Tickets</h4>
+                      {Object.entries(ticketQuantities).map(([key, qty]) => {
+                        const [tId, vName] = key.split('__');
+                        const parent = eventTickets.find(et => et.ticket.id === tId);
+                        if (!parent) return null;
+                        let price = 0;
+                        const variants = TICKET_VARIANTS[parent.ticket.name];
+                        if (variants) {
+                          const variant = variants.find(v => v.name === vName);
+                          if (variant) price = variant.price;
+                        } else {
+                          price = parent.ticket.price;
+                        }
+
+                        return (
+                          <div key={key} className="flex justify-between items-center">
+                            <div>
+                              <p className="font-bold text-gray-900">{vName} <span className="text-gray-500 text-xs font-normal">x {qty}</span></p>
+                            </div>
+                            <p className="font-bold text-[#004aad]">${(price * qty).toLocaleString()}</p>
+                          </div>
+                        )
+                      })}
                     </div>
                     {wizardSelectedBooth ? (
                       <div className="flex justify-between items-center pt-2">
@@ -952,52 +1052,53 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     <div className="flex justify-between items-center pt-4 border-t-2 border-dashed border-gray-200">
                       <p className="font-extrabold text-lg">Total</p>
                       <p className="font-extrabold text-xl text-[#004aad]">
-                        ${(wizardSelectedVariant?.price || 0)}
+                        ${getTicketSubtotal().toLocaleString()}
                       </p>
                     </div>
                   </div>
                 </div>
               )}
-            </div>
 
-            {/* Footer / Controls */}
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between">
-              {bookingStep === "TICKET" && (
-                <>
-                  <div />
-                  <button
-                    onClick={() => setBookingStep("BOOTH")}
-                    disabled={!wizardSelectedVariant}
-                    className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    Next: Select Booth
-                  </button>
-                </>
-              )}
-              {bookingStep === "BOOTH" && (
-                <>
-                  <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
-                  <button
-                    onClick={() => setBookingStep("SUMMARY")}
-                    className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all"
-                  >
-                    Next: Review
-                  </button>
-                </>
-              )}
-              {bookingStep === "SUMMARY" && (
-                <>
-                  <button onClick={() => setBookingStep("BOOTH")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
-                  <button
-                    onClick={handleWizardAddToCart}
-                    className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
-                  >
-                    Add to Cart
-                  </button>
-                </>
-              )}
-            </div>
+              {/* Footer / Controls */}
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between">
+                {bookingStep === "TICKET" && (
+                  <>
+                    <div />
+                    <button
+                      onClick={() => setBookingStep("BOOTH")}
+                      disabled={totalTicketsSelected === 0}
+                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next: Select Booth
+                    </button>
+                  </>
+                )}
+                {bookingStep === "BOOTH" && (
+                  <>
+                    <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                    <button
+                      onClick={() => setBookingStep("SUMMARY")}
+                      disabled={!wizardSelectedBooth}
+                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      Next: Review
+                    </button>
+                  </>
+                )}
+                {bookingStep === "SUMMARY" && (
+                  <>
+                    <button onClick={() => setBookingStep("BOOTH")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                    <button
+                      onClick={handleWizardAddToCart}
+                      className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
+                    >
+                      Add to Cart
+                    </button>
+                  </>
+                )}
+              </div>
 
+            </div>
           </div>
         </div>
       )}
@@ -1005,7 +1106,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
         <img
-          src={thumbnail || "/images/bg-2.jpg"}
+          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event-bangkok-hero.png" : (thumbnail || "/images/bg-2.jpg")}
           alt={name}
           className="w-full h-full object-cover"
         />
@@ -1279,6 +1380,15 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "Tickets & Booths" && (
               <div className="animate-fadeIn py-12 flex flex-col items-center justify-center text-center">
+                <button
+                  onClick={() => {
+                    openBookingWizard();
+                  }}
+                  className="bg-[#004aad] hover:bg-[#00317a] text-white text-xl font-bold px-12 py-5 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3 mb-8"
+                >
+                  <span>Book Your Tickets</span>
+                  <ArrowRight className="h-6 w-6" />
+                </button>
                 <div className="bg-[#004aad]/5 p-4 rounded-full mb-6">
                   <div className="bg-[#004aad]/10 p-6 rounded-full">
                     <ShoppingCart className="h-12 w-12 text-[#004aad]" />
@@ -1288,20 +1398,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 <p className="text-gray-500 max-w-lg mx-auto mb-8 text-lg">
                   Secure your spot at {name}. Choose from a variety of ticket options to make the most of your experience.
                 </p>
-                <button
-                  onClick={() => {
-                    // Default to first ticket if available
-                    if (eventTickets.length > 0) {
-                      openBookingWizard({ ...eventTickets[0].ticket, image: eventTickets[0].ticket.logo });
-                    } else {
-                      toast.error("No tickets available for this event.");
-                    }
-                  }}
-                  className="bg-[#004aad] hover:bg-[#00317a] text-white text-xl font-bold px-12 py-5 rounded-2xl shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all flex items-center gap-3"
-                >
-                  <span>Book Your Tickets</span>
-                  <ArrowRight className="h-6 w-6" />
-                </button>
               </div>
             )}
 
@@ -1342,7 +1438,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   </div>
                                 </div>
                                 <p className="text-gray-500 text-sm flex items-center gap-1 mb-2"><MapPin className="h-4 w-4" /> {hotel.address}</p>
-                                <p className="text-sm text-[#004aad] font-medium">{hotel.roomTypes.length} Room Types Available</p>
+                                <p className="text-sm text-[#004aad] font-medium">Comes along with the ticket</p>
                               </div>
                             </div>
                           </div>

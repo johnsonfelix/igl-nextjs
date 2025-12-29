@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Plus, Trash2, Edit, Search, Image as ImageIcon, Users } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
@@ -227,14 +227,14 @@ export default function SponsorsPage() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full sm:w-[420px]">
               <div className="space-y-6 p-4">
-                <div className="border-b pb-4">
-                  <h2 className="text-xl font-bold text-gray-900">
+                <SheetHeader className="border-b pb-4">
+                  <SheetTitle className="text-xl font-bold text-gray-900">
                     {editingId ? "Edit Sponsor" : "Add New Sponsor"}
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  </SheetTitle>
+                  <SheetDescription className="text-sm text-gray-500 mt-1">
                     {editingId ? "Update the sponsor details below." : "Enter details for the new sponsor."}
-                  </p>
-                </div>
+                  </SheetDescription>
+                </SheetHeader>
 
                 <div className="space-y-5">
                   <div className="space-y-2">

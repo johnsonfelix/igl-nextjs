@@ -64,7 +64,7 @@ const EventCard = ({ event }: { event: Event }) => {
           </div>
           <div className="flex items-center gap-3">
             <Users className="h-4 w-4 text-[#004aad]" />
-            <span>{expectedAudience} Attendees Expected</span>
+            <span>Expected attendance: {expectedAudience}</span>
           </div>
         </div>
 
@@ -131,7 +131,7 @@ export default function EventsListPage() {
       <header className="relative h-[300px] lg:h-[400px] flex items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/bg-2.jpg"
+            src="/images/event-list-bg.jpg"
             alt="Events Background"
             fill
             className="object-cover"
@@ -149,7 +149,7 @@ export default function EventsListPage() {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-16 -mt-20 relative z-20">
+      <main className="container mx-auto px-4 py-16 -mt-28 relative z-20">
         {loading ? (
           <div className="bg-white rounded-xl shadow-lg p-12 flex justify-center items-center min-h-[400px]">
             <Loader className="h-12 w-12 animate-spin text-[#004aad]" />

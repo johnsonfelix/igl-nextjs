@@ -196,7 +196,7 @@ export default function InquiryBoardPage() {
             <header className="relative h-[300px] lg:h-[400px] flex items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0">
                     <Image
-                        src="/images/bg-4.jpg"
+                        src="/images/inquiry-bg-new.jpg"
                         alt="Inquiry Background"
                         fill
                         className="object-cover"

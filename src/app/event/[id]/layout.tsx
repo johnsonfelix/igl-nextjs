@@ -25,6 +25,10 @@ export default function EventLayout({
 
 function CartFloat({ eventId }: { eventId: string }) {
   const { itemCount } = useCart();
+
+  // Hide cart for specific event
+  if (eventId === 'cmjn1f6ih0000gad4xa4j7dp3') return null;
+
   return (
     <Link
       href={`/event/${eventId}/cart`}

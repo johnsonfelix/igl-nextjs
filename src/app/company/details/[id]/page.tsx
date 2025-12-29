@@ -219,7 +219,12 @@ export default function CompanyProfilePage(_props: PageProps) {
                 <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                 <span className="flex items-center gap-1">
                   <MapPin className="w-4 h-4 text-gray-400" />
-                  {companyData.location.country}
+                  {[
+                    companyData.location.address,
+                    companyData.location.city,
+                    companyData.location.state,
+                    companyData.location.country
+                  ].filter(Boolean).join(", ")}
                 </span>
               </div>
             </div>

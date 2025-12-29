@@ -278,33 +278,8 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
 
   // --- simple color mapping for plan cards ---
   const planColor = (name: string) => {
-    const key = name.toLowerCase();
-
-    // Specific Badge Colors (matching Directory Logic)
-    if (key.includes("elite")) return "from-blue-100 to-blue-200 text-blue-900";
-    if (key.includes("premium"))
-      return "from-amber-100 to-yellow-200 text-yellow-900";
-    if (key.includes("projects"))
-      return "from-purple-100 to-purple-200 text-purple-900";
-    if (key.includes("dangerous") || key.includes("goods"))
-      return "from-red-100 to-red-200 text-red-900";
-
-    // Standard Metals
-    if (key.includes("gold"))
-      return "from-yellow-100 to-amber-200 text-amber-900";
-    if (key.includes("platinum"))
-      return "from-slate-200 to-slate-400 text-slate-900";
-    if (key.includes("diamond"))
-      return "from-cyan-100 to-cyan-300 text-cyan-900";
-    if (key.includes("silver"))
-      return "from-gray-100 to-gray-300 text-gray-900";
-
-    // Free / Regular -> Brand Blue
-    if (key.includes("free") || key.includes("regular"))
-      return "from-blue-50 to-blue-100 text-blue-900";
-
-    // Default
-    return "from-slate-50 to-slate-100 text-slate-800";
+    // As per request: All cards should be grey
+    return "from-slate-50 to-slate-200 text-slate-900";
   };
 
   // --- submit handler ---
