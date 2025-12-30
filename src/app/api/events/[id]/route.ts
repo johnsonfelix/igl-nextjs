@@ -9,7 +9,7 @@ function extractEventId(req: NextRequest): string | null {
     const pathname = new URL(req.url).pathname;
     const parts = pathname.split("/");
     const eventId = parts[parts.length - 1];
-    if (!eventId || eventId === "events" || eventId === "" ) return null;
+    if (!eventId || eventId === "events" || eventId === "") return null;
     return eventId;
   } catch (error) {
     console.error("[extractEventId]", error);
@@ -55,7 +55,14 @@ export async function GET(req: NextRequest) {
         },
 
         eventTickets: { include: { ticket: true } },
-        eventSponsorTypes: { include: { sponsorType: true } },
+        eventSponsorTypes: {
+          include: { sponsorType: true },
+          orderBy: {
+            sponsorType: {
+              sortOrder: 'asc'
+            }
+          }
+        },
         eventRoomTypes: {
           where: { eventId },
         },
@@ -95,7 +102,7 @@ export async function POST(req: NextRequest) {
       expectedAudience,
       description,
       booths = [],         // now expected as array of { id: string, quantity: number }
-      hotels = [],       
+      hotels = [],
       tickets = [],        // array of { id, quantity }
       sponsorTypes = [],   // array of { id, quantity }
       roomTypes = [],      // array of { id, quantity }

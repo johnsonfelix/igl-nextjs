@@ -30,7 +30,9 @@ type PageProps = { params: Promise<{ id: string }> };
 interface CompanyDetails {
   id: string;
   name: string;
-  memberType: string;
+  memberType?: string | null;
+  purchasedMembership?: string | null;
+  membershipPlan?: { name: string } | null;
   website: string;
   established: string;
   size: string;
@@ -203,20 +205,23 @@ export default function CompanyProfilePage(_props: PageProps) {
 
             {/* Title & Badge */}
             <div className="flex-grow pt-2">
-              <div className="flex items-center gap-3 mb-1">
+              <div className="flex flex-wrap items-center gap-3 mb-2">
                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">{companyData.name}</h1>
-                {companyData.isVerified && (
-                  <div className="bg-green-100 text-green-700 p-1 rounded-full" title="Verified Member">
-                    <CheckCircle className="w-5 h-5" />
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  {companyData.isVerified && (
+                    <div className="bg-green-100 text-green-700 p-1 rounded-full" title="Verified Member">
+                      <CheckCircle className="w-5 h-5" />
+                    </div>
+                  )}
+                  {(companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name) && (
+                    <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
+                      {companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name}
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-gray-600 font-medium">
-                <span className="flex items-center gap-1">
-                  <Briefcase className="w-4 h-4 text-gray-400" />
-                  {companyData.memberType} Member
-                </span>
-                <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
+
                 <span className="flex items-center gap-1">
                   <MapPin className="w-4 h-4 text-gray-400" />
                   {[

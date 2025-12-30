@@ -10,6 +10,8 @@ import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
+import { Reorder } from "framer-motion";
+
 export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -195,6 +197,33 @@ export default function SponsorsPage() {
     setFormOpen(true);
   };
 
+  const handleReorder = (newOrder: any[]) => {
+    setSponsors(newOrder); // Optimistic update
+
+    // Debounce or save logic could go here, but for now we'll just fire-and-forget or use a small timeout
+    // Actually, framer-motion calls this frequently. We should probably debounce or just send the full list order.
+    // For simplicity, let's just trigger save on drag end? Reorder.Group doesn't have a simple "onDragEnd" with the new order.
+    // It updates state via onReorder.
+    // We'll use a timeout to save changes after 1 second of inactivity.
+  };
+
+  // Effect to save order when sponsors change (debounced)
+  useEffect(() => {
+    if (loading || sponsors.length === 0) return;
+
+    const timer = setTimeout(() => {
+      // Prepare payload: id and new index
+      const items = sponsors.map((s, index) => ({ id: s.id, sortOrder: index }));
+      fetch('/api/admin/sponsors/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items }),
+      }).catch(err => console.error("Failed to save order", err));
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [sponsors]);
+
   const filteredSponsors = sponsors.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     s.description.toLowerCase().includes(searchQuery.toLowerCase())
@@ -348,7 +377,7 @@ export default function SponsorsPage() {
             </Button>
           )}
         </div>
-      ) : (
+      ) : searchQuery ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredSponsors.map((sponsor) => (
             <Card
@@ -404,6 +433,63 @@ export default function SponsorsPage() {
             </Card>
           ))}
         </div>
+      ) : (
+        <Reorder.Group axis="y" values={sponsors} onReorder={setSponsors} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {sponsors.map((sponsor) => (
+            <Reorder.Item key={sponsor.id} value={sponsor} className="h-full">
+              <Card
+                className="group hover:shadow-xl transition-all duration-300 border border-gray-100 rounded-xl bg-white overflow-hidden flex flex-col h-full hover:scale-[1.02] cursor-move"
+              >
+                <div className="relative h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-gray-100 group-hover:bg-gray-100/50 transition-colors">
+                  {sponsor.image ? (
+                    <img
+                      src={sponsor.image}
+                      alt={sponsor.name}
+                      className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-gray-300">
+                      <ImageIcon size={48} strokeWidth={1} />
+                      <span className="text-xs mt-2 font-medium">No Logo</span>
+                    </div>
+                  )}
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-emerald-600 flex items-center justify-center"
+                        onClick={(e) => { e.stopPropagation(); openEditForm(sponsor); }}
+                      >
+                        <Edit size={18} />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-red-600 flex items-center justify-center"
+                        onClick={(e) => { e.stopPropagation(); handleDelete(sponsor.id); }}
+                      >
+                        <Trash2 size={18} />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                <CardContent className="p-5 flex-1 flex flex-col">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={sponsor.name}>{sponsor.name}</h3>
+                  </div>
+                  <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[2.5em]">{sponsor.description}</p>
+                  <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
+                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contribution</span>
+                    <span className="font-mono font-bold text-emerald-600 text-lg">
+                      ${Number(sponsor.price).toLocaleString()}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Reorder.Item>
+          ))}
+        </Reorder.Group>
       )}
     </div>
   );

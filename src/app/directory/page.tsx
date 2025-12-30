@@ -266,12 +266,7 @@ export default function CompaniesListPage() {
                         </div>
                       )}
                     </div>
-                    {establishedYears > 0 && (
-                      <div className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-amber-100 to-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800 shadow-sm border border-amber-200/50">
-                        <Star size={12} className="text-amber-500 fill-amber-500" />
-                        {establishedYears}Y
-                      </div>
-                    )}
+
                   </div>
 
                   <div className="flex-grow flex flex-col min-w-0">

@@ -942,7 +942,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         image: ticket.logo,
                         parentTicket: ticket
                       }];
-                    }).map((option) => {
+                    }).sort((a, b) => b.price - a.price).map((option) => {
                       const key = `${option.id}__${option.name}`;
                       const qty = ticketQuantities[key] || 0;
 
@@ -994,7 +994,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           <div className="mt-1 bg-emerald-100 text-emerald-600 rounded-full p-1 h-fit"><Check size={14} /></div>
                           <div>
                             <span className="font-bold text-gray-800 block mb-1">Accommodation Included:</span>
-                            Registration fees includes <span className="font-semibold text-gray-900">2 nights (February 12 & 13) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
+                            Registration fees includes <span className="font-semibold text-gray-900">2 nights (March 25 & 26) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
                           </div>
                         </div>
                         <div className="flex gap-3">
@@ -1012,7 +1012,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         </h5>
                         <ul className="space-y-2 list-disc list-inside marker:text-red-300">
                           <li>
-                            Registration cancellations received prior to <span className="font-semibold text-gray-900">February 10, 2026</span> will be eligible to receive a <span className="font-bold text-red-500">50% refund</span>.
+                            Registration cancellations received prior to <span className="font-semibold text-gray-900">January 10, 2026</span> will be eligible to receive a <span className="font-bold text-red-500">50% refund</span>.
                           </li>
                           <li>
                             Cancellations received after the stated deadline will <span className="font-bold">not be eligible for a refund</span>.
@@ -1565,27 +1565,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   </div>
 
                   <div className="p-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                      <div className="lg:col-span-2 space-y-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-bold text-gray-800 mb-4">About the Hotel</h3>
-                          <p className="text-gray-600 leading-relaxed text-lg">
+                          <p className="text-gray-600 leading-relaxed text-sm">
                             Experience the perfect blend of style and convenience at Radisson Suites Bangkok Sukhumvit.
                             Located in the vibrant Sukhumvit district, our hotel offers easy access to the city's
                             best shopping, dining, and entertainment venues. Just minutes away from the Nana BTS Skytrain
                             and Sukhumvit MRT stations, you can easily explore everything Bangkok has to offer.
-                          </p>
-                          <p className="text-gray-600 leading-relaxed text-lg mt-4">
-                            Retreat to spacious, modern suites featuring floor-to-ceiling windows, rain showers, and
-                            premium amenities. Whether you're here for business or leisure, enjoy our rooftop pool,
-                            state-of-the-art fitness center, and exquisite dining options.
                           </p>
                         </div>
 
                         {/* Image Gallery */}
                         <div>
                           <h3 className="text-xl font-bold text-gray-800 mb-4">Gallery</h3>
-                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          <div className="grid grid-cols-2 gap-4">
                             <img src="/images/h-Bangkok.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
                             <img src="/images/h-Bangkok1.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
                             <img src="/images/h-Bangkok2.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
@@ -1597,7 +1592,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       </div>
 
                       <div className="space-y-6">
-                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 h-full">
                           <h3 className="text-lg font-bold text-[#004aad] mb-4 flex items-center gap-2">
                             <Hotel className="h-5 w-5" /> Hotel Amenities
                           </h3>
@@ -1729,7 +1724,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 onClick={() => router.push(`/event/${id}/cart`)}
               >
                 <ShoppingCart className="h-5 w-5" />
-                <span>Your Cart ({itemCount})</span>
+                <div className="flex items-center gap-2">
+                  <span>Your Cart</span>
+                  {itemCount > 0 && (
+                    <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] flex items-center justify-center">
+                      {itemCount}
+                    </span>
+                  )}
+                </div>
               </button>
               {/* <p className="text-center text-xs text-gray-400 mt-3">Proceed to checkout.</p> */}
             </div>

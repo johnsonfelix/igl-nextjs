@@ -29,7 +29,7 @@ function extractKeyFromUrl(urlStr?: string | null): string | null {
 export async function GET() {
   try {
     const sponsors = await prisma.sponsorType.findMany({
-      orderBy: { createdAt: "desc" },
+      orderBy: { sortOrder: "asc" },
     });
     return NextResponse.json(sponsors);
   } catch (error) {

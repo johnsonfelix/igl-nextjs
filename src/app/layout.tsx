@@ -6,6 +6,7 @@ import Navbar from "./components/navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
+import PopupAd from "./components/PopupAd";
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -40,6 +41,7 @@ export default function RootLayout({
         <Toaster position="top-center" />
         {/* 2. Wrap your entire application with AuthProvider */}
         <Navbar />
+        <PopupAd />
         <AuthProvider>
           {children}
         </AuthProvider>
