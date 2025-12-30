@@ -404,7 +404,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   }>({ percent: null });
 
   // Hotel expansion state
-  const [expandedHotelId, setExpandedHotelId] = useState<string | null>(null);
+
 
   // --- BOOKING WIZARD STATE ---
   const [bookingStep, setBookingStep] = useState<"TICKET" | "BOOTH" | "SUMMARY">("TICKET");
@@ -577,7 +577,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const agendaItems = eventData.agendaItems ?? [];
   const eventTickets = eventData.eventTickets ?? [];
   const eventSponsorTypes = eventData.eventSponsorTypes ?? [];
-  const hotels = eventData.hotels ?? [];
+  const hotels = (eventData.hotels && eventData.hotels.length > 0) ? eventData.hotels : [
+    {
+      id: "fallback-hotel-radisson",
+      hotelName: "Radisson Suites Bangkok Sukhumvit",
+      image: "/images/h-Bangkok.jpg",
+      address: "23/2 Soi Sukhumvit 13, Khlong Toei Nuea, Watthana, Bangkok 10110, Thailand",
+      roomTypes: [
+        {
+          id: "rt-deluxe-room",
+          roomType: "Deluxe Room",
+          price: 150, // Estimate or placeholder
+          amenities: "King Bed, City View, Free WiFi, Breakfast Included",
+          eventRoomTypes: [{ quantity: 100 }],
+        },
+        {
+          id: "rt-premier-room",
+          roomType: "Premier Room",
+          price: 200, // Estimate or placeholder
+          amenities: "Spacious Suite, Lounge Access, Free WiFi, Breakfast Included",
+          eventRoomTypes: [{ quantity: 50 }],
+        }
+      ]
+    } as HotelData
+  ];
 
   // booths can come as legacy or via join table
   const boothsList: Booth[] =
@@ -799,6 +822,73 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         boothSubTypeId: wizardSelectedBoothSlot?.id,
         boothSubTypeName: wizardSelectedBoothSlot?.name,
       });
+    }
+
+    // 3. Auto-add Accommodation (Deluxe Room)
+    // Logic: 1 Room holds (1 Ticket + 1 Accompanying).
+    // Meeting Package = 0 Rooms.
+    let ticketCount = 0;
+    let accompanyingCount = 0;
+
+    // Log quantities for debugging
+    console.log("Ticket Quantities:", ticketQuantities);
+
+    Object.entries(ticketQuantities).forEach(([key, qty]) => {
+      const parts = key.split('__');
+      if (parts.length >= 2) {
+        const vName = parts[1];
+        const vNameLower = vName.toLowerCase();
+        console.log(`Checking ticket: ${vName}, Qty: ${qty}`);
+
+        if (vNameLower.includes("meeting package")) {
+          // No room for meeting package
+          return;
+        }
+
+        if (vNameLower.includes("accompanying")) {
+          accompanyingCount += qty;
+        } else if (vNameLower.includes("ticket")) {
+          // Catches "Ticket", "Regular Ticket", "Standard Ticket"
+          ticketCount += qty;
+        }
+      }
+    });
+
+    // Calculate rooms needed
+    // 1 Ticket + 1 Accompanying = 1 Room.
+    const roomsNeeded = Math.max(ticketCount, accompanyingCount);
+
+    console.log(`Calculated Rooms Needed: ${roomsNeeded} (Tickets: ${ticketCount}, Accompanying: ${accompanyingCount})`);
+
+    if (roomsNeeded > 0) {
+      if (hotels.length > 0) {
+        // Find Deluxe Room in the first hotel (Radisson)
+        const hotel = hotels[0];
+        console.log("Selected Hotel:", hotel.hotelName);
+
+        // Try to find Deluxe, otherwise default to the first room type available
+        const deluxeRoom = hotel.roomTypes.find(rt => rt.roomType.toLowerCase().includes("deluxe")) || hotel.roomTypes[0];
+        console.log("Selected Room Type:", deluxeRoom);
+
+        if (deluxeRoom) {
+          for (let i = 0; i < roomsNeeded; i++) {
+            console.log("Adding room to cart...");
+            addToCart({
+              productId: hotel.id,
+              roomTypeId: deluxeRoom.id,
+              productType: "HOTEL",
+              name: `${hotel.hotelName} - ${deluxeRoom.roomType}`,
+              price: deluxeRoom.price,
+              image: hotel.image || undefined
+            });
+          }
+          toast.success(`${roomsNeeded} ${deluxeRoom.roomType}(s) added automatically!`);
+        } else {
+          console.warn("No room types available in the hotel to auto-add.");
+        }
+      } else {
+        console.warn("No hotels available for this event to auto-add rooms.");
+      }
     }
 
     toast.success("Items added to cart!");
@@ -1060,16 +1150,43 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               )}
 
               {/* Footer / Controls */}
+              {/* Footer / Controls */}
               <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between">
                 {bookingStep === "TICKET" && (
                   <>
                     <div />
                     <button
-                      onClick={() => setBookingStep("BOOTH")}
+                      onClick={() => {
+                        // Check if we should skip booth
+                        // Logic: If ONLY "Accompanying Member" is selected (no Regular Ticket), skip booth.
+                        // Or stricter: Booth is ONLY for "Regular Ticket".
+                        let hasRegularTicket = false;
+                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                          const [, vName] = key.split('__');
+                          if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
+                            hasRegularTicket = true;
+                          }
+                        });
+
+                        if (!hasRegularTicket) {
+                          setBookingStep("SUMMARY");
+                        } else {
+                          setBookingStep("BOOTH");
+                        }
+                      }}
                       disabled={totalTicketsSelected === 0}
                       className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      Next: Select Booth
+                      {(() => {
+                        let hasRegularTicket = false;
+                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                          const [, vName] = key.split('__');
+                          if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
+                            hasRegularTicket = true;
+                          }
+                        });
+                        return hasRegularTicket ? "Next: Select Booth" : "Next: Review";
+                      })()}
                     </button>
                   </>
                 )}
@@ -1087,7 +1204,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 )}
                 {bookingStep === "SUMMARY" && (
                   <>
-                    <button onClick={() => setBookingStep("BOOTH")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                    <button onClick={() => {
+                      // Smart Back: Check if we skipped booth
+                      let hasRegularTicket = false;
+                      Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                        const [, vName] = key.split('__');
+                        if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
+                          hasRegularTicket = true;
+                        }
+                      });
+
+                      if (!hasRegularTicket) {
+                        setBookingStep("TICKET");
+                      } else {
+                        setBookingStep("BOOTH");
+                      }
+                    }} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
                     <button
                       onClick={handleWizardAddToCart}
                       className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
@@ -1414,84 +1546,140 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             )}
 
             {activeTab === "Accommodation" && (
-              <div className="animate-fadeIn">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Official Hotels</h2>
-                {hotels.length > 0 ? (
-                  <div className="space-y-6">
-                    {hotels.map((hotel) => {
-                      const isExpanded = expandedHotelId === hotel.id;
-                      return (
-                        <div key={hotel.id} className="border border-gray-100 rounded-xl overflow-hidden hover:shadow-lg transition-shadow bg-white">
-                          <div
-                            className="flex flex-col md:flex-row cursor-pointer"
-                            onClick={() => setExpandedHotelId(isExpanded ? null : hotel.id)}
-                          >
-                            <div className="md:w-1/3 h-48 md:h-auto relative">
-                              <img src={hotel.image || "/placeholder.png"} className="absolute inset-0 w-full h-full object-cover" />
+              <div className="animate-fadeIn space-y-8">
+                {/* Featured Hotel Header */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                  <div className="relative h-96 w-full">
+                    <img
+                      src="/images/h-Bangkok.jpg"
+                      alt="Radisson Suites Bangkok Sukhumvit"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+                      <h2 className="text-4xl font-bold text-white mb-2">Radisson Suites Bangkok Sukhumvit</h2>
+                      <p className="text-white/90 text-lg flex items-center gap-2">
+                        <MapPin className="h-5 w-5 text-orange-400" />
+                        23/2 Soi Sukhumvit 13, Khlong Toei Nuea, Watthana, Bangkok 10110, Thailand
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="p-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                      <div className="lg:col-span-2 space-y-6">
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-800 mb-4">About the Hotel</h3>
+                          <p className="text-gray-600 leading-relaxed text-lg">
+                            Experience the perfect blend of style and convenience at Radisson Suites Bangkok Sukhumvit.
+                            Located in the vibrant Sukhumvit district, our hotel offers easy access to the city's
+                            best shopping, dining, and entertainment venues. Just minutes away from the Nana BTS Skytrain
+                            and Sukhumvit MRT stations, you can easily explore everything Bangkok has to offer.
+                          </p>
+                          <p className="text-gray-600 leading-relaxed text-lg mt-4">
+                            Retreat to spacious, modern suites featuring floor-to-ceiling windows, rain showers, and
+                            premium amenities. Whether you're here for business or leisure, enjoy our rooftop pool,
+                            state-of-the-art fitness center, and exquisite dining options.
+                          </p>
+                        </div>
+
+                        {/* Image Gallery */}
+                        <div>
+                          <h3 className="text-xl font-bold text-gray-800 mb-4">Gallery</h3>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                            <img src="/images/h-Bangkok.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <img src="/images/h-Bangkok1.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <img src="/images/h-Bangkok2.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <div className="bg-gray-100 rounded-lg h-32 w-full flex items-center justify-center text-gray-400 font-medium">
+                              + More Photos
                             </div>
-                            <div className="p-6 md:w-2/3 flex flex-col justify-between">
-                              <div>
-                                <div className="flex justify-between items-start">
-                                  <h3 className="text-xl font-bold text-gray-800 mb-1">{hotel.hotelName}</h3>
-                                  <div className="bg-gray-100 rounded-full p-2">
-                                    {isExpanded ? <Minus className="h-4 w-4 text-gray-600" /> : <Plus className="h-4 w-4 text-gray-600" />}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-6">
+                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100">
+                          <h3 className="text-lg font-bold text-[#004aad] mb-4 flex items-center gap-2">
+                            <Hotel className="h-5 w-5" /> Hotel Amenities
+                          </h3>
+                          <ul className="space-y-3">
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              Rooftop Swimming Pool
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              Fitness Center
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              Free High-Speed Wi-Fi
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              On-site Restaurant & Bar
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              Business Center
+                            </li>
+                            <li className="flex items-center gap-3 text-gray-700">
+                              <div className="bg-white p-1.5 rounded-full shadow-sm text-blue-500"><Check size={14} /></div>
+                              Concierge Services
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rooms Section */}
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-6">Available Options</h3>
+                  {hotels.length > 0 ? (
+                    <div className="space-y-6">
+                      {hotels.map((hotel) => (
+                        <div key={hotel.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
+                          {/* Only show rooms, hide the hotel header if we act like this IS the hotel page, 
+                             BUT existing logic iterates over hotels. 
+                             If the loop contains Radisson, we might be duplicating the header info if we printed it above.
+                             For now, I'll keep the room listing logic which is inside the loop. 
+                             I'll strip the per-hotel header from the loop to make it look like "Rooms for the above hotel"
+                             assuming the event only has this one hotel or they are all valid options for it. 
+                             If there are multiple hotels, this might be confusing, but the user said "this IS the hotel".
+                         */}
+                          <div className="p-6">
+                            {/* Rooms List - Always Visible */}
+                            <div className="">
+                              <div className="space-y-3">
+                                {hotel.roomTypes.map((rt) => (
+                                  <div key={rt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between gap-4">
+                                    <div className="flex-grow">
+                                      <div className="flex justify-between items-start mb-1">
+                                        <p className="font-bold text-gray-800 text-lg">{rt.roomType}</p>
+                                        <p className="font-bold text-[#004aad] sm:hidden text-lg">${rt.price}</p>
+                                      </div>
+                                      <p className="text-sm text-gray-500 mb-2">{rt.amenities || "Standard amenities included."}</p>
+                                      <div className="flex flex-wrap gap-2">
+                                        {rt.amenities?.split(',').map((amenity, idx) => (
+                                          <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-full uppercase tracking-wide">{amenity.trim()}</span>
+                                        ))}
+                                      </div>
+                                    </div>
+                                    <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
+                                      <p className="font-bold text-[#004aad] text-xl hidden sm:block mb-2">${rt.price}</p>
+                                      {/* Button hidden as requested previously */}
+                                    </div>
                                   </div>
-                                </div>
-                                <p className="text-gray-500 text-sm flex items-center gap-1 mb-2"><MapPin className="h-4 w-4" /> {hotel.address}</p>
-                                <p className="text-sm text-[#004aad] font-medium">Comes along with the ticket</p>
+                                ))}
                               </div>
                             </div>
                           </div>
-
-                          {/* Expanded content (Rooms) */}
-                          {isExpanded && (
-                            <div className="p-6 pt-0 border-t border-gray-100 bg-gray-50/50">
-                              <div className="mt-4 mb-2">
-                                <h4 className="font-bold text-gray-700 mb-3">Select a Room</h4>
-                                <div className="space-y-3">
-                                  {hotel.roomTypes.map((rt) => (
-                                    <div key={rt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between gap-4">
-                                      <div className="flex-grow">
-                                        <div className="flex justify-between items-start mb-1">
-                                          <p className="font-bold text-gray-800 text-lg">{rt.roomType}</p>
-                                          {/* Price displayed prominently on mobile, or right side on desktop */}
-                                          <p className="font-bold text-[#004aad] sm:hidden text-lg">${rt.price}</p>
-                                        </div>
-                                        <p className="text-sm text-gray-500 mb-2">{rt.amenities || "Standard amenities included."}</p>
-                                        <div className="flex flex-wrap gap-2">
-                                          {rt.amenities?.split(',').map((amenity, idx) => (
-                                            <span key={idx} className="text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded-full uppercase tracking-wide">{amenity.trim()}</span>
-                                          ))}
-                                        </div>
-                                      </div>
-                                      <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                        <p className="font-bold text-[#004aad] text-xl hidden sm:block mb-2">${rt.price}</p>
-                                        <button onClick={(e) => {
-                                          e.stopPropagation();
-                                          addToCart({
-                                            productId: hotel.id,
-                                            roomTypeId: rt.id,
-                                            productType: "HOTEL",
-                                            name: `${hotel.hotelName} - ${rt.roomType}`,
-                                            price: rt.price,
-                                            image: hotel.image || undefined
-                                          });
-                                          toast.success("Room added to cart!");
-                                        }} className="w-full sm:w-auto bg-[#004aad] text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-[#00317a] transition-colors shadow-sm flex items-center justify-center gap-2">
-                                          Add Room <ShoppingCart className="h-4 w-4" />
-                                        </button>
-                                      </div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          )}
                         </div>
-                      )
-                    })}
-                  </div>
-                ) : <p className="text-gray-500 italic">No accommodation details available.</p>}
+                      ))}
+                    </div>
+                  ) : <p className="text-gray-500 italic">No accommodation details available.</p>}
+                </div>
               </div>
             )}
           </div>

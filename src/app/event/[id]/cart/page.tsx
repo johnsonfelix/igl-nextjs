@@ -260,9 +260,8 @@ export default function CartPage({
             <div className="space-y-4">
               {computed.lines.map((item: any) => (
                 <div
-                  key={`${item.productId}-${item.roomTypeId || ""}-${
-                    item.boothSubTypeId || ""
-                  }`}
+                  key={`${item.productId}-${item.roomTypeId || ""}-${item.boothSubTypeId || ""
+                    }`}
                   className="flex gap-4 items-center border-b pb-4"
                 >
                   <div className="relative">
@@ -313,49 +312,65 @@ export default function CartPage({
                       )}
                     </div>
 
-                    <div className="flex items-center gap-2 mt-2">
-                      <button
-                        onClick={() =>
-                          updateQuantity(
-                            item.productId,
-                            Math.max((item.quantity || 1) - 1, 0),
-                            item.roomTypeId
-                          )
-                        }
-                        className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="font-semibold w-6 text-center">
-                        {item.qty}
-                      </span>
-                      <button
-                        onClick={() =>
-                          updateQuantity(
-                            item.productId,
-                            (item.quantity || 1) + 1,
-                            item.roomTypeId
-                          )
-                        }
-                        className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
+                    {/* Hide controls for HOTEL items as requested */}
+                    {String(item.productType || "").toUpperCase() !==
+                      "HOTEL" && (
+                        <div className="flex items-center gap-2 mt-2">
+                          <button
+                            onClick={() =>
+                              updateQuantity(
+                                item.productId,
+                                Math.max((item.quantity || 1) - 1, 0),
+                                item.roomTypeId
+                              )
+                            }
+                            className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
+                          >
+                            <Minus className="h-4 w-4" />
+                          </button>
+                          <span className="font-semibold w-6 text-center">
+                            {item.qty}
+                          </span>
+                          <button
+                            onClick={() =>
+                              updateQuantity(
+                                item.productId,
+                                (item.quantity || 1) + 1,
+                                item.roomTypeId
+                              )
+                            }
+                            className="p-1 rounded-full bg-slate-200 hover:bg-slate-300"
+                          >
+                            <Plus className="h-4 w-4" />
+                          </button>
+                        </div>
+                      )}
+
+                    {/* Show read-only quantity for disabled items if you want, or just hide controls */}
+                    {String(item.productType || "").toUpperCase() ===
+                      "HOTEL" && (
+                        <div className="mt-2 text-sm text-gray-500 font-medium">
+                          Qty: {item.qty} (Linked to Ticket)
+                        </div>
+                      )}
                   </div>
 
                   <div className="text-right">
                     <p className="font-bold text-slate-800">
                       ${item.lineTotal.toFixed(2)}
                     </p>
-                    <button
-                      onClick={() =>
-                        removeFromCart(item.productId, item.roomTypeId)
-                      }
-                      className="text-red-500 hover:text-red-700 mt-2 inline-flex items-center gap-1"
-                    >
-                      <Trash2 className="h-4 w-4" /> Remove
-                    </button>
+
+                    {String(item.productType || "").toUpperCase() !==
+                      "HOTEL" && (
+                        <button
+                          onClick={() =>
+                            removeFromCart(item.productId, item.roomTypeId)
+                          }
+                          className="text-red-500 hover:text-red-700 mt-2 inline-flex items-center gap-1"
+                        >
+                          <Trash2 className="h-4 w-4" /> Remove
+                        </button>
+                      )}
                   </div>
                 </div>
               ))}
@@ -396,7 +411,8 @@ export default function CartPage({
             )}
           </div>
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }

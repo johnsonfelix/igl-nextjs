@@ -169,31 +169,38 @@ function CartSummary({
               </div>
 
               {/* Quantity Controls */}
-              <div className="flex items-center gap-3 mt-2">
-                <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+              {/* Quantity Controls - Hide for HOTEL */}
+              {String(item.productType || "").toUpperCase() === "HOTEL" ? (
+                <div className="mt-2 text-sm text-gray-500 font-medium">
+                  Qty: {item.quantity} (Linked to Ticket)
+                </div>
+              ) : (
+                <div className="flex items-center gap-3 mt-2">
+                  <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+                    <button
+                      onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId)}
+                      className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                    >
+                      <Minus className="h-3 w-3" />
+                    </button>
+                    <span className="w-8 text-center text-sm font-semibold text-gray-700">{item.quantity}</span>
+                    <button
+                      onClick={() => updateQuantity(item.productId, item.quantity + 1, item.roomTypeId)}
+                      className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+                    >
+                      <Plus className="h-3 w-3" />
+                    </button>
+                  </div>
+
                   <button
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId)}
-                    className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                    onClick={() => removeFromCart(item.productId, item.roomTypeId)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                    title="Remove item"
                   >
-                    <Minus className="h-3 w-3" />
-                  </button>
-                  <span className="w-8 text-center text-sm font-semibold text-gray-700">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity + 1, item.roomTypeId)}
-                    className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
-                  >
-                    <Plus className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-
-                <button
-                  onClick={() => removeFromCart(item.productId, item.roomTypeId)}
-                  className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
-                  title="Remove item"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              </div>
+              )}
 
               {/* Price Breakdown */}
               <div className="mt-1 text-sm text-slate-500">
