@@ -5,12 +5,15 @@ import Image from "next/image";
 import { X } from "lucide-react";
 
 export default function PopupAd() {
-    const [isVisible, setIsVisible] = useState(false);
+    const [isVisible, setIsVisible] = useState(true);
 
     useEffect(() => {
-        // Show after 5 minutes (300,000 ms)
-        const timer = setTimeout(() => setIsVisible(true), 300000);
-        return () => clearTimeout(timer);
+        // Show every 5 minutes (300,000 ms)
+        const timer = setInterval(() => {
+            setIsVisible(true);
+        }, 300000);
+
+        return () => clearInterval(timer);
     }, []);
 
     const handleClose = () => {
