@@ -78,6 +78,7 @@ interface EventTicket {
     name: string;
     logo: string | null;
     price: number;
+    sellingPrice?: number | null;
   };
   quantity: number;
 }
@@ -247,20 +248,30 @@ const PriceCard = ({
   offerName?: string | null;
 }) => {
   const { addToCart } = useCart();
+
+  // Use sellingPrice if available as the base price before any offer
+  const basePrice = (item as any).sellingPrice ?? item.price;
+  const hasSellingPrice = !!(item as any).sellingPrice;
+  const hasOffer = !!offerPercent && offerPercent > 0;
+
+  // If there is an offer OR a selling price difference, we consider it "discounted" for display purposes
+  // However, the rendering logic below checks 'discounted' to decide whether to show strict old/new price layout.
+  // The rendering logic below (lines 286+) was updated to use 'discounted' as the trigger for the complex view.
+  const discounted = hasOffer || hasSellingPrice;
+
+  const newPrice = getDiscountedPrice(basePrice, offerPercent);
+
   const handleAddToCart = () => {
-    const effectivePrice = getDiscountedPrice(item.price, offerPercent);
     addToCart({
       productId: item.id,
       productType,
       name: item.name,
-      price: effectivePrice,
+      price: newPrice,
+      originalPrice: item.price,
       image: item.image || undefined,
     });
     toast.success(`${item.name} added to cart!`);
   };
-
-  const discounted = !!offerPercent && offerPercent > 0;
-  const newPrice = getDiscountedPrice(item.price, offerPercent);
 
   return (
     <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative">
@@ -284,8 +295,19 @@ const PriceCard = ({
         <div className="mt-auto pt-4 border-t border-gray-100">
           {discounted ? (
             <div className="flex items-end gap-2 mb-4">
-              <span className="text-2xl font-bold text-[#004aad]">${formatPrice(newPrice)}</span>
-              <span className="text-sm text-gray-400 line-through mb-1">${item.price.toLocaleString()}</span>
+              <div className="flex flex-col">
+                {offerPercent ? (
+                  <>
+                    <span className="text-2xl font-bold text-[#004aad]">${formatPrice(newPrice)}</span>
+                    <span className="text-sm text-gray-400 line-through mb-1">${basePrice.toLocaleString()}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="text-2xl font-bold text-[#004aad]">${formatPrice(basePrice)}</span>
+                    <span className="text-sm text-gray-400 line-through mb-1">${item.price.toLocaleString()}</span>
+                  </>
+                )}
+              </div>
             </div>
           ) : (
             <div className="text-2xl font-bold text-[#004aad] mb-4">${item.price.toLocaleString()}</div>
@@ -785,12 +807,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       if (!parent) return;
 
       let price = 0;
+      let originalPrice = 0;
       const variants = TICKET_VARIANTS[parent.ticket.name];
       if (variants) {
         const variant = variants.find(v => v.name === vName);
-        if (variant) price = variant.price;
+        if (variant) {
+          price = variant.price;
+          originalPrice = variant.price;
+        }
       } else {
-        price = parent.ticket.price;
+        price = parent.ticket.sellingPrice ?? parent.ticket.price;
+        originalPrice = parent.ticket.price;
       }
 
       // Add each unit
@@ -800,6 +827,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           productType: "TICKET",
           name: vName, // Variant name
           price: price,
+          originalPrice: originalPrice,
           image: parent.ticket.logo || undefined,
         });
       }
@@ -931,6 +959,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           id: ticket.id, // Keep parent ID for cart
                           name: variant.name,
                           price: variant.price,
+                          originalPrice: variant.price, // Variants currently don't have selling price logic override
+                          sellingPrice: null,
                           image: ticket.logo,
                           parentTicket: ticket // Keep ref
                         }));
@@ -938,7 +968,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       return [{
                         id: ticket.id,
                         name: ticket.name,
-                        price: ticket.price,
+                        price: ticket.sellingPrice ?? ticket.price, // Use selling price if active
+                        originalPrice: ticket.price,
+                        sellingPrice: ticket.sellingPrice,
                         image: ticket.logo,
                         parentTicket: ticket
                       }];
@@ -956,7 +988,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               {option.parentTicket.name !== option.name ? option.parentTicket.name : 'Standard'}
                             </div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
-                            <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
+                            {option.sellingPrice ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm text-gray-400 line-through">${option.originalPrice.toLocaleString()}</span>
+                                <span className="text-2xl font-bold text-[#004aad]">${option.price.toLocaleString()}</span>
+                              </div>
+                            ) : (
+                              <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
+                            )}
                           </div>
 
                           {/* Quantity Control */}
@@ -984,27 +1023,49 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
                   {/* Policy & Details Section */}
                   <div className="mt-8 bg-blue-50/50 rounded-xl p-6 border border-blue-100">
-                    <h4 className="flex items-center gap-2 font-bold text-gray-800 mb-4">
+                    {/* <h4 className="flex items-center font-bold text-gray-800">
                       <InfoPill icon={AlertTriangle} text="Important Information" />
-                    </h4>
+                    </h4> */}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
-                      <div className="space-y-4">
-                        <div className="flex gap-3">
-                          <div className="mt-1 bg-emerald-100 text-emerald-600 rounded-full p-1 h-fit"><Check size={14} /></div>
-                          <div>
-                            <span className="font-bold text-gray-800 block mb-1">Accommodation Included:</span>
-                            Registration fees includes <span className="font-semibold text-gray-900">2 nights (March 25 & 26) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
+                      {(() => {
+                        let hasIncluded = false;
+                        let hasExcluded = false;
+                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                          if (qty > 0) {
+                            const lower = key.toLowerCase();
+                            if (lower.includes('meeting package')) hasExcluded = true;
+                            // Assume others (Ticket, Accompanying) include accommodation
+                            else hasIncluded = true;
+                          }
+                        });
+                        const noSelection = !hasIncluded && !hasExcluded;
+                        const showIncluded = hasIncluded || noSelection;
+                        const showExcluded = hasExcluded || noSelection;
+
+                        return (
+                          <div className="space-y-4">
+                            {showIncluded && (
+                              <div className="flex gap-3 animate-fadeIn">
+                                <div className="mt-1 bg-emerald-100 text-emerald-600 rounded-full p-1 h-fit"><Check size={14} /></div>
+                                <div>
+                                  <span className="font-bold text-gray-800 block mb-1">Accommodation Included:</span>
+                                  Registration fees includes <span className="font-semibold text-gray-900">2 nights (March 25 & 26) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
+                                </div>
+                              </div>
+                            )}
+                            {showExcluded && (
+                              <div className="flex gap-3 animate-fadeIn">
+                                <div className="mt-1 bg-amber-100 text-amber-600 rounded-full p-1 h-fit"><X size={14} /></div>
+                                <div>
+                                  <span className="font-bold text-gray-800 block mb-1">Accommodation Excluded:</span>
+                                  Certain packages may exclude Accommodation at the conference hotel, but provide full access to all Sessions, Two lunches, Dinners, Refreshment, welcome cocktail, Gala Dinner and Conference material.
+                                </div>
+                              </div>
+                            )}
                           </div>
-                        </div>
-                        <div className="flex gap-3">
-                          <div className="mt-1 bg-amber-100 text-amber-600 rounded-full p-1 h-fit"><X size={14} /></div>
-                          <div>
-                            <span className="font-bold text-gray-800 block mb-1">Accommodation Excluded:</span>
-                            Certain packages may exclude Accommodation at the conference hotel, but provide full access to all Sessions, Two lunches, Dinners, Refreshment, welcome cocktail, Gala Dinner and Conference material.
-                          </div>
-                        </div>
-                      </div>
+                        );
+                      })()}
 
                       <div className="bg-white rounded-lg p-4 border border-gray-100 shadow-sm h-fit">
                         <h5 className="font-bold text-red-600 mb-2 flex items-center gap-2">
@@ -1651,7 +1712,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   <div key={rt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between gap-4">
                                     <div className="flex-grow">
                                       <div className="flex justify-between items-start mb-1">
-                                        <p className="font-bold text-gray-800 text-lg">{rt.roomType}</p>
+                                        <p className="font-bold text-gray-800 text-lg">
+                                          {rt.roomType}
+                                          <span className="text-sm text-[#004aad] ml-2 font-normal">(Comes along with the ticket)</span>
+                                        </p>
                                         <p className="font-bold text-[#004aad] sm:hidden text-lg">${rt.price}</p>
                                       </div>
                                       <p className="text-sm text-gray-500 mb-2">{rt.amenities || "Standard amenities included."}</p>

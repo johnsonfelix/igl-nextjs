@@ -204,11 +204,11 @@ function CartSummary({
 
               {/* Price Breakdown */}
               <div className="mt-1 text-sm text-slate-500">
-                {item.appliedOfferPercent ? (
+                {(item.appliedOfferPercent || item.original > item.effective) ? (
                   <>
                     <span className="line-through mr-2 text-gray-400">${Number(item.original).toFixed(2)}</span>
                     <span className="font-semibold text-indigo-600">${Number(item.effective).toFixed(2)}</span>
-                    <span className="ml-2 text-xs bg-rose-100 text-rose-600 font-medium px-1.5 py-0.5 rounded">-{Math.round(item.appliedOfferPercent)}%</span>
+                    {item.appliedOfferPercent ? <span className="ml-2 text-xs bg-rose-100 text-rose-600 font-medium px-1.5 py-0.5 rounded">-{Math.round(item.appliedOfferPercent)}%</span> : null}
                   </>
                 ) : (
                   <span className="font-semibold text-gray-600">${Number(item.original).toFixed(2)}</span>
@@ -537,19 +537,25 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       const productId = String(i.productId ?? "");
       const productType = String((i.productType ?? "TICKET")).toUpperCase();
       const qty = Number.isFinite(Number(i.quantity)) ? Number(i.quantity) : 1;
-      const original = getOriginalPriceFromCartItem(i);
-      subtotalBeforeOffers += original * qty;
+
+      const displayOriginal = getOriginalPriceFromCartItem(i);
+      const calculationBase = Number(i.price) || 0; // Use the stored price (sellingPrice) as base for offers
+
+      subtotalBeforeOffers += displayOriginal * qty;
 
       const best = getBestOfferForItem(productType, productId);
-      const effective = getDiscountedPrice(original, best.percent ?? null);
-      const lineOfferDiscount = Number(((original - effective) * qty).toFixed(2));
+      const effective = getDiscountedPrice(calculationBase, best.percent ?? null);
+
+      // Savings = difference between what it "was" and what it "is"
+      const totalSavingsPerUnit = displayOriginal - effective;
+      const lineOfferDiscount = Number((totalSavingsPerUnit * qty).toFixed(2));
       offerDiscountTotal += lineOfferDiscount;
 
       const lineTotal = Number((effective * qty).toFixed(2));
 
       lines.push({
         ...i,
-        original,
+        original: displayOriginal,
         appliedOfferPercent: best.percent ?? null,
         appliedOffer: best.offer ?? null,
         effective,
@@ -559,6 +565,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       });
     }
 
+    // Wait, subtotalAfterOffers logic needs to be careful.
+    // subtotalBeforeOffers is sum(original * qty) = e.g. 1000
+    // offerDiscountTotal is sum((original - effective) * qty) = e.g. 200
+    // subtotalAfterOffers = 1000 - 200 = 800. Correct.
     const subtotalAfterOffers = Number((subtotalBeforeOffers - offerDiscountTotal).toFixed(2));
 
     // coupon calculation is computed later (needs subtotalAfterOffers)
@@ -573,7 +583,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   // coupon calculations: coupon is applied after offers
   const couponDiscountValue = useMemo(() => {
     const subtotal = computed.subtotalAfterOffers ?? 0;
-    if (!appliedCoupon) return 0;
+    if (!appliedCoupon.code) return 0; // Fix: check code existence
     if (appliedCoupon.discountPercent && appliedCoupon.discountPercent > 0) {
       const val = Number((subtotal * (appliedCoupon.discountPercent / 100)).toFixed(2));
       return Math.min(val, subtotal);

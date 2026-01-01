@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
 import { Plus, Trash2, Edit, Ticket, ImageIcon, Search, Loader2 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/app/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Badge } from "@/app/components/ui/badge";
@@ -25,6 +25,7 @@ export default function TicketsPage() {
   const [formData, setFormData] = useState({
     name: "",
     price: "",
+    sellingPrice: "",
     logo: "", // holds existing logo URL or uploaded URL
   });
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -87,10 +88,11 @@ export default function TicketsPage() {
           ...formData,
           logo: logoUrl ?? "",
           price: parseFloat(formData.price || "0"),
+          sellingPrice: formData.sellingPrice ? parseFloat(formData.sellingPrice) : null,
         }),
       });
 
-      setFormData({ name: "", price: "", logo: "" });
+      setFormData({ name: "", price: "", sellingPrice: "", logo: "" });
       setFile(null);
       setPreviewUrl(null);
       setEditingId(null);
@@ -118,6 +120,7 @@ export default function TicketsPage() {
     setFormData({
       name: ticket.name,
       price: String(ticket.price ?? ""),
+      sellingPrice: ticket.sellingPrice ? String(ticket.sellingPrice) : "",
       logo: ticket.logo || "",
     });
     setFile(null);
@@ -158,12 +161,14 @@ export default function TicketsPage() {
             </SheetTrigger>
             <SheetContent side="right" className="w-full sm:w-[480px]">
               <div className="space-y-6 py-6">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900">
+                <SheetHeader>
+                  <SheetTitle className="text-2xl font-bold text-gray-900">
                     {editingId ? "Edit Ticket" : "Add New Ticket"}
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">Set the details for the event ticket.</p>
-                </div>
+                  </SheetTitle>
+                  <SheetDescription className="text-sm text-gray-500 mt-1">
+                    Set the details for the event ticket.
+                  </SheetDescription>
+                </SheetHeader>
 
                 <div className="space-y-5">
                   <div className="space-y-2">
@@ -176,14 +181,26 @@ export default function TicketsPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <Label className="text-gray-700 font-medium">Price ($)</Label>
-                    <Input
-                      className="focus:ring-emerald-500 focus:border-emerald-500"
-                      placeholder="e.g. 1000"
-                      value={formData.price}
-                      onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 font-medium">Original Price ($)</Label>
+                      <Input
+                        className="focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="e.g. 1000"
+                        value={formData.price}
+                        onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="text-gray-700 font-medium">Selling Price ($)</Label>
+                      <Input
+                        className="focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="e.g. 800"
+                        value={formData.sellingPrice}
+                        onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   {/* Logo Upload Field */}
@@ -304,11 +321,27 @@ export default function TicketsPage() {
                   <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={ticket.name}>{ticket.name}</h3>
                 </div>
 
-                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Price</span>
-                  <span className="font-mono font-bold text-emerald-600 text-lg">
-                    ${Number(ticket.price).toLocaleString()}
-                  </span>
+                <div className="mt-auto pt-4 border-t border-gray-50 space-y-1">
+                  {ticket.sellingPrice ? (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Price</span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-mono text-gray-400 line-through text-sm">
+                          ${Number(ticket.price).toLocaleString()}
+                        </span>
+                        <span className="font-mono font-bold text-emerald-600 text-lg">
+                          ${Number(ticket.sellingPrice).toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Price</span>
+                      <span className="font-mono font-bold text-emerald-600 text-lg">
+                        ${Number(ticket.price).toLocaleString()}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

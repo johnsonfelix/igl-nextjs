@@ -36,6 +36,7 @@ export default function CartPage({
   const [isCheckingOut, setCheckingOut] = useState(false);
   const { user } = useAuth();
   const companyId = user?.companyId;
+  const [shouldShake, setShouldShake] = useState(false);
 
   // offers state
   const [offers, setOffers] = useState<Offer[]>([]);
@@ -205,9 +206,16 @@ export default function CartPage({
       const productType = String(
         (item.productType || "").toString().toUpperCase()
       ); // 'TICKET','BOOTH','HOTEL','SPONSOR'
-      const original = getOriginalPriceFromCartItem(item);
+      const displayOriginal = getOriginalPriceFromCartItem(item);
+      const calculationBase = Number(item.price) || 0; // Use the stored price (sellingPrice) as base for offers
+
       const best = getBestOfferForItem(productType, productId);
-      const effective = getDiscountedPrice(original, best.percent);
+      const effective = getDiscountedPrice(calculationBase, best.percent);
+
+      // We calculate total savings based on displayOriginal vs effective
+      const totalSavingsPerUnit = displayOriginal - effective;
+      const lineOfferDiscount = Number((totalSavingsPerUnit * (Number(item.quantity) || 1)).toFixed(2));
+
       const qty = Number.isFinite(Number(item.quantity))
         ? Number(item.quantity)
         : 1;
@@ -215,7 +223,7 @@ export default function CartPage({
       subTotal += lineTotal;
       return {
         ...item,
-        original,
+        original: displayOriginal,
         appliedOfferPercent: best.percent,
         appliedOfferName: best.name,
         effective,
@@ -230,7 +238,9 @@ export default function CartPage({
 
   const handleGoToCheckout = () => {
     if (!companyId) {
-      alert("You must be logged in to check out.");
+      setShouldShake(true);
+      setTimeout(() => setShouldShake(false), 500);
+      alert("Please log in to proceed to checkout.");
       return;
     }
     if (cart.length === 0) return;
@@ -295,7 +305,7 @@ export default function CartPage({
 
                     {/* original vs discounted price */}
                     <div className="mt-1">
-                      {item.appliedOfferPercent ? (
+                      {(item.appliedOfferPercent || item.original > item.effective) ? (
                         <div className="flex items-baseline gap-3">
                           <div className="text-sm text-slate-500 line-through">
                             ${Number(item.original).toFixed(2)}
@@ -303,7 +313,7 @@ export default function CartPage({
                           <div className="text-lg font-bold text-indigo-600">
                             ${Number(item.effective).toFixed(2)}
                           </div>
-                          <div className="text-xs text-slate-400">each</div>
+                          {item.appliedOfferPercent ? <div className="text-xs text-slate-400">each</div> : null}
                         </div>
                       ) : (
                         <div className="text-lg font-bold text-indigo-600">
@@ -395,8 +405,8 @@ export default function CartPage({
             </div>
             <button
               onClick={handleGoToCheckout}
-              disabled={cart.length === 0 || !companyId}
-              className="w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 flex items-center justify-center transition-colors"
+              disabled={cart.length === 0}
+              className={`w-full bg-indigo-600 text-white font-bold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 flex items-center justify-center transition-colors ${shouldShake ? "animate-shake" : ""}`}
             >
               {isCheckingOut ? (
                 <Loader className="animate-spin h-6 w-6" />

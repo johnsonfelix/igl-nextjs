@@ -36,7 +36,7 @@ export async function PUT(req: NextRequest) {
 
     const ticket = await prisma.ticket.update({
       where: { id },
-      data: { name, price, logo },
+      data: { name, price, logo, sellingPrice: body.sellingPrice },
     });
 
     return NextResponse.json(ticket);

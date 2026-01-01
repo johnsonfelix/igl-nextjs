@@ -7,10 +7,129 @@ import { Plus, Trash2, Edit, Search, Image as ImageIcon, Users } from "lucide-re
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
-import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
-import { Reorder } from "framer-motion";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  DragEndEvent,
+  DragStartEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  rectSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+
+// --- Components ---
+
+interface SponsorCardProps {
+  sponsor: any;
+  onEdit: (sponsor: any) => void;
+  onDelete: (id: string) => void;
+  isOverlay?: boolean;
+}
+
+function SponsorCard({ sponsor, onEdit, onDelete, isOverlay }: SponsorCardProps) {
+  return (
+    <Card
+      className={`group transition-all duration-300 border border-gray-100 rounded-xl bg-white overflow-hidden flex flex-col h-full 
+      ${isOverlay ? "shadow-2xl scale-105 cursor-grabbing" : "hover:shadow-xl hover:-translate-y-1 cursor-grab"}`}
+    >
+      <div className="relative h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-gray-100 group-hover:bg-gray-100/50 transition-colors">
+        {sponsor.image ? (
+          <img
+            src={sponsor.image}
+            alt={sponsor.name}
+            className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-300"
+          />
+        ) : (
+          <div className="flex flex-col items-center justify-center text-gray-300">
+            <ImageIcon size={48} strokeWidth={1} />
+            <span className="text-xs mt-2 font-medium">No Logo</span>
+          </div>
+        )}
+        <div className={`absolute top-3 right-3 transition-opacity ${isOverlay ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`}>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-emerald-600 flex items-center justify-center"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onEdit(sponsor);
+              }}
+            >
+              <Edit size={18} />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-red-600 flex items-center justify-center"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onDelete(sponsor.id);
+              }}
+            >
+              <Trash2 size={18} />
+            </Button>
+          </div>
+        </div>
+      </div>
+      <CardContent className="p-5 flex-1 flex flex-col">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={sponsor.name}>
+            {sponsor.name}
+          </h3>
+        </div>
+        <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[2.5em]">{sponsor.description}</p>
+        <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
+          <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contribution</span>
+          <span className="font-mono font-bold text-emerald-600 text-lg">
+            ${Number(sponsor.price).toLocaleString()}
+          </span>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SortableSponsorItem({ sponsor, onEdit, onDelete }: SponsorCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: sponsor.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="h-full touch-none">
+      <SponsorCard sponsor={sponsor} onEdit={onEdit} onDelete={onDelete} />
+    </div>
+  );
+}
+
+// --- Main Page Component ---
 
 export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState<any[]>([]);
@@ -27,6 +146,18 @@ export default function SponsorsPage() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   useEffect(() => {
     fetchSponsors();
@@ -47,6 +178,7 @@ export default function SponsorsPage() {
     try {
       const res = await fetch("/api/admin/sponsors");
       const data = await res.json();
+      // Ensure specific sorting if needed, usually backend returns sorted
       setSponsors(data);
     } catch (error) {
       console.error("Failed to fetch sponsors:", error);
@@ -61,22 +193,18 @@ export default function SponsorsPage() {
       contentType: fileToUpload.type || "application/octet-stream",
     });
 
-    // 1) Request presign info
     const presignResp = await fetch(`/api/upload-url?${params.toString()}`);
     if (!presignResp.ok) {
       const body = await presignResp.text().catch(() => "<could not read body>");
       throw new Error(`Failed to get upload URL (status ${presignResp.status}): ${body}`);
     }
 
-    // 2) Parse JSON and log it for debugging
     const data = await presignResp.json().catch((e) => {
       throw new Error("Presign endpoint returned invalid JSON: " + String(e));
     });
     console.log("Presign response data:", data);
 
-    // 3) Decide PUT vs POST
     if (data.post && data.post.url && data.post.fields) {
-      // presigned POST
       const fd = new FormData();
       Object.entries(data.post.fields).forEach(([k, v]) => fd.append(k, v as string));
       fd.append("file", fileToUpload);
@@ -95,11 +223,9 @@ export default function SponsorsPage() {
     }
 
     if (data.uploadUrl) {
-      // presigned PUT
       const uploadUrl: string = data.uploadUrl;
       console.log("Using presigned PUT URL:", uploadUrl);
 
-      // Must set the exact content-type the presign expects (server should return contentType)
       const signedContentType = data.contentType ?? fileToUpload.type ?? "application/octet-stream";
 
       const putResp = await fetch(uploadUrl, {
@@ -119,7 +245,6 @@ export default function SponsorsPage() {
       return data.publicUrl;
     }
 
-    // If we reach here, the response was unexpected
     throw new Error("Presign response missing uploadUrl or post fields: " + JSON.stringify(data));
   };
 
@@ -133,7 +258,6 @@ export default function SponsorsPage() {
     try {
       let imageUrl = formData.image;
 
-      // if a local file is selected, upload it first
       if (file) {
         imageUrl = await uploadFileToS3(file);
       }
@@ -159,7 +283,6 @@ export default function SponsorsPage() {
         });
       }
 
-      // reset form
       setFormData({ name: "", image: "", description: "", price: "" });
       setFile(null);
       setPreviewUrl(null);
@@ -197,32 +320,45 @@ export default function SponsorsPage() {
     setFormOpen(true);
   };
 
-  const handleReorder = (newOrder: any[]) => {
-    setSponsors(newOrder); // Optimistic update
-
-    // Debounce or save logic could go here, but for now we'll just fire-and-forget or use a small timeout
-    // Actually, framer-motion calls this frequently. We should probably debounce or just send the full list order.
-    // For simplicity, let's just trigger save on drag end? Reorder.Group doesn't have a simple "onDragEnd" with the new order.
-    // It updates state via onReorder.
-    // We'll use a timeout to save changes after 1 second of inactivity.
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
   };
 
-  // Effect to save order when sponsors change (debounced)
-  useEffect(() => {
-    if (loading || sponsors.length === 0) return;
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-    const timer = setTimeout(() => {
-      // Prepare payload: id and new index
-      const items = sponsors.map((s, index) => ({ id: s.id, sortOrder: index }));
-      fetch('/api/admin/sponsors/reorder', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ items }),
-      }).catch(err => console.error("Failed to save order", err));
-    }, 1000);
+    if (active.id !== over?.id) {
+      setSponsors((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over?.id);
 
-    return () => clearTimeout(timer);
-  }, [sponsors]);
+        const newSponsors = arrayMove(items, oldIndex, newIndex);
+
+        // Save the new order
+        // Trigger save 
+        saveOrder(newSponsors);
+
+        return newSponsors;
+      });
+    }
+
+    setActiveId(null);
+  };
+
+  const saveOrder = (items: any[]) => {
+    // Debounce logic is tricky inside this callback without refs or useCallback
+    // But since we have the full new list here, we can just send it. 
+    // Or use the same timeout logic as before, but arrayMove returns a new array immediately.
+
+    // We'll just fire the request. For high frequency updates, a debounce wrapper around this function would be better.
+    const payload = items.map((s, index) => ({ id: s.id, sortOrder: index }));
+    fetch('/api/admin/sponsors/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: payload }),
+    }).catch(err => console.error("Failed to save order", err));
+  };
+
 
   const filteredSponsors = sponsors.filter(s =>
     s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -378,118 +514,51 @@ export default function SponsorsPage() {
           )}
         </div>
       ) : searchQuery ? (
+        // Search results - no drag and drop
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredSponsors.map((sponsor) => (
-            <Card
+            <SponsorCard
               key={sponsor.id}
-              className="group hover:shadow-xl transition-all duration-300 border border-gray-100 rounded-xl bg-white overflow-hidden flex flex-col h-full hover:-translate-y-1"
-            >
-              <div className="relative h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-gray-100 group-hover:bg-gray-100/50 transition-colors">
-                {sponsor.image ? (
-                  <img
-                    src={sponsor.image}
-                    alt={sponsor.name}
-                    className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-300"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-gray-300">
-                    <ImageIcon size={48} strokeWidth={1} />
-                    <span className="text-xs mt-2 font-medium">No Logo</span>
-                  </div>
-                )}
-                <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-emerald-600 flex items-center justify-center"
-                      onClick={(e) => { e.stopPropagation(); openEditForm(sponsor); }}
-                    >
-                      <Edit size={18} />
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-red-600 flex items-center justify-center"
-                      onClick={(e) => { e.stopPropagation(); handleDelete(sponsor.id); }}
-                    >
-                      <Trash2 size={18} />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-              <CardContent className="p-5 flex-1 flex flex-col">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={sponsor.name}>{sponsor.name}</h3>
-                </div>
-                <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[2.5em]">{sponsor.description}</p>
-                <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
-                  <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contribution</span>
-                  <span className="font-mono font-bold text-emerald-600 text-lg">
-                    ${Number(sponsor.price).toLocaleString()}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
+              sponsor={sponsor}
+              onEdit={openEditForm}
+              onDelete={handleDelete}
+            />
           ))}
         </div>
       ) : (
-        <Reorder.Group axis="y" values={sponsors} onReorder={setSponsors} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {sponsors.map((sponsor) => (
-            <Reorder.Item key={sponsor.id} value={sponsor} className="h-full">
-              <Card
-                className="group hover:shadow-xl transition-all duration-300 border border-gray-100 rounded-xl bg-white overflow-hidden flex flex-col h-full hover:scale-[1.02] cursor-move"
-              >
-                <div className="relative h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-gray-100 group-hover:bg-gray-100/50 transition-colors">
-                  {sponsor.image ? (
-                    <img
-                      src={sponsor.image}
-                      alt={sponsor.name}
-                      className="w-full h-full object-contain filter group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-gray-300">
-                      <ImageIcon size={48} strokeWidth={1} />
-                      <span className="text-xs mt-2 font-medium">No Logo</span>
-                    </div>
-                  )}
-                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-emerald-600 flex items-center justify-center"
-                        onClick={(e) => { e.stopPropagation(); openEditForm(sponsor); }}
-                      >
-                        <Edit size={18} />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-10 w-10 p-0 bg-white/90 hover:bg-white shadow-sm text-gray-600 hover:text-red-600 flex items-center justify-center"
-                        onClick={(e) => { e.stopPropagation(); handleDelete(sponsor.id); }}
-                      >
-                        <Trash2 size={18} />
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-                <CardContent className="p-5 flex-1 flex flex-col">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={sponsor.name}>{sponsor.name}</h3>
-                  </div>
-                  <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[2.5em]">{sponsor.description}</p>
-                  <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
-                    <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contribution</span>
-                    <span className="font-mono font-bold text-emerald-600 text-lg">
-                      ${Number(sponsor.price).toLocaleString()}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            </Reorder.Item>
-          ))}
-        </Reorder.Group>
+        // Drag and Drop Grid
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={sponsors.map(s => s.id)}
+            strategy={rectSortingStrategy}
+          >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sponsors.map((sponsor) => (
+                <SortableSponsorItem
+                  key={sponsor.id}
+                  sponsor={sponsor}
+                  onEdit={openEditForm}
+                  onDelete={handleDelete}
+                />
+              ))}
+            </div>
+          </SortableContext>
+          <DragOverlay>
+            {activeId ? (
+              <SponsorCard
+                sponsor={sponsors.find(s => s.id === activeId)}
+                onEdit={() => { }}
+                onDelete={() => { }}
+                isOverlay
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
     </div>
   );

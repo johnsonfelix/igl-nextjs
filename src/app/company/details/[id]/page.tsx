@@ -32,7 +32,7 @@ interface CompanyDetails {
   name: string;
   memberType?: string | null;
   purchasedMembership?: string | null;
-  membershipPlan?: { name: string } | null;
+  membershipPlan?: { name: string; thumbnail?: string | null } | null;
   website: string;
   established: string;
   size: string;
@@ -61,6 +61,12 @@ interface CompanyDetails {
   servicesOffered?: string | null;
 }
 
+interface MembershipPlan {
+  id: string;
+  name: string;
+  thumbnail: string | null;
+}
+
 function withProtocol(url?: string | null) {
   if (!url) return "";
   if (/^https?:\/\//i.test(url)) return url;
@@ -70,6 +76,7 @@ function withProtocol(url?: string | null) {
 export default function CompanyProfilePage(_props: PageProps) {
   const { id: companyId } = useParams<{ id: string }>();
   const [companyData, setCompanyData] = useState<CompanyDetails | null>(null);
+  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -145,6 +152,15 @@ export default function CompanyProfilePage(_props: PageProps) {
     };
 
     fetchCompanyData();
+
+    // Fetch plans for legacy mapping
+    fetch('/api/admin/membership-plans')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMembershipPlans(data);
+      })
+      .catch(err => console.error("Failed to load plans", err));
+
     return () => {
       cancelled = true;
     };
@@ -214,9 +230,45 @@ export default function CompanyProfilePage(_props: PageProps) {
                     </div>
                   )}
                   {(companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name) && (
-                    <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
-                      {companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name}
-                    </span>
+                    <>
+                      {(() => {
+                        // 1. Direct Relation
+                        if (companyData.membershipPlan?.thumbnail) {
+                          return (
+                            <div className="relative h-8 w-24">
+                              <Image
+                                src={companyData.membershipPlan.thumbnail}
+                                alt={companyData.membershipPlan.name}
+                                fill
+                                className="object-contain object-left"
+                              />
+                            </div>
+                          );
+                        }
+                        // 2. Legacy Mapping
+                        if (companyData.purchasedMembership) {
+                          const matched = membershipPlans.find(p => p.name.trim().toLowerCase() === companyData.purchasedMembership?.trim().toLowerCase());
+                          if (matched?.thumbnail) {
+                            return (
+                              <div className="relative h-8 w-24">
+                                <Image
+                                  src={matched.thumbnail}
+                                  alt={matched.name}
+                                  fill
+                                  className="object-contain object-left"
+                                />
+                              </div>
+                            );
+                          }
+                        }
+                        // 3. Fallback Text Badge
+                        return (
+                          <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
+                            {companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name}
+                          </span>
+                        );
+                      })()}
+                    </>
                   )}
                 </div>
               </div>

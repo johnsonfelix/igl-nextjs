@@ -3,35 +3,41 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
 // ✅ GET all events
-export async function GET() {
+// ✅ GET all events
+export async function GET(req: NextRequest) {
   try {
+    const { searchParams } = new URL(req.url);
+    const isFull = searchParams.get('full') === 'true';
+
     const events = await prisma.event.findMany({
-      include: {
-        // eventBooths contains { eventId, boothId, quantity } and we include the nested booth
-        eventBooths: {
-          include: {
-            booth: {
-              include: {
-                // include subTypes (all); if you want to filter per-event you'll do that in single-event GET
-                subTypes: true,
+      include: isFull
+        ? {
+          // eventBooths contains { eventId, boothId, quantity } and we include the nested booth
+          eventBooths: {
+            include: {
+              booth: {
+                include: {
+                  // include subTypes (all); if you want to filter per-event you'll do that in single-event GET
+                  subTypes: true,
+                },
               },
             },
           },
-        },
 
-        hotels: true,
-        eventTickets: {
-          include: { ticket: true },
-        },
-        eventSponsorTypes: {
-          include: { sponsorType: true },
-        },
-        eventRoomTypes: {
-          include: { roomType: true },
-        },
-        agendaItems: true,
-        venue: true,
-      },
+          hotels: true,
+          eventTickets: {
+            include: { ticket: true },
+          },
+          eventSponsorTypes: {
+            include: { sponsorType: true },
+          },
+          eventRoomTypes: {
+            include: { roomType: true },
+          },
+          agendaItems: true,
+          venue: true,
+        }
+        : undefined,
     });
     return NextResponse.json(events);
   } catch (error) {

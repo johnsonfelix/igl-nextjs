@@ -226,6 +226,7 @@ model Ticket {
   offers Offer[] @relation("OfferTickets")
 
   eventTickets EventTicket[] @relation("EventTickets")
+  sellingPrice Float?
 }
 
 model Hotel {

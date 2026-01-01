@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const { name, price, logo, } = body;
 
   const ticket = await prisma.ticket.create({
-    data: { name, price, logo },
+    data: { name, price, logo, sellingPrice: body.sellingPrice },
   });
 
   return NextResponse.json(ticket);

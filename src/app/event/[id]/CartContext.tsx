@@ -15,6 +15,7 @@ export interface CartItem {
   // for booth variant tracking
   boothSubTypeId?: string;
   boothSubTypeName?: string;
+  originalPrice?: number;
 }
 
 interface CartContextType {

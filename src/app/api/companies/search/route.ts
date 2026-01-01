@@ -69,7 +69,7 @@ export async function GET(request: Request) {
       prisma.company.count({ where }),
       prisma.company.findMany({
         where,
-        include: { location: true, media: true }, // Default include
+        include: { location: true, media: true, membershipPlan: true }, // Default include
         skip: offset,
         take: limit,
         orderBy: { name: 'asc' },

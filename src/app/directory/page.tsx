@@ -20,6 +20,16 @@ interface Company {
   specialties?: string[];
   logoUrl?: string;
   media?: Media[];
+  membershipPlan?: {
+    name: string;
+    thumbnail?: string | null;
+  };
+}
+
+interface MembershipPlan {
+  id: string;
+  name: string;
+  thumbnail: string | null;
 }
 
 // --- Helper Components & Functions ---
@@ -69,6 +79,7 @@ export default function CompaniesListPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]); // Store plans locally
 
   // --- Filter States ---
   const [country, setCountry] = useState('All');
@@ -98,6 +109,16 @@ export default function CompaniesListPage() {
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [country, city, companyName, memberId, port, currentPage]);
+
+  // Fetch membership plans for legacy mapping
+  useEffect(() => {
+    fetch('/api/admin/membership-plans')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) setMembershipPlans(data);
+      })
+      .catch(err => console.error("Failed to load plans", err));
+  }, []);
 
   const buildQuery = () => {
     const params: Record<string, string> = {};
@@ -270,14 +291,46 @@ export default function CompaniesListPage() {
                   </div>
 
                   <div className="flex-grow flex flex-col min-w-0">
-                    <h2 className="text-xl font-bold text-gray-800 group-hover:text-[#004aad] transition-colors truncate">{company.name}</h2>
+                    <h2 className="text-lg font-bold text-gray-800 group-hover:text-[#004aad] transition-colors truncate">{company.name}</h2>
                     <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-2">
                       <MapPin size={14} className="shrink-0" />
                       <span className="truncate">{displayLocation || 'Location not specified'}</span>
                     </p>
                     <div className="flex flex-wrap items-center gap-2 mt-5">
                       {company.isVerified && <MembershipBadge isVerified={true} />}
-                      <MembershipBadge type={company.purchasedMembership} />
+                      {(() => {
+                        // Priority 1: Relation data
+                        if (company.membershipPlan?.thumbnail) {
+                          return (
+                            <div className="relative h-8 w-24">
+                              <Image
+                                src={company.membershipPlan.thumbnail}
+                                alt={company.membershipPlan.name}
+                                fill
+                                className="object-contain object-left"
+                              />
+                            </div>
+                          );
+                        }
+                        // Priority 2: Legacy mapping
+                        if (company.purchasedMembership) {
+                          const matchedPlan = membershipPlans.find(p => p.name.trim().toLowerCase() === company.purchasedMembership.trim().toLowerCase());
+                          if (matchedPlan?.thumbnail) {
+                            return (
+                              <div className="relative h-8 w-24">
+                                <Image
+                                  src={matchedPlan.thumbnail}
+                                  alt={matchedPlan.name}
+                                  fill
+                                  className="object-contain object-left"
+                                />
+                              </div>
+                            );
+                          }
+                        }
+                        // Fallback: Badge
+                        return <MembershipBadge type={company.purchasedMembership} />;
+                      })()}
                       {company.specialties?.slice(0, 2).map(spec => <MembershipBadge key={spec} type={spec} />)}
                     </div>
                   </div>
