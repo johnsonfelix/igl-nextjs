@@ -17,6 +17,7 @@ import {
   ChevronLeft,
   ThumbsUp,
   Box,
+  CheckCircle,
 } from "lucide-react";
 
 export default function Home() {
@@ -85,6 +86,19 @@ export default function Home() {
     { id: 777, img: '/images/Member7.png' },
   ];
 
+  const conferenceHighlights = [
+    { year: "2013", location: "Shanghai", description: "The foundation of trusted global connections was laid here." },
+    { year: "2014", location: "Vietnam", description: "New partnerships began as members expanded their reach together." },
+    { year: "2015", location: "Bangkok", description: "Stronger collaboration led to smarter logistics solutions worldwide." },
+    { year: "2016", location: "Guangzhou", description: "Diverse minds united under one roof to spark new opportunities." },
+    { year: "2017", location: "Thailand", description: "Celebrating mutual growth through meaningful business relationships." },
+    { year: "2018", location: "Malaysia", description: "A global exchange of ideas, deals, and long-term partnerships." },
+    { year: "2019", location: "Malaysia", description: "Creating value through trust, teamwork, and global cooperation." },
+    { year: "2023", location: "Bangkok", description: "Members came together to expand borders and build futures." },
+    { year: "2024", location: "Vietnam", description: "Driving progress in logistics through strategic collaboration." },
+    { year: "2025", location: "Bangkok", description: "Marking a decade of excellence, unity, and global success." },
+  ];
+
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans">
       <main>
@@ -137,11 +151,11 @@ export default function Home() {
                         {slide.title3}
                       </h1>
                       <div className="flex flex-wrap gap-4">
-                        <Link href="/event/list" className="bg-white text-black px-8 py-4 rounded-full font-bold shadow-lg hover:bg-gray-50 flex items-center gap-2 transition-transform hover:scale-105">
+                        <Link href="/membership/become-member" className="bg-white text-black px-8 py-4 rounded-full font-bold shadow-lg hover:bg-gray-50 flex items-center gap-2 transition-transform hover:scale-105">
                           <ThumbsUp className="w-5 h-5" />
                           Discover more
                         </Link>
-                        <Link href="/membership/become-member" className="text-white border border-white/50 px-8 py-4 rounded-full font-bold hover:bg-white/10 flex items-center gap-2 transition-transform hover:scale-105">
+                        <Link href="/event/list" className="text-white border border-white/50 px-8 py-4 rounded-full font-bold hover:bg-white/10 flex items-center gap-2 transition-transform hover:scale-105">
                           View services
                           <Box className="w-5 h-5" />
                         </Link>
@@ -379,6 +393,108 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Conference Highlights Section */}
+        <section className="py-20 overflow-hidden relative">
+          <div className="container mx-auto px-4">
+            <div className="flex flex-wrap items-center mb-8 md:mb-12 text-center lg:text-left">
+              <div className="w-full lg:w-5/12 mb-8 md:mb-0">
+                <div>
+                  <span className="text-base text-[#004aad] font-semibold uppercase tracking-wider mb-2 block">Conference Highlights</span>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">Where Global Partnerships Begin</h2>
+                </div>
+              </div>
+              <div className="w-full lg:w-5/12 mb-8 md:mb-0">
+                {/* Optional: Description can go here if needed later */}
+              </div>
+              <div className="w-full lg:w-2/12 flex justify-center lg:justify-end gap-4">
+                {/* Swiper Custom Navigation */}
+                <div className="highlight-prev w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-black hover:text-white hover:border-black transition-all">
+                  <ChevronLeft className="w-6 h-6" />
+                </div>
+                <div className="highlight-next w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-black hover:text-white hover:border-black transition-all">
+                  <ChevronRight className="w-6 h-6" />
+                </div>
+              </div>
+            </div>
+
+            <div className="row">
+              <div className="w-full">
+                <Swiper
+                  modules={[Autoplay, Navigation]}
+                  spaceBetween={30}
+                  slidesPerView={1}
+                  loop={true}
+                  navigation={{
+                    nextEl: ".highlight-next",
+                    prevEl: ".highlight-prev",
+                  }}
+                  autoplay={{
+                    delay: 3000,
+                    disableOnInteraction: false,
+                  }}
+                  breakpoints={{
+                    640: { slidesPerView: 2 },
+                    1024: { slidesPerView: 3 },
+                    1280: { slidesPerView: 4 },
+                  }}
+                  className="pb-12"
+                >
+                  {conferenceHighlights.map((item, index) => (
+                    <SwiperSlide key={index}>
+                      <div className="text-center group p-4 hover:translate-y-[-5px] transition-transform duration-300">
+                        <h4 className="text-gray-800 text-2xl font-bold mb-0 tracking-tight">{item.year}</h4>
+
+                        <div className="relative mt-6 mb-6">
+                          <span className="absolute top-1/2 left-0 w-full h-[1px] bg-gray-300 -translate-y-1/2"></span>
+                          <div className="relative z-10 w-8 h-8 mx-auto bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
+                            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3]"></span>
+                          </div>
+                        </div>
+
+                        <span className="inline-block font-semibold text-gray-800 text-lg mb-3">{item.location}</span>
+                        <p className="text-gray-500 text-sm leading-relaxed max-w-[85%] mx-auto">
+                          {item.description}
+                        </p>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Why Choose IGLA Section */}
+        <section className="py-20">
+          <div className="container mx-auto px-4">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-800">Why Choose IGLA</h2>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-6">
+              {[
+                { title: "Verified Network", desc: "All members are carefully vetted and verified to ensure quality and reliability" },
+                { title: "Global Coverage", desc: "Access to logistics partners in major ports and cities worldwide" },
+                { title: "Competitive Rates", desc: "Benefit from collective negotiating power and volume discounts" },
+                { title: "24/7 Support", desc: "Round-the-clock assistance for urgent shipments and inquiries" },
+                { title: "Technology Platform", desc: "Modern digital tools for tracking, communication, and collaboration" },
+                { title: "Risk Management", desc: "Comprehensive vetting and monitoring to minimize business risks" }
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start gap-4 bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#004aad]/20 transition-all">
+                  <div className="w-8 h-8 bg-[#004aad] rounded-full flex items-center justify-center shrink-0 mt-1">
+                    <CheckCircle size={18} className="text-white" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-800 text-lg mb-2">{item.title}</h4>
+                    <p className="text-gray-600">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>

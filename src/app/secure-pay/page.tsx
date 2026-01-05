@@ -90,11 +90,11 @@ export default function SecurePayPage() {
                             </ul>
 
                             <Link
-                                href="/membership_intro"
+                                href="/membership/become-member"
                                 className="inline-flex items-center gap-3 bg-gradient-to-r from-[#2ebb79] to-[#12ade8] text-white px-8 py-4 rounded-full font-semibold shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
                             >
                                 <ThumbsUp className="w-5 h-5" />
-                                <span>Explore services</span>
+                                <span>Explore Membership</span>
                             </Link>
                         </div>
                     </div>

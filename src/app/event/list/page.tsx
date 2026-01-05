@@ -46,7 +46,10 @@ const EventCard = ({ event }: { event: Event }) => {
         {/* Date Overlay */}
         <div className="absolute bottom-4 left-4 text-white">
           <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-lg p-3 text-center min-w-[60px]">
-            <div className="text-xl font-bold leading-none">{format(parseISO(startDate), 'dd')}</div>
+            <div className="text-xl font-bold leading-none">
+              {format(parseISO(startDate), 'dd')}
+              {format(parseISO(startDate), 'dd') !== format(parseISO(endDate), 'dd') && `-${format(parseISO(endDate), 'dd')}`}
+            </div>
             <div className="text-xs font-medium uppercase mt-1">{format(parseISO(startDate), 'MMM')}</div>
           </div>
         </div>
@@ -69,12 +72,12 @@ const EventCard = ({ event }: { event: Event }) => {
         </div>
 
         <div className="pt-4 border-t border-gray-100 flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#004aad] uppercase tracking-wider">
             <Calendar className="h-4 w-4 text-[#004aad]" />
             {formattedStartDate} - {formattedEndDate}
           </div>
           <span className="inline-flex items-center gap-1 text-[#004aad] font-bold text-sm hover:gap-2 transition-all">
-            View Details <ArrowRight className="h-4 w-4" />
+            Register Now <ArrowRight className="h-4 w-4" />
           </span>
         </div>
       </div>
@@ -85,6 +88,7 @@ const EventCard = ({ event }: { event: Event }) => {
 // --- MAIN PAGE COMPONENT ---
 export default function EventsListPage() {
   const [events, setEvents] = useState<Event[]>([]);
+  const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -103,18 +107,25 @@ export default function EventsListPage() {
           // Fallback to mock data if API fails or for demo
           data = [
             { "id": "1", "name": "The 20th Global Freight Forwarders Conference", "startDate": "2026-08-14T00:00:00.000Z", "endDate": "2026-08-30T00:00:00.000Z", "location": "Shanghai, China", "thumbnail": "https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=2070&auto=format&fit=crop", "eventType": "Hot", "expectedAudience": "2000+" },
-            { "id": "2", "name": "Indonesia Regional Conference 2026", "startDate": "2026-10-23T00:00:00.000Z", "endDate": "2026-10-30T00:00:00.000Z", "location": "Bali, Indonesia", "thumbnail": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1938&auto=format&fit=crop", "eventType": "New", "expectedAudience": "1200" }
+            { "id": "2", "name": "Indonesia Regional Conference 2026", "startDate": "2026-10-23T00:00:00.000Z", "endDate": "2026-10-30T00:00:00.000Z", "location": "Bali, Indonesia", "thumbnail": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1938&auto=format&fit=crop", "eventType": "New", "expectedAudience": "1200" },
+            { "id": "3", "name": "10th IGLA Annual Conference", "startDate": "2024-03-25T00:00:00.000Z", "endDate": "2024-03-27T00:00:00.000Z", "location": "Vietnam", "thumbnail": "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?q=80&w=1974&auto=format&fit=crop", "eventType": "Past", "expectedAudience": "800" },
+            { "id": "4", "name": "IGLA Networking Summit 2023", "startDate": "2023-11-15T00:00:00.000Z", "endDate": "2023-11-18T00:00:00.000Z", "location": "Bangkok, Thailand", "thumbnail": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop", "eventType": "Past", "expectedAudience": "1500" },
+            { "id": "5", "name": "Logistics Future Forum 2019", "startDate": "2019-05-20T00:00:00.000Z", "endDate": "2019-05-22T00:00:00.000Z", "location": "Kuala Lumpur, Malaysia", "thumbnail": "https://images.unsplash.com/photo-1511578314322-379afb476865?q=80&w=2069&auto=format&fit=crop", "eventType": "Past", "expectedAudience": "950" }
           ];
         }
 
-        // Filter for upcoming events only
+        // Filter events
         const now = new Date();
         const upcomingEvents = data.filter(event => parseISO(event.startDate) > now);
+        const pastEventsList = data.filter(event => parseISO(event.startDate) <= now);
 
-        // Sort by date (soonest first)
+        // Sort by date
         upcomingEvents.sort((a, b) => parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime());
+        // Sort past events: newest first
+        pastEventsList.sort((a, b) => parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime());
 
         setEvents(upcomingEvents);
+        setPastEvents(pastEventsList);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
       } finally {
@@ -163,11 +174,54 @@ export default function EventsListPage() {
             <p className="text-gray-500">{error}</p>
           </div>
         ) : (
-          <div className="max-w-4xl mx-auto flex flex-col gap-10">
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} />
-            ))}
-          </div>
+          <>
+            <div className="max-w-4xl mx-auto flex flex-col gap-10">
+              {events.map((event) => (
+                <EventCard key={event.id} event={event} />
+              ))}
+            </div>
+
+            {/* History of Events Section */}
+            {pastEvents.length > 0 && (
+              <div className="mt-24">
+                <div className="flex items-center gap-3 mb-10">
+                  <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
+                  <h2 className="text-3xl font-bold text-gray-800">History of Events</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {pastEvents.map((event) => (
+                    <Link key={event.id} href={`/event/${event.id}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 group">
+                      <div className="relative h-48 w-full overflow-hidden">
+                        <Image
+                          src={event.thumbnail || '/placeholder-event.jpg'}
+                          alt={event.name}
+                          fill
+                          className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        />
+                        <div className="absolute top-3 right-3 bg-gray-900/70 text-white text-xs font-bold px-2 py-1 rounded">
+                          PAST EVENT
+                        </div>
+                      </div>
+                      <div className="p-5">
+                        <div className="flex items-center gap-2 text-xs text-[#004aad] font-bold uppercase tracking-wider mb-2">
+                          <Calendar className="h-3 w-3" />
+                          {format(parseISO(event.startDate), 'MMM yyyy')}
+                        </div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-[#004aad] transition-colors">
+                          {event.name}
+                        </h3>
+                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                          <MapPin className="h-3.5 w-3.5" />
+                          {event.location}
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>

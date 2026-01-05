@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useMemo } from "react";
 import { notFound, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,6 +22,7 @@ import {
   Train,
   Coffee,
   Info,
+  ShieldCheck,
 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { useCart, CartItem } from "./CartContext";
@@ -143,6 +144,7 @@ interface EventData {
   agendaItems?: AgendaItem[];
   venue?: Venue | null;
   roomTypes?: RoomType[];
+  purchaseOrders?: any[]; // Allow any for now to avoid strict type definition hell, or define simpler structure
 }
 
 // Offer shape (matches your API / earlier backend)
@@ -426,7 +428,15 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   }>({ percent: null });
 
   // Hotel expansion state
-
+  const [venueGalleryOpen, setVenueGalleryOpen] = useState(false);
+  const VENUE_IMAGES = [
+    "/images/h-Bangkok.jpg",
+    "/images/h-Bangkok1.jpg",
+    "/images/h-Bangkok2.jpg",
+    "/images/h-Bangkok3.jpg",
+    "/images/h-Bangkok4.jpg",
+    "/images/h-Bangkok5.jpg"
+  ];
 
   // --- BOOKING WIZARD STATE ---
   const [bookingStep, setBookingStep] = useState<"TICKET" | "BOOTH" | "SUMMARY">("TICKET");
@@ -458,6 +468,31 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   };
 
   const totalTicketsSelected = Object.values(ticketQuantities).reduce((a, b) => a + b, 0);
+
+  const sponsorsList = useMemo(() => {
+    // If eventData is null or doesn't have purchaseOrders, return empty
+    if (!eventData?.purchaseOrders) return [];
+
+    const sponsorsMap = new Map<string, { company: any, items: any[] }>();
+    eventData.purchaseOrders.forEach((po: any) => {
+      if (!po.company) return;
+      const companyId = po.company.id;
+      if (!sponsorsMap.has(companyId)) {
+        sponsorsMap.set(companyId, {
+          company: po.company,
+          items: []
+        });
+      }
+      if (Array.isArray(po.items)) {
+        po.items.forEach((item: any) => {
+          if (item.productType === 'SPONSOR') {
+            sponsorsMap.get(companyId)!.items.push(item);
+          }
+        });
+      }
+    });
+    return Array.from(sponsorsMap.values());
+  }, [eventData?.purchaseOrders]);
 
   const getTicketSubtotal = () => {
     let total = 0;
@@ -635,7 +670,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         }))
       : eventData.booths ?? [];
 
-  const tabs = ["About", "Agenda", "Tickets & Booths", "Sponsors", "Accommodation"];
+
+
+  const tabs = ["About", "Agenda", "Tickets & Booths", "Accommodation", "Event Sponsors"];
 
   // Helper: determine best applicable offer for a product
   function getBestOfferForItem(
@@ -1296,10 +1333,35 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
+      {/* --- VENUE GALLERY MODAL --- */}
+      {venueGalleryOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn" onClick={() => setVenueGalleryOpen(false)}>
+          <div className="relative w-full max-w-5xl bg-transparent p-0" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setVenueGalleryOpen(false)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <X size={32} />
+            </button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {VENUE_IMAGES.map((img, idx) => (
+                <div key={idx} className="aspect-video rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+                  <img
+                    src={img}
+                    alt={`Venue ${idx + 1}`}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
         <img
-          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event-bangkok-hero.png" : (thumbnail || "/images/bg-2.jpg")}
+          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event-bangkok-hero.png" : (thumbnail || "/images/h-Bangkok5.jpg")}
           alt={name}
           className="w-full h-full object-cover"
         />
@@ -1314,7 +1376,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 leading-tight">{name}</h1>
           <p className="text-white/90 text-xl font-light flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            {format(parseISO(startDate), "MMMM d, yyyy")}
+            {format(parseISO(startDate), "MMMM d, yyyy")} - {format(parseISO(endDate), "MMMM d, yyyy")}
           </p>
         </div>
       </div>
@@ -1341,6 +1403,74 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 min-h-[500px]">
+
+            {activeTab === "Event Sponsors" && (
+              <Section title="Event Sponsors">
+                {sponsorsList.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
+                    <div className="bg-gray-50 p-6 rounded-full mb-4">
+                      <ShieldCheck className="w-12 h-12 text-gray-300" />
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900 mb-2">Be our first sponsor!</h3>
+                    <p className="text-gray-500 max-w-md mx-auto">
+                      Showcase your brand to industry leaders. Contact us to learn about sponsorship opportunities.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
+                    {sponsorsList.map(({ company, items }) => (
+                      <div
+                        key={company.id}
+                        className="group relative bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
+                      >
+                        {/* Decorative Background Element */}
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#004aad] to-indigo-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+
+                        <div className="w-28 h-28 mb-6 relative rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm flex items-center justify-center group-hover:border-[#004aad]/20 transition-colors">
+                          {company.logoUrl ? (
+                            <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-3" />
+                          ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
+                            <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-3" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#004aad] bg-gradient-to-br from-blue-50 to-indigo-50">
+                              {company.name.charAt(0)}
+                            </div>
+                          )}
+                        </div>
+
+                        <h4 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-[#004aad] transition-colors">{company.name}</h4>
+                        {company.location?.country && (
+                          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
+                            <MapPin className="w-3.5 h-3.5" />
+                            <span>{company.location.city}, {company.location.country}</span>
+                          </div>
+                        )}
+
+                        <div className="w-full mt-auto">
+                          <div className="w-10 h-0.5 bg-gray-100 mx-auto mb-4"></div>
+                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Proudly Sponsoring</p>
+                          <div className="flex flex-wrap gap-2 justify-center">
+                            {items.map((item: any, idx: number) => {
+                              const name = item.name.toLowerCase();
+                              let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
+                              if (name.includes('gold')) badgeClass = "bg-yellow-50 text-yellow-700 border-yellow-200 shadow-sm";
+                              if (name.includes('platinum')) badgeClass = "bg-slate-50 text-slate-700 border-slate-200 shadow-sm ring-1 ring-slate-100";
+                              if (name.includes('silver')) badgeClass = "bg-gray-50 text-gray-600 border-gray-200";
+
+                              return (
+                                <span key={idx} className={`px-4 py-1.5 rounded-full text-xs font-bold border ${badgeClass} transition-all hover:scale-105`}>
+                                  {item.name.replace(/Sponsorship/i, '').trim()}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Section>
+            )}
 
             {activeTab === "About" && (
               <div className="animate-fadeIn space-y-10">
@@ -1466,6 +1596,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             <a href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(showVenue.name)}`} target="_blank" rel="noreferrer" className="inline-block mt-4 text-[#004aad] font-bold text-sm hover:underline">
                               View larger map →
                             </a>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                console.log("Opening gallery");
+                                setVenueGalleryOpen(true);
+                              }}
+                              className="ml-4 inline-block mt-4 text-[#004aad] font-bold text-sm hover:underline cursor-pointer"
+                            >
+                              + More Photos
+                            </button>
                           </div>
 
                           <div className="space-y-8">
@@ -1645,9 +1786,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             <img src="/images/h-Bangkok.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
                             <img src="/images/h-Bangkok1.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
                             <img src="/images/h-Bangkok2.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
-                            <div className="bg-gray-100 rounded-lg h-32 w-full flex items-center justify-center text-gray-400 font-medium">
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setVenueGalleryOpen(true);
+                              }}
+                              className="bg-gray-100 rounded-lg h-32 w-full flex items-center justify-center text-gray-400 font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                            >
                               + More Photos
-                            </div>
+                            </button>
                           </div>
                         </div>
                       </div>
@@ -1872,6 +2020,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         )
       }
+
+      {/* EVENT SPONSORS TAB */}
+
 
     </div >
   );

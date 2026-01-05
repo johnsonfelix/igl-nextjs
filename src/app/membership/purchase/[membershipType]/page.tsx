@@ -271,7 +271,7 @@ const PurchasePage: NextPage = () => {
                 </p>
                 <Link href="/company/login" className="w-full">
                   <button className="w-full bg-blue-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 flex items-center justify-center gap-2">
-                    <LogIn className="w-5 h-5" /> Login to Continue
+                    <LogIn className="w-5 h-5" /> Register Now
                   </button>
                 </Link>
                 <p className="mt-6 text-sm text-gray-500">

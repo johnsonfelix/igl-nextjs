@@ -91,7 +91,7 @@ export default async function DashboardPage() {
             </div>
             <div>
               <div className="text-2xl font-bold text-gray-900 mb-1">
-                {company.membershipPlan?.name || "Free Member"}
+                {company.membershipPlan?.name || company.purchasedMembership || company.memberType || "Free Member"}
               </div>
               <div className="space-y-1 mt-2">
                 {company.membershipPlan?.paymentProtection && (

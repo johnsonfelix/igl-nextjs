@@ -2,10 +2,12 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 export default function PopupAd() {
     const [isVisible, setIsVisible] = useState(true);
+    const router = useRouter();
 
     useEffect(() => {
         // Show every 5 minutes (300,000 ms)
@@ -18,6 +20,11 @@ export default function PopupAd() {
 
     const handleClose = () => {
         setIsVisible(false);
+    };
+
+    const handleAdClick = () => {
+        setIsVisible(false);
+        router.push("/event/list");
     };
 
     if (!isVisible) return null;
@@ -38,7 +45,7 @@ export default function PopupAd() {
                 >
                     <X size={20} />
                 </button>
-                <div className="relative aspect-[3/4] w-full">
+                <div onClick={handleAdClick} className="relative block aspect-[3/4] w-full cursor-pointer">
                     {/* Aspect ratio based on likely flyer dims, adjust if needed */}
                     <Image
                         src="/popup-ad.png"

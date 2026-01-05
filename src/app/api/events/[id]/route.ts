@@ -68,6 +68,29 @@ export async function GET(req: NextRequest) {
         },
         agendaItems: true,
         venue: true,
+        purchaseOrders: {
+          where: {
+            status: 'COMPLETED',
+            items: {
+              some: {
+                productType: 'SPONSOR'
+              }
+            }
+          },
+          include: {
+            company: {
+              include: {
+                media: true,
+                location: true
+              }
+            },
+            items: {
+              where: {
+                productType: 'SPONSOR'
+              }
+            }
+          }
+        }
       },
     });
 

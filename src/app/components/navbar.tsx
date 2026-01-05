@@ -109,7 +109,7 @@ export default function Navbar() {
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="font-medium text-black fs-15">
             Early Bird Offer for Members!{" "}
-            <Link href="#" className="underline font-bold text-[#004aad]">
+            <Link href="/event/list" className="underline font-bold text-[#004aad]">
               Grab now
             </Link>
           </div>

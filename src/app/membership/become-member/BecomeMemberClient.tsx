@@ -391,7 +391,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
       <section>
         <h2 className="text-lg font-semibold mb-4">Choose membership</h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {plans.map((p) => (
             <PlanCard
               key={p.id}
@@ -422,8 +422,6 @@ function PlanCard({
   planColor: (name: string) => string;
 }) {
   const features = plan.features ?? [];
-  const hasMoreFeatures = features.length > 3;
-  const displayFeatures = features.slice(0, 3);
 
   return (
     <div
@@ -508,7 +506,7 @@ function PlanCard({
 
         <div className="flex flex-col flex-grow">
           <ul className="text-sm text-slate-700 space-y-1 w-full mb-2">
-            {displayFeatures.map((f, i) => (
+            {features.map((f, i) => (
               <li key={i} className="flex items-start gap-2">
                 <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 shrink-0" />
                 <span className="text-xs">{f}</span>
@@ -519,17 +517,7 @@ function PlanCard({
             )}
           </ul>
 
-          {hasMoreFeatures && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelect(plan);
-              }}
-              className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-100 text-slate-700 hover:bg-indigo-100 hover:text-indigo-700 transition-colors mb-4 self-start"
-            >
-              View More
-            </button>
-          )}
+
 
           <div className="mt-auto w-full flex justify-end">
             <button
@@ -539,7 +527,7 @@ function PlanCard({
               }}
               className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-sm font-semibold bg-indigo-600 text-white hover:bg-indigo-700`}
             >
-              Select & Pay
+              Become member
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

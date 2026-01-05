@@ -5,6 +5,11 @@ import prisma from "@/app/lib/prisma";
 
 export default async function Page() {
   const plans = await prisma.membershipPlan.findMany({
+    where: {
+      price: {
+        gt: 0,
+      },
+    },
     orderBy: { createdAt: "asc" },
     select: {
       id: true,

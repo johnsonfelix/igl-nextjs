@@ -45,6 +45,7 @@ export default function AdminEditCompanyPage() {
         servicesOffered: '',
         contactPerson: '',
         mobile: '',
+        email: '',
         skype: '',
         wechat: '',
     });
@@ -85,6 +86,7 @@ export default function AdminEditCompanyPage() {
                     servicesOffered: data.servicesOffered || '',
                     contactPerson: data.location?.contactPerson || '',
                     mobile: data.location?.mobile || '',
+                    email: data.location?.email || '',
                     skype: data.location?.skype || '',
                     wechat: data.location?.wechat || '',
                 });
@@ -191,6 +193,7 @@ export default function AdminEditCompanyPage() {
                     zipCode: formData.zipCode,
                     contactPerson: formData.contactPerson,
                     mobile: formData.mobile,
+                    email: formData.email,
                     skype: formData.skype,
                     wechat: formData.wechat,
                 },
@@ -256,6 +259,16 @@ export default function AdminEditCompanyPage() {
                                     name="memberId"
                                     required
                                     value={formData.memberId}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Email (for Login)</label>
+                                <input
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                                 />
