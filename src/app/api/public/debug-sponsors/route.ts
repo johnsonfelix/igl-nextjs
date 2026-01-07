@@ -11,14 +11,14 @@ export async function GET() {
             where: { id: eventId },
             include: {
                 eventSponsorTypes: { include: { sponsorType: true } },
-                booths: true
+                eventBooths: { include: { booth: true } }
             }
         });
 
         if (!event) return NextResponse.json({ error: "Event not found" });
 
         const sponsors = event.eventSponsorTypes.map(est => est.sponsorType.name);
-        const booths = event.booths.map(b => b.name);
+        const booths = event.eventBooths.map(eb => eb.booth.name);
 
         return NextResponse.json({ sponsors, booths });
     } catch (error) {
