@@ -20,11 +20,12 @@ import {
 import { motion } from 'framer-motion';
 
 import { Button } from '@/app/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/app/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/app/components/ui/sheet';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import BoothSubTypeManager from '@/app/components/BoothSubTypeManager';
+import SponsorAssignmentManager from '@/app/components/SponsorAssignmentManager';
 import { uploadFileToS3 } from '@/app/lib/s3-upload';
 
 // Helpers
@@ -49,6 +50,10 @@ export default function EventViewPage() {
   const [loading, setLoading] = useState(true);
   const [isVenueSheetOpen, setIsVenueSheetOpen] = useState(false);
   const [isBoothSheetOpen, setIsBoothSheetOpen] = useState(false);
+
+  // Assignment sheet state
+  const [isAssignmentSheetOpen, setIsAssignmentSheetOpen] = useState(false);
+  const [selectedSponsorType, setSelectedSponsorType] = useState<any>(null); // For assignment
 
   // Agenda sheet state
   const [isAgendaSheetOpen, setIsAgendaSheetOpen] = useState(false);
@@ -390,6 +395,7 @@ export default function EventViewPage() {
 
               <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
                 <SheetContent side="right" className="w-full sm:w-[680px] max-w-[95vw] p-6">
+                  <SheetTitle className="sr-only">Manage Booth Sub-types</SheetTitle>
                   <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
                 </SheetContent>
               </Sheet>
@@ -460,6 +466,7 @@ export default function EventViewPage() {
 
               <Sheet open={isAgendaSheetOpen} onOpenChange={setIsAgendaSheetOpen}>
                 <SheetContent side="right" className="w-full sm:w-[420px] max-w-[95vw] p-6">
+                  <SheetTitle className="sr-only">Manage Agenda Item</SheetTitle>
                   <h2 className="text-2xl font-bold mb-6 text-gray-800">{editingAgenda ? 'Edit Item' : 'Add Item'}</h2>
                   <form
                     className="space-y-5"
@@ -559,10 +566,24 @@ export default function EventViewPage() {
                         alt={es.sponsorType.name}
                         className="h-14 w-14 object-cover rounded-xl bg-gray-50"
                       />
-                      <div>
-                        <div className="flex flex-col">
-                          <span className="font-bold text-gray-800">{es.sponsorType.name}</span>
-                          <span className="text-sm text-[#5da765] font-bold">${es.sponsorType.price}</span>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-start">
+                          <div className="flex flex-col">
+                            <span className="font-bold text-gray-800">{es.sponsorType.name}</span>
+                            <span className="text-sm text-[#5da765] font-bold">${es.sponsorType.price}</span>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 text-xs"
+                            onClick={() => {
+                              // Store the sponsorType along with the quantity (limit)
+                              setSelectedSponsorType({ ...es.sponsorType, maxSlots: es.quantity });
+                              setIsAssignmentSheetOpen(true);
+                            }}
+                          >
+                            Manage Assignments
+                          </Button>
                         </div>
                         <p className="text-xs text-gray-500 mt-1 line-clamp-1">{es.sponsorType.description}</p>
                         <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wide">{es.quantity} slots left</div>
@@ -571,6 +592,25 @@ export default function EventViewPage() {
                   ))
                 )}
               </div>
+
+              <Sheet open={isAssignmentSheetOpen} onOpenChange={setIsAssignmentSheetOpen}>
+                <SheetContent side="right" className="w-full sm:w-[540px] max-w-[95vw] p-6 text-base overflow-y-auto">
+                  <SheetTitle className="sr-only">Manage Sponsorship Assignments</SheetTitle>
+                  {selectedSponsorType && (
+                    <SponsorAssignmentManager
+                      eventId={eventId}
+                      sponsorTypeId={selectedSponsorType.id}
+                      sponsorTypeName={selectedSponsorType.name}
+                      // If selectedSponsorType refers to the 'sponsorType' inside 'eventSponsorType' object from map,
+                      // we need to pass the quantity from the parent object.
+                      // I will update the logic above to set the whole object or pass quantity correctly.
+                      // Wait, I planned to change the selection logic.
+                      // Let's assume I fix the onClick handler in this same file to store the whole 'es' object instead of 'es.sponsorType'.
+                      maxSlots={selectedSponsorType.maxSlots || 999}
+                    />
+                  )}
+                </SheetContent>
+              </Sheet>
             </motion.section>
           </div>
 

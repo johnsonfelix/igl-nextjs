@@ -79,14 +79,14 @@ export default function SecurePayPage() {
 
                             <ul className="space-y-4 mb-10">
                                 <li className="flex items-start border-b border-gray-100 pb-3">
-                                    <span className="text-gray-700 font-medium">Up to USD 20,000 per year per member</span>
+                                    <span className="text-[#004aad] font-bold text-3xl">Up to USD 20,000</span>
                                 </li>
-                                <li className="flex items-start border-b border-gray-100 pb-3">
+                                {/* <li className="flex items-start border-b border-gray-100 pb-3">
                                     <span className="text-gray-700 font-medium">Gold Members can claim up to USD 5,000 per case</span>
                                 </li>
                                 <li className="flex items-start border-b border-gray-100 pb-3">
                                     <span className="text-gray-700 font-medium">Multiple claims allowed within the yearly limit, subject to approval</span>
-                                </li>
+                                </li> */}
                             </ul>
 
                             <Link

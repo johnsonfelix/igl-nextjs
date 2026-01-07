@@ -54,3 +54,24 @@ body {
   overflow-x: hidden;
   overflow-y: auto;
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-area, .printable-area * {
+    visibility: visible;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  @page {
+    size: auto;
+    margin: 5mm;
+  }
+}

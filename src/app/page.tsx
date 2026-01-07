@@ -207,118 +207,16 @@ export default function Home() {
           </div>
         </section>
 
-        {/* About Us Section */}
-        <section className="py-20">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-12 items-center">
-              <div className="lg:w-10/12">
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-primary"></span>
-                  <span className="text-primary font-bold uppercase text-sm tracking-widest">About Us</span>
-                </div>
-                <h2 className="text-4xl text-gray-900 font-bold mb-6 tracking-tight">Innovative Global Logistics Allianz</h2>
-                <p className="text-gray-600 text-lg leading-relaxed">
-                  Founded in 2012, IGLA has rapidly evolved into one of the most sought-after logistics networks worldwide. We bring together freight forwarders and transportation experts who are committed to excellence, collaboration, and growth.
-                </p>
-              </div>
-              <div className="bg-[#f0f9f3] rounded-lg overflow-hidden p-8 text-center relative">
-                <div className="mb-8 p-6 bg-white/50 rounded-lg">
-                  <p className="text-xl font-semibold text-gray-800">Established in 2012, Innovative Global Logistics Allianz (IGLA).</p>
-                </div>
-                <div className="bg-primary p-8 rounded-lg flex items-center justify-center gap-6 text-white shadow-xl">
-                  <div className="w-16">
-                    <Image src="/images/handshake.png" alt="Handshake" width={64} height={64} className="brightness-0 invert" />
-                  </div>
-                  <div className="text-left">
-                    <div className="text-4xl font-bold">7,000+</div>
-                    <div className="text-lg opacity-90">Logistics Companies</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* About Us Section Hidden */}
 
-        {/* Why Choose Us Section */}
-        <section className="py-20 bg-gray-50">
-          <div className="container mx-auto px-4">
-            <div className="grid md:grid-cols-2 gap-8 mb-16 items-end">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-primary"></span>
-                  <span className="text-primary font-bold uppercase text-sm tracking-widest">Why Choose Us</span>
-                </div>
-                <h3 className="text-3xl font-bold text-black">Your Global Partner in Secure</h3>
-              </div>
-              <div>
-                <p className="text-gray-600 leading-relaxed">
-                  At Innovative Global Logistics Allianz (IGLA), we don’t just connect freight forwarders, we build a community based on trust, performance, and opportunity.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 border-t border-b border-gray-200 divide-y md:divide-y-0 md:divide-x divide-gray-200 bg-white shadow-sm">
-              {/* Feature 1 */}
-              <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
-                <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
-                  <Image src="/images/growth.png" alt="Growth" width={60} height={60} className="relative z-10 mx-auto top-4" />
-                </div>
-                <h4 className="font-bold text-lg mb-3">Grow Your Business</h4>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">Connect with pre-qualified partners who offer real opportunities, helping you build lasting relationships.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
-                  Know More <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
-
-              {/* Feature 2 */}
-              <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
-                <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
-                  <Image src="/images/ai.png" alt="AI" width={60} height={60} className="relative z-10 mx-auto top-4" />
-                </div>
-                <h4 className="font-bold text-lg mb-3">AI-Driven Matching</h4>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">Our intelligent system matches you with ideal global partners based on trade lanes and goal.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
-                  Know More <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
-
-              {/* Feature 3 */}
-              <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
-                <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
-                  <Image src="/images/global.png" alt="Global" width={60} height={60} className="relative z-10 mx-auto top-4" />
-                </div>
-                <h4 className="font-bold text-lg mb-3">Global Footprint</h4>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">IGLA's global network spans five continents, offering diverse connections to expand your reach.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
-                  Know More <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
-
-              {/* Feature 4 */}
-              <div className="p-8 text-center group hover:bg-[#f0f9f3] transition-colors duration-300">
-                <div className="w-24 h-24 mx-auto mb-6 relative">
-                  <span className="absolute inset-0 bg-primary rounded-full opacity-10"></span>
-                  <Image src="/images/marketing.png" alt="Marketing" width={60} height={60} className="relative z-10 mx-auto top-4" />
-                </div>
-                <h4 className="font-bold text-lg mb-3">Marketing & Promotion</h4>
-                <p className="text-sm text-gray-500 mb-6 leading-relaxed">Boost your visibility through targeted social media, newsletters, and a dedicated company page.</p>
-                <Link href="/membership/become-member" className="inline-flex items-center text-primary font-bold uppercase text-sm group-hover:translate-x-1 transition-transform">
-                  Know More <ArrowRight className="w-4 h-4 ml-1" />
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Why Choose Us Section Hidden */}
 
         {/* Why Partner with IGLA (Accordion) */}
         <section className="py-20 bg-white">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12 items-center">
               <div className="relative">
-                <Image src="/images/why-partner-with-us.jpg" alt="Why Partner" width={600} height={500} className="rounded-lg shadow-lg w-full" />
+                <Image src="/images/why-partner-with-us.jpg" alt="Why Partner" width={600} height={500} className="rounded-lg shadow-lg w-[64%] mx-auto block" />
               </div>
               <div>
                 <div className="flex items-center gap-2 mb-2">

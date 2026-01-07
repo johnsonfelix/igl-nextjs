@@ -173,7 +173,7 @@ export async function POST(req: NextRequest) {
     console.log("DEBUG PURCHASE: payment=", payment, "body.isOffline=", body.isOffline, "FINAL isOffline=", isOffline);
 
 
-    const updated = await prisma.$transaction(async (tx) => {
+    const { updatedCompany, createdPurchaseOrder } = await prisma.$transaction(async (tx) => {
       let u = company;
 
       // Only update company membership immediately if NOT offline
@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
       }
 
       // Create Purchase Order for this membership
-      await tx.purchaseOrder.create({
+      const po = await tx.purchaseOrder.create({
         data: {
           companyId: companyId,
           totalAmount: finalPrice,
@@ -213,10 +213,13 @@ export async function POST(req: NextRequest) {
               price: finalPrice
             }
           },
+        },
+        include: {
+          items: true
         }
       });
 
-      return u;
+      return { updatedCompany: u, createdPurchaseOrder: po };
     });
 
     // ─────────────────────────────────────────────
@@ -225,7 +228,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       {
         success: true,
-        company: updated,
+        company: updatedCompany,
+        purchaseOrder: createdPurchaseOrder,
         pricing: {
           originalPrice,
           membershipDiscountAmount,

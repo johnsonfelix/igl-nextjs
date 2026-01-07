@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, ArrowRight, AlertTriangle, Loader, Star } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
+import EventCountdown from './EventCountdown';
 
 // --- TYPE DEFINITION for an Event ---
 interface Event {
@@ -52,6 +53,11 @@ const EventCard = ({ event }: { event: Event }) => {
             </div>
             <div className="text-xs font-medium uppercase mt-1">{format(parseISO(startDate), 'MMM')}</div>
           </div>
+        </div>
+
+        {/* Countdown Timer */}
+        <div className="absolute bottom-4 right-4 z-20">
+          <EventCountdown targetDate={startDate} />
         </div>
       </div>
 

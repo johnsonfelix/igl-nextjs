@@ -404,7 +404,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("About");
+  const [activeTab, setActiveTab] = useState("Tickets");
   const [isCartOpen, setCartOpen] = useState(false);
 
   // Offers loaded from backend
@@ -469,29 +469,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   const totalTicketsSelected = Object.values(ticketQuantities).reduce((a, b) => a + b, 0);
 
-  const sponsorsList = useMemo(() => {
-    // If eventData is null or doesn't have purchaseOrders, return empty
-    if (!eventData?.purchaseOrders) return [];
+  const sponsorsByType = useMemo(() => {
+    if (!eventData?.purchaseOrders) return {};
 
-    const sponsorsMap = new Map<string, { company: any, items: any[] }>();
+    const groups: Record<string, any[]> = {};
+
     eventData.purchaseOrders.forEach((po: any) => {
-      if (!po.company) return;
-      const companyId = po.company.id;
-      if (!sponsorsMap.has(companyId)) {
-        sponsorsMap.set(companyId, {
-          company: po.company,
-          items: []
-        });
-      }
+      if (!po.company || po.status !== 'COMPLETED') return;
+
       if (Array.isArray(po.items)) {
         po.items.forEach((item: any) => {
           if (item.productType === 'SPONSOR') {
-            sponsorsMap.get(companyId)!.items.push(item);
+            const typeName = item.name;
+            if (!groups[typeName]) {
+              groups[typeName] = [];
+            }
+            // Check if company already added to this group (in case of multiple same items? unlikely but good safety)
+            if (!groups[typeName].some(c => c.id === po.company.id)) {
+              groups[typeName].push(po.company);
+            }
           }
         });
       }
     });
-    return Array.from(sponsorsMap.values());
+    return groups;
   }, [eventData?.purchaseOrders]);
 
   const getTicketSubtotal = () => {
@@ -672,7 +673,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
 
 
-  const tabs = ["About", "Agenda", "Tickets & Booths", "Accommodation", "Event Sponsors"];
+  const tabs = ["Tickets", "About", "Sponsors", "Agenda", "About Venue", "Event Sponsors"];
 
   // Helper: determine best applicable offer for a product
   function getBestOfferForItem(
@@ -1406,7 +1407,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "Event Sponsors" && (
               <Section title="Event Sponsors">
-                {sponsorsList.length === 0 ? (
+                {Object.keys(sponsorsByType).length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
                     <div className="bg-gray-50 p-6 rounded-full mb-4">
                       <ShieldCheck className="w-12 h-12 text-gray-300" />
@@ -1417,53 +1418,37 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fadeIn">
-                    {sponsorsList.map(({ company, items }) => (
-                      <div
-                        key={company.id}
-                        className="group relative bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
-                      >
-                        {/* Decorative Background Element */}
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#004aad] to-indigo-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                  <div className="space-y-12 animate-fadeIn">
+                    {Object.entries(sponsorsByType).map(([typeName, companies]) => (
+                      <div key={typeName}>
+                        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
+                          <div className="h-8 w-1.5 bg-[#004aad] rounded-full"></div>
+                          {typeName}
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                          {companies.map((company: any) => (
+                            <div
+                              key={company.id}
+                              className="group relative bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
+                            >
+                              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#004aad] to-indigo-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
 
-                        <div className="w-28 h-28 mb-6 relative rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm flex items-center justify-center group-hover:border-[#004aad]/20 transition-colors">
-                          {company.logoUrl ? (
-                            <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-3" />
-                          ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
-                            <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-3" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#004aad] bg-gradient-to-br from-blue-50 to-indigo-50">
-                              {company.name.charAt(0)}
+                              <div className="w-28 h-28 mb-6 relative rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm flex items-center justify-center group-hover:border-[#004aad]/20 transition-colors">
+                                {company.logoUrl ? (
+                                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-3" />
+                                ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
+                                  <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-3" />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#004aad] bg-gradient-to-br from-blue-50 to-indigo-50">
+                                    {company.name.charAt(0)}
+                                  </div>
+                                )}
+                              </div>
+
+                              <h4 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-[#004aad] transition-colors">{company.name}</h4>
+
                             </div>
-                          )}
-                        </div>
-
-                        <h4 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-[#004aad] transition-colors">{company.name}</h4>
-                        {company.location?.country && (
-                          <div className="flex items-center gap-1.5 text-sm text-gray-500 mb-6">
-                            <MapPin className="w-3.5 h-3.5" />
-                            <span>{company.location.city}, {company.location.country}</span>
-                          </div>
-                        )}
-
-                        <div className="w-full mt-auto">
-                          <div className="w-10 h-0.5 bg-gray-100 mx-auto mb-4"></div>
-                          <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">Proudly Sponsoring</p>
-                          <div className="flex flex-wrap gap-2 justify-center">
-                            {items.map((item: any, idx: number) => {
-                              const name = item.name.toLowerCase();
-                              let badgeClass = "bg-gray-100 text-gray-700 border-gray-200";
-                              if (name.includes('gold')) badgeClass = "bg-yellow-50 text-yellow-700 border-yellow-200 shadow-sm";
-                              if (name.includes('platinum')) badgeClass = "bg-slate-50 text-slate-700 border-slate-200 shadow-sm ring-1 ring-slate-100";
-                              if (name.includes('silver')) badgeClass = "bg-gray-50 text-gray-600 border-gray-200";
-
-                              return (
-                                <span key={idx} className={`px-4 py-1.5 rounded-full text-xs font-bold border ${badgeClass} transition-all hover:scale-105`}>
-                                  {item.name.replace(/Sponsorship/i, '').trim()}
-                                </span>
-                              );
-                            })}
-                          </div>
+                          ))}
                         </div>
                       </div>
                     ))}
@@ -1712,7 +1697,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               </div>
             )}
 
-            {activeTab === "Tickets & Booths" && (
+            {activeTab === "Tickets" && (
               <div className="animate-fadeIn py-12 flex flex-col items-center justify-center text-center">
                 <button
                   onClick={() => {
@@ -1747,7 +1732,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               </div>
             )}
 
-            {activeTab === "Accommodation" && (
+            {activeTab === "About Venue" && (
               <div className="animate-fadeIn space-y-8">
                 {/* Featured Hotel Header */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

@@ -3,9 +3,10 @@
 import type { NextPage } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { ShieldCheck, CreditCard, Calendar, Lock, Building, Check, LockKeyhole, Loader, LogIn } from 'lucide-react';
+import { ShieldCheck, CreditCard, Calendar, Lock, Building, Check, LockKeyhole, Loader, LogIn, Printer, Download } from 'lucide-react';
 import { useAuth } from '@/app/context/AuthContext'; // Your authentication context
 import Link from 'next/link';
+import { InvoiceTemplate } from '@/app/components/InvoiceTemplate';
 
 type ApiPlan = {
   id: string;
@@ -45,6 +46,7 @@ const PurchasePage: NextPage = () => {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePolicies, setAgreePolicies] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [invoiceData, setInvoiceData] = useState<any>(null);
 
   // Fetch membership plans from API
   useEffect(() => {
@@ -156,8 +158,13 @@ const PurchasePage: NextPage = () => {
         throw new Error(errorText);
       }
 
+      const responseData = await response.json();
+
       setStatus('success');
       setOrderConfirmed(true);
+      if (responseData.purchaseOrder) {
+        setInvoiceData(responseData.purchaseOrder);
+      }
       // Removed auto-redirect to show bank details
     } catch (error) {
       setStatus('error');
@@ -211,6 +218,75 @@ const PurchasePage: NextPage = () => {
     );
   }
 
+  if (orderConfirmed && invoiceData) {
+    return (
+      <div className="bg-gray-50 min-h-screen font-sans py-8">
+        <div className="w-full max-w-5xl mx-auto p-4 md:p-8 bg-white shadow-xl rounded-xl">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center mb-8">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+              <Check className="w-8 h-8" />
+            </div>
+            <h2 className="text-xl font-bold text-green-800 mb-2">Order Confirmed!</h2>
+            <p className="text-sm text-green-700">Thank you for your purchase. Please download your invoice below.</p>
+          </div>
+
+          <div className="flex flex-col gap-6 items-center">
+            <button
+              onClick={async () => {
+                const element = document.getElementById('invoice-component');
+                if (!element) return;
+
+                // Dynamic import
+                const html2pdf = (await import('html2pdf.js')).default;
+
+                const opt = {
+                  margin: 0,
+                  filename: `Invoice_${invoiceData.invoiceNumber ? `IGLA${10000 + invoiceData.invoiceNumber}` : invoiceData.id}.pdf`,
+                  image: { type: 'jpeg', quality: 0.98 } as any,
+                  html2canvas: { scale: 2, useCORS: true },
+                  jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                } as any;
+
+                html2pdf().set(opt).from(element).save();
+              }}
+              className="flex items-center gap-2 bg-[#004aad] text-white px-8 py-3 rounded-md font-bold hover:bg-[#00317a] shadow-lg transition-transform active:scale-95 text-lg"
+            >
+              <Download className="w-5 h-5" /> Download Invoice PDF
+            </button>
+
+            {/* The Invoice Component */}
+            <div className="border shadow-2xl print:shadow-none print:border-none printable-area overflow-auto max-h-[800px] lg:max-h-none w-full flex justify-center bg-gray-100 p-8 rounded-lg">
+              <div className="scale-90 origin-top">
+                <InvoiceTemplate
+                  orderId={invoiceData.invoiceNumber ? `IGLA${10000 + invoiceData.invoiceNumber}` : invoiceData.id}
+                  date={invoiceData.createdAt || new Date()}
+                  customerDetails={{
+                    name: user?.name || user?.email || 'Valued Customer',
+                    email: user?.email || '',
+                    address: companyName
+                  }}
+                  items={invoiceData.items ? invoiceData.items.map((item: any) => ({
+                    name: item.name,
+                    quantity: item.quantity,
+                    price: item.price,
+                    total: Number((item.price * item.quantity).toFixed(2))
+                  })) : []}
+                  totalAmount={invoiceData.totalAmount}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-center pt-8">
+            <Link href="/dashboard" className="text-blue-600 font-semibold hover:underline text-lg">
+              Go to Dashboard
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gray-50 min-h-screen flex items-center justify-center font-sans">
       <div className="w-full max-w-4xl mx-auto p-4 md:p-8">
@@ -237,11 +313,6 @@ const PurchasePage: NextPage = () => {
                 </div>
               )}
               <br />
-              {/* {plan.discountPercentage && plan.discountPercentage > 0 && (
-                <div className="mb-4 text-sm font-semibold text-purple-700 bg-purple-50 px-3 py-1.5 rounded-lg inline-block">
-                  🏷️ {plan.discountPercentage}% Discount
-                </div>
-              )} */}
 
               <ul className="space-y-2 pt-4 text-gray-600">
                 {plan.features.map((feature: string, idx: number) => (
@@ -282,7 +353,7 @@ const PurchasePage: NextPage = () => {
               <div className="bg-white p-8 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Purchase</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Company Display (Replaces Dropdown) */}
+                  {/* Company Display */}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Purchase For</label>
                     <div className="relative">
@@ -295,147 +366,83 @@ const PurchasePage: NextPage = () => {
                     </div>
                   </div>
 
-                  {/* Payment Selection & Form */}
-                  {!orderConfirmed ? (
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Payment Method</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {/* Offline */}
-                          <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-gray-300'}`}>
-                            <input
-                              type="radio"
-                              name="pm"
-                              value="offline"
-                              checked={paymentMethod === 'offline'}
-                              onChange={() => setPaymentMethod('offline')}
-                              className="sr-only"
-                            />
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-gray-800">Offline Payment</span>
-                              <div className="w-5 h-5 rounded-full border border-blue-600 flex items-center justify-center">
-                                {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
-                              </div>
-                            </div>
-                            <p className="text-xs text-gray-500">Bank Transfer. Details shown after confirmation.</p>
-                          </label>
-
-                          {/* Online (Disabled) */}
-                          <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
-                            <div className="flex items-center justify-between">
-                              <span className="font-bold text-gray-400">Online Payment</span>
-                              <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
-                            </div>
-                            <p className="text-xs text-gray-400">Credit Card, Debit Card, Net Banking</p>
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Terms */}
-                      <div className="space-y-3 pt-2 border-t">
-                        <div className="flex items-start gap-2">
-                          <input
-                            type="checkbox"
-                            id="terms"
-                            checked={agreeTerms}
-                            onChange={(e) => setAgreeTerms(e.target.checked)}
-                            className="mt-1 w-4 h-4 text-blue-600 rounded"
-                          />
-                          <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
-                            I agree to the <Link href="/terms" target="_blank" className="text-blue-600 hover:underline">Terms & Conditions</Link>
-                          </label>
-                        </div>
-                        <div className="flex items-start gap-2">
-                          <input
-                            type="checkbox"
-                            id="privacy"
-                            checked={agreePolicies}
-                            onChange={(e) => setAgreePolicies(e.target.checked)}
-                            className="mt-1 w-4 h-4 text-blue-600 rounded"
-                          />
-                          <label htmlFor="privacy" className="text-sm text-gray-600 cursor-pointer">
-                            I agree to the <Link href="/privacy" target="_blank" className="text-blue-600 hover:underline">Privacy Policy</Link>
-                          </label>
-                        </div>
-                      </div>
-
-                      {status === 'error' && <p className="text-sm text-red-600 bg-red-50 p-3 rounded">{errorMessage}</p>}
-
-                      <button
-                        type="submit"
-                        disabled={status === 'loading' || !user?.companyId || !agreeTerms || !agreePolicies}
-                        className="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
-                      >
-                        {status === 'loading' ? (
-                          <>
-                            <Loader className="w-5 h-5 animate-spin" /> Processing...
-                          </>
-                        ) : (
-                          `Confirm Purchase`
-                        )}
-                      </button>
-                    </div>
-                  ) : (
-                    // Success State - Show Bank Details
-                    <div className="space-y-6 animate-fadeIn">
-                      <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                          <Check className="w-8 h-8" />
-                        </div>
-                        <h2 className="text-xl font-bold text-green-800 mb-2">Order Confirmed!</h2>
-                        <p className="text-sm text-green-700">Thank you for your purchase. Please complete your payment below.</p>
-                      </div>
-
-                      <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 shadow-sm">
-                        <h3 className="text-lg font-bold text-blue-900 mb-4 flex items-center gap-2">
-                          <LockKeyhole className="w-5 h-5" />
-                          Bank Transfer Details
-                        </h3>
-
-                        <div className="space-y-4 text-sm text-blue-900">
-                          <div className="bg-white p-4 rounded border border-blue-200 space-y-2">
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <span className="text-gray-500 font-medium">Bank Name:</span>
-                              <span className="col-span-2 font-bold text-gray-800 select-all">HDFC Bank Limited</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <span className="text-gray-500 font-medium">Branch:</span>
-                              <span className="col-span-2 font-bold text-gray-800 select-all">G N Chetty rd Branch, TNagar</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <span className="text-gray-500 font-medium">Account Name:</span>
-                              <span className="col-span-2 font-bold text-gray-800 select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <span className="text-gray-500 font-medium">Account No:</span>
-                              <span className="col-span-2 font-bold text-gray-800 select-all">50200035538980</span>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                              <span className="text-gray-500 font-medium">SWIFT Code:</span>
-                              <span className="col-span-2 font-bold text-gray-800 select-all">HDFCINBBCHE</span>
-                            </div>
-                          </div>
-
-                          <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-                            <p className="font-semibold mb-1">⚠️ Important:</p>
-                            <p>
-                              After creating the payment, please email the transaction details / proof of payment to{" "}
-                              <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
-                                sales@igla.asia
-                              </a>
-                              . Your membership will be activated once we verify the payment.
-                            </p>
+                  {/* Payment Selection */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Payment Method</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Offline */}
+                      <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-gray-300'}`}>
+                        <input
+                          type="radio"
+                          name="pm"
+                          value="offline"
+                          checked={paymentMethod === 'offline'}
+                          onChange={() => setPaymentMethod('offline')}
+                          className="sr-only"
+                        />
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-800">Offline Payment</span>
+                          <div className="w-5 h-5 rounded-full border border-blue-600 flex items-center justify-center">
+                            {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
                           </div>
                         </div>
-                      </div>
+                        <p className="text-xs text-gray-500">Bank Transfer. Details shown after confirmation.</p>
+                      </label>
 
-                      <div className="flex justify-center pt-4">
-                        <Link href="/dashboard" className="text-blue-600 font-semibold hover:underline">
-                          Go to Dashboard
-                        </Link>
-                      </div>
+                      {/* Online (Disabled) */}
+                      <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-gray-400">Online Payment</span>
+                          <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
+                        </div>
+                        <p className="text-xs text-gray-400">Credit Card, Debit Card, Net Banking</p>
+                      </label>
                     </div>
-                  )}
+                  </div>
+
+                  {/* Terms */}
+                  <div className="space-y-3 pt-2 border-t">
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        id="terms"
+                        checked={agreeTerms}
+                        onChange={(e) => setAgreeTerms(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded"
+                      />
+                      <label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer">
+                        I agree to the <Link href="/by-laws" target="_blank" className="text-blue-600 hover:underline">By-Laws</Link>
+                      </label>
+                    </div>
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        id="privacy"
+                        checked={agreePolicies}
+                        onChange={(e) => setAgreePolicies(e.target.checked)}
+                        className="mt-1 w-4 h-4 text-blue-600 rounded"
+                      />
+                      <label htmlFor="privacy" className="text-sm text-gray-600 cursor-pointer">
+                        I agree to the <Link href="/payment-protection" target="_blank" className="text-blue-600 hover:underline">Payment Protection Plan</Link>
+                      </label>
+                    </div>
+                  </div>
+
+                  {status === 'error' && <p className="text-sm text-red-600 bg-red-50 p-3 rounded">{errorMessage}</p>}
+
+                  <button
+                    type="submit"
+                    disabled={status === 'loading' || !user?.companyId || !agreeTerms || !agreePolicies}
+                    className="w-full bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-2"
+                  >
+                    {status === 'loading' ? (
+                      <>
+                        <Loader className="w-5 h-5 animate-spin" /> Processing...
+                      </>
+                    ) : (
+                      `Confirm Purchase`
+                    )}
+                  </button>
                 </form>
               </div>
             )}

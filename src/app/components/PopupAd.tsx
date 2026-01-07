@@ -24,7 +24,7 @@ export default function PopupAd() {
 
     const handleAdClick = () => {
         setIsVisible(false);
-        router.push("/event/list");
+        router.push("/event/cmjn1f6ih0000gad4xa4j7dp3");
     };
 
     if (!isVisible) return null;

@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import { Menu, X, User, Phone, Mail, Download, LogIn } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 interface User {
   email?: string;
@@ -53,7 +54,7 @@ const navItems: NavItem[] = [
   { name: "Event", href: "/event/list" },
   { name: "Company Directory", href: "/directory" },
   { name: "Inquiry", href: "/inquiry" },
-  { name: "Risk Protection", href: "/risk" },
+  { name: "Risk Protection", href: "/secure-pay" },
   { name: "About Us", href: "/about" },
   { name: "Admin", href: "/admin/dashboard" },
 ];
@@ -94,6 +95,17 @@ export default function Navbar() {
     }
   };
 
+  const handleDownloadClick = () => {
+    toast("Mobile App Coming Soon!", {
+      icon: "📱",
+      style: {
+        borderRadius: "10px",
+        background: "#333",
+        color: "#fff",
+      },
+    });
+  };
+
   // Filter nav items: Hide "Admin" unless user is ADMIN
   const displayNavItems = navItems.filter((item) => {
     if (item.name === "Admin") {
@@ -109,7 +121,7 @@ export default function Navbar() {
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="font-medium text-black fs-15">
             Early Bird Offer for Members!{" "}
-            <Link href="/event/list" className="underline font-bold text-[#004aad]">
+            <Link href="/event/cmjn1f6ih0000gad4xa4j7dp3" className="underline font-bold text-[#004aad]">
               Grab now
             </Link>
           </div>
@@ -156,7 +168,8 @@ export default function Navbar() {
           {/* Right Side Actions */}
           <div className="hidden sm:flex items-center gap-4">
             {/* Secure Pay - Only on Home */}
-            <Link
+            {/* Secure Pay - Only on Home (Hidden as per request) */}
+            {/* <Link
               href="/secure-pay"
               className="flex items-center gap-2 font-medium text-[16px] text-gray-700"
             >
@@ -164,10 +177,10 @@ export default function Navbar() {
                 🛡️
               </span>
               <span className="hidden xl:inline">SecurePay</span>
-            </Link>
+            </Link> */}
 
             {/* Download App - Global */}
-            <button className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
+            <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
               <Download className="w-4 h-4" /> Download the App
             </button>
 
@@ -274,11 +287,11 @@ export default function Navbar() {
               ))}
               {/* Mobile Actions */}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-                <Link href="/secure-pay" className="flex items-center gap-2 font-medium text-[16px] text-gray-700 p-2">
+                {/* <Link href="/secure-pay" className="flex items-center gap-2 font-medium text-[16px] text-gray-700 p-2">
                   <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-600">🛡️</span>
                   SecurePay
-                </Link>
-                <button className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-4 py-2 rounded-lg font-medium text-[16px] w-full flex items-center justify-center gap-2">
+                </Link> */}
+                <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-4 py-2 rounded-lg font-medium text-[16px] w-full flex items-center justify-center gap-2">
                   <Download className="w-4 h-4" /> Download App
                 </button>
                 {!user && (

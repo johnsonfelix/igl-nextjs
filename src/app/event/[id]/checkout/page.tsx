@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Loader, Check, ArrowLeft, LockKeyhole, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/app/event/[id]/CartContext";
 import { useAuth } from "@/app/context/AuthContext";
+import { InvoiceTemplate } from "@/app/components/InvoiceTemplate";
+import { Printer } from "lucide-react";
 
 /** ---------- Types ---------- */
 
@@ -224,7 +226,7 @@ function CartSummary({
 
       {/* Coupon - Concise & Good looking */}
       <div className="mt-6 pt-4 border-t border-gray-100">
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code</label>
+        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code / Membership Code</label>
         <div className="flex items-center gap-2 max-w-sm">
           <div className="flex-1 relative">
             <input
@@ -272,6 +274,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
   const [isSubmitting, setSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
+  const [orderData, setOrderData] = useState<any>(null);
 
   // New state for additional info
   const [companyName, setCompanyName] = useState("");
@@ -279,7 +282,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const [referralSource, setReferralSource] = useState("");
 
   const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2"];
-  const referralOptions = ["Reference", "Word of Mouth", "Website", "Others"];
+  const referralOptions = ["Social Media", "Word of Mouth", "Website", "Others"];
 
   // account
   const [account, setAccount] = useState<Account>({
@@ -792,6 +795,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       });
 
       if (res.status === 201 || res.ok) {
+        const data = await res.json();
+        setOrderData(data);
         setOrderConfirmed(true);
         clearCart();
         // Don't redirect, show success state with bank details
@@ -893,7 +898,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 <input value={billingAddress.line2} onChange={(e) => setBillingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
                 <input value={billingAddress.city} onChange={(e) => setBillingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
                 <input value={billingAddress.state} onChange={(e) => setBillingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.zip} onChange={(e) => setBillingAddress(p => ({ ...p, zip: e.target.value }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
+                <input value={billingAddress.zip} onChange={(e) => setBillingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
                 <input value={billingAddress.country} onChange={(e) => setBillingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
               </div>
 
@@ -918,7 +923,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                     <input value={shippingAddress.line2} onChange={(e) => setShippingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
                     <input value={shippingAddress.city} onChange={(e) => setShippingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
                     <input value={shippingAddress.state} onChange={(e) => setShippingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.zip} onChange={(e) => setShippingAddress(p => ({ ...p, zip: e.target.value }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
+                    <input value={shippingAddress.zip} onChange={(e) => setShippingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
                     <input value={shippingAddress.country} onChange={(e) => setShippingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
                   </div>
                 </div>
@@ -1079,7 +1084,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                       className="mt-1 w-4 h-4 text-indigo-600 rounded"
                     />
                     <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">
-                      I agree to the <Link href="/terms" target="_blank" className="text-indigo-600 hover:underline">Terms & Conditions</Link>
+                      I agree to the <Link href="/by-laws" target="_blank" className="text-indigo-600 hover:underline">By-Laws</Link>
                     </label>
                   </div>
                   <div className="flex items-start gap-2">
@@ -1091,7 +1096,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                       className="mt-1 w-4 h-4 text-indigo-600 rounded"
                     />
                     <label htmlFor="privacy" className="text-sm text-slate-600 cursor-pointer">
-                      I agree to the <Link href="/privacy" target="_blank" className="text-indigo-600 hover:underline">Privacy Policy</Link>
+                      I agree to the <Link href="/payment-protection" target="_blank" className="text-indigo-600 hover:underline">Payment Protection Plan</Link>
                     </label>
                   </div>
                 </div>
@@ -1130,64 +1135,72 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
             )}
 
-            {/* Success State - Show Bank Details ONLY Here */}
-            {orderConfirmed && (
-              <div className="space-y-6 animate-fadeIn">
-                <div className="bg-green-50 border border-green-200 rounded-lg p-6 text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                    <Check className="w-8 h-8" />
+            {/* Success State - INVOICE VIEW */}
+            {orderConfirmed && orderData && (
+              <div className="animate-fadeIn">
+                {/* Print Actions Bar */}
+                <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 bg-green-50 p-4 rounded-lg border border-green-200 print:hidden">
+                  <div className="flex items-center gap-3 text-green-800">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                      <Check className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h2 className="font-bold text-lg">Order Confirmed!</h2>
+                      <p className="text-sm">Please print or save this invoice for your records.</p>
+                    </div>
                   </div>
-                  <h2 className="text-2xl font-bold text-green-800 mb-2">Order Confirmed!</h2>
-                  <p className="text-green-700">Thank you for your registration. Please complete your payment using the details below.</p>
-                </div>
+                  <div className="flex gap-3">
+                    <Link href={`/event/${eventId}`} className="px-4 py-2 text-indigo-600 font-semibold hover:bg-white hover:shadow rounded-md transition-all">
+                      Return to Event
+                    </Link>
+                    <button
+                      onClick={async () => {
+                        const element = document.getElementById('invoice-component');
+                        if (!element) return;
 
-                <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-6 shadow-sm">
-                  <h3 className="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2">
-                    <LockKeyhole className="w-5 h-5" />
-                    Bank Transfer Details
-                  </h3>
+                        // Dynamic import for client-side only
+                        const html2pdf = (await import('html2pdf.js')).default;
 
-                  <div className="space-y-4 text-sm text-indigo-900">
-                    <div className="bg-white p-4 rounded border border-indigo-200 space-y-2">
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-slate-500 font-medium">Bank Name:</span>
-                        <span className="col-span-2 font-bold select-all">HDFC Bank Limited</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-slate-500 font-medium">Branch:</span>
-                        <span className="col-span-2 font-bold select-all">G N Chetty rd Branch, TNagar</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-slate-500 font-medium">Account Name:</span>
-                        <span className="col-span-2 font-bold select-all">INNOVATIVE GLOBAL LOGISTICS ALLIANZ</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-slate-500 font-medium">Account No:</span>
-                        <span className="col-span-2 font-bold select-all">50200035538980</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <span className="text-slate-500 font-medium">SWIFT Code:</span>
-                        <span className="col-span-2 font-bold select-all">HDFCINBBCHE</span>
-                      </div>
-                    </div>
+                        const opt = {
+                          margin: 0,
+                          filename: `Invoice_${orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}.pdf`,
+                          image: { type: 'jpeg', quality: 0.98 } as any,
+                          html2canvas: { scale: 2, useCORS: true },
+                          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                        } as any;
 
-                    <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-yellow-800">
-                      <p className="font-semibold mb-1">⚠️ Important:</p>
-                      <p>
-                        After creating the payment, please email the transaction details / proof of payment to{" "}
-                        <a href="mailto:sales@igla.asia" className="font-bold underline hover:text-yellow-900">
-                          sales@igla.asia
-                        </a>
-                        . Your order will be confirmed once we verify the payment.
-                      </p>
-                    </div>
+                        html2pdf().set(opt).from(element).save();
+                      }}
+                      className="flex items-center gap-2 bg-[#004aad] text-white px-6 py-2 rounded-md font-bold hover:bg-[#00317a] shadow-lg transition-transform active:scale-95"
+                    >
+                      <Printer className="w-4 h-4" /> Download PDF
+                    </button>
                   </div>
                 </div>
 
-                <div className="flex justify-center pt-4">
-                  <Link href={`/event/${eventId}`} className="text-indigo-600 font-semibold hover:underline">
-                    Return to Event Page
-                  </Link>
+                {/* The Invoice Component */}
+                <div className="border shadow-2xl print:shadow-none print:border-none printable-area">
+                  <InvoiceTemplate
+                    orderId={orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}
+                    date={orderData.createdAt || new Date()}
+                    customerDetails={{
+                      name: account.name,
+                      email: account.email,
+                      address: [
+                        account.address1,
+                        account.address2,
+                        billingAddress.city,
+                        billingAddress.country
+                      ].filter(Boolean).join(", ")
+                    }}
+                    items={orderData.items.map((item: any) => ({
+                      name: item.name,
+                      quantity: item.quantity,
+                      price: item.price,
+                      total: Number((item.price * item.quantity).toFixed(2))
+                    }))}
+                    totalAmount={orderData.totalAmount}
+                  />
                 </div>
               </div>
             )}

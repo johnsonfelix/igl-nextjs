@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
 import CompleteProfileButton from "@/app/components/CompleteProfileButton";
+import OrdersTable from "@/app/dashboard/OrdersTable";
 import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -30,7 +31,7 @@ export default async function DashboardPage() {
 
   const company = await prisma.company.findFirst({
     where: { userId: user.id },
-    include: { membershipPlan: true }
+    include: { membershipPlan: true, location: true }
   });
 
   if (!company) {
@@ -43,6 +44,16 @@ export default async function DashboardPage() {
       </div>
     )
   }
+
+  // Fetch Orders
+  const orders = await prisma.purchaseOrder.findMany({
+    where: { companyId: company.id },
+    include: {
+      items: true,
+      event: { select: { name: true } }
+    },
+    orderBy: { createdAt: 'desc' }
+  });
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -127,8 +138,18 @@ export default async function DashboardPage() {
           ))}
         </div>
 
+        {/* Orders Section */}
+        <div className="mb-12">
+          <OrdersTable
+            orders={orders}
+            companyName={company.name}
+            companyEmail={user.email}
+            companyAddress={[company?.location?.address, company?.location?.city, company?.location?.country].filter(Boolean).join(", ") || "Address not available"}
+          />
+        </div>
+
         {/* Recent Activity / Placeholder Area */}
-        <div className="bg-white rounded-2xl shadow-sm border p-8 min-h-[400px]">
+        {/* <div className="bg-white rounded-2xl shadow-sm border p-8 min-h-[400px]">
           <h3 className="text-xl font-bold text-gray-900 mb-6">Recent Activity</h3>
           <div className="flex flex-col items-center justify-center h-64 text-center text-gray-400">
             <div className="bg-gray-50 p-6 rounded-full mb-4">
@@ -137,7 +158,7 @@ export default async function DashboardPage() {
             <p>No recent activity to show.</p>
             <p className="text-sm">Start by exploring the directory or updating your services.</p>
           </div>
-        </div>
+        </div> */}
       </div>
     </main>
   );
