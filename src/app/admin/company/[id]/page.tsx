@@ -48,6 +48,7 @@ export default function AdminEditCompanyPage() {
         email: '',
         skype: '',
         wechat: '',
+        memberFromYear: '',
     });
 
     useEffect(() => {
@@ -89,6 +90,7 @@ export default function AdminEditCompanyPage() {
                     email: data.location?.email || '',
                     skype: data.location?.skype || '',
                     wechat: data.location?.wechat || '',
+                    memberFromYear: data.memberFromYear || '',
                 });
 
                 if (data.media) {
@@ -198,7 +200,8 @@ export default function AdminEditCompanyPage() {
                     wechat: formData.wechat,
                 },
                 newMedia: newMediaUrls,
-                deleteMediaIds: deletedMediaIds
+                deleteMediaIds: deletedMediaIds,
+                memberFromYear: (formData as any).memberFromYear ? parseInt((formData as any).memberFromYear) : null,
             };
 
             const res = await fetch(`/api/admin/companies/${id}`, {
@@ -292,6 +295,25 @@ export default function AdminEditCompanyPage() {
                                     name="established"
                                     value={formData.established}
                                     onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Member From (Year)</label>
+                                <input
+                                    type="text"
+                                    name="memberFromYear"
+                                    placeholder="YYYY"
+                                    maxLength={4}
+                                    pattern="\d{4}"
+                                    title="Please enter a valid 4-digit year"
+                                    value={(formData as any).memberFromYear || ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/\D/g, '');
+                                        if (val.length <= 4) {
+                                            setFormData(prev => ({ ...prev, memberFromYear: val }));
+                                        }
+                                    }}
                                     className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                                 />
                             </div>

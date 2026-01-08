@@ -125,11 +125,16 @@ export async function POST(req: NextRequest) {
             if (!eventTicket || eventTicket.quantity < item.quantity) {
               throw new Error(`Ticket "${item.name}" is sold out or insufficient quantity.`);
             }
-            await tx.eventTicket.update({
-              where: { eventId_ticketId: { eventId: finalEventId, ticketId: item.productId } },
-              data: { quantity: { decrement: item.quantity } },
-            });
-            console.log(`[OK] Decremented quantity for Ticket: ${item.name}`);
+
+            if (!isOffline) {
+              await tx.eventTicket.update({
+                where: { eventId_ticketId: { eventId: finalEventId, ticketId: item.productId } },
+                data: { quantity: { decrement: item.quantity } },
+              });
+              console.log(`[OK] Decremented quantity for Ticket: ${item.name}`);
+            } else {
+              console.log(`[INFO] Offline payment - Skipping stock reduction for Ticket: ${item.name}`);
+            }
             break;
           }
 
@@ -143,11 +148,16 @@ export async function POST(req: NextRequest) {
             if (!eventSponsor || eventSponsor.quantity < item.quantity) {
               throw new Error(`Sponsor pack "${item.name}" is sold out or insufficient quantity.`);
             }
-            await tx.eventSponsorType.update({
-              where: { eventId_sponsorTypeId: { eventId: finalEventId, sponsorTypeId: item.productId } },
-              data: { quantity: { decrement: item.quantity } },
-            });
-            console.log(`[OK] Decremented quantity for Sponsor: ${item.name}`);
+
+            if (!isOffline) {
+              await tx.eventSponsorType.update({
+                where: { eventId_sponsorTypeId: { eventId: finalEventId, sponsorTypeId: item.productId } },
+                data: { quantity: { decrement: item.quantity } },
+              });
+              console.log(`[OK] Decremented quantity for Sponsor: ${item.name}`);
+            } else {
+              console.log(`[INFO] Offline payment - Skipping stock reduction for Sponsor: ${item.name}`);
+            }
             break;
           }
 
@@ -170,14 +180,18 @@ export async function POST(req: NextRequest) {
               );
             }
 
-            const updatedEventRoomType = await tx.eventRoomType.update({
-              where: { eventId_roomTypeId: { eventId: finalEventId, roomTypeId: item.roomTypeId } },
-              data: { quantity: { decrement: item.quantity } },
-            });
+            if (!isOffline) {
+              const updatedEventRoomType = await tx.eventRoomType.update({
+                where: { eventId_roomTypeId: { eventId: finalEventId, roomTypeId: item.roomTypeId } },
+                data: { quantity: { decrement: item.quantity } },
+              });
 
-            console.log(
-              `[OK] Decremented quantity for Hotel Room: ${item.name}. New quantity: ${updatedEventRoomType.quantity}.`
-            );
+              console.log(
+                `[OK] Decremented quantity for Hotel Room: ${item.name}. New quantity: ${updatedEventRoomType.quantity}.`
+              );
+            } else {
+              console.log(`[INFO] Offline payment - Skipping stock reduction for Hotel Room: ${item.name}`);
+            }
             break;
           }
 
@@ -206,21 +220,25 @@ export async function POST(req: NextRequest) {
               );
             }
 
-            const updated = await tx.eventBooth.update({
-              where: {
-                eventId_boothId: {
-                  eventId: finalEventId,
-                  boothId: item.productId,
+            if (!isOffline) {
+              const updated = await tx.eventBooth.update({
+                where: {
+                  eventId_boothId: {
+                    eventId: finalEventId,
+                    boothId: item.productId,
+                  },
                 },
-              },
-              data: {
-                quantity: { decrement: needed },
-              },
-            });
+                data: {
+                  quantity: { decrement: needed },
+                },
+              });
 
-            console.log(
-              `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
-            );
+              console.log(
+                `[OK] Decremented quantity for Booth: ${item.name}. New quantity: ${updated.quantity}`
+              );
+            } else {
+              console.log(`[INFO] Offline payment - Skipping stock reduction for Booth: ${item.name}`);
+            }
             break;
           }
 

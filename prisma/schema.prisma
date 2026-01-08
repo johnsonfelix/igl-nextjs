@@ -21,6 +21,7 @@ model Company {
   about                 String?
   memberSince           DateTime?
   userId                String?
+  memberFromYear        Int?
   createdAt             DateTime          @default(now())
   updatedAt             DateTime          @updatedAt
   sector                String?

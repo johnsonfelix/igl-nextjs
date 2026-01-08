@@ -242,12 +242,14 @@ const PriceCard = ({
   actionText = "Select",
   offerPercent,
   offerName,
+  isSoldOut = false,
 }: {
   item: { id: string; name: string; image: string | null; price: number };
   productType: CartItem["productType"];
   actionText?: string;
   offerPercent?: number | null;
   offerName?: string | null;
+  isSoldOut?: boolean;
 }) => {
   const { addToCart } = useCart();
 
@@ -264,6 +266,7 @@ const PriceCard = ({
   const newPrice = getDiscountedPrice(basePrice, offerPercent);
 
   const handleAddToCart = () => {
+    if (isSoldOut) return;
     addToCart({
       productId: item.id,
       productType,
@@ -276,8 +279,12 @@ const PriceCard = ({
   };
 
   return (
-    <div className="group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative">
-      {discounted && (
+    <div className={`group bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all duration-300 flex flex-col h-full relative ${isSoldOut ? 'opacity-75 grayscale-[0.5]' : ''}`}>
+      {isSoldOut ? (
+        <div className="absolute top-3 right-3 z-10 bg-gray-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+          SOLD OUT
+        </div>
+      ) : discounted && (
         <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
           {Math.round(offerPercent!)}% OFF
         </div>
@@ -289,13 +296,16 @@ const PriceCard = ({
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
         />
         <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+        {isSoldOut && <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px] flex items-center justify-center">
+          <span className="bg-black/50 text-white px-4 py-2 rounded-md font-bold uppercase tracking-widest border-2 border-white">Sold Out</span>
+        </div>}
       </div>
 
       <div className="p-5 flex-grow flex flex-col">
         <h4 className="text-lg font-bold text-gray-800 mb-2 group-hover:text-[#004aad] transition-colors">{item.name}</h4>
 
         <div className="mt-auto pt-4 border-t border-gray-100">
-          {discounted ? (
+          {discounted && !isSoldOut ? (
             <div className="flex items-end gap-2 mb-4">
               <div className="flex flex-col">
                 {offerPercent ? (
@@ -312,14 +322,18 @@ const PriceCard = ({
               </div>
             </div>
           ) : (
-            <div className="text-2xl font-bold text-[#004aad] mb-4">${item.price.toLocaleString()}</div>
+            <div className={`text-2xl font-bold mb-4 ${isSoldOut ? 'text-gray-400' : 'text-[#004aad]'}`}>${item.price.toLocaleString()}</div>
           )}
 
           <button
             onClick={handleAddToCart}
-            className="w-full bg-white border-2 border-[#004aad] text-[#004aad] font-bold py-2 rounded-lg hover:bg-[#004aad] hover:text-white transition-all flex items-center justify-center gap-2"
+            disabled={isSoldOut}
+            className={`w-full border-2 font-bold py-2 rounded-lg transition-all flex items-center justify-center gap-2 ${isSoldOut
+              ? 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-white border-[#004aad] text-[#004aad] hover:bg-[#004aad] hover:text-white'
+              }`}
           >
-            {actionText} <ShoppingCart className="h-4 w-4" />
+            {isSoldOut ? "Sold Out" : actionText} {!isSoldOut && <ShoppingCart className="h-4 w-4" />}
           </button>
         </div>
       </div>
@@ -1016,17 +1030,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       const key = `${option.id}__${option.name}`;
                       const qty = ticketQuantities[key] || 0;
 
+                      const ticketStock = option.parentTicket && (option.parentTicket as any).quantity !== undefined ? (option.parentTicket as any).quantity : 999;
+                      const isSoldOut = ticketStock <= 0;
+
                       return (
                         <div
                           key={key}
-                          className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}
+                          className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'} ${isSoldOut ? 'opacity-70 grayscale bg-gray-50' : ''}`}
                         >
                           <div className="flex-grow">
                             <div className="mb-2 font-bold text-gray-500 uppercase text-xs tracking-wider">
                               {option.parentTicket.name !== option.name ? option.parentTicket.name : 'Standard'}
                             </div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
-                            {option.sellingPrice ? (
+                            {isSoldOut ? (
+                              <div className="mt-2 mb-2 inline-block bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded">SOLD OUT</div>
+                            ) : option.sellingPrice ? (
                               <div className="flex flex-col">
                                 <span className="text-sm text-gray-400 line-through">${option.originalPrice.toLocaleString()}</span>
                                 <span className="text-2xl font-bold text-[#004aad]">${option.price.toLocaleString()}</span>
@@ -1048,7 +1067,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             <span className={`font-bold text-lg w-8 text-center ${qty > 0 ? 'text-[#004aad]' : 'text-gray-400'}`}>{qty}</span>
                             <button
                               onClick={(e) => { e.stopPropagation(); handleTicketQuantityChange(option.id, option.name, 1); }}
-                              className="p-2 rounded-md bg-white text-gray-700 shadow-sm hover:text-[#004aad] hover:bg-white transition-colors"
+                              className={`p-2 rounded-md transition-colors ${isSoldOut ? 'text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 shadow-sm hover:text-[#004aad] hover:bg-white'}`}
+                              disabled={isSoldOut}
                             >
                               <Plus size={16} />
                             </button>
@@ -1131,63 +1151,75 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   </div>
 
                   <div className="grid grid-cols-1 gap-4">
-                    {boothsList.map((booth) => (
-                      <div key={booth.id} className={`rounded-xl border-2 transition-all overflow-hidden ${wizardSelectedBooth?.id === booth.id ? 'border-[#004aad] bg-blue-50/50' : 'border-gray-100 hover:border-blue-200'}`}>
-                        <div
-                          onClick={() => handleWizardBoothSelect(booth)}
-                          className="cursor-pointer group flex gap-4 p-4"
-                        >
-                          <div className="h-20 w-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0">
-                            {booth.image && <img src={booth.image} className="h-full w-full object-cover" alt={booth.name} />}
+                    {boothsList.map((booth) => {
+                      const isSoldOut = (booth.quantity ?? 999) <= 0;
+                      return (
+                        <div key={booth.id} className={`rounded-xl border-2 transition-all overflow-hidden ${wizardSelectedBooth?.id === booth.id ? 'border-[#004aad] bg-blue-50/50' : 'border-gray-100 hover:border-blue-200'} ${isSoldOut ? 'opacity-75 bg-gray-50' : ''}`}>
+                          <div
+                            onClick={() => {
+                              if (!isSoldOut) handleWizardBoothSelect(booth);
+                            }}
+                            className={`cursor-pointer group flex gap-4 p-4 ${isSoldOut ? 'cursor-not-allowed' : ''}`}
+                          >
+                            <div className="h-20 w-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative">
+                              {booth.image && <img src={booth.image} className={`h-full w-full object-cover ${isSoldOut ? 'grayscale' : ''}`} alt={booth.name} />}
+                              {isSoldOut && <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold uppercase">Sold Out</div>}
+                            </div>
+                            <div className="flex-grow">
+                              <h4 className={`font-semibold ${isSoldOut ? 'text-gray-500' : 'text-gray-900'}`}>{booth.name}</h4>
+                              {isSoldOut ? (
+                                <p className="text-gray-400 font-bold text-sm">Sold Out</p>
+                              ) : (
+                                <p className="text-[#004aad] font-bold">Included</p>
+                              )}
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{booth.description}</p>
+                            </div>
+                            <div className="flex items-center px-2">
+                              {!isSoldOut && (
+                                wizardSelectedBooth?.id === booth.id ? (
+                                  <div className="bg-[#004aad] text-white p-1 rounded-full"><Users size={16} /></div>
+                                ) : (
+                                  <div className="h-6 w-6 rounded-full border-2 border-gray-300" />
+                                )
+                              )}
+                            </div>
                           </div>
-                          <div className="flex-grow">
-                            <h4 className="font-semibold text-gray-900">{booth.name}</h4>
-                            <p className="text-[#004aad] font-bold">Included</p>
-                            <p className="text-xs text-gray-500 mt-1 line-clamp-2">{booth.description}</p>
-                          </div>
-                          <div className="flex items-center px-2">
-                            {wizardSelectedBooth?.id === booth.id ? (
-                              <div className="bg-[#004aad] text-white p-1 rounded-full"><Users size={16} /></div>
-                            ) : (
-                              <div className="h-6 w-6 rounded-full border-2 border-gray-300" />
-                            )}
-                          </div>
-                        </div>
 
-                        {/* SLOTS EXPANSION */}
-                        {wizardSelectedBooth?.id === booth.id && (
-                          <div className="px-4 pb-4 animate-fadeIn border-t border-blue-100 mt-2 pt-2">
-                            <h5 className="text-sm font-bold text-gray-700 mb-2">Select a Slot / Type:</h5>
-                            {boothSubtypesLoading ? (
-                              <div className="flex justify-center py-4"><Loader className="animate-spin text-[#004aad]" /></div>
-                            ) : boothSubtypes.length > 0 ? (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {boothSubtypes.map(slot => (
-                                  <button
-                                    key={slot.id}
-                                    onClick={() => setWizardSelectedBoothSlot(slot)}
-                                    className={`text-left text-sm p-3 rounded-lg border flex justify-between items-center transition-all ${wizardSelectedBoothSlot?.id === slot.id ? 'bg-[#004aad] text-white border-[#004aad] shadow-md' : 'bg-white border-gray-200 hover:border-[#004aad] text-gray-700'}`}
-                                  >
-                                    <div className="flex flex-col">
-                                      <span className="font-semibold">{slot.name}</span>
-                                      {slot.slotStart && (
-                                        <span className={`text-xs mt-0.5 ${wizardSelectedBoothSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-500'}`}>
-                                          {format(parseISO(slot.slotStart), "MMM d, h:mm a")}
-                                          {slot.slotEnd && ` - ${format(parseISO(slot.slotEnd), "h:mm a")}`}
-                                        </span>
-                                      )}
-                                    </div>
-                                    <span className="font-bold whitespace-nowrap ml-2">Included</span>
-                                  </button>
-                                ))}
-                              </div>
-                            ) : (
-                              <p className="text-sm text-gray-500 italic py-2">No specific slots available. The base booth will be booked.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+                          {/* SLOTS EXPANSION */}
+                          {wizardSelectedBooth?.id === booth.id && (
+                            <div className="px-4 pb-4 animate-fadeIn border-t border-blue-100 mt-2 pt-2">
+                              <h5 className="text-sm font-bold text-gray-700 mb-2">Select a Slot / Type:</h5>
+                              {boothSubtypesLoading ? (
+                                <div className="flex justify-center py-4"><Loader className="animate-spin text-[#004aad]" /></div>
+                              ) : boothSubtypes.length > 0 ? (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                  {boothSubtypes.map(slot => (
+                                    <button
+                                      key={slot.id}
+                                      onClick={() => setWizardSelectedBoothSlot(slot)}
+                                      className={`text-left text-sm p-3 rounded-lg border flex justify-between items-center transition-all ${wizardSelectedBoothSlot?.id === slot.id ? 'bg-[#004aad] text-white border-[#004aad] shadow-md' : 'bg-white border-gray-200 hover:border-[#004aad] text-gray-700'}`}
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-semibold">{slot.name}</span>
+                                        {slot.slotStart && (
+                                          <span className={`text-xs mt-0.5 ${wizardSelectedBoothSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-500'}`}>
+                                            {format(parseISO(slot.slotStart), "MMM d, h:mm a")}
+                                            {slot.slotEnd && ` - ${format(parseISO(slot.slotEnd), "h:mm a")}`}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className="font-bold whitespace-nowrap ml-2">Included</span>
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-500 italic py-2">No specific slots available. The base booth will be booked.</p>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -1724,9 +1756,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="animate-fadeIn">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Sponsorship Opportunities</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {eventSponsorTypes.map(({ sponsorType }) => {
+                  {eventSponsorTypes.map(({ sponsorType, quantity }) => {
                     const best = getBestOfferForItem("SPONSOR", sponsorType.id);
-                    return <PriceCard key={sponsorType.id} item={{ ...sponsorType }} productType="SPONSOR" actionText="Become Sponsor" offerPercent={best.percent ?? undefined} offerName={best.name} />
+                    const isSoldOut = quantity <= 0;
+                    return <PriceCard key={sponsorType.id} item={{ ...sponsorType }} productType="SPONSOR" actionText="Become Sponsor" offerPercent={best.percent ?? undefined} offerName={best.name} isSoldOut={isSoldOut} />
                   })}
                 </div>
               </div>
@@ -1845,9 +1878,13 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   <div key={rt.id} className="bg-white p-4 rounded-xl border border-gray-200 shadow-sm flex flex-col sm:flex-row justify-between gap-4">
                                     <div className="flex-grow">
                                       <div className="flex justify-between items-start mb-1">
-                                        <p className="font-bold text-gray-800 text-lg">
+                                        <p className={`font-bold text-lg ${rt.eventRoomTypes[0]?.quantity <= 0 ? 'text-gray-500' : 'text-gray-800'}`}>
                                           {rt.roomType}
-                                          <span className="text-sm text-[#004aad] ml-2 font-normal">(Comes along with the ticket)</span>
+                                          {rt.eventRoomTypes[0]?.quantity <= 0 ? (
+                                            <span className="ml-2 bg-gray-600 text-white text-xs px-2 py-0.5 rounded-full uppercase tracking-wide">Sold Out</span>
+                                          ) : (
+                                            <span className="text-sm text-[#004aad] ml-2 font-normal">(Comes along with the ticket)</span>
+                                          )}
                                         </p>
                                         <p className="font-bold text-[#004aad] sm:hidden text-lg">${rt.price}</p>
                                       </div>
@@ -1859,7 +1896,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                       </div>
                                     </div>
                                     <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                      <p className="font-bold text-[#004aad] text-xl hidden sm:block mb-2">${rt.price}</p>
+                                      <p className={`font-bold text-xl hidden sm:block mb-2 ${rt.eventRoomTypes[0]?.quantity <= 0 ? 'text-gray-400' : 'text-[#004aad]'}`}>${rt.price}</p>
                                       {/* Button hidden as requested previously */}
                                     </div>
                                   </div>

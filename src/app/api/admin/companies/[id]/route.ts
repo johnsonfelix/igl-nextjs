@@ -56,6 +56,7 @@ export async function PATCH(
             newMedia, // Array of strings (URLs) to add
             deleteMediaIds, // Array of strings (IDs) to delete
             purchasedMembership, // <--- Added this
+            memberFromYear,
             // New fields for capabilities
             scopeOfBusiness,
             servicesOffered,
@@ -121,6 +122,7 @@ export async function PATCH(
             directors,
             participationYears,
             purchasedMembership, // <--- Added this
+            memberFromYear, // New Int field
             scopeOfBusiness,
             servicesOffered,
             ...locationUpdate,

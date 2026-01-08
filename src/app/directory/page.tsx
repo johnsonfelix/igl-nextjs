@@ -98,8 +98,8 @@ export default function CompaniesListPage() {
   }, [country, city, companyName, memberId, port]);
 
   // --- UI State ---
-  const tabs = ['Location', 'Company Name', 'Member ID'];
-  const [activeTab, setActiveTab] = useState<string>('Location');
+  const tabs = ['Company Name', 'Member ID'];
+  const [activeTab, setActiveTab] = useState<string>('Company Name');
 
   // --- Data Fetching ---
   useEffect(() => {
@@ -177,15 +177,6 @@ export default function CompaniesListPage() {
   const renderSearchInputs = () => {
     const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-[#004aad] focus:border-[#004aad] transition shadow-sm";
     switch (activeTab) {
-      case 'Location':
-        return (
-          <>
-            <select name="country" value={country} onChange={(e) => setCountry(e.target.value)} className={inputClass}>
-              {countryOptions.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <input type="text" name="city" placeholder="City (e.g., Chennai)" value={city} onChange={(e) => setCity(e.target.value)} className={inputClass} />
-          </>
-        );
       case 'Company Name':
         return <input type="text" name="companyName" placeholder="Enter Company Name" value={companyName} onChange={(e) => setCompanyName(e.target.value)} className={`${inputClass} lg:col-span-2`} />;
       case 'Member ID':
