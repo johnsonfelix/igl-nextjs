@@ -24,6 +24,7 @@ interface Company {
     name: string;
     thumbnail?: string | null;
   };
+  memberFromYear?: number;
 }
 
 interface MembershipPlan {
@@ -263,6 +264,9 @@ export default function CompaniesListPage() {
               const establishedYears = getEstablishedYears(company.established);
               const displayLocation = [company.location?.city, company.location?.country].filter(Boolean).join(', ');
 
+              const currentYear = new Date().getFullYear();
+              const membershipYears = company.memberFromYear ? currentYear - company.memberFromYear : 0;
+
               return (
                 <Link key={company.id} href={`/company/details/${company.id}`} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#004aad]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative block text-left">
                   {/* Decorative border on hover */}
@@ -322,6 +326,11 @@ export default function CompaniesListPage() {
                         // Fallback: Badge
                         return <MembershipBadge type={company.purchasedMembership} />;
                       })()}
+                      {membershipYears > 0 && (
+                        <span className="rounded-full px-3 py-1 text-xs font-medium flex items-center gap-1.5 bg-indigo-100 text-indigo-800">
+                          {membershipYears} {membershipYears === 1 ? 'Year' : 'Years'} Member
+                        </span>
+                      )}
                       {company.specialties?.slice(0, 2).map(spec => <MembershipBadge key={spec} type={spec} />)}
                     </div>
                   </div>

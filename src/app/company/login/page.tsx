@@ -29,7 +29,15 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (res.ok) {
-        // success — navigate based on role
+        // success — navigate based on role or redirect param
+        const params = new URLSearchParams(window.location.search);
+        const redirectUrl = params.get('redirect');
+
+        if (redirectUrl) {
+          window.location.assign(redirectUrl);
+          return;
+        }
+
         if (data.role === 'ADMIN') {
           window.location.assign('/admin/dashboard');
           return;

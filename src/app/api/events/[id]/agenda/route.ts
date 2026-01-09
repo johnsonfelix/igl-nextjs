@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     console.log('Request body:', body);
 
-    const { title, description, date, startTime, endTime } = body;
+    const { title, description, date, startTime, endTime, fullStartTime, fullEndTime } = body;
 
     if (
       typeof title !== 'string' ||
@@ -54,12 +54,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing or invalid required fields' }, { status: 400 });
     }
 
-    // Build full datetimes from date + time (e.g. "2025-08-21T20:26:00")
-    const startIso = `${date}T${normalizeTime(startTime)}`;
-    const endIso = `${date}T${normalizeTime(endTime)}`;
+    let parsedStart: Date;
+    let parsedEnd: Date;
 
-    const parsedStart = new Date(startIso);
-    const parsedEnd = new Date(endIso);
+    if (typeof fullStartTime === 'string' && typeof fullEndTime === 'string') {
+      parsedStart = new Date(fullStartTime);
+      parsedEnd = new Date(fullEndTime);
+    } else {
+      // Build full datetimes from date + time (e.g. "2025-08-21T20:26:00")
+      // NOTE: This assumes server local time or UTC if string has no offset, which causes timezone issues.
+      const startIso = `${date}T${normalizeTime(startTime)}`;
+      const endIso = `${date}T${normalizeTime(endTime)}`;
+      parsedStart = new Date(startIso);
+      parsedEnd = new Date(endIso);
+    }
 
     if (isNaN(parsedStart.getTime()) || isNaN(parsedEnd.getTime())) {
       return NextResponse.json({ error: 'Invalid date/time format provided' }, { status: 400 });

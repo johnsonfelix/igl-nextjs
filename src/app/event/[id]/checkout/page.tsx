@@ -7,6 +7,7 @@ import { useCart } from "@/app/event/[id]/CartContext";
 import { useAuth } from "@/app/context/AuthContext";
 import { InvoiceTemplate } from "@/app/components/InvoiceTemplate";
 import { Printer } from "lucide-react";
+import toast from "react-hot-toast";
 
 /** ---------- Types ---------- */
 
@@ -18,6 +19,8 @@ type Account = {
   phone: string;
   address1: string;
   address2: string;
+  companyName: string;
+  designation: string;
 };
 
 type CouponApplied = {
@@ -47,38 +50,7 @@ type Offer = {
 
 /** ---------- Small UI helpers ---------- */
 
-function StepDot({ state }: { state: "completed" | "active" | "upcoming" }) {
-  if (state === "completed") {
-    return (
-      <div className="w-[22px] h-[22px] rounded-full bg-indigo-600 grid place-items-center text-white shadow-sm">
-        <Check className="w-3.5 h-3.5" />
-      </div>
-    );
-  }
-  if (state === "active") {
-    return <div className="w-[22px] h-[22px] rounded-full bg-indigo-600 shadow-sm" />;
-  }
-  return <div className="w-[22px] h-[22px] rounded-full border-2 border-indigo-300" />;
-}
 
-function Dashed() {
-  return (
-    <div className="flex-1 h-[22px] flex items-center">
-      <div className="w-full h-[2px] border-t-2 border-dashed border-indigo-300" />
-    </div>
-  );
-}
-
-function HeaderLabels() {
-  return (
-    <div className="flex justify-between text-xs text-slate-500 font-medium tracking-wide uppercase px-1">
-      <span>Cart</span>
-      <span>Account</span>
-      <span>Details</span>
-      <span>Payment</span>
-    </div>
-  );
-}
 
 function Totals({
   subtotal,
@@ -104,7 +76,7 @@ function Totals({
 
       {offerValue > 0 && (
         <div className="flex justify-between text-rose-700">
-          <span>Offer {offerLabel ? `(${offerLabel})` : ""}</span>
+          <span>Earlybird offer</span>
           <span>- ${offerValue.toFixed(2)}</span>
         </div>
       )}
@@ -171,10 +143,24 @@ function CartSummary({
               </div>
 
               {/* Quantity Controls */}
-              {/* Quantity Controls - Hide for HOTEL */}
+              {/* Quantity Controls - Hide for HOTEL & SPONSOR */}
               {String(item.productType || "").toUpperCase() === "HOTEL" ? (
                 <div className="mt-2 text-sm text-gray-500 font-medium">
                   Qty: {item.quantity} (Linked to Ticket)
+                </div>
+              ) : String(item.productType || "").toUpperCase() === "SPONSOR" ? (
+                <div className="flex items-center gap-3 mt-2">
+                  {/* For Sponsor, show Qty but disabled controls, or just Remove button */}
+                  <div className="text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
+                    Qty: {item.quantity}
+                  </div>
+                  <button
+                    onClick={() => removeFromCart(item.productId, item.roomTypeId)}
+                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+                    title="Remove item"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 mt-2">
@@ -270,14 +256,48 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
 
-  // steps: 0 = cart, 1 = account, 2 = details, 3 = payment
-  const [step, setStep] = useState<0 | 1 | 2 | 3>(0);
+  const handleUpdateQuantity = (productId: string, newQty: number, roomTypeId?: string) => {
+    // Validate: Accompanying <= Ticket
+    let ticketCount = 0;
+    let accompanyingCount = 0;
+
+    cart.forEach(item => {
+      // is this the item being changed?
+      let qty = Number(item.quantity) || 0;
+      const isTarget = item.productId === productId && item.roomTypeId === roomTypeId;
+      if (isTarget) {
+        qty = newQty;
+      }
+
+      const nameLower = (item.name || "").toLowerCase();
+      // Logic matching page.tsx:
+      if (nameLower.includes("meeting package")) return;
+
+      if (nameLower.includes("accompanying")) {
+        accompanyingCount += qty;
+      } else if (nameLower.includes("ticket") || nameLower.includes("regular")) {
+        ticketCount += qty;
+      }
+    });
+
+    if (accompanyingCount > ticketCount) {
+      toast.error("Accompanying members cannot exceed the number of tickets.");
+      return; // Block update
+    }
+
+    updateQuantity(productId, newQty, roomTypeId);
+  };
+
+
+
+
   const [isSubmitting, setSubmitting] = useState(false);
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderData, setOrderData] = useState<any>(null);
 
   // New state for additional info
   const [companyName, setCompanyName] = useState("");
+  // const [companyName, setCompanyName] = useState(""); // Removed from here
   const [tshirtSize, setTshirtSize] = useState("");
   const [referralSource, setReferralSource] = useState("");
 
@@ -291,6 +311,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     phone: "",
     address1: "",
     address2: "",
+    companyName: "",
+    designation: "",
   });
 
   // Addresses
@@ -373,6 +395,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
             email: email || prev.email,
             phone: phone || prev.phone,
             address1: address1 || prev.address1,
+            companyName: name || prev.companyName,
           }));
 
           // Prefill Billing Address
@@ -731,16 +754,50 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   // Update the submitCheckout function in your checkout page
 
   const submitCheckout = async () => {
-    if (!companyId) {
-      alert("You must be logged in to check out.");
-      return;
-    }
     if (!cart.length) {
       alert("Cart is empty.");
       return;
     }
+
+    // Final Validation: Accompanying <= Ticket
+    let ticketCount = 0;
+    let accompanyingCount = 0;
+    cart.forEach(item => {
+      const qty = Number(item.quantity) || 0;
+      const nameLower = (item.name || "").toLowerCase();
+      if (nameLower.includes("meeting package")) return;
+      if (nameLower.includes("accompanying")) {
+        accompanyingCount += qty;
+      } else if (nameLower.includes("ticket") || nameLower.includes("regular")) {
+        ticketCount += qty;
+      }
+    });
+    if (accompanyingCount > ticketCount) {
+      toast.error("Accompanying members cannot exceed the number of tickets.");
+      alert("Validation Error: Accompanying members cannot exceed the number of tickets.");
+      return;
+    }
+
     if (!agreeTerms || !agreePolicies) {
       alert("You must agree to the Terms & Policies.");
+      return;
+    }
+
+    // Validate Account
+    if (!account.name || !account.email || !billingAddress.line1) {
+      alert("Please fill in all required account and address fields.");
+      // Scroll to top or specific section? For now alert is enough.
+      return;
+    }
+
+    if (!companyId && (!account.companyName || !account.designation)) {
+      alert("Company Name and Designation are required for new accounts.");
+      return;
+    }
+
+    // Validate Additional Info
+    if (!tshirtSize || !referralSource) {
+      alert("Please select your T-Shirt size and tell us how you heard about us.");
       return;
     }
 
@@ -750,7 +807,6 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         companyId,
         account,
         additionalDetails: {
-          companyName,
           tshirtSize,
           referralSource,
         },
@@ -812,97 +868,109 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }
   };
 
-  // helper: step state for StepDot
-  const stepState = (index: 0 | 1 | 2 | 3): "completed" | "active" | "upcoming" => {
-    if (step > index) return "completed";
-    if (step === index) return "active";
-    return "upcoming";
-  };
+
 
   return (
-    <div className="container mx-auto p-6 md:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <Link href={`/event/${eventId}`} className="text-indigo-600 hover:underline">
-          ← Back to Event
+    <div className="container mx-auto p-4 md:p-8">
+      <div className="flex items-center justify-between mb-8">
+        <Link href={`/event/${eventId}`} className="text-indigo-600 hover:underline flex items-center gap-2">
+          <ArrowLeft className="w-4 h-4" /> Back to Event
         </Link>
-        <h1 className="text-2xl font-bold text-slate-800">Checkout</h1>
+        <h1 className="text-3xl font-bold text-slate-800">Checkout</h1>
       </div>
 
-      {/* Stepper */}
-      <div className="mb-3">
-        <div className="flex items-center">
-          <StepDot state={stepState(0)} />
-          <Dashed />
-          <StepDot state={stepState(1)} />
-          <Dashed />
-          <StepDot state={stepState(2)} />
-          <Dashed />
-          <StepDot state={stepState(3)} />
-        </div>
-        <div className="mt-2">
-          <HeaderLabels />
-        </div>
-      </div>
+      {!orderConfirmed ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Form Sections */}
+          <div className="lg:col-span-2 space-y-8">
 
-      {/* Single-column content */}
-      <div className="bg-white p-4 rounded-lg shadow">
-        {step === 0 && (
-          <div className="space-y-4">
-            <CartSummary
-              cart={cart}
-              couponCode={couponCode}
-              setCouponCode={setCouponCode}
-              appliedCoupon={appliedCoupon}
-              applyCoupon={applyCoupon}
-              removeCoupon={removeCoupon}
-              couponBusy={couponBusy}
-              linesWithOffers={computed.lines}
-              updateQuantity={updateQuantity}
-              removeFromCart={removeFromCart}
-            />
-
-            <div className="mt-4">
-              <Totals
-                subtotal={computed.subtotalBeforeOffers}
-                offerLabel={offerLabel}
-                offerValue={computed.offerDiscountTotal}
-                discountCode={appliedCoupon.code}
-                discountValue={couponDiscountValue}
-                total={finalTotal}
+            {/* 1. Cart Summary */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">1</span>
+                Your Cart
+              </h2>
+              <CartSummary
+                cart={cart}
+                couponCode={couponCode}
+                setCouponCode={setCouponCode}
+                appliedCoupon={appliedCoupon}
+                applyCoupon={applyCoupon}
+                removeCoupon={removeCoupon}
+                couponBusy={couponBusy}
+                linesWithOffers={computed.lines}
+                updateQuantity={handleUpdateQuantity}
+                removeFromCart={removeFromCart}
               />
             </div>
 
-            <button onClick={() => setStep(1)} disabled={cart.length === 0} className="w-full mt-4 bg-indigo-600 text-white font-semibold py-3 rounded-md disabled:bg-slate-400">
-              Continue
-            </button>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="space-y-4">
-            {/* Account form */}
-            <div className="space-y-3">
-              <h3 className="font-semibold text-slate-800">ACCOUNT DETAILS</h3>
-              <input value={account.name} onChange={(e) => setAccount((a) => ({ ...a, name: e.target.value }))} placeholder="Name" className="w-full rounded border px-3 py-2" />
-              <input value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} placeholder="Email" type="email" className="w-full rounded border px-3 py-2" />
-              <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value }))} placeholder="Phone" className="w-full rounded border px-3 py-2" />
-              <input value={account.address1} onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))} placeholder="Address 1" className="w-full rounded border px-3 py-2" />
-              <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Address 2" className="w-full rounded border px-3 py-2" />
-            </div>
-
-            {/* Address Details */}
-            <div className="space-y-4 pt-4 border-t">
-              <h3 className="font-semibold text-slate-800">BILLING ADDRESS</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input value={billingAddress.line1} onChange={(e) => setBillingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Address Line 1" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.line2} onChange={(e) => setBillingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.city} onChange={(e) => setBillingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.state} onChange={(e) => setBillingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.zip} onChange={(e) => setBillingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
-                <input value={billingAddress.country} onChange={(e) => setBillingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
+            {/* 2. Account Details */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">2</span>
+                Account Details
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Company Name *</label>
+                  <input value={account.companyName} onChange={(e) => setAccount((a) => ({ ...a, companyName: e.target.value }))} placeholder="Enter company name" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Designation *</label>
+                  <input value={account.designation} onChange={(e) => setAccount((a) => ({ ...a, designation: e.target.value }))} placeholder="Enter your designation" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Name *</label>
+                  <input value={account.name} onChange={(e) => setAccount((a) => ({ ...a, name: e.target.value }))} placeholder="Enter your name" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Email *</label>
+                  <input value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} placeholder="Enter your email" type="email" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Phone</label>
+                  <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value }))} placeholder="Enter phone number" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Address 1</label>
+                  <input value={account.address1} onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))} placeholder="Enter address line 1" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Address 2</label>
+                  <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Enter address line 2" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 mt-4 mb-2">
+              {/* Billing Address */}
+              <h3 className="font-semibold text-slate-800 mt-6 mb-3">Billing Address</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Address Line 1 *</label>
+                  <input value={billingAddress.line1} onChange={(e) => setBillingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Enter address line 1" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Address Line 2</label>
+                  <input value={billingAddress.line2} onChange={(e) => setBillingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Enter address line 2" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">City</label>
+                  <input value={billingAddress.city} onChange={(e) => setBillingAddress(p => ({ ...p, city: e.target.value }))} placeholder="Enter city" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">State</label>
+                  <input value={billingAddress.state} onChange={(e) => setBillingAddress(p => ({ ...p, state: e.target.value }))} placeholder="Enter state" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">ZIP Code</label>
+                  <input value={billingAddress.zip} onChange={(e) => setBillingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="Enter ZIP code" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Country</label>
+                  <input value={billingAddress.country} onChange={(e) => setBillingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Enter country" className="w-full rounded-lg border px-4 py-3" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mt-4">
                 <input
                   type="checkbox"
                   id="sameAsBilling"
@@ -916,22 +984,106 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
 
               {!sameAsBilling && (
-                <div className="space-y-4 mt-4 p-4 bg-gray-50 rounded-lg animate-fadeIn">
-                  <h3 className="font-semibold text-slate-800">SHIPPING ADDRESS</h3>
+                <div className="mt-4 p-4 bg-gray-50 rounded-lg animate-fadeIn">
+                  <h3 className="font-semibold text-slate-800 mb-3">Shipping Address</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <input value={shippingAddress.line1} onChange={(e) => setShippingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Address Line 1" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.line2} onChange={(e) => setShippingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Address Line 2 (Optional)" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.city} onChange={(e) => setShippingAddress(p => ({ ...p, city: e.target.value }))} placeholder="City" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.state} onChange={(e) => setShippingAddress(p => ({ ...p, state: e.target.value }))} placeholder="State" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.zip} onChange={(e) => setShippingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="ZIP / Postal Code" className="w-full rounded border px-3 py-2" />
-                    <input value={shippingAddress.country} onChange={(e) => setShippingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Country" className="w-full rounded border px-3 py-2" />
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">Address Line 1</label>
+                      <input value={shippingAddress.line1} onChange={(e) => setShippingAddress(p => ({ ...p, line1: e.target.value }))} placeholder="Enter address line 1" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">Address Line 2</label>
+                      <input value={shippingAddress.line2} onChange={(e) => setShippingAddress(p => ({ ...p, line2: e.target.value }))} placeholder="Enter address line 2" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">City</label>
+                      <input value={shippingAddress.city} onChange={(e) => setShippingAddress(p => ({ ...p, city: e.target.value }))} placeholder="Enter city" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">State</label>
+                      <input value={shippingAddress.state} onChange={(e) => setShippingAddress(p => ({ ...p, state: e.target.value }))} placeholder="Enter state" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">ZIP Code</label>
+                      <input value={shippingAddress.zip} onChange={(e) => setShippingAddress(p => ({ ...p, zip: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="Enter ZIP code" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-semibold text-slate-700">Country</label>
+                      <input value={shippingAddress.country} onChange={(e) => setShippingAddress(p => ({ ...p, country: e.target.value }))} placeholder="Enter country" className="w-full rounded-lg border px-4 py-3" />
+                    </div>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Totals below account */}
-            <div>
+            {/* 3. Additional Information */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">3</span>
+                Additional Information
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">T-Shirt Size *</label>
+                  <select
+                    value={tshirtSize}
+                    onChange={(e) => setTshirtSize(e.target.value)}
+                    className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none bg-white"
+                  >
+                    <option value="">Select Size</option>
+                    {tshirtOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-3 pt-4">
+                <label className="text-sm font-semibold text-slate-700 block">How did you know about our website? *</label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {referralOptions.map((opt) => (
+                    <label key={opt} className={`cursor-pointer border rounded-lg p-3 text-sm font-medium text-center transition-all ${referralSource === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300 text-slate-600'}`}>
+                      <input type="radio" name="referral" value={opt} checked={referralSource === opt} onChange={(e) => setReferralSource(e.target.value)} className="sr-only" />
+                      {opt}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Payment Method */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">4</span>
+                Payment Method
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300'}`}>
+                  <input type="radio" name="pm" value="offline" checked={paymentMethod === 'offline'} onChange={() => setPaymentMethod('offline')} className="sr-only" />
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800">Offline Payment</span>
+                    <div className="w-5 h-5 rounded-full border border-indigo-600 flex items-center justify-center">
+                      {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
+                    </div>
+                  </div>
+                  <p className="text-sm text-slate-500">Bank Transfer or Cheque payment. Details shown after confirmation.</p>
+                </label>
+                <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-400">Online Payment</span>
+                    <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
+                  </div>
+                  <p className="text-sm text-slate-400">Credit Card, Debit Card, Net Banking</p>
+                </label>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Right Column: Order Summary (Sticky) */}
+          <div className="lg:col-span-1">
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-4">Order Summary</h2>
+
+              {/* Totals */}
               <Totals
                 subtotal={computed.subtotalBeforeOffers}
                 offerLabel={offerLabel}
@@ -940,276 +1092,95 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 discountValue={couponDiscountValue}
                 total={finalTotal}
               />
-            </div>
 
+              {/* Terms Checkboxes */}
+              <div className="space-y-3 mt-6 pt-6 border-t border-gray-100">
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-1 w-4 h-4 text-indigo-600 rounded" />
+                  <span className="text-sm text-slate-600">I agree to the <Link href="/by-laws" target="_blank" className="text-indigo-600 hover:underline">By-Laws</Link></span>
+                </label>
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input type="checkbox" checked={agreePolicies} onChange={(e) => setAgreePolicies(e.target.checked)} className="mt-1 w-4 h-4 text-indigo-600 rounded" />
+                  <span className="text-sm text-slate-600">I agree to the <Link href="/payment-protection" target="_blank" className="text-indigo-600 hover:underline">Payment Protection Plan</Link></span>
+                </label>
+              </div>
+
+              {/* Submit Button */}
+              <button
+                onClick={submitCheckout}
+                disabled={isSubmitting || cart.length === 0}
+                className="w-full mt-6 bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-2"
+              >
+                {isSubmitting ? <><Loader className="w-5 h-5 animate-spin" /> Processing...</> : "Confirm Order"}
+              </button>
+
+              <p className="text-center text-xs text-slate-400 mt-4">
+                Secure checkout. Your information is protected.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* Success State */
+        <div className="animate-fadeIn max-w-4xl mx-auto">
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 bg-green-50 p-6 rounded-xl border border-green-200">
+            <div className="flex items-center gap-4 text-green-800">
+              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <Check className="w-6 h-6" />
+              </div>
+              <div>
+                <h2 className="font-bold text-xl">Order Confirmed!</h2>
+                <p className="text-green-700">Thank you for your purchase. Please save your invoice.</p>
+              </div>
+            </div>
             <div className="flex gap-3">
-              <button onClick={() => setStep(0)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-slate-50 transition-colors" title="Back">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
+              <Link href={`/event/${eventId}`} className="px-5 py-2.5 text-indigo-600 font-semibold hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-indigo-100">
+                Return to Event
+              </Link>
               <button
-                onClick={() => {
-                  if (!account.name || !account.email || !billingAddress.line1) {
-                    alert("Please fill in required fields");
-                    return;
-                  }
-                  setStep(2);
+                onClick={async () => {
+                  const element = document.getElementById('invoice-component');
+                  if (!element) return;
+                  const html2pdf = (await import('html2pdf.js')).default;
+                  const opt = {
+                    margin: 0,
+                    filename: `Invoice_${orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                  } as any;
+                  html2pdf().set(opt).from(element).save();
                 }}
-                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
+                className="flex items-center gap-2 bg-[#004aad] text-white px-6 py-2.5 rounded-lg font-bold hover:bg-[#00317a] shadow-md hover:shadow-lg transition-all active:scale-95"
               >
-                Continue to Details
+                <Printer className="w-4 h-4" /> Download PDF
               </button>
             </div>
           </div>
-        )}
 
-        {step === 2 && (
-          <div className="space-y-6 animate-fadeIn">
-            <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Additional Information</h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Company Name */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">Company Name</label>
-                <input
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="Enter your company name"
-                  className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 transition-all outline-none"
-                />
-              </div>
-
-              {/* T-Shirt Size */}
-              <div className="space-y-2">
-                <label className="text-sm font-semibold text-slate-700">T-Shirt Size</label>
-                <select
-                  value={tshirtSize}
-                  onChange={(e) => setTshirtSize(e.target.value)}
-                  className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 transition-all outline-none bg-white"
-                >
-                  <option value="">Select Size</option>
-                  {tshirtOptions.map(opt => (
-                    <option key={opt} value={opt}>{opt}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            {/* Referral Source */}
-            <div className="space-y-3 pt-2">
-              <label className="text-sm font-semibold text-slate-700 block">How did you know about our website?</label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {referralOptions.map((opt) => (
-                  <label key={opt} className={`cursor-pointer border rounded-lg p-3 text-sm font-medium text-center transition-all ${referralSource === opt ? 'border-indigo-600 bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300 text-slate-600'}`}>
-                    <input
-                      type="radio"
-                      name="referral"
-                      value={opt}
-                      checked={referralSource === opt}
-                      onChange={(e) => setReferralSource(e.target.value)}
-                      className="sr-only"
-                    />
-                    {opt}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-6 border-t mt-4">
-              <button onClick={() => setStep(1)} className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-slate-50 transition-colors" title="Back">
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => {
-                  if (!tshirtSize || !referralSource) {
-                    alert("Please select your T-Shirt size and tell us how you heard about us.");
-                    return;
-                  }
-                  setStep(3);
+          <div className="bg-white rounded-lg shadow-2xl print:shadow-none overflow-hidden">
+            {orderData && (
+              <InvoiceTemplate
+                orderId={orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}
+                date={orderData.createdAt || new Date()}
+                customerDetails={{
+                  name: account.name,
+                  email: account.email,
+                  address: [account.address1, account.address2, billingAddress.city, billingAddress.country].filter(Boolean).join(", ")
                 }}
-                className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-200"
-              >
-                Proceed to Payment
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="space-y-6">
-
-            {/* Show Payment Methods & Confirm IF not confirmed yet */}
-            {!orderConfirmed && (
-              <div className="space-y-6 animate-fadeIn">
-                <h3 className="text-xl font-bold text-slate-800 border-b pb-4">Payment Method</h3>
-
-                {/* Method Selector */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Offline */}
-                  <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-indigo-600 bg-indigo-50 ring-1 ring-indigo-600' : 'border-gray-200 hover:border-gray-300'}`}>
-                    <input
-                      type="radio"
-                      name="pm"
-                      value="offline"
-                      checked={paymentMethod === 'offline'}
-                      onChange={() => setPaymentMethod('offline')}
-                      className="sr-only"
-                    />
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-800">Offline Payment</span>
-                      <div className="w-5 h-5 rounded-full border border-indigo-600 flex items-center justify-center">
-                        {paymentMethod === 'offline' && <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />}
-                      </div>
-                    </div>
-                    <p className="text-sm text-slate-500">Bank Transfer or Cheque payment. Details shown after confirmation.</p>
-                  </label>
-
-                  {/* Online (Disabled) */}
-                  <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-400">Online Payment</span>
-                      <span className="text-[10px] bg-gray-200 text-gray-500 font-bold px-2 py-1 rounded">UNAVAILABLE</span>
-                    </div>
-                    <p className="text-sm text-slate-400">Credit Card, Debit Card, Net Banking</p>
-                  </label>
-                </div>
-
-                {/* Terms and Totals */}
-                <div className="space-y-4 pt-4 border-t">
-                  <div className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id="terms"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <label htmlFor="terms" className="text-sm text-slate-600 cursor-pointer">
-                      I agree to the <Link href="/by-laws" target="_blank" className="text-indigo-600 hover:underline">By-Laws</Link>
-                    </label>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <input
-                      type="checkbox"
-                      id="privacy"
-                      checked={agreePolicies}
-                      onChange={(e) => setAgreePolicies(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-indigo-600 rounded"
-                    />
-                    <label htmlFor="privacy" className="text-sm text-slate-600 cursor-pointer">
-                      I agree to the <Link href="/payment-protection" target="_blank" className="text-indigo-600 hover:underline">Payment Protection Plan</Link>
-                    </label>
-                  </div>
-                </div>
-
-                <Totals
-                  subtotal={computed.subtotalBeforeOffers}
-                  offerLabel={offerLabel}
-                  offerValue={computed.offerDiscountTotal}
-                  discountCode={appliedCoupon.code}
-                  discountValue={couponDiscountValue}
-                  total={finalTotal}
-                />
-
-                <div className="flex gap-3 pt-2">
-                  <button
-                    onClick={() => setStep(2)}
-                    className="w-[52px] h-[52px] rounded-full border text-indigo-700 border-indigo-300 grid place-items-center hover:bg-indigo-50 transition-colors"
-                    title="Back"
-                  >
-                    <ArrowLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={submitCheckout}
-                    disabled={isSubmitting || !agreeTerms || !agreePolicies}
-                    className="flex-1 bg-indigo-600 text-white font-semibold py-3 rounded-md hover:bg-indigo-700 disabled:bg-slate-400 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader className="w-5 h-5 animate-spin" /> Processing...
-                      </>
-                    ) : (
-                      "Confirm Order"
-                    )}
-                  </button>
-                </div>
-              </div>
+                items={orderData.items.map((item: any) => ({
+                  name: item.name,
+                  quantity: item.quantity,
+                  price: item.price,
+                  total: Number((item.price * item.quantity).toFixed(2))
+                }))}
+                totalAmount={orderData.totalAmount}
+              />
             )}
-
-            {/* Success State - INVOICE VIEW */}
-            {orderConfirmed && orderData && (
-              <div className="animate-fadeIn">
-                {/* Print Actions Bar */}
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 bg-green-50 p-4 rounded-lg border border-green-200 print:hidden">
-                  <div className="flex items-center gap-3 text-green-800">
-                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                      <Check className="w-6 h-6" />
-                    </div>
-                    <div>
-                      <h2 className="font-bold text-lg">Order Confirmed!</h2>
-                      <p className="text-sm">Please print or save this invoice for your records.</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <Link href={`/event/${eventId}`} className="px-4 py-2 text-indigo-600 font-semibold hover:bg-white hover:shadow rounded-md transition-all">
-                      Return to Event
-                    </Link>
-                    <button
-                      onClick={async () => {
-                        const element = document.getElementById('invoice-component');
-                        if (!element) return;
-
-                        // Dynamic import for client-side only
-                        const html2pdf = (await import('html2pdf.js')).default;
-
-                        const opt = {
-                          margin: 0,
-                          filename: `Invoice_${orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}.pdf`,
-                          image: { type: 'jpeg', quality: 0.98 } as any,
-                          html2canvas: { scale: 2, useCORS: true },
-                          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                        } as any;
-
-                        html2pdf().set(opt).from(element).save();
-                      }}
-                      className="flex items-center gap-2 bg-[#004aad] text-white px-6 py-2 rounded-md font-bold hover:bg-[#00317a] shadow-lg transition-transform active:scale-95"
-                    >
-                      <Printer className="w-4 h-4" /> Download PDF
-                    </button>
-                  </div>
-                </div>
-
-                {/* The Invoice Component */}
-                <div className="border shadow-2xl print:shadow-none print:border-none printable-area">
-                  <InvoiceTemplate
-                    orderId={orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}
-                    date={orderData.createdAt || new Date()}
-                    customerDetails={{
-                      name: account.name,
-                      email: account.email,
-                      address: [
-                        account.address1,
-                        account.address2,
-                        billingAddress.city,
-                        billingAddress.country
-                      ].filter(Boolean).join(", ")
-                    }}
-                    items={orderData.items.map((item: any) => ({
-                      name: item.name,
-                      quantity: item.quantity,
-                      price: item.price,
-                      total: Number((item.price * item.quantity).toFixed(2))
-                    }))}
-                    totalAmount={orderData.totalAmount}
-                  />
-                </div>
-              </div>
-            )}
-
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {!companyId && <p className="text-xs text-center text-red-600 mt-3">Please log in to check out.</p>}
       {offersLoading && <div className="mt-3 text-sm text-slate-500">Loading offers…</div>}
       {offersError && <div className="mt-3 text-sm text-amber-700">Offers error: {offersError}</div>}
     </div>

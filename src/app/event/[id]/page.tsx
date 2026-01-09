@@ -453,7 +453,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   ];
 
   // --- BOOKING WIZARD STATE ---
-  const [bookingStep, setBookingStep] = useState<"TICKET" | "BOOTH" | "SUMMARY">("TICKET");
+  const [bookingStep, setBookingStep] = useState<"TICKET" | "SPONSOR" | "SUMMARY">("TICKET");
   const [wizardOpen, setWizardOpen] = useState(false);
 
   // Selection state
@@ -463,6 +463,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // NEW: Multi-ticket state
   // Key: `${ticket.id}__${variant.name}` -> Value: quantity
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
+  // NEW: Sponsor quantities
+  const [sponsorQuantities, setSponsorQuantities] = useState<Record<string, number>>({});
+
+  // NEW: Hover/Click focus state for policy preview
+  const [focusedTicketName, setFocusedTicketName] = useState<string | null>(null);
+
+  // NEW: Member Level for Pricing
+  const [currentUserMembership, setCurrentUserMembership] = useState<string | null>(null);
 
   const [wizardSelectedBooth, setWizardSelectedBooth] = useState<Booth | null>(null);
   const [wizardSelectedBoothSlot, setWizardSelectedBoothSlot] = useState<BoothSubType | null>(null);
@@ -470,15 +478,45 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   // Helper to manage Ticket Quantities
   const handleTicketQuantityChange = (ticketId: string, variantName: string, delta: number) => {
     const key = `${ticketId}__${variantName}`;
-    setTicketQuantities((prev) => {
-      const current = prev[key] || 0;
-      const next = Math.max(0, current + delta);
-      if (next === 0) {
-        const { [key]: _, ...rest } = prev;
-        return rest;
+    const currentQty = ticketQuantities[key] || 0;
+    const nextQty = Math.max(0, currentQty + delta);
+
+    // Create proposed state
+    const nextState = { ...ticketQuantities };
+    if (nextQty === 0) {
+      delete nextState[key];
+    } else {
+      nextState[key] = nextQty;
+    }
+
+    // Validate: Accompanying <= Ticket
+    let ticketCount = 0;
+    let accompanyingCount = 0;
+
+    Object.entries(nextState).forEach(([k, qty]) => {
+      const [, vName] = k.split('__');
+      const vNameLower = vName.toLowerCase();
+
+      if (vNameLower.includes("meeting package")) return;
+
+      if (vNameLower.includes("accompanying")) {
+        accompanyingCount += qty;
+      } else if (vNameLower.includes("ticket") || vNameLower.includes("regular")) {
+        ticketCount += qty;
       }
-      return { ...prev, [key]: next };
     });
+
+    if (accompanyingCount > ticketCount) {
+      // Identify which action caused this to give a nice error message
+      if (variantName.toLowerCase().includes("accompanying")) {
+        toast.error("Accompanying members cannot exceed the number of tickets.");
+      } else {
+        toast.error("Cannot reduce tickets below the number of accompanying members.");
+      }
+      return;
+    }
+
+    setTicketQuantities(nextState);
   };
 
   const totalTicketsSelected = Object.values(ticketQuantities).reduce((a, b) => a + b, 0);
@@ -509,6 +547,32 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return groups;
   }, [eventData?.purchaseOrders]);
 
+  const handleSponsorQuantityChange = (sponsorTypeId: string, delta: number) => {
+    // Toggle logic: If currently selected (qty > 0) then remove (set to 0). If not, add (set to 1).
+    // Ignore delta, just toggle.
+    const currentQty = sponsorQuantities[sponsorTypeId] || 0;
+    const nextQty = currentQty > 0 ? 0 : 1;
+
+    const nextState = { ...sponsorQuantities };
+    if (nextQty === 0) {
+      delete nextState[sponsorTypeId];
+    } else {
+      nextState[sponsorTypeId] = 1;
+    }
+    setSponsorQuantities(nextState);
+  };
+
+  const getSponsorSubtotal = () => {
+    let total = 0;
+    Object.entries(sponsorQuantities).forEach(([id, qty]) => {
+      const sp = eventSponsorTypes.find(s => s.sponsorType.id === id);
+      if (sp) {
+        total += sp.sponsorType.price * qty;
+      }
+    });
+    return total;
+  };
+
   const getTicketSubtotal = () => {
     let total = 0;
     Object.entries(ticketQuantities).forEach(([key, qty]) => {
@@ -527,13 +591,27 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       const variants = TICKET_VARIANTS[parent.ticket.name];
       if (variants) {
         const variant = variants.find(v => v.name === vName);
-        if (variant) price = variant.price;
+        if (variant) {
+          price = getEffectiveTicketPrice({ price: variant.price, sellingPrice: null });
+        }
       } else {
-        price = parent.ticket.price;
+        price = getEffectiveTicketPrice({ price: parent.ticket.price, sellingPrice: parent.ticket.sellingPrice, id: parent.ticket.id });
       }
       total += price * qty;
     });
     return total;
+  };
+
+  // Helper: Get effective ticket price
+  const getEffectiveTicketPrice = (ticket: { price: number; sellingPrice?: number | null, id?: string }) => {
+    // Rule: If ticket price is 750 (Standard) OR 850 (Base) -> and user is Paid Member -> 650
+    const isStandard = ticket.price === 750 || ticket.price === 850 || ticket.sellingPrice === 750;
+    const isPaidMember = currentUserMembership && ["silver", "gold", "platinum", "diamond"].some(m => currentUserMembership.toLowerCase().includes(m));
+
+    if (isStandard && isPaidMember) {
+      return 650;
+    }
+    return ticket.sellingPrice ?? ticket.price;
   };
 
   useEffect(() => {
@@ -575,6 +653,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             const compRes = await fetch(`/api/companies/${user.companyId}`);
             if (compRes.ok) {
               const compData = await compRes.json();
+
+              if (compData.membershipPlan?.name) {
+                setCurrentUserMembership(compData.membershipPlan.name);
+              }
+
               const discount = compData.membershipPlan?.discountPercentage;
               if (discount && discount > 0) {
                 // Create a "Membership Discount" offer that applies to everything
@@ -691,9 +774,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   // Helper: determine best applicable offer for a product
   function getBestOfferForItem(
-    productType: CartItem["productType"],
+    productType: string,
     productId: string
   ): { percent: number | null; name?: string | null } {
+    if (productType === "SPONSOR") return { percent: null };
     if (!offers || offers.length === 0) return { percent: null };
 
     const now = new Date();
@@ -826,14 +910,18 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     setWizardSelectedBooth(null); // Reset booth
     setWizardSelectedBoothSlot(null); // Reset slot
     setBookingStep("TICKET");
+    setSponsorQuantities({});
+    setFocusedTicketName(null);
     setWizardOpen(true);
   };
 
   const closeWizard = () => {
     setWizardOpen(false);
     setTicketQuantities({});
+    setSponsorQuantities({});
     setWizardSelectedBooth(null);
     setWizardSelectedBoothSlot(null);
+    setFocusedTicketName(null);
   };
 
   const handleWizardBoothSelect = (booth: Booth) => {
@@ -864,11 +952,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       if (variants) {
         const variant = variants.find(v => v.name === vName);
         if (variant) {
-          price = variant.price;
+          price = getEffectiveTicketPrice({ price: variant.price, sellingPrice: null });
           originalPrice = variant.price;
         }
       } else {
-        price = parent.ticket.sellingPrice ?? parent.ticket.price;
+        price = getEffectiveTicketPrice({ price: parent.ticket.price, sellingPrice: parent.ticket.sellingPrice, id: parent.ticket.id });
         originalPrice = parent.ticket.price;
       }
 
@@ -885,24 +973,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       }
     });
 
-    // 2. Add Booth (if selected)
-    // NOTE: Booth logic remains "one per booking flow" for now, as requested/implied
-    if (wizardSelectedBooth) {
-      const price = 0; // Booth is included with ticket
-      const name = wizardSelectedBoothSlot
-        ? `${wizardSelectedBooth.name} - ${wizardSelectedBoothSlot.name}`
-        : wizardSelectedBooth.name;
-
-      addToCart({
-        productId: wizardSelectedBooth.id,
-        productType: "BOOTH",
-        name: name,
-        price: price, // Set to 0 as requested
-        image: wizardSelectedBooth.image || undefined,
-        boothSubTypeId: wizardSelectedBoothSlot?.id,
-        boothSubTypeName: wizardSelectedBoothSlot?.name,
-      });
-    }
+    // 2. Add Selected Sponsors
+    Object.entries(sponsorQuantities).forEach(([id, qty]) => {
+      const sp = eventSponsorTypes.find(s => s.sponsorType.id === id);
+      if (sp) {
+        for (let i = 0; i < qty; i++) {
+          addToCart({
+            productId: sp.sponsorType.id,
+            productType: "SPONSOR",
+            name: sp.sponsorType.name,
+            price: sp.sponsorType.price,
+            originalPrice: sp.sponsorType.price,
+            image: sp.sponsorType.image || undefined,
+          });
+        }
+      }
+    });
 
     // 3. Auto-add Accommodation (Deluxe Room)
     // Logic: 1 Room holds (1 Ticket + 1 Accompanying).
@@ -989,7 +1075,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 <h2 className="text-2xl font-bold text-gray-800">Complete Your Booking</h2>
                 <div className="flex gap-2 mt-2">
                   <div className={`h-2 w-12 rounded-full ${bookingStep === 'TICKET' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
-                  <div className={`h-2 w-12 rounded-full ${bookingStep === 'BOOTH' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
+                  <div className={`h-2 w-12 rounded-full ${bookingStep === 'SPONSOR' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
                   <div className={`h-2 w-12 rounded-full ${bookingStep === 'SUMMARY' ? 'bg-[#004aad]' : 'bg-[#004aad]/30'}`} />
                 </div>
               </div>
@@ -1033,10 +1119,23 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       const ticketStock = option.parentTicket && (option.parentTicket as any).quantity !== undefined ? (option.parentTicket as any).quantity : 999;
                       const isSoldOut = ticketStock <= 0;
 
+                      // Pricing Override
+                      const effectivePrice = getEffectiveTicketPrice({
+                        price: option.originalPrice,
+                        sellingPrice: option.sellingPrice,
+                        id: option.id
+                      });
+                      const showStrike = effectivePrice < option.originalPrice;
+                      const isMemberPrice = effectivePrice === 650 && option.originalPrice === 750;
+
                       return (
                         <div
                           key={key}
-                          className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'} ${isSoldOut ? 'opacity-70 grayscale bg-gray-50' : ''}`}
+                          onClick={() => {
+                            // Just focus the ticket policy
+                            setFocusedTicketName(option.name);
+                          }}
+                          className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white cursor-pointer ${qty > 0 || focusedTicketName === option.name ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'} ${isSoldOut ? 'opacity-70 grayscale bg-gray-50 cursor-not-allowed' : ''}`}
                         >
                           <div className="flex-grow">
                             <div className="mb-2 font-bold text-gray-500 uppercase text-xs tracking-wider">
@@ -1045,13 +1144,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             <h4 className="text-lg font-bold text-gray-900 mb-1 leading-tight">{option.name}</h4>
                             {isSoldOut ? (
                               <div className="mt-2 mb-2 inline-block bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded">SOLD OUT</div>
-                            ) : option.sellingPrice ? (
+                            ) : showStrike ? (
                               <div className="flex flex-col">
                                 <span className="text-sm text-gray-400 line-through">${option.originalPrice.toLocaleString()}</span>
-                                <span className="text-2xl font-bold text-[#004aad]">${option.price.toLocaleString()}</span>
+                                <span className="text-2xl font-bold text-[#004aad]">${effectivePrice.toLocaleString()}</span>
+                                {isMemberPrice && <span className="mt-1 text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full w-fit">Member Price</span>}
                               </div>
                             ) : (
-                              <p className="text-2xl font-bold text-[#004aad]">${option.price}</p>
+                              <p className="text-2xl font-bold text-[#004aad]">${effectivePrice.toLocaleString()}</p>
                             )}
                           </div>
 
@@ -1089,17 +1189,27 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       {(() => {
                         let hasIncluded = false;
                         let hasExcluded = false;
-                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
-                          if (qty > 0) {
-                            const lower = key.toLowerCase();
-                            if (lower.includes('meeting package')) hasExcluded = true;
-                            // Assume others (Ticket, Accompanying) include accommodation
-                            else hasIncluded = true;
-                          }
-                        });
+
+                        // Priority: Focused Ticket -> Selected Quantities
+                        if (focusedTicketName) {
+                          const lower = focusedTicketName.toLowerCase();
+                          if (lower.includes('meeting package')) hasExcluded = true;
+                          else hasIncluded = true;
+                        } else {
+                          Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                            if (qty > 0) {
+                              const lower = key.toLowerCase();
+                              if (lower.includes('meeting package')) hasExcluded = true;
+                              // Assume others (Ticket, Accompanying) include accommodation
+                              else hasIncluded = true;
+                            }
+                          });
+                        }
+
+                        // If nothing focused AND nothing selected, show default (Included)
                         const noSelection = !hasIncluded && !hasExcluded;
                         const showIncluded = hasIncluded || noSelection;
-                        const showExcluded = hasExcluded || noSelection;
+                        const showExcluded = hasExcluded; // Only show excluded if explicitly triggered
 
                         return (
                           <div className="space-y-4">
@@ -1143,80 +1253,47 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               )}
 
-              {/* STEP 2: SELECT BOOTH */}
-              {bookingStep === "BOOTH" && (
+              {/* STEP 2: SELECT SPONSOR (OPTIONAL) */}
+              {bookingStep === "SPONSOR" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-bold text-gray-800">Select Exhibition Booth</h3>
+                    <h3 className="text-xl font-bold text-gray-800">Select Sponsorship (Optional)</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4">
-                    {boothsList.map((booth) => {
-                      const isSoldOut = (booth.quantity ?? 999) <= 0;
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {eventSponsorTypes.map(({ sponsorType }) => {
+                      const qty = sponsorQuantities[sponsorType.id] || 0;
                       return (
-                        <div key={booth.id} className={`rounded-xl border-2 transition-all overflow-hidden ${wizardSelectedBooth?.id === booth.id ? 'border-[#004aad] bg-blue-50/50' : 'border-gray-100 hover:border-blue-200'} ${isSoldOut ? 'opacity-75 bg-gray-50' : ''}`}>
-                          <div
-                            onClick={() => {
-                              if (!isSoldOut) handleWizardBoothSelect(booth);
-                            }}
-                            className={`cursor-pointer group flex gap-4 p-4 ${isSoldOut ? 'cursor-not-allowed' : ''}`}
-                          >
-                            <div className="h-20 w-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative">
-                              {booth.image && <img src={booth.image} className={`h-full w-full object-cover ${isSoldOut ? 'grayscale' : ''}`} alt={booth.name} />}
-                              {isSoldOut && <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-white text-xs font-bold uppercase">Sold Out</div>}
-                            </div>
-                            <div className="flex-grow">
-                              <h4 className={`font-semibold ${isSoldOut ? 'text-gray-500' : 'text-gray-900'}`}>{booth.name}</h4>
-                              {isSoldOut ? (
-                                <p className="text-gray-400 font-bold text-sm">Sold Out</p>
+                        <div key={sponsorType.id} className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}>
+                          <div className="flex-grow">
+                            <div className="h-24 w-full bg-gray-100 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                              {sponsorType.image ? (
+                                <img src={sponsorType.image} alt={sponsorType.name} className="h-full w-full object-contain" />
                               ) : (
-                                <p className="text-[#004aad] font-bold">Included</p>
-                              )}
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-2">{booth.description}</p>
-                            </div>
-                            <div className="flex items-center px-2">
-                              {!isSoldOut && (
-                                wizardSelectedBooth?.id === booth.id ? (
-                                  <div className="bg-[#004aad] text-white p-1 rounded-full"><Users size={16} /></div>
-                                ) : (
-                                  <div className="h-6 w-6 rounded-full border-2 border-gray-300" />
-                                )
+                                <span className="text-gray-400 font-bold text-2xl">{sponsorType.name.charAt(0)}</span>
                               )}
                             </div>
+                            <h4 className="text-lg font-bold text-gray-900 mb-1">{sponsorType.name}</h4>
+                            <p className="text-2xl font-bold text-[#004aad]">${sponsorType.price.toLocaleString()}</p>
                           </div>
 
-                          {/* SLOTS EXPANSION */}
-                          {wizardSelectedBooth?.id === booth.id && (
-                            <div className="px-4 pb-4 animate-fadeIn border-t border-blue-100 mt-2 pt-2">
-                              <h5 className="text-sm font-bold text-gray-700 mb-2">Select a Slot / Type:</h5>
-                              {boothSubtypesLoading ? (
-                                <div className="flex justify-center py-4"><Loader className="animate-spin text-[#004aad]" /></div>
-                              ) : boothSubtypes.length > 0 ? (
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  {boothSubtypes.map(slot => (
-                                    <button
-                                      key={slot.id}
-                                      onClick={() => setWizardSelectedBoothSlot(slot)}
-                                      className={`text-left text-sm p-3 rounded-lg border flex justify-between items-center transition-all ${wizardSelectedBoothSlot?.id === slot.id ? 'bg-[#004aad] text-white border-[#004aad] shadow-md' : 'bg-white border-gray-200 hover:border-[#004aad] text-gray-700'}`}
-                                    >
-                                      <div className="flex flex-col">
-                                        <span className="font-semibold">{slot.name}</span>
-                                        {slot.slotStart && (
-                                          <span className={`text-xs mt-0.5 ${wizardSelectedBoothSlot?.id === slot.id ? 'text-blue-100' : 'text-gray-500'}`}>
-                                            {format(parseISO(slot.slotStart), "MMM d, h:mm a")}
-                                            {slot.slotEnd && ` - ${format(parseISO(slot.slotEnd), "h:mm a")}`}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <span className="font-bold whitespace-nowrap ml-2">Included</span>
-                                    </button>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-gray-500 italic py-2">No specific slots available. The base booth will be booked.</p>
-                              )}
-                            </div>
-                          )}
+                          <div className="mt-6 flex items-center justify-between">
+                            {qty > 0 ? (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, -1); }}
+                                className="w-full py-2 rounded-lg bg-red-50 text-red-600 font-bold border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
+                              >
+                                <Minus size={16} /> Remove
+                              </button>
+                            ) : (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, 1); }}
+                                className="w-full py-2 rounded-lg bg-[#004aad] text-white font-bold hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2 shadow-sm"
+                              >
+                                <Plus size={16} /> Add
+                              </button>
+                            )}
+                          </div>
                         </div>
                       );
                     })}
@@ -1239,9 +1316,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         const variants = TICKET_VARIANTS[parent.ticket.name];
                         if (variants) {
                           const variant = variants.find(v => v.name === vName);
-                          if (variant) price = variant.price;
+                          if (variant) {
+                            price = getEffectiveTicketPrice({ price: variant.price, sellingPrice: null });
+                          }
                         } else {
-                          price = parent.ticket.price;
+                          price = getEffectiveTicketPrice({ price: parent.ticket.price, sellingPrice: parent.ticket.sellingPrice, id: parent.ticket.id });
                         }
 
                         return (
@@ -1254,26 +1333,27 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         )
                       })}
                     </div>
-                    {wizardSelectedBooth ? (
-                      <div className="flex justify-between items-center pt-2">
-                        <div>
-                          <p className="font-bold text-gray-900">{wizardSelectedBooth.name}</p>
-                          <p className="text-sm text-gray-500">
-                            Exhibition Booth
-                            {wizardSelectedBoothSlot && <span className="block text-xs font-semibold text-[#004aad]">Slot: {wizardSelectedBoothSlot.name}</span>}
-                          </p>
-                        </div>
-                        <p className="font-bold text-[#004aad]">
-                          Included
-                        </p>
+                    {Object.entries(sponsorQuantities).length > 0 ? (
+                      <div className="pb-4 border-b border-gray-200 space-y-3 pt-4">
+                        <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Selected Sponsor Packages</h4>
+                        {Object.entries(sponsorQuantities).map(([id, qty]) => {
+                          const sp = eventSponsorTypes.find(s => s.sponsorType.id === id);
+                          if (!sp) return null;
+                          return (
+                            <div key={id} className="flex justify-between items-center">
+                              <div>
+                                <p className="font-bold text-gray-900">{sp.sponsorType.name} <span className="text-gray-500 text-xs font-normal">x {qty}</span></p>
+                              </div>
+                              <p className="font-bold text-[#004aad]">${(sp.sponsorType.price * qty).toLocaleString()}</p>
+                            </div>
+                          )
+                        })}
                       </div>
-                    ) : (
-                      <div className="text-sm text-gray-400 italic">No booth selected</div>
-                    )}
+                    ) : null}
                     <div className="flex justify-between items-center pt-4 border-t-2 border-dashed border-gray-200">
                       <p className="font-extrabold text-lg">Total</p>
                       <p className="font-extrabold text-xl text-[#004aad]">
-                        ${getTicketSubtotal().toLocaleString()}
+                        ${(getTicketSubtotal() + getSponsorSubtotal()).toLocaleString()}
                       </p>
                     </div>
                   </div>
@@ -1302,7 +1382,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         if (!hasRegularTicket) {
                           setBookingStep("SUMMARY");
                         } else {
-                          setBookingStep("BOOTH");
+                          setBookingStep("SPONSOR");
                         }
                       }}
                       disabled={totalTicketsSelected === 0}
@@ -1316,18 +1396,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             hasRegularTicket = true;
                           }
                         });
-                        return hasRegularTicket ? "Next: Select Booth" : "Next: Review";
+                        return hasRegularTicket ? "Next: Select Sponsors" : "Next: Review";
                       })()}
                     </button>
                   </>
                 )}
-                {bookingStep === "BOOTH" && (
+                {bookingStep === "SPONSOR" && (
                   <>
                     <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
                     <button
                       onClick={() => setBookingStep("SUMMARY")}
-                      disabled={!wizardSelectedBooth}
-                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all"
                     >
                       Next: Review
                     </button>
@@ -1335,22 +1414,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 )}
                 {bookingStep === "SUMMARY" && (
                   <>
-                    <button onClick={() => {
-                      // Smart Back: Check if we skipped booth
-                      let hasRegularTicket = false;
-                      Object.entries(ticketQuantities).forEach(([key, qty]) => {
-                        const [, vName] = key.split('__');
-                        if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
-                          hasRegularTicket = true;
-                        }
-                      });
-
-                      if (!hasRegularTicket) {
-                        setBookingStep("TICKET");
-                      } else {
-                        setBookingStep("BOOTH");
-                      }
-                    }} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
+                    <button onClick={() => setBookingStep("SPONSOR")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
                     <button
                       onClick={handleWizardAddToCart}
                       className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
@@ -1955,7 +2019,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             <div className="mt-8 pt-6 border-t border-gray-100">
               <button
                 className="w-full bg-[#004aad] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2"
-                onClick={() => router.push(`/event/${id}/cart`)}
+                onClick={() => router.push(`/event/${id}/checkout`)}
               >
                 <ShoppingCart className="h-5 w-5" />
                 <div className="flex items-center gap-2">

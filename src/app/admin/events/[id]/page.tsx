@@ -216,7 +216,34 @@ export default function EventViewPage() {
   const handleSaveAgenda = async () => {
     setCreatingAgenda(true);
     try {
-      const payload = { ...agendaForm };
+      // Calculate full ISO strings based on local browser time
+      const dateStr = agendaForm.date;
+      const startStr = agendaForm.startTime;
+      const endStr = agendaForm.endTime;
+
+      let fullStartTime = '';
+      let fullEndTime = '';
+
+      if (dateStr && startStr && endStr) {
+        const sDate = new Date(`${dateStr}T${startStr}:00`);
+        const eDate = new Date(`${dateStr}T${endStr}:00`);
+
+        // If end time is earlier than start time, assume it rolls over to next day
+        if (eDate < sDate) {
+          eDate.setDate(eDate.getDate() + 1);
+        }
+
+        if (!isNaN(sDate.getTime()) && !isNaN(eDate.getTime())) {
+          fullStartTime = sDate.toISOString();
+          fullEndTime = eDate.toISOString();
+        }
+      }
+
+      const payload = {
+        ...agendaForm,
+        fullStartTime,
+        fullEndTime,
+      };
       const method = editingAgenda ? 'PUT' : 'POST';
       const url = editingAgenda
         ? `/api/events/${eventId}/agenda/${editingAgenda.id}`

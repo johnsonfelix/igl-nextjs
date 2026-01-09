@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
 import CompleteProfileButton from "@/app/components/CompleteProfileButton";
 import OrdersTable from "@/app/dashboard/OrdersTable";
-import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag } from "lucide-react";
+import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag, ShoppingBag } from "lucide-react";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -120,7 +120,7 @@ export default async function DashboardPage() {
           </div>
 
           {[
-            { label: "Network Partners", value: "7,000+", icon: GlobeIcon, color: "text-blue-600", bg: "bg-blue-50" },
+            { label: "Total Orders", value: orders.length.toString(), icon: ShoppingBag, color: "text-blue-600", bg: "bg-blue-50" },
             { label: "Pending Inquiries", value: "0", icon: Package, color: "text-orange-600", bg: "bg-orange-50" },
           ].map((stat, i) => (
             <div key={i} className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">

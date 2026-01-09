@@ -197,11 +197,11 @@ export default function Navbar() {
                 {accountOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg rounded-md py-1 border z-50">
                     <Link
-                      href="/account"
+                      href="/dashboard"
                       className="block px-4 py-2 hover:bg-gray-50 text-gray-700"
                       onClick={() => setAccountOpen(false)}
                     >
-                      Account Settings
+                      Dashboard
                     </Link>
                     <button
                       type="button"

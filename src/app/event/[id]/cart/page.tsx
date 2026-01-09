@@ -237,12 +237,7 @@ export default function CartPage({
   const total = computed.subTotal;
 
   const handleGoToCheckout = () => {
-    if (!companyId) {
-      setShouldShake(true);
-      setTimeout(() => setShouldShake(false), 500);
-      alert("Please log in to proceed to checkout.");
-      return;
-    }
+    // Allow guest checkout - do not block if !companyId
     if (cart.length === 0) return;
     setCheckingOut(true);
     router.push(`/event/${eventId}/checkout`);
@@ -414,11 +409,6 @@ export default function CartPage({
                 "Proceed to Checkout"
               )}
             </button>
-            {!companyId && (
-              <p className="text-xs text-center text-red-600 mt-2">
-                Please log in to check out.
-              </p>
-            )}
           </div>
         </div>
       )

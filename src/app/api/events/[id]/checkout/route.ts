@@ -1,6 +1,7 @@
 // /app/api/events/[id]/checkout/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { hash } from "bcryptjs";
 
 const prisma = new PrismaClient();
 
@@ -34,11 +35,12 @@ export async function POST(req: NextRequest) {
 
   const {
     cartItems,
-    companyId,
+    companyId: incomingCompanyId,
     coupon: couponInput,
     shippingAddress,
     billingAddress,
     paymentMethod,
+    account, // Extract account
   }: {
     cartItems: CartItem[];
     companyId: string;
@@ -46,10 +48,12 @@ export async function POST(req: NextRequest) {
     shippingAddress?: any;
     billingAddress?: any;
     paymentMethod?: string;
+    account?: any; // Define account type
   } = body;
 
-  if (!companyId || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
-    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+  // Validation: companyId OR account info
+  if ((!incomingCompanyId && (!account || !account.email)) || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
+    return NextResponse.json({ error: "Missing required fields (cart or account)" }, { status: 400 });
   }
 
   // Allow eventId to be empty for membership-only purchases
@@ -59,6 +63,82 @@ export async function POST(req: NextRequest) {
     console.log("--- STARTING CHECKOUT TRANSACTION ---");
 
     const result = await prisma.$transaction(async (tx) => {
+      let companyId = incomingCompanyId;
+
+      // Logic to resolve Company ID if not provided (Guest Checkout)
+      if (!companyId && account && account.email) {
+        const email = String(account.email).toLowerCase().trim();
+        const existingUser = await tx.user.findUnique({ where: { email } });
+
+        if (existingUser) {
+          // Existing User -> Link to their Company
+          const userCompany = await tx.company.findFirst({ where: { userId: existingUser.id } });
+          if (userCompany) {
+            companyId = userCompany.id;
+            console.log(`[INFO] Found existing user ${email}, linking to company ${companyId}`);
+          } else {
+            // User exists but has no company? Create one or handle error?
+            // Should ideally verify if they have a company. If not, create one.
+            // For now assuming active users have companies or we create one.
+            // Let's create a company for the existing user if missing (rare case)
+            console.log(`[INFO] Found existing user ${email} but no company. Creating company.`);
+            const newCompany = await tx.company.create({
+              data: {
+                name: account.companyName || account.name || "Default Company",
+                memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`,
+                userId: existingUser.id,
+                location: {
+                  create: {
+                    address: account.address1 || "",
+                    city: billingAddress?.city || "",
+                    country: billingAddress?.country || "Unknown", // Fallback
+                    contactPersonDesignation: account.designation,
+                  }
+                }
+              }
+            });
+            companyId = newCompany.id;
+          }
+        } else {
+          // New User -> Create User, Company
+          console.log(`[INFO] Creating new user for ${email}`);
+          const hashedPassword = await hash("IGLA2026!", 10);
+
+          const newUser = await tx.user.create({
+            data: {
+              email,
+              password: hashedPassword,
+              name: account.name,
+              phone: account.phone,
+              role: "USER"
+            }
+          });
+
+          const newCompany = await tx.company.create({
+            data: {
+              name: account.companyName || account.name || "Default Company",
+              userId: newUser.id,
+              memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`,
+              location: {
+                create: {
+                  address: account.address1 || "",
+                  city: billingAddress?.city || "",
+                  country: billingAddress?.country || "Unknown",
+                  contactPersonDesignation: account.designation,
+                }
+              }
+            }
+          });
+          companyId = newCompany.id;
+          console.log(`[INFO] Created new user ${newUser.id} and company ${newCompany.id}`);
+        }
+      }
+
+      // Fallback validation
+      if (!companyId) {
+        throw new Error("Could not determine or create a company for this order.");
+      }
+
       // Create a PurchaseOrder
       const isOffline = paymentMethod === 'offline';
 

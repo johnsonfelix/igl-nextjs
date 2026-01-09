@@ -81,7 +81,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                         {order.items.length > 1 && <span className="text-xs text-gray-400 ml-1">(+{order.items.length - 1} more)</span>}
                                     </td>
                                     <td className="px-6 py-4 text-gray-900 font-bold">
-                                        ${order.totalAmount.toLocaleString()}
+                                        ${order.totalAmount.toLocaleString('en-US')}
                                     </td>
                                     <td className="px-6 py-4">
                                         <span
