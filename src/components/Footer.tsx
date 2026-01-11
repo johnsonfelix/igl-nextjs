@@ -1,9 +1,23 @@
+"use client";
+
 import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Phone, Mail, Facebook, Linkedin, Instagram, Download } from "lucide-react";
+import toast from "react-hot-toast";
 
 export default function Footer() {
+    const handleDownloadClick = () => {
+        toast("Mobile App Coming Soon!", {
+            icon: "📱",
+            style: {
+                borderRadius: "10px",
+                background: "#333",
+                color: "#fff",
+            },
+        });
+    };
+
     return (
         <footer className="bg-primary text-white py-16">
             <div className="container mx-auto px-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -15,9 +29,9 @@ export default function Footer() {
                         <Link href="/cookies-policy" className="hover:text-white transition-colors">Cookies Policy</Link>
                     </div>
                     <div className="flex gap-4">
-                        <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Facebook className="w-4 h-4" /></a>
-                        <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Linkedin className="w-4 h-4" /></a>
-                        <a href="#" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Instagram className="w-4 h-4" /></a>
+                        <a href="https://www.facebook.com/people/IGLA-Innovative-Global-Logistics-Allianz/61577474642854/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Facebook className="w-4 h-4" /></a>
+                        <a href="https://www.linkedin.com/company/igla-innovative-global-logistics-allianz/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Linkedin className="w-4 h-4" /></a>
+                        <a href="https://www.instagram.com/igla.asia/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white hover:text-[#004aad] transition-colors"><Instagram className="w-4 h-4" /></a>
                     </div>
                 </div>
                 <div className="lg:col-start-2">
@@ -26,7 +40,7 @@ export default function Footer() {
                         <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
                         <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
                         <li><Link href="/membership/become-member" className="hover:text-white transition-colors">Membership</Link></li>
-                        <li><Link href="/contact" className="hover:text-white transition-colors">Contact Us</Link></li>
+                        <li><Link href="/contact-us" className="hover:text-white transition-colors">Contact Us</Link></li>
                         <li><Link href="/risk?action=report" className="hover:text-white transition-colors">Report Issue</Link></li>
                     </ul>
                 </div>
@@ -43,13 +57,13 @@ export default function Footer() {
                         <Image src="/images/apple_store.png" alt="App Store" width={100} height={30} className="w-24 h-auto" />
                         <Image src="/images/play_store.png" alt="Play Store" width={100} height={30} className="w-24 h-auto" />
                     </div>
-                    <button className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
+                    <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
                         <Download className="w-4 h-4" /> Download App
                     </button>
                 </div>
             </div>
-            <div className="container mx-auto px-4 mt-16 pt-8 border-t border-white/20 text-center text-white/60 text-sm">
-                <p>&copy; 2025 Innovative Global Logistics Allianz (IGLA). All rights reserved.</p>
+            <div className="container mx-auto px-4 mt-16 pt-8 border-t border-white/20 text-center text-white/60 text-sm flex flex-col items-center gap-1">
+                <p>&copy; 2025 Innovative Global Logistics Allianz (IGLA). All rights reserved. <span className="mx-2">|</span> Developed by Cerchilo</p>
             </div>
         </footer>
     );

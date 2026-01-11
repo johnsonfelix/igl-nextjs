@@ -5,7 +5,7 @@ export default function CookiesPolicy() {
         <main className="container mx-auto px-4 py-16 max-w-4xl">
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 md:p-12">
                 <h1 className="text-3xl md:text-4xl font-bold mb-2 text-[#004aad]">Cookies Policy</h1>
-                <p className="text-gray-500 mb-8 italic">Last updated: 25.12.2025</p>
+                <p className="text-gray-500 mb-8 italic">Last updated: 25-11-2025</p>
 
                 <div className="prose prose-blue max-w-none text-gray-700 space-y-8">
                     <section>
@@ -87,9 +87,8 @@ export default function CookiesPolicy() {
                         <h2 className="text-2xl font-bold text-gray-900 mb-4">5. Contact Us</h2>
                         <p className="mb-4">If you have questions about this Cookies Policy or how we use cookies, please contact:</p>
                         <div className="space-y-2">
-                            <p className="font-bold text-[#004aad]">Innovative Global Logistics Allianz (IGLA)</p>
                             <p>
-                                <span className="font-semibold">Email:</span> <a href="mailto:sales@igla.asia" className="text-blue-600 hover:underline">sales@igla.asia</a>
+                                <span className="font-semibold">Email:</span> <a href="mailto:igla.webhooks@gmail.com" className="text-blue-600 hover:underline">igla.webhooks@gmail.com</a>
                             </p>
                         </div>
                     </section>

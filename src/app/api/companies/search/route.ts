@@ -72,7 +72,16 @@ export async function GET(request: Request) {
         include: { location: true, media: true, membershipPlan: true }, // Default include
         skip: offset,
         take: limit,
-        orderBy: { name: 'asc' },
+        orderBy: (() => {
+          const sort = params.get('sort');
+          const ord = (params.get('order') ?? 'asc').toLowerCase();
+          const direction = ord === 'desc' ? 'desc' : 'asc';
+
+          if (sort === 'memberFromYear') {
+            return { memberFromYear: direction };
+          }
+          return { name: 'asc' };
+        })(),
       }),
     ]);
 

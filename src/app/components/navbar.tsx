@@ -56,6 +56,7 @@ const navItems: NavItem[] = [
   { name: "Inquiry", href: "/inquiry" },
   { name: "Risk Protection", href: "/secure-pay" },
   { name: "About Us", href: "/about" },
+  { name: "Contact Us", href: "/contact-us" },
   { name: "Admin", href: "/admin/dashboard" },
 ];
 

@@ -784,9 +784,15 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }
 
     // Validate Account
-    if (!account.name || !account.email || !billingAddress.line1) {
-      alert("Please fill in all required account and address fields.");
-      // Scroll to top or specific section? For now alert is enough.
+    if (!account.name || !account.email || !account.phone || !billingAddress.line1) {
+      alert("Please fill in all required account and address fields (including Contact).");
+      return;
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(account.email)) {
+      alert("Please enter a valid email address.");
       return;
     }
 
@@ -876,7 +882,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         <Link href={`/event/${eventId}`} className="text-indigo-600 hover:underline flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Event
         </Link>
-        <h1 className="text-3xl font-bold text-slate-800">Checkout</h1>
+        {/* <h1 className="text-3xl font-bold text-slate-800">Checkout</h1> */}
       </div>
 
       {!orderConfirmed ? (
@@ -928,16 +934,16 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                   <input value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} placeholder="Enter your email" type="email" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Phone</label>
-                  <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value }))} placeholder="Enter phone number" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Address 1</label>
                   <input value={account.address1} onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))} placeholder="Enter address line 1" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700">Address 2</label>
                   <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Enter address line 2" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-slate-700">Contact *</label>
+                  <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="Enter contact number" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
                 </div>
               </div>
 
@@ -1134,9 +1140,9 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
             </div>
             <div className="flex gap-3">
-              <Link href={`/event/${eventId}`} className="px-5 py-2.5 text-indigo-600 font-semibold hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-indigo-100">
+              {/* <Link href={`/event/${eventId}`} className="px-5 py-2.5 text-indigo-600 font-semibold hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-indigo-100">
                 Return to Event
-              </Link>
+              </Link> */}
               <button
                 onClick={async () => {
                   const element = document.getElementById('invoice-component');

@@ -128,6 +128,11 @@ export default function CompaniesListPage() {
     if (companyName) params.name = companyName;
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
+
+    // Sorting - Default to Oldest Member First (Ascending Year)
+    params.sort = 'memberFromYear';
+    params.order = 'asc';
+
     // Pagination: calculate offset based on page (1-based)
     const limit = 10;
     const offset = (currentPage - 1) * limit;

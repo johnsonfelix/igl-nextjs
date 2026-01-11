@@ -156,7 +156,8 @@ export default function AdminCompaniesListPage() {
     if (port) params.port = port;
 
     // 👇 force backend to return everything
-    params.status = 'ALL';
+    // params.status = 'ALL'; // Use explicit statuses to be sure
+    params.statuses = 'LIVE,BLOCKLISTED,SUSPENDED';
     params.includeInactive = '1';
 
     const qs = new URLSearchParams(params).toString();
@@ -168,7 +169,7 @@ export default function AdminCompaniesListPage() {
     setError(null);
     try {
       const url = buildQuery();
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: 'no-store' }); // Ensure fresh data
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const json = await res.json();
       // Handle both old array format (fallback) and new object format

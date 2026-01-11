@@ -106,9 +106,9 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <tr key={idx} className="border-b" style={{ borderColor: '#e5e7eb' }}>
                             <td className="p-2 border-r border-[#004aad] text-center">{idx + 1}</td>
                             <td className="p-2 border-r border-[#004aad]">{item.name}</td>
-                            <td className="p-2 border-r border-[#004aad] text-center">{item.price}</td>
+                            <td className="p-2 border-r border-[#004aad] text-center">{item.price !== 0 ? '$' + item.price : item.price}</td>
                             <td className="p-2 border-r border-[#004aad] text-center">{item.quantity}</td>
-                            <td className="p-2 text-center font-bold">{item.total}</td>
+                            <td className="p-2 text-center font-bold">{item.total !== 0 ? '$' + item.total : item.total}</td>
                         </tr>
                     ))}
                     {/* Fill empty rows if needed for visual height, or just min-height */}
@@ -130,7 +130,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <td className="p-0">
                             <div className="flex flex-col h-full">
                                 <div className="text-center text-xs font-bold text-[#00317a] border-b border-[#004aad] p-1">Grand Total</div>
-                                <div className="text-center font-bold text-lg p-2">{totalAmount}</div>
+                                <div className="text-center font-bold text-lg p-2">{totalAmount !== 0 ? '$' + totalAmount : totalAmount}</div>
                             </div>
                         </td>
                     </tr>

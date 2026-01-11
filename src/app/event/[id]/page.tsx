@@ -1189,19 +1189,26 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       {(() => {
                         let hasIncluded = false;
                         let hasExcluded = false;
+                        let isAccompanying = false;
 
                         // Priority: Focused Ticket -> Selected Quantities
                         if (focusedTicketName) {
                           const lower = focusedTicketName.toLowerCase();
                           if (lower.includes('meeting package')) hasExcluded = true;
-                          else hasIncluded = true;
+                          else {
+                            hasIncluded = true;
+                            if (lower.includes('accompanying')) isAccompanying = true;
+                          }
                         } else {
                           Object.entries(ticketQuantities).forEach(([key, qty]) => {
                             if (qty > 0) {
                               const lower = key.toLowerCase();
                               if (lower.includes('meeting package')) hasExcluded = true;
                               // Assume others (Ticket, Accompanying) include accommodation
-                              else hasIncluded = true;
+                              else {
+                                hasIncluded = true;
+                                if (lower.includes('accompanying')) isAccompanying = true;
+                              }
                             }
                           });
                         }
@@ -1219,6 +1226,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                 <div>
                                   <span className="font-bold text-gray-800 block mb-1">Accommodation Included:</span>
                                   Registration fees includes <span className="font-semibold text-gray-900">2 nights (March 25 & 26) stay</span> at the conference hotel with breakfast and access to all Sessions, two lunches, Dinners, Refreshment, Welcome cocktail, Gala Dinner and Conference material.
+                                  {isAccompanying && (
+                                    <span className="block mt-2 text-amber-700 font-medium animate-fadeIn">Note: Accompanying member cannot be added separately; it is added only when buying a regular ticket.</span>
+                                  )}
                                 </div>
                               </div>
                             )}
@@ -1362,7 +1372,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
               {/* Footer / Controls */}
               {/* Footer / Controls */}
-              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between">
+              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between sticky bottom-0 z-10 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
                 {bookingStep === "TICKET" && (
                   <>
                     <div />
@@ -1380,7 +1390,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         });
 
                         if (!hasRegularTicket) {
-                          setBookingStep("SUMMARY");
+                          // Skip booth/sponsor, go directly to add to cart (skip summary)
+                          handleWizardAddToCart();
                         } else {
                           setBookingStep("SPONSOR");
                         }
@@ -1396,7 +1407,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             hasRegularTicket = true;
                           }
                         });
-                        return hasRegularTicket ? "Next: Select Sponsors" : "Next: Review";
+                        return hasRegularTicket ? "Register Now" : "Register Now";
                       })()}
                     </button>
                   </>
@@ -1405,10 +1416,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   <>
                     <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
                     <button
-                      onClick={() => setBookingStep("SUMMARY")}
+                      onClick={handleWizardAddToCart}
                       className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all"
                     >
-                      Next: Review
+                      Add to Cart
                     </button>
                   </>
                 )}

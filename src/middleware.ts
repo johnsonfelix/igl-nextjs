@@ -44,6 +44,7 @@ const publicPrefixes = [
   "/about",
   "/company/details", // Public profile view
   "/secure-pay",
+  "/contact-us",
   "/api/company/inquiry",
 ];
 
