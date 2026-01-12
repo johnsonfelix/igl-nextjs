@@ -791,7 +791,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     productType: string,
     productId: string
   ): { percent: number | null; name?: string | null } {
-    if (productType === "SPONSOR") return { percent: null };
     if (!offers || offers.length === 0) return { percent: null };
 
     const now = new Date();
@@ -1334,8 +1333,23 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {eventSponsorTypes.map(({ sponsorType }) => {
                       const qty = sponsorQuantities[sponsorType.id] || 0;
+
+                      // Get best offer for this sponsor
+                      const best = getBestOfferForItem("SPONSOR", sponsorType.id);
+                      const hasDiscount = best.percent && best.percent > 0;
+                      const discountedPrice = hasDiscount
+                        ? getDiscountedPrice(sponsorType.price, best.percent)
+                        : sponsorType.price;
+
                       return (
-                        <div key={sponsorType.id} className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}>
+                        <div key={sponsorType.id} className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white relative ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}>
+                          {/* Discount Badge */}
+                          {hasDiscount && (
+                            <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                              {Math.round(best.percent!)}% OFF
+                            </div>
+                          )}
+
                           <div className="flex-grow">
                             <div className="h-24 w-full bg-gray-100 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
                               {sponsorType.image ? (
@@ -1345,7 +1359,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               )}
                             </div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1">{sponsorType.name}</h4>
-                            <p className="text-2xl font-bold text-[#004aad]">${sponsorType.price.toLocaleString()}</p>
+
+                            {/* Price Display with Discount */}
+                            {hasDiscount ? (
+                              <div className="flex flex-col">
+                                <span className="text-sm text-gray-400 line-through">${sponsorType.price.toLocaleString()}</span>
+                                <span className="text-2xl font-bold text-[#004aad]">${formatPrice(discountedPrice)}</span>
+                              </div>
+                            ) : (
+                              <p className="text-2xl font-bold text-[#004aad]">${sponsorType.price.toLocaleString()}</p>
+                            )}
                           </div>
 
                           <div className="mt-6 flex items-center justify-between">
