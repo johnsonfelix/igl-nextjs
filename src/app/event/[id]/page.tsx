@@ -1059,7 +1059,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
     toast.success("Items added to cart!");
     closeWizard();
-    setCartOpen(true); // Open cart to show user
+    // Redirect to checkout page
+    router.push(`/event/${resolvedParams.id}/checkout`);
   };
 
   return (
@@ -1088,7 +1089,38 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               {/* STEP 1: SELECT TICKET VARIANT */}
               {bookingStep === "TICKET" && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-800">Select Ticket Type</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-800">Select Ticket Type</h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={closeWizard}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
+                        title="Back"
+                      >
+                        <ArrowLeft size={20} />
+                      </button>
+                      <button
+                        onClick={() => {
+                          let hasRegularTicket = false;
+                          Object.entries(ticketQuantities).forEach(([key, qty]) => {
+                            const [, vName] = key.split('__');
+                            if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
+                              hasRegularTicket = true;
+                            }
+                          });
+                          if (!hasRegularTicket) {
+                            handleWizardAddToCart();
+                          } else {
+                            setBookingStep("SPONSOR");
+                          }
+                        }}
+                        disabled={totalTicketsSelected === 0}
+                        className="px-6 py-2 bg-[#004aad] text-white rounded-lg font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                      >
+                        Register Now
+                      </button>
+                    </div>
+                  </div>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {eventTickets.flatMap(({ ticket }) => {
                       const variants = TICKET_VARIANTS[ticket.name];
@@ -1268,6 +1300,21 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
                     <h3 className="text-xl font-bold text-gray-800">Select Sponsorship (Optional)</h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setBookingStep("TICKET")}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
+                        title="Back"
+                      >
+                        <ArrowLeft size={20} />
+                      </button>
+                      <button
+                        onClick={handleWizardAddToCart}
+                        className="px-6 py-2 bg-[#004aad] text-white rounded-lg font-bold hover:bg-[#00317a] transition-all text-sm"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1314,7 +1361,24 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               {/* STEP 3: SUMMARY */}
               {bookingStep === "SUMMARY" && (
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-gray-800">Confirm Your Selection</h3>
+                  <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-bold text-gray-800">Confirm Your Selection</h3>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => setBookingStep("SPONSOR")}
+                        className="p-2 hover:bg-gray-100 rounded-lg transition-colors text-gray-600"
+                        title="Back"
+                      >
+                        <ArrowLeft size={20} />
+                      </button>
+                      <button
+                        onClick={handleWizardAddToCart}
+                        className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200 text-sm"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
                   <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                     <div className="pb-4 border-b border-gray-200 space-y-3">
                       <h4 className="font-bold text-gray-700 text-sm uppercase tracking-wider">Selected Tickets</h4>
@@ -1370,71 +1434,6 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               )}
 
-              {/* Footer / Controls */}
-              {/* Footer / Controls */}
-              <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-between sticky bottom-0 z-10 w-full shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-                {bookingStep === "TICKET" && (
-                  <>
-                    <div />
-                    <button
-                      onClick={() => {
-                        // Check if we should skip booth
-                        // Logic: If ONLY "Accompanying Member" is selected (no Regular Ticket), skip booth.
-                        // Or stricter: Booth is ONLY for "Regular Ticket".
-                        let hasRegularTicket = false;
-                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
-                          const [, vName] = key.split('__');
-                          if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
-                            hasRegularTicket = true;
-                          }
-                        });
-
-                        if (!hasRegularTicket) {
-                          // Skip booth/sponsor, go directly to add to cart (skip summary)
-                          handleWizardAddToCart();
-                        } else {
-                          setBookingStep("SPONSOR");
-                        }
-                      }}
-                      disabled={totalTicketsSelected === 0}
-                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {(() => {
-                        let hasRegularTicket = false;
-                        Object.entries(ticketQuantities).forEach(([key, qty]) => {
-                          const [, vName] = key.split('__');
-                          if (vName.toLowerCase().includes("ticket") && !vName.toLowerCase().includes("accompanying")) {
-                            hasRegularTicket = true;
-                          }
-                        });
-                        return hasRegularTicket ? "Register Now" : "Register Now";
-                      })()}
-                    </button>
-                  </>
-                )}
-                {bookingStep === "SPONSOR" && (
-                  <>
-                    <button onClick={() => setBookingStep("TICKET")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
-                    <button
-                      onClick={handleWizardAddToCart}
-                      className="px-8 py-3 bg-[#004aad] text-white rounded-xl font-bold hover:bg-[#00317a] transition-all"
-                    >
-                      Add to Cart
-                    </button>
-                  </>
-                )}
-                {bookingStep === "SUMMARY" && (
-                  <>
-                    <button onClick={() => setBookingStep("SPONSOR")} className="px-6 py-3 text-gray-600 font-bold hover:bg-gray-200 rounded-xl">Back</button>
-                    <button
-                      onClick={handleWizardAddToCart}
-                      className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200"
-                    >
-                      Add to Cart
-                    </button>
-                  </>
-                )}
-              </div>
 
             </div>
           </div>

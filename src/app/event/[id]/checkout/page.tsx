@@ -209,40 +209,6 @@ function CartSummary({
           </div>
         ))}
       </div>
-
-      {/* Coupon - Concise & Good looking */}
-      <div className="mt-6 pt-4 border-t border-gray-100">
-        <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code / Membership Code</label>
-        <div className="flex items-center gap-2 max-w-sm">
-          <div className="flex-1 relative">
-            <input
-              value={appliedCoupon.code ? appliedCoupon.code : couponCode}
-              onChange={(e) => setCouponCode(e.target.value)}
-              disabled={!!appliedCoupon.code}
-              placeholder="Enter code"
-              className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all disabled:opacity-60"
-            />
-            {appliedCoupon.code && <Check className="absolute top-1/2 -translate-y-1/2 right-3 h-4 w-4 text-green-500" />}
-          </div>
-
-          {!appliedCoupon.code ? (
-            <button
-              onClick={applyCoupon}
-              disabled={couponBusy || !couponCode.trim()}
-              className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-all shadow-sm active:scale-95"
-            >
-              {couponBusy ? "..." : "Apply"}
-            </button>
-          ) : (
-            <button
-              onClick={removeCoupon}
-              className="px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 text-sm font-bold hover:bg-red-100 transition-all"
-            >
-              Remove
-            </button>
-          )}
-        </div>
-      </div>
     </div>
   );
 }
@@ -1098,6 +1064,40 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 discountValue={couponDiscountValue}
                 total={finalTotal}
               />
+
+              {/* Coupon Section */}
+              <div className="mt-6 pt-4 border-t border-gray-100">
+                <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code / Membership Code</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <input
+                      value={appliedCoupon.code ? appliedCoupon.code : couponCode}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      disabled={!!appliedCoupon.code}
+                      placeholder="Enter code"
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-100 focus:border-indigo-500 transition-all disabled:opacity-60"
+                    />
+                    {appliedCoupon.code && <Check className="absolute top-1/2 -translate-y-1/2 right-3 h-4 w-4 text-green-500" />}
+                  </div>
+
+                  {!appliedCoupon.code ? (
+                    <button
+                      onClick={applyCoupon}
+                      disabled={couponBusy || !couponCode.trim()}
+                      className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-bold hover:bg-indigo-700 disabled:bg-indigo-300 transition-all shadow-sm active:scale-95"
+                    >
+                      {couponBusy ? "..." : "Apply"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={removeCoupon}
+                      className="px-4 py-2 rounded-lg bg-red-50 text-red-600 border border-red-100 text-sm font-bold hover:bg-red-100 transition-all"
+                    >
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
 
               {/* Terms Checkboxes */}
               <div className="space-y-3 mt-6 pt-6 border-t border-gray-100">
