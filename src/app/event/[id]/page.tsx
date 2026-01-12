@@ -614,6 +614,20 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return ticket.sellingPrice ?? ticket.price;
   };
 
+  // Prevent body scroll when wizard is open
+  useEffect(() => {
+    if (wizardOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    // Cleanup on unmount
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [wizardOpen]);
+
   useEffect(() => {
     const fetchEventData = async () => {
       if (!resolvedParams.id) return;
