@@ -30,6 +30,7 @@ export default function EventFormPage() {
     eventType: "New",
     expectedAudience: "",
     description: "",
+    earlyBird: false,
   });
 
   // Thumbnail upload
@@ -109,6 +110,7 @@ export default function EventFormPage() {
         eventType: event.eventType ?? "New",
         expectedAudience: event.expectedAudience ?? "",
         description: event.description ?? "",
+        earlyBird: event.earlyBird ?? false,
       });
 
       setThumbFile(null);
@@ -433,6 +435,18 @@ export default function EventFormPage() {
                     value={formData.description}
                     onChange={e => setFormData({ ...formData, description: e.target.value })}
                   />
+                </div>
+
+                <div className="flex items-center space-x-2 pt-2">
+                  <Checkbox
+                    id="earlyBird"
+                    checked={formData.earlyBird}
+                    onCheckedChange={(checked) => setFormData({ ...formData, earlyBird: Boolean(checked) })}
+                    className="data-[state=checked]:bg-[#004aad] data-[state=checked]:border-[#004aad]"
+                  />
+                  <Label htmlFor="earlyBird" className="text-gray-700 font-semibold cursor-pointer">
+                    Early Bird (Activates Popup Ad & 50% Sponsorship Discount for Members)
+                  </Label>
                 </div>
               </div>
             </motion.div>

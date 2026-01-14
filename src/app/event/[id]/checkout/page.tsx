@@ -148,6 +148,14 @@ function CartSummary({
                 <div className="mt-2 text-sm text-gray-500 font-medium">
                   Qty: {item.quantity} (Linked to Ticket)
                 </div>
+              ) : item.isComplimentary ? (
+                // Complimentary tickets are read-only
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
+                    🎁 COMPLIMENTARY
+                  </span>
+                  <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+                </div>
               ) : String(item.productType || "").toUpperCase() === "SPONSOR" ? (
                 <div className="flex items-center gap-3 mt-2">
                   {/* For Sponsor, show Qty but disabled controls, or just Remove button */}
@@ -254,6 +262,28 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     updateQuantity(productId, newQty, roomTypeId);
   };
 
+  // Helper to count total accompanying members
+  const accompanyingMemberCount = useMemo(() => {
+    return cart.reduce((count, item) => {
+      const nameLower = (item.name || "").toLowerCase();
+      if (nameLower.includes("accompanying")) {
+        return count + (Number(item.quantity) || 0);
+      }
+      return count;
+    }, 0);
+  }, [cart]);
+
+  // Initialize accompanying member details when count changes
+  useEffect(() => {
+    setAccompanyingMemberDetails(prev => {
+      const newDetails: Record<number, { name: string; designation: string; mobile: string; email: string }> = {};
+      for (let i = 0; i < accompanyingMemberCount; i++) {
+        newDetails[i] = prev[i] || { name: "", designation: "", mobile: "", email: "" };
+      }
+      return newDetails;
+    });
+  }, [accompanyingMemberCount]);
+
 
 
 
@@ -280,6 +310,11 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     companyName: "",
     designation: "",
   });
+
+  // State for accompanying member details
+  const [accompanyingMemberDetails, setAccompanyingMemberDetails] = useState<
+    Record<number, { name: string; designation: string; mobile: string; email: string }>
+  >({});
 
   // Addresses
   const [billingAddress, setBillingAddress] = useState({
@@ -750,8 +785,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }
 
     // Validate Account
-    if (!account.name || !account.email || !account.phone || !billingAddress.line1) {
-      alert("Please fill in all required account and address fields (including Contact).");
+    if (!account.name || !account.email || !account.phone || !billingAddress.line1 || !account.designation) {
+      alert("Please fill in all required account and address fields (including Designation and Contact).");
       return;
     }
 
@@ -762,8 +797,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    if (!companyId && (!account.companyName || !account.designation)) {
-      alert("Company Name and Designation are required for new accounts.");
+    if (!companyId && !account.companyName) {
+      alert("Company Name is required for new accounts.");
       return;
     }
 
@@ -771,6 +806,28 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     if (!tshirtSize || !referralSource) {
       alert("Please select your T-Shirt size and tell us how you heard about us.");
       return;
+    }
+
+    // Validate Accompanying Member Details
+    if (accompanyingMemberCount > 0) {
+      for (let i = 0; i < accompanyingMemberCount; i++) {
+        const member = accompanyingMemberDetails[i];
+        if (!member || !member.name || !member.designation || !member.mobile || !member.email) {
+          alert(`Please fill in all details for Accompanying Member ${i + 1}.`);
+          return;
+        }
+        // Validate email format
+        if (!emailRegex.test(member.email)) {
+          alert(`Please enter a valid email address for Accompanying Member ${i + 1}.`);
+          return;
+        }
+        // Validate mobile (at least 10 digits)
+        const digitsOnly = member.mobile.replace(/\D/g, "");
+        if (digitsOnly.length < 10) {
+          alert(`Please enter a valid mobile number for Accompanying Member ${i + 1} (at least 10 digits).`);
+          return;
+        }
+      }
     }
 
     setSubmitting(true);
@@ -781,6 +838,9 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         additionalDetails: {
           tshirtSize,
           referralSource,
+          accompanyingMembers: accompanyingMemberCount > 0
+            ? Object.values(accompanyingMemberDetails).slice(0, accompanyingMemberCount)
+            : undefined,
         },
         paymentMethod,
         // Pass addresses
@@ -988,10 +1048,103 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               )}
             </div>
 
-            {/* 3. Additional Information */}
+            {/* 3. Accompanying Member Details (if any) */}
+            {accompanyingMemberCount > 0 && (
+              <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">3</span>
+                  Accompanying Member Details
+                </h2>
+                <p className="text-sm text-gray-600 mb-6">
+                  Please provide details for each accompanying member ({accompanyingMemberCount} member{accompanyingMemberCount > 1 ? 's' : ''})
+                </p>
+
+                <div className="space-y-6">
+                  {Array.from({ length: accompanyingMemberCount }).map((_, index) => (
+                    <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                      <h3 className="font-semibold text-gray-800 mb-4">
+                        Member {index + 1}
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Name *
+                          </label>
+                          <input
+                            value={accompanyingMemberDetails[index]?.name || ""}
+                            onChange={(e) =>
+                              setAccompanyingMemberDetails((prev) => ({
+                                ...prev,
+                                [index]: { ...prev[index], name: e.target.value },
+                              }))
+                            }
+                            placeholder="Enter full name"
+                            className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Designation *
+                          </label>
+                          <input
+                            value={accompanyingMemberDetails[index]?.designation || ""}
+                            onChange={(e) =>
+                              setAccompanyingMemberDetails((prev) => ({
+                                ...prev,
+                                [index]: { ...prev[index], designation: e.target.value },
+                              }))
+                            }
+                            placeholder="Enter designation"
+                            className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Mobile *
+                          </label>
+                          <input
+                            value={accompanyingMemberDetails[index]?.mobile || ""}
+                            onChange={(e) =>
+                              setAccompanyingMemberDetails((prev) => ({
+                                ...prev,
+                                [index]: {
+                                  ...prev[index],
+                                  mobile: e.target.value.replace(/[^0-9+\-() ]/g, ""),
+                                },
+                              }))
+                            }
+                            placeholder="Enter mobile number"
+                            className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            Email *
+                          </label>
+                          <input
+                            type="email"
+                            value={accompanyingMemberDetails[index]?.email || ""}
+                            onChange={(e) =>
+                              setAccompanyingMemberDetails((prev) => ({
+                                ...prev,
+                                [index]: { ...prev[index], email: e.target.value },
+                              }))
+                            }
+                            placeholder="Enter email address"
+                            className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 4. Additional Information */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">3</span>
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">{accompanyingMemberCount > 0 ? '4' : '3'}</span>
                 Additional Information
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

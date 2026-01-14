@@ -123,6 +123,7 @@ export async function POST(req: NextRequest) {
       tickets = [],        // array of { id, quantity }
       sponsorTypes = [],   // array of { id, quantity }
       roomTypes = [],      // array of { id, quantity }
+      earlyBird,
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
@@ -139,6 +140,7 @@ export async function POST(req: NextRequest) {
         thumbnail: thumbnail || "",
         eventType,
         expectedAudience: expectedAudience || "",
+        earlyBird: earlyBird ?? false,
 
         // eventBooths create with quantity per booth
         eventBooths: {
@@ -210,6 +212,7 @@ export async function PUT(req: NextRequest) {
       tickets = [],        // array of { id: string, quantity: number }
       sponsorTypes = [],   // array of { id: string, quantity: number }
       roomTypes = [],
+      earlyBird,
     } = body;
 
     if (!id || !name || !startDate || !endDate || !location) {
@@ -227,6 +230,7 @@ export async function PUT(req: NextRequest) {
         thumbnail: thumbnail || "",
         eventType,
         expectedAudience: expectedAudience || "",
+        earlyBird: earlyBird ?? false,
 
         // Replace eventBooths: remove existing and create new entries with quantity
         eventBooths: {

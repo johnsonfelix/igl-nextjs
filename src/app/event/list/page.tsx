@@ -82,9 +82,9 @@ const EventCard = ({ event }: { event: Event }) => {
             <Calendar className="h-4 w-4 text-[#004aad]" />
             {formattedStartDate} - {formattedEndDate}
           </div>
-          <span className="inline-flex items-center gap-1 text-[#004aad] font-bold text-sm hover:gap-2 transition-all">
+          <button className="inline-flex items-center gap-1 bg-[#004aad] text-white font-bold text-sm px-4 py-2 rounded-lg hover:bg-[#00317a] hover:gap-2 transition-all shadow-sm">
             Register Now <ArrowRight className="h-4 w-4" />
-          </span>
+          </button>
         </div>
       </div>
     </Link>

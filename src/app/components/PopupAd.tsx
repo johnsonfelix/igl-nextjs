@@ -6,17 +6,40 @@ import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 
 export default function PopupAd() {
-    const [isVisible, setIsVisible] = useState(true);
+    const [isVisible, setIsVisible] = useState(false);
+    const [shouldShow, setShouldShow] = useState(false);
     const router = useRouter();
+    const EVENT_ID = "cmjn1f6ih0000gad4xa4j7dp3";
 
     useEffect(() => {
+        // Fetch event status
+        const checkEventStatus = async () => {
+            try {
+                const res = await fetch(`/api/events/${EVENT_ID}`);
+                if (res.ok) {
+                    const event = await res.json();
+                    if (event.earlyBird) {
+                        setShouldShow(true);
+                        setIsVisible(true);
+                    }
+                }
+            } catch (error) {
+                console.error("Failed to check popup status", error);
+            }
+        };
+        checkEventStatus();
+    }, []);
+
+    useEffect(() => {
+        if (!shouldShow) return;
+
         // Show every 5 minutes (300,000 ms)
         const timer = setInterval(() => {
             setIsVisible(true);
         }, 300000);
 
         return () => clearInterval(timer);
-    }, []);
+    }, [shouldShow]);
 
     const handleClose = () => {
         setIsVisible(false);
@@ -24,7 +47,7 @@ export default function PopupAd() {
 
     const handleAdClick = () => {
         setIsVisible(false);
-        router.push("/event/cmjn1f6ih0000gad4xa4j7dp3");
+        router.push(`/event/${EVENT_ID}`);
     };
 
     if (!isVisible) return null;

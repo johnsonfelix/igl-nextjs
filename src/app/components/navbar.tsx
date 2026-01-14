@@ -181,9 +181,9 @@ export default function Navbar() {
             </Link> */}
 
             {/* Download App - Global */}
-            <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
+            {/* <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
               <Download className="w-4 h-4" /> Download the App
-            </button>
+            </button> */}
 
             {/* Account Menu (Desktop) */}
             {user ? (

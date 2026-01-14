@@ -141,6 +141,7 @@ model Event {
   startDate         DateTime?
   description       String?
   agendaItems       AgendaItem[]
+  earlyBird         Boolean            @default(false)
   boothSubTypes     BoothSubType[]
   eventBooths       EventBooth[]
   eventRoomTypes    EventRoomType[]    @relation("EventRoomTypes")

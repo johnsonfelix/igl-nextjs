@@ -16,6 +16,10 @@ export interface CartItem {
   boothSubTypeId?: string;
   boothSubTypeName?: string;
   originalPrice?: number;
+
+  // Track complimentary items
+  isComplimentary?: boolean;
+  linkedSponsorId?: string;
 }
 
 interface CartContextType {
@@ -60,76 +64,69 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     }
   }, [cart, STORAGE_KEY]);
 
-  // --- Helper to calculate needed rooms based on cart state ---
-  const calculateDesiredRoomCount = (currentCart: CartItem[]) => {
-    let ticketCount = 0;
-    let accompanyingCount = 0;
+  // --- Helper to sync cart dependents (Accompanying & Hotels) ---
+  const syncCartDependents = (currentCart: CartItem[]) => {
+    let nextCart = [...currentCart];
 
-    for (const item of currentCart) {
+    // 1. Calculate Counts
+    let validTicketCount = 0;
+    let accompanyingCount = 0;
+    let accompanyingIndices: number[] = [];
+
+    nextCart.forEach((item, index) => {
       if (item.productType === "TICKET") {
         const nameLower = item.name.toLowerCase();
-        if (nameLower.includes("meeting package")) continue; // Explicitly ignore
+        if (nameLower.includes("meeting package")) return;
 
         if (nameLower.includes("accompanying")) {
           accompanyingCount += item.quantity;
-        } else if (nameLower.includes("ticket") || nameLower.includes("regular")) {
-          ticketCount += item.quantity;
+          accompanyingIndices.push(index);
+        } else if (nameLower.includes("ticket") || nameLower.includes("regular") || nameLower.includes("standard")) {
+          validTicketCount += item.quantity;
         }
       }
-    }
-    return Math.max(ticketCount, accompanyingCount);
-  };
-
-  // --- Helper to sync hotel rooms ---
-  // Returns a NEW cart array if changes are needed, otherwise returns the original.
-  const syncHotelRooms = (currentCart: CartItem[]) => {
-    const neededRooms = calculateDesiredRoomCount(currentCart);
-
-    // Check if we have any hotel rooms (specifically Deluxe/Standard linked ones)
-    // For simplicity in this specific project context, we treat ALL hotel items as synced
-    // OR we look for the specific one we added automatically.
-    // Let's look for any item with productType="HOTEL".
-    const hotelItems = currentCart.filter(i => i.productType === "HOTEL");
-
-    if (hotelItems.length === 0) return currentCart; // nothing to sync
-
-    // We will sync the FIRST hotel item found, assuming there's usually one main room type added.
-    // If there are multiple, it gets complex, but per requirements "add a deluxe room", so usually one.
-    // If neededRooms == 0, remove all hotel items.
-
-    if (neededRooms === 0) {
-      return currentCart.filter(i => i.productType !== "HOTEL");
-    }
-
-    // If neededRooms > 0, update the quantity of the hotel item(s) to match?
-    // Or just the first one?
-    // "One deluxe room holds one ticket member and one accompanying".
-    // So total rooms = neededRooms.
-
-    // Let's assume we maintain the quantity of the *first* hotel item found to be `neededRooms`.
-    // And remove others? Or strictly sync them all?
-    // Prudent approach: Sync the first one, leave others? 
-    // User said "the room is not added... automatically reduce or delete".
-
-    let roomsAdjusted = 0;
-    return currentCart.map(item => {
-      if (item.productType === "HOTEL") {
-        // Only adjust the first hotel item we encounter to match the total needed? 
-        // Or split it?
-        // Simplest: Set the first hotel item to 'neededRooms'.
-        // But what if they have multiple TYPES of rooms? 
-        // The requirement is specific to the auto-added room context.
-        // Let's target items that contain "Room" or "Deluxe" or just generic HOTEL.
-
-        // We'll update the quantity to neededRooms.
-        // WARNING: This forces ALL hotel items to this quantity if we map blindly.
-        // Let's just update the *first* one found for now, effectively.
-        // Actually, if we have 2 types of rooms, logic is ambiguous.
-        // Assuming 1 type of room in cart (Deluxe Room).
-        return { ...item, quantity: neededRooms };
-      }
-      return item;
     });
+
+    // 2. Enforce Accompanying <= Tickets
+    if (accompanyingCount > validTicketCount) {
+      let removeCount = accompanyingCount - validTicketCount;
+      // Iterate backwards to safely reduce/remove items
+      for (let i = accompanyingIndices.length - 1; i >= 0 && removeCount > 0; i--) {
+        const idx = accompanyingIndices[i];
+        const item = nextCart[idx];
+        const canRemove = Math.min(item.quantity, removeCount);
+
+        if (item.quantity - canRemove <= 0) {
+          nextCart[idx] = { ...item, quantity: 0 };
+        } else {
+          nextCart[idx] = { ...item, quantity: item.quantity - canRemove };
+        }
+        removeCount -= canRemove;
+      }
+
+      // Filter out 0 quantity items
+      nextCart = nextCart.filter(i => i.quantity > 0);
+      accompanyingCount = validTicketCount;
+    }
+
+    // 3. Sync Hotel Rooms
+    const neededRooms = Math.max(validTicketCount, accompanyingCount);
+    const hotelItems = nextCart.filter(i => i.productType === "HOTEL");
+
+    if (hotelItems.length > 0) {
+      if (neededRooms === 0) {
+        nextCart = nextCart.filter(i => i.productType !== "HOTEL");
+      } else {
+        nextCart = nextCart.map(i => {
+          if (i.productType === "HOTEL") {
+            return { ...i, quantity: neededRooms };
+          }
+          return i;
+        });
+      }
+    }
+
+    return nextCart;
   };
 
   const addToCart = (newItem: Omit<CartItem, 'quantity'>, quantity = 1) => {
@@ -144,15 +141,25 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
         nextCart.push({ ...newItem, quantity });
       }
 
-      // Sync happens AFTER adding
-      return syncHotelRooms(nextCart);
+      // Sync dependencies
+      return syncCartDependents(nextCart);
     });
   };
 
   const removeFromCart = (productId: string, roomTypeId?: string) => {
     setCart(prev => {
-      const nextCart = prev.filter(i => !(i.productId === productId && i.roomTypeId === roomTypeId));
-      return syncHotelRooms(nextCart);
+      // Find the item being removed to check if it's a sponsor
+      const removedItem = prev.find(i => i.productId === productId && i.roomTypeId === roomTypeId);
+
+      // Remove the item itself
+      let nextCart = prev.filter(i => !(i.productId === productId && i.roomTypeId === roomTypeId));
+
+      // If removing a sponsor, also remove its linked complimentary tickets
+      if (removedItem?.productType === "SPONSOR") {
+        nextCart = nextCart.filter(i => i.linkedSponsorId !== productId);
+      }
+
+      return syncCartDependents(nextCart);
     });
   };
 
@@ -166,7 +173,7 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
           i.productId === productId && i.roomTypeId === roomTypeId ? { ...i, quantity: newQuantity } : i
         );
       }
-      return syncHotelRooms(nextCart);
+      return syncCartDependents(nextCart);
     });
   };
 
