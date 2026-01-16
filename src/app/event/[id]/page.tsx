@@ -80,6 +80,7 @@ interface EventTicket {
     logo: string | null;
     price: number;
     sellingPrice?: number | null;
+    features?: string[];
   };
   quantity: number;
 }
@@ -90,6 +91,7 @@ interface SponsorType {
     name: string;
     image: string | null;
     price: number;
+    features?: string[];
   };
   quantity: number;
 }
@@ -247,7 +249,7 @@ const PriceCard = ({
   onAddToCart,
   onBuyNow,
 }: {
-  item: { id: string; name: string; image: string | null; price: number; originalPrice?: number };
+  item: { id: string; name: string; image: string | null; price: number; originalPrice?: number; features?: string[] };
   productType: CartItem["productType"];
   actionText?: string;
   offerPercent?: number | null;
@@ -346,6 +348,25 @@ const PriceCard = ({
       <div className="p-3 flex-grow flex flex-col gap-2">
         <h4 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#004aad] transition-colors line-clamp-1">{item.name}</h4>
 
+        {/* Features  */}
+        {item.features && item.features.length > 0 && (
+          <div className="space-y-0.5 mb-2">
+            {item.features.slice(0, 3).map((feature: string, idx: number) => (
+              <div key={idx} className="flex items-center gap-1.5 text-[10px] text-gray-600">
+                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-1.5 h-1.5 text-white" strokeWidth={4} />
+                </div>
+                <span className="font-medium line-clamp-1">{feature}</span>
+              </div>
+            ))}
+            {item.features.length > 3 && (
+              <div className="text-[9px] text-gray-400 font-semibold ml-4.5">
+                +{item.features.length - 3} more
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-auto pt-2 border-t border-gray-100 flex flex-col gap-2">
           <div className="flex items-center justify-between">
             {/* Price section */}
@@ -408,11 +429,11 @@ const PriceCard = ({
 
               <button
                 onClick={() => {
-                  // if (onBuyNow) {
-                  //   onBuyNow(quantity);
-                  // } else {
-                  //   handleAddToCart();
-                  // }
+                  if (onBuyNow) {
+                    onBuyNow(quantity);
+                  } else {
+                    handleAddToCart();
+                  }
                 }}
                 disabled={isSoldOut}
                 className={`flex-1 py-2 rounded text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${isSoldOut
@@ -1120,7 +1141,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               productId: hotel.id,
               roomTypeId: deluxeRoom.id,
               productType: "HOTEL",
-              name: `${deluxeRoom.roomType} (Complimentary)`,
+              name: `Hotel - ${deluxeRoom.roomType} (Complimentary)`,
               price: 0,
               originalPrice: deluxeRoom.price,
               image: hotel.image || undefined
@@ -1279,7 +1300,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               productId: hotel.id,
               roomTypeId: deluxeRoom.id,
               productType: "HOTEL",
-              name: `${deluxeRoom.roomType} (Complimentary)`,
+              name: `Hotel - ${deluxeRoom.roomType} (Complimentary)`,
               price: 0,
               originalPrice: deluxeRoom.price,
               image: hotel.image || undefined
@@ -1465,7 +1486,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             addToCart({
                               productId: standardTicket.ticket.id,
                               productType: "TICKET",
-                              name: `${standardTicket.ticket.name} (Complimentary)`,
+                              name: `Hotel - ${standardTicket.ticket.name} (Complimentary)`,
                               price: 0,
                               originalPrice: standardTicket.ticket.price,
                               image: standardTicket.ticket.logo || undefined,
@@ -1614,6 +1635,25 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               <p className="text-2xl font-bold text-[#004aad]">${effectivePrice.toLocaleString()}</p>
                             )}
                           </div>
+
+                          {/* Features Badges */}
+                          {option.parentTicket?.features && option.parentTicket.features.length > 0 && (
+                            <div className="mt-4 space-y-1">
+                              {option.parentTicket.features.slice(0, 4).map((feature: string, idx: number) => (
+                                <div key={idx} className="flex items-center gap-2 text-xs text-gray-700">
+                                  <div className="w-4 h-4 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
+                                    <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                                  </div>
+                                  <span className="font-medium">{feature}</span>
+                                </div>
+                              ))}
+                              {option.parentTicket.features.length > 4 && (
+                                <div className="text-xs text-gray-500 font-semibold ml-6">
+                                  +{option.parentTicket.features.length - 4} more features
+                                </div>
+                              )}
+                            </div>
+                          )}
 
                           {/* Quantity Control */}
                           <div className="mt-6 flex items-center justify-between bg-gray-50 rounded-lg p-1 border border-gray-200">
@@ -2289,6 +2329,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   image: ticket.logo,
                                   price: effectivePrice,
                                   originalPrice: variant.price,
+                                  features: ticket.features,
                                 }}
                                 productType="TICKET"
                                 actionText="Add to Cart"
@@ -2330,6 +2371,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               image: ticket.logo,
                               price: effectivePrice,
                               originalPrice: ticket.price,
+                              features: ticket.features,
                             }}
                             productType="TICKET"
                             actionText="Add to Cart"
@@ -2426,7 +2468,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               addToCart({
                                 productId: standardTicket.ticket.id,
                                 productType: "TICKET",
-                                name: `${standardTicket.ticket.name} (Complimentary)`,
+                                name: `Hotel - ${standardTicket.ticket.name} (Complimentary)`,
                                 price: 0, // FREE
                                 originalPrice: standardTicket.ticket.price, // Show value
                                 image: standardTicket.ticket.logo || undefined,
@@ -2448,7 +2490,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             ...sponsorType,
                             // Pass original price, let PriceCard handle the discount
                             price: sponsorType.price,
-                            originalPrice: sponsorType.price
+                            originalPrice: sponsorType.price,
+                            features: sponsorType.features,
                           }}
                           productType="SPONSOR"
                           actionText="Add to Cart"

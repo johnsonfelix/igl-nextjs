@@ -48,6 +48,7 @@ export async function POST(req: Request) {
     let price: string | number | undefined;
     let imageUrl: string | undefined;
     let imageKey: string | undefined;
+    let features: string[] = [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await (req as Request).formData();
@@ -75,6 +76,16 @@ export async function POST(req: Request) {
         const imageKeyField = formData.get("imageKey") as string | null;
         if (imageKeyField) imageKey = imageKeyField;
       }
+
+      // Handle features from FormData
+      const featuresField = formData.get("features") as string | null;
+      if (featuresField) {
+        try {
+          features = JSON.parse(featuresField);
+        } catch {
+          features = [];
+        }
+      }
     } else {
       const body = await req.json();
       name = body.name;
@@ -82,6 +93,7 @@ export async function POST(req: Request) {
       price = body.price;
       imageUrl = body.image ?? body.imageUrl ?? undefined;
       imageKey = body.imageKey ?? undefined;
+      features = body.features || [];
     }
 
     if (!imageKey && imageUrl) {
@@ -100,6 +112,7 @@ export async function POST(req: Request) {
         price: parseFloat(String(price)) || 0,
         image: imageUrl || null,
         imageKey: imageKey || null,
+        features: features || [],
       },
     });
 

@@ -78,6 +78,7 @@ export async function PATCH(
                             mobile: location.mobile || null,
                             skype: location.skype || null,
                             wechat: location.wechat || null,
+                            email: location.email || null,
                         },
                         update: {
                             address: location.address || '',
@@ -89,6 +90,7 @@ export async function PATCH(
                             mobile: location.mobile || null,
                             skype: location.skype || null,
                             wechat: location.wechat || null,
+                            email: location.email || null,
                         }
                     }
                 }

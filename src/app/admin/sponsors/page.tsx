@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Plus, Trash2, Edit, Search, Image as ImageIcon, Users } from "lucide-react";
+import { Plus, Trash2, Edit, Search, Image as ImageIcon, Users, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet";
+import { Badge } from "@/app/components/ui/badge";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Skeleton } from "@/app/components/ui/skeleton";
@@ -94,6 +95,28 @@ function SponsorCard({ sponsor, onEdit, onDelete, isOverlay }: SponsorCardProps)
             {sponsor.name}
           </h3>
         </div>
+        {/* Features badges */}
+        {sponsor.features && sponsor.features.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {sponsor.features.slice(0, 3).map((feature: string, idx: number) => (
+              <Badge
+                key={idx}
+                variant="secondary"
+                className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200"
+              >
+                {feature}
+              </Badge>
+            ))}
+            {sponsor.features.length > 3 && (
+              <Badge
+                variant="secondary"
+                className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 border-gray-200"
+              >
+                +{sponsor.features.length - 3} more
+              </Badge>
+            )}
+          </div>
+        )}
         <p className="text-sm text-gray-500 mb-4 line-clamp-2 min-h-[2.5em]">{sponsor.description}</p>
         <div className="mt-auto flex items-center justify-between pt-4 border-t border-gray-50">
           <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Contribution</span>
@@ -143,7 +166,9 @@ export default function SponsorsPage() {
     image: "", // final URL stored here
     description: "",
     price: "",
+    features: [] as string[],
   });
+  const [currentFeature, setCurrentFeature] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -267,6 +292,7 @@ export default function SponsorsPage() {
         description: formData.description,
         price: formData.price,
         image: imageUrl,
+        features: formData.features,
       };
 
       if (editingId) {
@@ -283,7 +309,8 @@ export default function SponsorsPage() {
         });
       }
 
-      setFormData({ name: "", image: "", description: "", price: "" });
+      setFormData({ name: "", image: "", description: "", price: "", features: [] });
+      setCurrentFeature("");
       setFile(null);
       setPreviewUrl(null);
       setEditingId(null);
@@ -313,7 +340,9 @@ export default function SponsorsPage() {
       description: sponsor.description,
       image: sponsor.image || "",
       price: sponsor.price || "",
+      features: sponsor.features || [],
     });
+    setCurrentFeature("");
     setFile(null);
     setPreviewUrl(sponsor.image || null);
     setEditingId(sponsor.id);
@@ -439,6 +468,68 @@ export default function SponsorsPage() {
                       }
                       className="focus:ring-emerald-500 focus:border-emerald-500"
                     />
+                  </div>
+
+                  {/* Features Field */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Features</Label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          className="flex-1 focus:ring-emerald-500 focus:border-emerald-500"
+                          placeholder="e.g. Logo on Website, Speaking Slot"
+                          value={currentFeature}
+                          onChange={(e) => setCurrentFeature(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && currentFeature.trim()) {
+                              e.preventDefault();
+                              if (!formData.features.includes(currentFeature.trim())) {
+                                setFormData({ ...formData, features: [...formData.features, currentFeature.trim()] });
+                              }
+                              setCurrentFeature("");
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={() => {
+                            if (currentFeature.trim() && !formData.features.includes(currentFeature.trim())) {
+                              setFormData({ ...formData, features: [...formData.features, currentFeature.trim()] });
+                              setCurrentFeature("");
+                            }
+                          }}
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      {formData.features.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          {formData.features.map((feature, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="pl-3 pr-2 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 flex items-center gap-1"
+                            >
+                              {feature}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    features: formData.features.filter((_, i) => i !== idx),
+                                  });
+                                }}
+                                className="ml-1 hover:bg-emerald-300 rounded-full p-0.5 transition-colors"
+                              >
+                                <X size={12} />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className="space-y-2">

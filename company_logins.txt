@@ -1,0 +1,83 @@
+﻿Found 88 companies.
+| Company Name | Login Email | Temporary Password |
+|---|---|---|
+| 	512 Doncaster	                | sheffield@5-1-2.com            | IGL2925 |
+| 	Shasha Logistics	             | ops2@shashalogistics.co.za     | IGL3642 |
+| ALBURAQ INTERNATIONAL SHIPPING CO			 | info@alburaqcargo.co.uk        | IGL1897 |
+| ANGO INTERNATIONAL LOGISTICS   | aimee@angoair.com              | IGL3273 |
+| ASF Logistics	                 | asfsin@singnet.com.sg          | IGL3803 |
+| Air Market Logistics		         | nicksoon@airmarket.com.sg      | IGL1875 |
+| Allseas Freight Logistics		    | manchester@allseasglobal.com   | IGL1666 |
+| Amber Heneways Usa		           | larne.davis@heneways-za.com    | IGL6419 |
+| Bondex                         | daniel.du@bondex.com.cn        | IGL7127 |
+| CONTURK Shipping	              | contact@conturk.com            | IGL2998 |
+| CSL INDIA PVT LTD	             | cok@cslindia.net               | IGL5498 |
+| Combine International Logistics Co., Ltd.				 | jeffrey-tpe@combine21.com      | IGL4401 |
+| DAEC Logistics Network Co Ltd		 | don@daec.co.th                 | IGL9899 |
+| ECO Asia                       | suhlaing@ecoasiapte.com        | IGL3547 |
+| EVERFIRST GLOBAL LOGISTICS INC. | wayne@everfirstlogistics.com   | IGL7335 |
+| Eastwind Logistics Co., Ltd		  | shehan@eastwind.co.th          | IGL1909 |
+| Eximex Pty Ltd	                | exim@eximex.com.au             | IGL4617 |
+| FAST MOVE                      | sunil@fastmovelogistics.com    | IGL6446 |
+| Famex Freight & Logistics LLC		 | cyril@famexfrt.com             | IGL3276 |
+| Fast Move Logistics            | sunil@fastmovelogistics.com    | IGL9590 |
+| G-Freight Worldwide Cargo		    | geral@g-freight.pt             | IGL8893 |
+| GLI Global Impex Consolidation Inc			 | cebsales@gli-gici.com          | IGL7374 |
+| GLOBAL FREIGHT MANAGEMENT B.V  | k.spronk@gfm.world             | IGL8531 |
+| GODDESS EXPRESS (M) SDN BHD			 | nelsongd@goddessexpress.com.my | IGL1142 |
+| Gain Transporter Co Ltd			     | info@goodstransporter.com      | IGL6021 |
+| Global Freight MANAGEMENT Deutschland GMBH | hjuschas@gmail.com             | IGL2188 |
+| Global Pro Logistics Inc		     | usa@shipgpl.net                | IGL6184 |
+| Global Wide Shipping Service			 | ann@y-express.com              | IGL8731 |
+| Hainan Huamin Supply Chain Co., Ltd 			 | fanny@huaminsupplychain.com    | IGL2715 |
+| Hangzhou Laying International Logistics Co.,Ltd | max@hzlaying.com               | IGL7064 |
+| Heneways UK		                  | info-ita@heneways.com          | IGL6416 |
+| ICL GLOBAL TRANSPORT SDN BHD			 | salesicl@gmail.com             | IGL9183 |
+| Intercosped (Thailand) Co., Ltd.			 | kotchaporn@intercosped.co.th   | IGL8717 |
+| International Logistics & Movers Pvt Ltd			 | hadley@ilmshipping.com         | IGL5945 |
+| Ionic Logistics Co Ltd	        | oversea@ioniclogistics.com     | IGL5776 |
+| JGL Worldwide Co Ltd           | jon.siva@jglww.com             | IGL6118 |
+| KARRY ON GLOBAL LOGISTICS LTD  | jeffwong@karryon.com.hk        | IGL9627 |
+| KBF Logistics Pty Ltd          | enquiry@kbflogistics.com.au    | IGL3786 |
+| Korail Logis Co Ltd            | ziele999@nate.com              | IGL2494 |
+| Logistics Inn                  | info@logisticsinn.com          | IGL7426 |
+| Logistics Inn	                 | info@logisticsinn.com          | IGL5847 |
+| Longtemps (Shanghai) Supply Chain Technology  | nabiz-cus@longtemp.com         | IGL3647 |
+| Longtemps (Taiwan) Supply Chain Technology 			 | ben_chen@longtempsintl.com     | IGL6589 |
+| Marvel Freight Ltd             | saikat@marvelgroupbd.com       | IGL7885 |
+| Metropolitan Logistics Co., Ltd.		 | admin@met-logs.com             | IGL3515 |
+| NBL Logistics	                 | ben@nblog.net.cn               | IGL2146 |
+| NYS INTERNATIONAL FREIGHT      | jenny@nys.com.my               | IGL3167 |
+| Navoka Shipping & Logistics Pvt Ltd			 | malinda@navoka.com             | IGL8362 |
+| Neutrinos Cargo Co., Ltd.		 		 | ken.y@neutrinos-cargo.com      | IGL2765 |
+| ON BOARD LOGISTICS	            | marlond.antunez@onboardlogistics.net | IGL8650 |
+| Ocean Blitz Shipping		 		      | nina@oceanblitzlogistics.com   | IGL1220 |
+| P.T. Chaya	                    | info@interfreight-cardo.com    | IGL2371 |
+| PCL┬áGLOBAL FREIGHT SDN BHD     | louis@pclfreight.com           | IGL2433 |
+| PENTON CARGO AND CUSTOMS (AUST) PTY LTD				 | info@pccpl.com.au              | IGL4689 |
+| PHI Cargo Services (HK) Limited | panda@phicargo.com             | IGL6804 |
+| Pan pacific shipping & logistics			 | sales@ppsl.com.pk              | IGL6274 |
+| Panda Logistics	               | info@pandalogusa.com           | IGL5189 |
+| Phoenix Logistics              | info@phoenixlogistics.in       | IGL1878 |
+| Phoenix Logistics India Pvt Ltd | varadha@phoenixlogistics.in    | IGL4521 |
+| Quanterm Logistics		           | enquiry@quanterm.com           | IGL2332 |
+| Royal Web Logistics		          | trw@royal-logistics.nl         | IGL4568 |
+| SHANGHAI VC-SHIPPING CO.,LTD			 | allen_luo@vc-shipping.com      | IGL5704 |
+| SHENZHEN KARRY ON GLOBAL LOGISTICS | joe@karryon.com.hk             | IGL1630 |
+| SRVC Freight Services (Cambodia) Co., Ltd. | peter@srv-cambodia.com         | IGL8036 |
+| STAD LOGISTIK CONSOLIDATION CO. 			 | dovi.yape@stadlogistik.com     | IGL4115 |
+| Sabelatrans shipping Global F.Z.E┬á			 | info@sabelatrans.com           | IGL9108 |
+| Scanwell Logistics India private limited | info@scanwell.com              | IGL1165 |
+| Sobel Network Shipping Co., Inc.			 | richiec@sobelnet.com           | IGL8162 |
+| TOTAL FREIGHT	                 | info@totalfreightw.com         | IGL7195 |
+| TianJin┬áSea┬áRail┬áLoncin┬áInternational┬áForwarding┬áAgency┬áCo.,Ltd. | yq@tianjin12306.com            | IGL2571 |
+| Total Freight/TIBA             | fgarcia@totalfreightw.com      | IGL7578 |
+| TreLog LLC- Shipping & Global Projects			 | email.info@trelogs.com         | IGL6417 |
+| Trinity Cargo Link PTE Ltd		   | enquiry@trinitycargolink.com   | IGL4480 |
+| U and I Logistics Corporation  | info@unilogistics.vn           | IGL6851 |
+| VIRTUS PRO LOGISTICS PVT LTD.  | suresh@virtusprologistics.com  | IGL2594 |
+| VIRTUS PRO LOGITICS PVT LTD    | suresh@virtusprologistics.com  | IGL9546 |
+| WAV LINES	 	                   | william@wavlogistics.si        | IGL5769 |
+| WELLCARE INT'L LOGISTICS LTD			 | sales@wellcarelogistics.com    | IGL1663 |
+| Wise Forwarding BV             | sales@wise-forwarding.com      | IGL7236 |
+| Xiamen Universal Freight System Co.,Ltd | joy@ufsasia.net                | IGL8170 |

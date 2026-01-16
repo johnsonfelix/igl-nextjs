@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/app/components/ui/button";
 import { Card, CardContent } from "@/app/components/ui/card";
-import { Plus, Trash2, Edit, Ticket, ImageIcon, Search, Loader2 } from "lucide-react";
+import { Plus, Trash2, Edit, Ticket, ImageIcon, Search, Loader2, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "@/app/components/ui/sheet";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
@@ -27,7 +27,9 @@ export default function TicketsPage() {
     price: "",
     sellingPrice: "",
     logo: "", // holds existing logo URL or uploaded URL
+    features: [] as string[],
   });
+  const [currentFeature, setCurrentFeature] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchtickets = async () => {
@@ -92,7 +94,8 @@ export default function TicketsPage() {
         }),
       });
 
-      setFormData({ name: "", price: "", sellingPrice: "", logo: "" });
+      setFormData({ name: "", price: "", sellingPrice: "", logo: "", features: [] });
+      setCurrentFeature("");
       setFile(null);
       setPreviewUrl(null);
       setEditingId(null);
@@ -122,7 +125,9 @@ export default function TicketsPage() {
       price: String(ticket.price ?? ""),
       sellingPrice: ticket.sellingPrice ? String(ticket.sellingPrice) : "",
       logo: ticket.logo || "",
+      features: ticket.features || [],
     });
+    setCurrentFeature("");
     setFile(null);
     setPreviewUrl(ticket.logo || null);
     setEditingId(ticket.id);
@@ -200,6 +205,68 @@ export default function TicketsPage() {
                         value={formData.sellingPrice}
                         onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
                       />
+                    </div>
+                  </div>
+
+                  {/* Features Field */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Features</Label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          className="flex-1 focus:ring-emerald-500 focus:border-emerald-500"
+                          placeholder="e.g. VIP Access, Free Meal"
+                          value={currentFeature}
+                          onChange={(e) => setCurrentFeature(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && currentFeature.trim()) {
+                              e.preventDefault();
+                              if (!formData.features.includes(currentFeature.trim())) {
+                                setFormData({ ...formData, features: [...formData.features, currentFeature.trim()] });
+                              }
+                              setCurrentFeature("");
+                            }
+                          }}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                          onClick={() => {
+                            if (currentFeature.trim() && !formData.features.includes(currentFeature.trim())) {
+                              setFormData({ ...formData, features: [...formData.features, currentFeature.trim()] });
+                              setCurrentFeature("");
+                            }
+                          }}
+                        >
+                          <Plus size={16} />
+                        </Button>
+                      </div>
+                      {formData.features.length > 0 && (
+                        <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
+                          {formData.features.map((feature, idx) => (
+                            <Badge
+                              key={idx}
+                              variant="secondary"
+                              className="pl-3 pr-2 py-1 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 flex items-center gap-1"
+                            >
+                              {feature}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setFormData({
+                                    ...formData,
+                                    features: formData.features.filter((_, i) => i !== idx),
+                                  });
+                                }}
+                                className="ml-1 hover:bg-emerald-300 rounded-full p-0.5 transition-colors"
+                              >
+                                <X size={12} />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -320,6 +387,29 @@ export default function TicketsPage() {
                 <div className="flex justify-between items-start mb-2">
                   <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={ticket.name}>{ticket.name}</h3>
                 </div>
+
+                {/* Features badges */}
+                {ticket.features && ticket.features.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {ticket.features.slice(0, 3).map((feature: string, idx: number) => (
+                      <Badge
+                        key={idx}
+                        variant="secondary"
+                        className="text-xs px-2 py-0.5 bg-emerald-50 text-emerald-700 border-emerald-200"
+                      >
+                        {feature}
+                      </Badge>
+                    ))}
+                    {ticket.features.length > 3 && (
+                      <Badge
+                        variant="secondary"
+                        className="text-xs px-2 py-0.5 bg-gray-100 text-gray-600 border-gray-200"
+                      >
+                        +{ticket.features.length - 3} more
+                      </Badge>
+                    )}
+                  </div>
+                )}
 
                 <div className="mt-auto pt-4 border-t border-gray-50 space-y-1">
                   {ticket.sellingPrice ? (

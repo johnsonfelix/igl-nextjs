@@ -61,6 +61,7 @@ export async function PUT(req: NextRequest) {
     let image = existing.image ?? null;
     let imageKey = existing.imageKey ?? null;
     let removeImage = false;
+    let features = existing.features || [];
 
     if (contentType.includes("multipart/form-data")) {
       const formData = await req.formData();
@@ -156,6 +157,16 @@ export async function PUT(req: NextRequest) {
           }
         }
       }
+
+      // Handle features from FormData
+      const featuresField = formData.get("features");
+      if (typeof featuresField === "string") {
+        try {
+          features = JSON.parse(featuresField);
+        } catch {
+          features = [];
+        }
+      }
     } else {
       // JSON body
       const body = await req.json();
@@ -218,6 +229,11 @@ export async function PUT(req: NextRequest) {
           imageKey = null;
         }
       }
+
+      // Handle features from JSON body
+      if (body.features !== undefined) {
+        features = Array.isArray(body.features) ? body.features : [];
+      }
     }
 
     // handle removeImage flag (delete old image key if present)
@@ -248,6 +264,7 @@ export async function PUT(req: NextRequest) {
         price: Number(price),
         image: image,
         imageKey: imageKey,
+        features: features || [],
       },
     });
 

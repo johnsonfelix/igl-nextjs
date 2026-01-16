@@ -162,6 +162,7 @@ model SponsorType {
   updatedAt         DateTime           @updatedAt
   description       String?
   sortOrder         Int                @default(0)
+  features          String[]           @default([])
   eventSponsorTypes EventSponsorType[] @relation("EventSponsorTypes")
   offers            Offer[]            @relation("OfferSponsorTypes")
 }
@@ -173,6 +174,7 @@ model Ticket {
   price        Float
   description  String?
   sellingPrice Float?
+  features     String[]      @default([])
   eventTickets EventTicket[] @relation("EventTickets")
   offers       Offer[]       @relation("OfferTickets")
 }
