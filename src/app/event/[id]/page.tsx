@@ -248,6 +248,7 @@ const PriceCard = ({
   isSoldOut = false,
   onAddToCart,
   onBuyNow,
+  eventId,
 }: {
   item: { id: string; name: string; image: string | null; price: number; originalPrice?: number; features?: string[] };
   productType: CartItem["productType"];
@@ -257,6 +258,7 @@ const PriceCard = ({
   isSoldOut?: boolean;
   onAddToCart?: (quantity: number) => void;
   onBuyNow?: (quantity: number) => void;
+  eventId?: string;
 }) => {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -329,12 +331,12 @@ const PriceCard = ({
           SOLD OUT
         </div>
       ) : discounted && (
-        <div className="absolute top-2 right-2 z-10 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+        <div className="absolute top-2 right-2 z-10 bg-blue-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
           {hasOffer ? `${Math.round(offerPercent!)}% OFF` : 'SALE'}
         </div>
       )}
 
-      <div className="relative h-36 w-full overflow-hidden bg-gray-50 border-b border-gray-100">
+      <div className={`relative w-full overflow-hidden border-b border-gray-100 ${productType === 'SPONSOR' ? 'bg-white aspect-square h-auto' : 'bg-gray-50 h-36'}`}>
         <img
           src={item.image || "/placeholder.png"}
           alt={item.name}
@@ -413,36 +415,48 @@ const PriceCard = ({
           </div>
 
           {/* Show split buttons only for tickets, single button for sponsors */}
-          {productType === "TICKET" ? (
-            <div className="flex items-center gap-2">
-              <button
-                onClick={handleAddToCart}
-                disabled={isSoldOut}
-                className={`p-2 rounded transition-all flex items-center justify-center ${isSoldOut
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-[#004aad] text-white hover:bg-[#00317a] shadow-sm hover:shadow active:translate-y-0.5'
-                  }`}
-                title="Add to Cart"
-              >
-                <ShoppingCart className="h-4 w-4" />
-              </button>
+          {productType === "TICKET" || productType === "SPONSOR" ? (
+            <div className="flex flex-col gap-2 w-full">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isSoldOut}
+                  className={`p-2 rounded transition-all flex items-center justify-center ${isSoldOut
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-[#004aad] text-white hover:bg-[#00317a] shadow-sm hover:shadow active:translate-y-0.5'
+                    }`}
+                  title="Add to Cart"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                </button>
 
-              <button
-                onClick={() => {
-                  if (onBuyNow) {
-                    onBuyNow(quantity);
-                  } else {
-                    handleAddToCart();
-                  }
-                }}
-                disabled={isSoldOut}
-                className={`flex-1 py-2 rounded text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${isSoldOut
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm hover:shadow active:translate-y-0.5'
-                  }`}
+                <button
+                  onClick={() => {
+                    if (onBuyNow) {
+                      onBuyNow(quantity);
+                    } else {
+                      handleAddToCart();
+                    }
+                  }}
+                  disabled={isSoldOut}
+                  className={`flex-1 py-2 rounded text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${isSoldOut
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm hover:shadow active:translate-y-0.5'
+                    }`}
+                >
+                  {isSoldOut ? "Sold Out" : actionText || "Buy Now"}
+                </button>
+              </div>
+              <Link
+                href={productType === "TICKET"
+                  ? `/event/${eventId}/ticket/${item.id}`
+                  : `/event/${eventId}/sponsor/${item.id}`
+                }
+                className="w-full py-1.5 text-xs font-semibold text-gray-500 hover:text-[#004aad] hover:underline text-center transition-colors"
+                onClick={(e) => e.stopPropagation()}
               >
-                {isSoldOut ? "Sold Out" : "Buy Now"}
-              </button>
+                View More Details
+              </Link>
             </div>
           ) : (
             <button
@@ -1972,10 +1986,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             {eventData.eventType} Event
           </div>
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-2 leading-tight">{name}</h1>
-          <p className="text-white/90 text-xl font-light flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            {format(parseISO(startDate), "MMMM d, yyyy")} - {format(parseISO(endDate), "MMMM d, yyyy")}
-          </p>
+          <div className="flex flex-wrap items-center gap-6 mt-1">
+            <p className="text-white/90 text-xl font-light flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              {format(parseISO(startDate), "MMMM d, yyyy")} - {format(parseISO(endDate), "MMMM d, yyyy")}
+            </p>
+            <div className="hidden md:block h-6 w-px bg-white/30"></div>
+            <p className="text-white/90 text-xl font-light flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Expected Audience: {expectedAudience} Attendees
+            </p>
+          </div>
         </div>
       </div>
 
@@ -2350,6 +2371,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   originalPrice: variant.price,
                                   image: ticket.logo,
                                 }, qty)}
+                                eventId={id}
                               />
                             );
                           });
@@ -2392,6 +2414,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               originalPrice: ticket.price,
                               image: ticket.logo,
                             }, qty)}
+                            eventId={id}
                           />
                         );
                       })}
@@ -2658,39 +2681,67 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         {/* RIGHT COLUMN: SIDEBAR */}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 sticky top-[100px]">
-            <h3 className="text-lg font-bold text-gray-800 mb-6 pb-4 border-b">Event Details</h3>
-
             <div className="space-y-6">
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#004aad]">
-                  <Calendar className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">Date & Time</p>
-                  <p className="font-bold text-gray-800">{format(parseISO(startDate), "MMM d, yyyy")} - {format(parseISO(endDate), "MMM d, yyyy")}</p>
+              <div className="text-center">
+                <h3 className="text-xl font-bold text-[#004aad] mb-2 leading-tight">Why Sponsor This Conference?</h3>
+                <div className="h-1 w-16 bg-gradient-to-r from-emerald-400 to-teal-500 mx-auto rounded-full"></div>
+              </div>
+
+              <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-5 text-white shadow-inner relative overflow-hidden">
+                <div className="relative z-10">
+                  <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-2">
+                    <MapPin size={14} /> Global Digital Reach
+                  </h4>
+                  <p className="text-xs text-blue-100 leading-relaxed mb-3">
+                    Paid ad campaigns targeting logistics professionals across <span className="font-bold text-white">India, Asia-Pacific, Middle East, Europe & USA</span>.
+                  </p>
+
+                  <div className="bg-white/10 rounded-lg p-3 border border-white/10">
+                    <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-2">
+                      <span className="text-xs text-blue-200">Ad Impressions</span>
+                      <span className="text-sm font-bold">250,000+</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-blue-200">Reaching</span>
+                      <span className="text-sm font-bold">80k–120k Pros</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center text-[#2ebb79]">
-                  <MapPin className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">Location</p>
-                  <p className="font-bold text-gray-800">{location}</p>
-                  {venue && <p className="text-xs text-gray-500 mt-1">{venue.name}</p>}
+              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <Users size={16} className="text-[#004aad]" /> Target Audience
+                </h4>
+                <div className="flex flex-wrap gap-1.5">
+                  {["Freight Forwarders", "Logistics Owners", "Managers", "CXOs", "Importers & Exporters"].map((role, idx) => (
+                    <span key={idx} className="bg-blue-50 text-[#004aad] px-2 py-1 rounded-md font-bold text-[10px] border border-blue-100">
+                      {role}
+                    </span>
+                  ))}
                 </div>
               </div>
 
-              <div className="flex items-start gap-4">
-                <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center text-purple-600">
-                  <Users className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">Expected Audience</p>
-                  <p className="font-bold text-gray-800">{expectedAudience} Attendees</p>
-                </div>
+              <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
+                <h4 className="text-sm font-bold text-emerald-900 mb-3 flex items-center gap-2">
+                  <Check size={16} className="text-emerald-600" /> Key Benefits
+                </h4>
+                <ul className="space-y-2">
+                  {[
+                    "Premium On-Ground Exposure",
+                    "Multi-Channel Promotion",
+                    "Visibility in Networking Zones",
+                    "Long-term Brand Recall",
+                    "Global Brand Travel"
+                  ].map((benefit, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-emerald-800 font-medium">
+                      <div className="mt-0.5 min-w-[4px] h-1 w-1 rounded-full bg-emerald-500"></div>
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
+
             </div>
 
             <div className="mt-8 pt-6 border-t border-gray-100">
@@ -2785,7 +2836,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       }
 
 
-    </div>
+    </div >
   );
 }
 

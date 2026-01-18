@@ -33,9 +33,9 @@ export default function Home() {
       bgImage: "/images/bg-4.jpg",
       leftImage: "/images/left-carousel-igla.jpg",
       welcome: "Welcome to IGLA",
-      title1: "Level Up",
+      title1: "11th",
       title2: "Link Up",
-      title3: "Lead Forward",
+      title3: "ANNUAL CONFERENCE 2026",
       desc: "",
       separator: true
     },
@@ -44,9 +44,9 @@ export default function Home() {
       bgImage: "/images/bg-2.jpg",
       leftImage: "/images/demo-green-energy-slider-left-01.jpg",
       welcome: "Welcome to IGLA",
-      title1: "Innovate.",
+      title1: "Early Bird",
       title2: "Connect.",
-      title3: "Grow.",
+      title3: "Offer",
       desc: "",
       separator: true
     },
@@ -55,9 +55,9 @@ export default function Home() {
       bgImage: "/images/bg-1.jpg",
       leftImage: "/images/demo-green-energy-slider-left-01.jpg", // Reusing potentially same bg for left side based on HTML
       welcome: "Welcome to IGLA",
-      title1: "Empowering",
+      title1: "Sponsorship",
       title2: "Forwarders",
-      title3: "growth.",
+      title3: "Opportunity",
       desc: "",
       separator: true
     }

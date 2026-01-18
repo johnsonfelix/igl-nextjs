@@ -29,6 +29,8 @@ const publicPrefixes = [
 
   // Public Data APIs (for public pages)
   "/api/events",
+  "/api/tickets",
+  "/api/sponsors",
   "/api/companies", // e.g. directory search
   "/api/admin/membership-plans", // for membership page
   "/api/admin/offers", // for event discounts

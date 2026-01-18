@@ -1,0 +1,229 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowLeft, ShoppingCart, Check, Ticket, Loader2 } from "lucide-react";
+import { useCart } from "@/app/event/[id]/CartContext";
+import toast from "react-hot-toast";
+
+interface EventTicket {
+    id: string;
+    name: string;
+    logo: string | null;
+    price: number;
+    sellingPrice?: number | null;
+    description: string | null;
+    features: string[];
+}
+
+export default function TicketDetailsPage({
+    params,
+}: {
+    params: Promise<{ id: string; ticketId: string }>;
+}) {
+    const resolvedParams = use(params);
+    const router = useRouter();
+    const { addToCart } = useCart();
+
+    const [ticket, setTicket] = useState<EventTicket | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [selectedQuantity, setSelectedQuantity] = useState(1);
+
+    useEffect(() => {
+        const fetchTicket = async () => {
+            try {
+                // Fetching from the public endpoint
+                const res = await fetch(`/api/tickets/${resolvedParams.ticketId}`);
+                if (!res.ok) throw new Error("Failed to fetch ticket");
+                const data = await res.json();
+                setTicket(data);
+            } catch (error) {
+                console.error("Error fetching ticket:", error);
+                toast.error("Failed to load ticket details");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchTicket();
+    }, [resolvedParams.ticketId]);
+
+    const handleAddToCart = () => {
+        if (!ticket) return;
+
+        for (let i = 0; i < selectedQuantity; i++) {
+            addToCart({
+                productId: ticket.id,
+                productType: "TICKET",
+                name: ticket.name,
+                price: ticket.sellingPrice ?? ticket.price,
+                originalPrice: ticket.price !== (ticket.sellingPrice ?? ticket.price) ? ticket.price : undefined,
+                image: ticket.logo || undefined,
+            });
+        }
+        toast.success(`${selectedQuantity} x ${ticket.name} added to cart!`);
+        setSelectedQuantity(1);
+    };
+
+    const handleBuyNow = () => {
+        handleAddToCart();
+        router.push(`/event/${resolvedParams.id}/checkout`);
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="flex flex-col items-center gap-4">
+                    <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                    <p className="text-gray-500">Loading ticket details...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (!ticket) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold text-gray-900">Ticket Not Found</h1>
+                    <button
+                        onClick={() => router.back()}
+                        className="mt-4 text-emerald-600 hover:underline flex items-center justify-center gap-2"
+                    >
+                        <ArrowLeft size={16} /> Go Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const effectivePrice = ticket.sellingPrice ?? ticket.price;
+    const hasDiscount = ticket.sellingPrice && ticket.sellingPrice < ticket.price;
+    const discountPercentage = hasDiscount
+        ? Math.round(((ticket.price - ticket.sellingPrice!) / ticket.price) * 100)
+        : 0;
+
+    return (
+        <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-4xl mx-auto">
+                <button
+                    onClick={() => router.back()}
+                    className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                >
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Event
+                </button>
+
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                        {/* Image Section */}
+                        <div className="relative h-64 md:h-auto bg-gray-100 p-8 flex items-center justify-center">
+                            {ticket.logo ? (
+                                <img
+                                    src={ticket.logo}
+                                    alt={ticket.name}
+                                    className="max-w-full max-h-full object-contain drop-shadow-lg"
+                                />
+                            ) : (
+                                <div className="flex flex-col items-center justify-center text-gray-400">
+                                    <Ticket size={64} strokeWidth={1} />
+                                    <span className="text-sm mt-3 font-medium">No Image Available</span>
+                                </div>
+                            )}
+                            {hasDiscount && (
+                                <div className="absolute top-4 right-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
+                                    {discountPercentage}% OFF
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Details Section */}
+                        <div className="p-8 flex flex-col">
+                            <div className="mb-6">
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2">{ticket.name}</h1>
+                                <div className="flex items-baseline gap-3 mt-4">
+                                    <span className="text-4xl font-bold text-emerald-600">
+                                        ${effectivePrice.toLocaleString()}
+                                    </span>
+                                    {hasDiscount && (
+                                        <span className="text-lg text-gray-400 line-through">
+                                            ${ticket.price.toLocaleString()}
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+
+                            {ticket.description && (
+                                <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+                                        Description
+                                    </h3>
+                                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                        {ticket.description}
+                                    </p>
+                                </div>
+                            )}
+
+                            {ticket.features && ticket.features.length > 0 && (
+                                <div className="mb-8">
+                                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+                                        Includes
+                                    </h3>
+                                    <ul className="space-y-3">
+                                        {ticket.features.map((feature, idx) => (
+                                            <li key={idx} className="flex items-start gap-3 text-gray-700">
+                                                <div className="mt-1 min-w-[1.25rem] h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                                    <Check className="h-3 w-3 text-emerald-600" strokeWidth={3} />
+                                                </div>
+                                                <span>{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+
+                            {/* <div className="mt-auto pt-6 border-t border-gray-100 space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <label className="text-sm font-medium text-gray-700">Quantity:</label>
+                                    <div className="flex items-center border border-gray-200 rounded-lg">
+                                        <button
+                                            onClick={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
+                                            className="px-3 py-1.5 hover:bg-gray-50 text-gray-600 border-r border-gray-200"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="px-4 py-1.5 font-semibold min-w-[3rem] text-center">
+                                            {selectedQuantity}
+                                        </span>
+                                        <button
+                                            onClick={() => setSelectedQuantity(Math.min(99, selectedQuantity + 1))}
+                                            className="px-3 py-1.5 hover:bg-gray-50 text-gray-600 border-l border-gray-200"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        onClick={handleAddToCart}
+                                        className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-emerald-600 text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition-colors"
+                                    >
+                                        <ShoppingCart size={20} />
+                                        Add to Cart
+                                    </button>
+                                    <button
+                                        onClick={handleBuyNow}
+                                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
+                                    >
+                                        Buy Now
+                                    </button>
+                                </div>
+                            </div> */}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}

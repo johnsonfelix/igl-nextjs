@@ -59,22 +59,22 @@ export default function PopupAd() {
         >
             <div
                 onClick={(e) => e.stopPropagation()}
-                className="relative rounded-2xl shadow-2xl max-w-lg w-full overflow-hidden animate-in fade-in zoom-in-95 duration-300"
+                className="relative rounded-2xl shadow-2xl max-w-[550px] w-full overflow-hidden animate-in fade-in zoom-in-95 duration-300"
             >
                 <button
                     onClick={handleClose}
-                    className="absolute top-2 right-2 bg-white/80 hover:bg-white text-gray-800 rounded-full p-1.5 z-10 transition-colors"
+                    className="absolute top-3 right-3 bg-white/80 hover:bg-white text-gray-800 rounded-full p-2 z-10 transition-colors shadow-sm"
                     aria-label="Close"
                 >
-                    <X size={20} />
+                    <X size={22} />
                 </button>
-                <div onClick={handleAdClick} className="relative block aspect-[3/4] w-full cursor-pointer">
+                <div onClick={handleAdClick} className="relative block aspect-square w-full cursor-pointer">
                     {/* Aspect ratio based on likely flyer dims, adjust if needed */}
                     <Image
-                        src="/popup-ad.png"
+                        src="/images/bg-2.jpg"
                         alt="Special Offer"
                         fill
-                        className="object-contain"
+                        className="object-cover"
                         priority
                     />
                 </div>

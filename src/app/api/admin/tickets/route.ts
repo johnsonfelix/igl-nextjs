@@ -17,6 +17,7 @@ export async function POST(req: NextRequest) {
       name,
       price,
       logo,
+      description: body.description,
       sellingPrice: body.sellingPrice,
       features: features || []
     },

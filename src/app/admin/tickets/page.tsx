@@ -11,6 +11,8 @@ import { Badge } from "@/app/components/ui/badge";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { uploadFileToS3 } from "@/app/lib/s3-upload";
 
+import { Textarea } from "@/app/components/ui/textarea";
+
 export default function TicketsPage() {
   const [tickets, settickets] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -26,6 +28,7 @@ export default function TicketsPage() {
     name: "",
     price: "",
     sellingPrice: "",
+    description: "",
     logo: "", // holds existing logo URL or uploaded URL
     features: [] as string[],
   });
@@ -94,7 +97,7 @@ export default function TicketsPage() {
         }),
       });
 
-      setFormData({ name: "", price: "", sellingPrice: "", logo: "", features: [] });
+      setFormData({ name: "", price: "", sellingPrice: "", description: "", logo: "", features: [] });
       setCurrentFeature("");
       setFile(null);
       setPreviewUrl(null);
@@ -124,6 +127,7 @@ export default function TicketsPage() {
       name: ticket.name,
       price: String(ticket.price ?? ""),
       sellingPrice: ticket.sellingPrice ? String(ticket.sellingPrice) : "",
+      description: ticket.description || "",
       logo: ticket.logo || "",
       features: ticket.features || [],
     });
@@ -164,7 +168,7 @@ export default function TicketsPage() {
                 Add Ticket
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-full sm:w-[480px]">
+            <SheetContent side="right" className="w-full sm:w-[600px] overflow-y-auto">
               <div className="space-y-6 py-6">
                 <SheetHeader>
                   <SheetTitle className="text-2xl font-bold text-gray-900">
@@ -206,6 +210,17 @@ export default function TicketsPage() {
                         onChange={(e) => setFormData({ ...formData, sellingPrice: e.target.value })}
                       />
                     </div>
+                  </div>
+
+                  {/* Description Field */}
+                  <div className="space-y-2">
+                    <Label className="text-gray-700 font-medium">Description (Optional)</Label>
+                    <Textarea
+                      className="focus:ring-emerald-500 focus:border-emerald-500 h-32"
+                      placeholder="Enter ticket details..."
+                      value={formData.description}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    />
                   </div>
 
                   {/* Features Field */}
@@ -388,6 +403,13 @@ export default function TicketsPage() {
                   <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={ticket.name}>{ticket.name}</h3>
                 </div>
 
+                {/* Description */}
+                {ticket.description && (
+                  <p className="text-sm text-gray-500 mb-3 whitespace-pre-wrap line-clamp-3">
+                    {ticket.description}
+                  </p>
+                )}
+
                 {/* Features badges */}
                 {ticket.features && ticket.features.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
@@ -437,7 +459,8 @@ export default function TicketsPage() {
             </Card>
           ))}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   );
 }

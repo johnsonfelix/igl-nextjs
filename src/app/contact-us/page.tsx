@@ -2,271 +2,178 @@
 
 import React from "react";
 import Image from "next/image";
-import { Phone, Mail, MapPin } from "lucide-react";
+import { Phone, Mail, MapPin, Search, Globe, Instagram, Linkedin, Facebook } from "lucide-react";
 import Link from "next/link";
 
 export default function ContactUs() {
     return (
-        <div className="bg-white text-gray-800 font-sans">
-            {/* Page Title Section */}
-            <section className="relative h-[300px] md:h-[400px] w-full overflow-hidden">
-                <div className="absolute inset-0 flex">
-                    <div className="w-1/2 relative h-full">
-                        <Image
-                            src="/images/left-carousel-igla.jpg"
-                            alt="Contact Background Left"
-                            fill
-                            className="object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/30 flex flex-col justify-center items-center md:items-start pl-10 md:pl-20 text-white">
-                            <h1 className="text-4xl md:text-6xl font-bold mb-2">Contact</h1>
-                            <h2 className="text-lg md:text-2xl font-light opacity-90">
-                                Connect Globally. Grow Securely.
-                            </h2>
+        <div className="bg-white text-gray-800 font-sans min-h-screen">
+            {/* 1. HERO SECTION */}
+            <section className="relative h-[400px] w-full overflow-hidden flex items-center justify-center">
+                {/* Background Image/Overlay */}
+                <div className="absolute inset-0">
+                    <Image
+                        src="/images/left-carousel-igla.jpg"
+                        alt="Contact Hero"
+                        fill
+                        className="object-cover"
+                        priority
+                    />
+                    <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
+                    <div className="absolute inset-0 bg-black/40"></div>
+                </div>
+
+                {/* Content */}
+                <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white animate-fadeIn">
+                    <span className="block text-emerald-300 font-bold tracking-wider uppercase text-sm mb-4">
+                        Get in touch
+                    </span>
+                    <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+                        Connect Globally. <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">Grow Securely.</span>
+                    </h1>
+                    <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto font-light">
+                        Whether you're looking to join IGLA, collaborate with us, or simply learn more, our global team is here to help.
+                    </p>
+                </div>
+            </section>
+
+            {/* 2. MAIN CONTACT CARDS (Overlapping Hero) */}
+            <section className="relative z-20 -mt-16 px-4 pb-16">
+                <div className="container mx-auto max-w-6xl">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                        {/* Card 1: Direct Contact */}
+                        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
+                            <div className="w-14 h-14 bg-blue-50 text-[#004aad] rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Phone className="h-6 w-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Talk to Us</h3>
+                            <p className="text-gray-500 text-sm mb-6">Support available during business hours</p>
+                            <div className="space-y-3">
+                                <a href="tel:9940100929" className="block text-lg font-bold text-[#004aad] hover:underline">
+                                    +91 99401 00929
+                                </a>
+                                <a href="mailto:sales@igla.asia" className="block text-gray-700 font-medium hover:text-[#004aad]">
+                                    sales@igla.asia
+                                </a>
+                            </div>
                         </div>
+
+                        {/* Card 2: HQ Location */}
+                        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
+                            <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <MapPin className="h-6 w-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Our Headquarters</h3>
+                            <p className="text-gray-500 text-sm mb-6">Visit our main office</p>
+                            <p className="text-gray-700 leading-relaxed font-medium">
+                                # Amber 16 F 2, Olympia Opaline 33,<br />
+                                Rajiv Gandhi Road, Navalur<br />
+                                Chennai - 600 130
+                            </p>
+                        </div>
+
+                        {/* Card 3: Social & WeChat */}
+                        <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
+                            <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <Globe className="h-6 w-6" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">Connect Online</h3>
+                            <p className="text-gray-500 text-sm mb-6">Follow us on social media</p>
+
+                            <div className="flex items-center justify-center gap-4 mb-6">
+                                <a href="https://www.facebook.com/profile.php?id=61577474642854" target="_blank" className="p-2 bg-gray-50 hover:bg-[#1877F2] hover:text-white rounded-lg transition-colors text-gray-600"><Facebook size={20} /></a>
+                                <a href="https://www.instagram.com/igla.asia?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw==" target="_blank" className="p-2 bg-gray-50 hover:bg-[#E4405F] hover:text-white rounded-lg transition-colors text-gray-600"><Instagram size={20} /></a>
+                                <a href="https://www.linkedin.com/company/igla-innovative-global-logistics-allianz" target="_blank" className="p-2 bg-gray-50 hover:bg-[#0077B5] hover:text-white rounded-lg transition-colors text-gray-600"><Linkedin size={20} /></a>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-lg px-4 py-2 inline-flex items-center gap-2">
+                                <span className="font-bold text-xs text-gray-500 uppercase tracking-wide">WeChat</span>
+                                <span className="font-bold text-[#004aad]">eric2710</span>
+                            </div>
+                        </div>
+
                     </div>
-                    <div className="w-1/2 relative h-full">
-                        <Image
-                            src="/images/contact-us-bg-1.png"
-                            alt="Contact Background Right"
-                            fill
-                            className="object-cover"
+                </div>
+            </section>
+
+            {/* 3. REGIONAL TEAM GRID */}
+            <section className="py-16 bg-gray-50/50">
+                <div className="container mx-auto px-4 max-w-6xl">
+                    <div className="text-center mb-16">
+                        <span className="text-[#004aad] font-bold tracking-wider uppercase text-xs mb-2 block">Global Network</span>
+                        <h2 className="text-3xl font-extrabold text-gray-900">Meet Our Regional Team</h2>
+                        <div className="w-20 h-1.5 bg-emerald-400 mx-auto mt-4 rounded-full"></div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {/* Regional Card Component */}
+                        <RegionalCard
+                            region="Europe"
+                            name="Mr. Fabian"
+                            email="fabian@igla.asia"
+                            mapImage="/images/europe_map.png"
+                        />
+                        <RegionalCard
+                            region="Americas"
+                            name="Mr. Marlond"
+                            email="marlond@igla.asia"
+                            mapImage="/images/America_map.png"
+                        />
+                        <RegionalCard
+                            region="Africa / Australia"
+                            name="Mrs. Dovi"
+                            email="dovi@igla.asia"
+                            mapImage="/images/australia_map.png"
+                        />
+                        <RegionalCard
+                            region="South East Asia"
+                            name="Mr. Jonathan"
+                            email="jon.siva@igla.asia"
+                            mapImage="/images/southeast_asia_map.png"
+                        />
+                        <RegionalCard
+                            region="Middle East"
+                            name="Mr. Varadha"
+                            email="varadha@igla.asia"
+                            mapImage="/images/middle_east_map.png"
                         />
                     </div>
                 </div>
             </section>
 
-            {/* Main Content Section */}
-            <section className="py-16 md:py-24">
-                <div className="container mx-auto px-4">
-                    <div className="flex flex-col lg:flex-row gap-12">
-                        {/* Left Column: Intro */}
-                        <div className="lg:w-5/12">
-                            <div className="bg-white rounded-lg shadow-lg p-10 transform translate-y-0 lg:-translate-y-12 transition-transform">
-                                <span className="block text-[#2ebb79] font-bold uppercase text-sm mb-2">
-                                    Let's Work Together
-                                </span>
-                                <h4 className="text-3xl font-bold text-gray-900 mb-6">
-                                    We're Ready to Help You Grow!
-                                </h4>
-                                <p className="text-gray-600 mb-8 leading-relaxed">
-                                    Have a question, idea, or need support? We're here to help and
-                                    always ready to listen. Whether you're looking to join IGLA,
-                                    collaborate with us, or simply learn more, our team is just a
-                                    message away.
-                                </p>
-
-                                <div className="grid sm:grid-cols-2 gap-8">
-                                    <div>
-                                        <p className="text-gray-500 mb-1">Call us directly?</p>
-                                        <a
-                                            href="tel:9940100929"
-                                            className="text-gray-800 font-bold hover:text-[#2ebb79]"
-                                        >
-                                            +91 99401 00929
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500 mb-1">Need live support?</p>
-                                        <a
-                                            href="mailto:sales@igla.asia"
-                                            className="text-gray-800 font-bold hover:text-[#2ebb79]"
-                                        >
-                                            sales@igla.asia
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500 mb-1">We Chat</p>
-                                        <a href="#" className="text-gray-800 font-bold hover:text-[#2ebb79]">
-                                            eric2710
-                                        </a>
-                                    </div>
-                                    <div>
-                                        <p className="text-gray-500 mb-1">Visit headquarters</p>
-                                        <a
-                                            href="#"
-                                            target="_blank"
-                                            className="text-gray-800 font-bold hover:text-[#2ebb79] block leading-snug"
-                                        >
-                                            # Amber 16 F 2, Olympia Opaline 33, Rajiv Gandhi Road,
-                                            Navalur - 600 130
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Right Column: Regional Contacts */}
-                        <div className="lg:w-7/12 max-w-xl">
-                            <div className="grid md:grid-cols-1 gap-6">
-                                {/* Europe */}
-                                <div className=" rounded-2xl overflow-hidden flex flex-col sm:flex-row h-auto shadow-md hover:shadow-lg transition-shadow">
-                                    <div className="sm:w-[35%] relative min-h-[160px] sm:min-h-[180px]">
-                                        <Image
-                                            src="/images/europe_map.png"
-                                            alt="Europe Map"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="sm:w-[65%] bg-gray-50 p-8 xl:p-6 flex flex-col justify-center">
-                                        <p className="text-sm font-semibold text-gray-600 mb-1">
-                                            Europe
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Mr.Fabian</h3>
-                                        <div className="flex items-center gap-2 text-gray-800">
-                                            <Mail size={18} className="text-gray-600" />
-                                            <a
-                                                href="mailto:fabian@igla.asia"
-                                                className="text-gray-900 hover:text-[#2ebb79] font-medium"
-                                            >
-                                                fabian@igla.asia
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Americas */}
-                                <div className="bg-gray-50 rounded-2xl overflow-hidden flex flex-col sm:flex-row h-auto shadow-md hover:shadow-lg transition-shadow">
-                                    <div className="sm:w-[35%] relative min-h-[160px] sm:min-h-[180px]">
-                                        <Image
-                                            src="/images/America_map.png"
-                                            alt="Americas Map"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="sm:w-[65%] bg-gray-50 p-8 xl:p-6 flex flex-col justify-center">
-                                        <p className="text-sm font-semibold text-gray-600 mb-1">
-                                            Americas
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Mr.Marlond</h3>
-                                        <div className="flex items-center gap-2 text-gray-800">
-                                            <Mail size={18} className="text-gray-600" />
-                                            <a
-                                                href="mailto:marlond@igla.asia"
-                                                className="text-gray-900 hover:text-[#2ebb79] font-medium"
-                                            >
-                                                marlond@igla.asia
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Africa/Australia */}
-                                <div className="bg-gray-50 rounded-2xl overflow-hidden flex flex-col sm:flex-row h-auto shadow-md hover:shadow-lg transition-shadow">
-                                    <div className="sm:w-[35%] relative min-h-[160px] sm:min-h-[180px]">
-                                        <Image
-                                            src="/images/australia_map.png"
-                                            alt="Australia Map"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="sm:w-[65%] bg-gray-50 p-8 xl:p-6 flex flex-col justify-center">
-                                        <p className="text-sm font-semibold text-gray-600 mb-1">
-                                            Africa/Australia
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Mrs.Dovi</h3>
-                                        <div className="flex items-center gap-2 text-gray-800">
-                                            <Mail size={18} className="text-gray-600" />
-                                            <a
-                                                href="mailto:dovi@igla.asia"
-                                                className="text-gray-900 hover:text-[#2ebb79] font-medium"
-                                            >
-                                                dovi@igla.asia
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* South East Asia */}
-                                <div className="bg-gray-50 rounded-2xl overflow-hidden flex flex-col sm:flex-row h-auto shadow-md hover:shadow-lg transition-shadow">
-                                    <div className="sm:w-[35%] relative min-h-[160px] sm:min-h-[180px]">
-                                        <Image
-                                            src="/images/southeast_asia_map.png"
-                                            alt="South East Asia Map"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="sm:w-[65%] bg-gray-50 p-8 xl:p-6 flex flex-col justify-center">
-                                        <p className="text-sm font-semibold text-gray-600 mb-1">
-                                            South East Asia
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Mr.Jonathan</h3>
-                                        <div className="flex items-center gap-2 text-gray-800">
-                                            <Mail size={18} className="text-gray-600" />
-                                            <a
-                                                href="mailto:jon.siva@igla.asia"
-                                                className="text-gray-900 hover:text-[#2ebb79] font-medium"
-                                            >
-                                                jon.siva@igla.asia
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Middle East */}
-                                <div className="bg-gray-50 rounded-2xl overflow-hidden flex flex-col sm:flex-row h-auto shadow-md hover:shadow-lg transition-shadow">
-                                    <div className="sm:w-[35%] relative min-h-[160px] sm:min-h-[180px]">
-                                        <Image
-                                            src="/images/middle_east_map.png"
-                                            alt="Middle East Map"
-                                            fill
-                                            className="object-cover"
-                                        />
-                                    </div>
-                                    <div className="sm:w-[65%] bg-gray-50 p-8 xl:p-6 flex flex-col justify-center">
-                                        <p className="text-sm font-semibold text-gray-600 mb-1">
-                                            Middle East
-                                        </p>
-                                        <h3 className="text-2xl font-bold text-gray-900 mb-6">Mr.Varadha</h3>
-                                        <div className="flex items-center gap-2 text-gray-800">
-                                            <Mail size={18} className="text-gray-600" />
-                                            <a
-                                                href="mailto:varadha@igla.asia"
-                                                className="text-gray-900 hover:text-[#2ebb79] font-medium"
-                                            >
-                                                varadha@igla.asia
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Social Icons */}
-                    <div className="mt-16 pt-8 border-t border-gray-200 flex flex-col md:flex-row items-center justify-center gap-6">
-                        <h6 className="font-bold text-gray-800">Connect with social media</h6>
-                        <span className="hidden md:block w-12 h-[1px] bg-gray-300"></span>
-                        <div className="flex gap-4">
-                            <a
-                                href="https://www.facebook.com/profile.php?id=61577474642854"
-                                target="_blank"
-                                className="w-10 h-10 rounded-full bg-[#1877F2] text-white flex items-center justify-center hover:scale-110 transition-transform"
-                            >
-                                <span className="font-bold">f</span>
-                            </a>
-                            <a
-                                href="https://www.instagram.com/igla.asia?utm_source=ig_web_button_share_sheet&igsh=ZDNlZDc0MzIxNw=="
-                                target="_blank"
-                                className="w-10 h-10 rounded-full bg-[#E4405F] text-white flex items-center justify-center hover:scale-110 transition-transform"
-                            >
-                                <span className="font-bold">in</span>
-                            </a>
-                            <a
-                                href="https://www.linkedin.com/company/igla-innovative-global-logistics-allianz"
-                                target="_blank"
-                                className="w-10 h-10 rounded-full bg-[#0077B5] text-white flex items-center justify-center hover:scale-110 transition-transform"
-                            >
-                                <span className="font-bold">in</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
         </div>
     );
+}
+
+// Reusable Component for Regional Cards
+function RegionalCard({ region, name, email, mapImage }: { region: string, name: string, email: string, mapImage: string }) {
+    return (
+        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
+            {/* Map Header */}
+            <div className="h-40 relative bg-gray-50 overflow-hidden">
+                <div className="absolute inset-0 bg-blue-900/5 group-hover:bg-transparent transition-colors z-10"></div>
+                <Image
+                    src={mapImage}
+                    alt={`${region} Map`}
+                    fill
+                    className="object-contain p-4 opacity-80 group-hover:scale-110 transition-transform duration-500"
+                />
+            </div>
+
+            {/* Content */}
+            <div className="p-6 flex flex-col flex-1 items-center text-center">
+                <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{region}</span>
+                <h3 className="text-2xl font-bold text-gray-900 mb-6">{name}</h3>
+
+                <a
+                    href={`mailto:${email}`}
+                    className="mt-auto inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gray-50 text-gray-700 font-bold hover:bg-[#004aad] hover:text-white transition-all group-hover:shadow-md"
+                >
+                    <Mail size={18} />
+                    {email}
+                </a>
+            </div>
+        </div>
+    )
 }

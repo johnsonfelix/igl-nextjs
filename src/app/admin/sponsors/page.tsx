@@ -9,6 +9,7 @@ import { Badge } from "@/app/components/ui/badge";
 import { Input } from "@/app/components/ui/input";
 import { Label } from "@/app/components/ui/label";
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { Textarea } from "@/app/components/ui/textarea";
 
 import {
   DndContext,
@@ -446,14 +447,14 @@ export default function SponsorsPage() {
 
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Description <span className="text-red-500">*</span></Label>
-                    <Input
+                    <Textarea
                       required
                       placeholder="e.g. Platinum Partner"
                       value={formData.description}
                       onChange={(e) =>
                         setFormData({ ...formData, description: e.target.value })
                       }
-                      className="focus:ring-emerald-500 focus:border-emerald-500"
+                      className="focus:ring-emerald-500 focus:border-emerald-500 min-h-[100px]"
                     />
                   </div>
 

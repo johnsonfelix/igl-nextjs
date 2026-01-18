@@ -40,6 +40,7 @@ export async function PUT(req: NextRequest) {
         name,
         price,
         logo,
+        description: body.description,
         sellingPrice: body.sellingPrice,
         features: features || []
       },
