@@ -35,7 +35,8 @@ const publicPrefixes = [
   "/api/admin/membership-plans", // for membership page
   "/api/admin/offers", // for event discounts
   "/api/admin/booth-subtypes", // public booth options
-  "/api/inquiries", // for submitting inquiries
+  "/api/inquiries", // for submitting and viewing inquiries
+  "/api/testimonials", // public testimonials
 
   // Public pages
   "/membership",

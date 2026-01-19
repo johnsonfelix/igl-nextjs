@@ -122,100 +122,126 @@ function CartSummary({
   removeCoupon: () => void;
   couponBusy: boolean;
   linesWithOffers: Array<any>;
-  updateQuantity: (pid: string, qty: number, rtid?: string) => void;
-  removeFromCart: (pid: string, rtid?: string) => void;
+  updateQuantity: (pid: string, qty: number, rtid?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
+  removeFromCart: (pid: string, rtid?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
 }) {
+  // Group items
+  const registrationItems = linesWithOffers.filter(
+    (item) => String(item.productType || "").toUpperCase() !== "SPONSOR" && !item.isComplimentary && !item.linkedSponsorId
+  );
+
+  const sponsorshipItems = linesWithOffers.filter(
+    (item) => String(item.productType || "").toUpperCase() === "SPONSOR" || item.isComplimentary || item.linkedSponsorId
+  );
+
+  const renderItem = (item: any, idx: number, groupIndex: number) => (
+    <div
+      key={`${item.productId}-${item.roomTypeId || ""}-${item.isComplimentary ? "comp" : ""}-${item.linkedSponsorId || ""}`}
+      className="flex items-center gap-3 border-b pb-3"
+    >
+      <img src={item.image || "/placeholder.png"} alt={item.name} className="w-16 h-16 rounded-md object-cover border" />
+      <div className="flex-1">
+        <div className="font-medium text-slate-900">
+          {groupIndex}. {item.name.replace(/^Hotel - /, "")}
+        </div>
+
+        {/* Quantity Controls */}
+        {String(item.productType || "").toUpperCase() === "HOTEL" ? (
+          <div className="mt-2 text-sm text-gray-500 font-medium">
+            Qty: {item.quantity} (Linked to Ticket)
+          </div>
+        ) : item.isComplimentary ? (
+          <div className="mt-2 flex items-center gap-2">
+            <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
+              🎁 COMPLIMENTARY
+            </span>
+            <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
+          </div>
+        ) : String(item.productType || "").toUpperCase() === "SPONSOR" ? (
+          <div className="flex items-center gap-3 mt-2">
+            <div className="text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
+              Qty: {item.quantity}
+            </div>
+            <button
+              onClick={() => removeFromCart(item.productId, item.roomTypeId, item.isComplimentary, item.linkedSponsorId)}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+              title="Remove item"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
+              <button
+                onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId, item.isComplimentary, item.linkedSponsorId)}
+                className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
+                disabled={item.quantity <= 1 && false} // Let updateQuantity handle removal if qty=0 or handle externally
+              >
+                <Minus className="h-3 w-3" />
+              </button>
+              <span className="w-8 text-center text-sm font-semibold text-gray-700">{item.quantity}</span>
+              <button
+                onClick={() => updateQuantity(item.productId, item.quantity + 1, item.roomTypeId, item.isComplimentary, item.linkedSponsorId)}
+                className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
+              >
+                <Plus className="h-3 w-3" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => removeFromCart(item.productId, item.roomTypeId, item.isComplimentary, item.linkedSponsorId)}
+              className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
+              title="Remove item"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Price Breakdown */}
+        <div className="mt-1 text-sm text-slate-500">
+          {(item.appliedOfferPercent || (item.original > item.effective && !item.isComplimentary)) ? (
+            <>
+              <span className="line-through mr-2 text-gray-400">${Number(item.original).toFixed(2)}</span>
+              <span className="font-semibold text-indigo-600">${Number(item.effective).toFixed(2)}</span>
+              {item.appliedOfferPercent ? <span className="ml-2 text-xs bg-rose-100 text-rose-600 font-medium px-1.5 py-0.5 rounded">-{Math.round(item.appliedOfferPercent)}%</span> : null}
+            </>
+          ) : (
+            <span className="font-semibold text-gray-600">${Number(item.effective ?? item.original).toFixed(2)}</span>
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col items-end">
+        <span className="font-bold text-slate-800">${Number(item.lineTotal).toFixed(2)}</span>
+      </div>
+    </div>
+  );
+
   return (
     <div>
-      <h3 className="font-semibold text-slate-800">PRODUCT SUMMARY</h3>
+      <h3 className="font-semibold text-slate-800 hidden">PRODUCT SUMMARY</h3>
 
-      <div className="mt-3 space-y-3">
+      <div className="space-y-6 mt-2">
         {cart.length === 0 && <p className="text-slate-500 text-sm">No items in cart.</p>}
-        {linesWithOffers.map((item, idx) => (
-          <div
-            key={`${item.productId}-${item.roomTypeId || item.boothSubTypeId || ""}`}
-            className="flex items-center gap-3 border-b pb-3"
-          >
-            <img src={item.image || "/placeholder.png"} alt={item.name} className="w-16 h-16 rounded-md object-cover border" />
-            <div className="flex-1">
-              <div className="font-medium text-slate-900">
-                {idx + 1}. {item.name}
-              </div>
 
-              {/* Quantity Controls */}
-              {/* Quantity Controls - Hide for HOTEL & SPONSOR */}
-              {String(item.productType || "").toUpperCase() === "HOTEL" ? (
-                <div className="mt-2 text-sm text-gray-500 font-medium">
-                  Qty: {item.quantity} (Linked to Ticket)
-                </div>
-              ) : item.isComplimentary ? (
-                // Complimentary tickets are read-only
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold">
-                    🎁 COMPLIMENTARY
-                  </span>
-                  <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
-                </div>
-              ) : String(item.productType || "").toUpperCase() === "SPONSOR" ? (
-                <div className="flex items-center gap-3 mt-2">
-                  {/* For Sponsor, show Qty but disabled controls, or just Remove button */}
-                  <div className="text-sm font-semibold text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-200">
-                    Qty: {item.quantity}
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.productId, item.roomTypeId)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
-                    title="Remove item"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              ) : (
-                <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center border border-gray-200 rounded-lg bg-gray-50">
-                    <button
-                      onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId)}
-                      className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
-                    >
-                      <Minus className="h-3 w-3" />
-                    </button>
-                    <span className="w-8 text-center text-sm font-semibold text-gray-700">{item.quantity}</span>
-                    <button
-                      onClick={() => updateQuantity(item.productId, item.quantity + 1, item.roomTypeId)}
-                      className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
-                    >
-                      <Plus className="h-3 w-3" />
-                    </button>
-                  </div>
-
-                  <button
-                    onClick={() => removeFromCart(item.productId, item.roomTypeId)}
-                    className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-all"
-                    title="Remove item"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
-
-              {/* Price Breakdown */}
-              <div className="mt-1 text-sm text-slate-500">
-                {(item.appliedOfferPercent || item.original > item.effective) ? (
-                  <>
-                    <span className="line-through mr-2 text-gray-400">${Number(item.original).toFixed(2)}</span>
-                    <span className="font-semibold text-indigo-600">${Number(item.effective).toFixed(2)}</span>
-                    {item.appliedOfferPercent ? <span className="ml-2 text-xs bg-rose-100 text-rose-600 font-medium px-1.5 py-0.5 rounded">-{Math.round(item.appliedOfferPercent)}%</span> : null}
-                  </>
-                ) : (
-                  <span className="font-semibold text-gray-600">${Number(item.original).toFixed(2)}</span>
-                )}
-              </div>
-            </div>
-            <div className="flex flex-col items-end">
-              <span className="font-bold text-slate-800">${Number(item.lineTotal).toFixed(2)}</span>
+        {registrationItems.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <h4 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b pb-2">Product Summary</h4>
+            <div className="space-y-3">
+              {registrationItems.map((item, idx) => renderItem(item, idx, idx + 1))}
             </div>
           </div>
-        ))}
+        )}
+
+        {sponsorshipItems.length > 0 && (
+          <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
+            <h4 className="text-sm font-bold text-gray-700 uppercase mb-3 border-b pb-2">Sponsorships & Benefits</h4>
+            <div className="space-y-3">
+              {sponsorshipItems.map((item, idx) => renderItem(item, idx, idx + 1))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -230,7 +256,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
 
-  const handleUpdateQuantity = (productId: string, newQty: number, roomTypeId?: string) => {
+  const handleUpdateQuantity = (productId: string, newQty: number, roomTypeId?: string, isComplimentary?: boolean, linkedSponsorId?: string) => {
     // Validate: Accompanying <= Ticket
     let ticketCount = 0;
     let accompanyingCount = 0;
@@ -238,7 +264,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     cart.forEach(item => {
       // is this the item being changed?
       let qty = Number(item.quantity) || 0;
-      const isTarget = item.productId === productId && item.roomTypeId === roomTypeId;
+      const isTarget =
+        item.productId === productId &&
+        item.roomTypeId === roomTypeId &&
+        item.isComplimentary === isComplimentary &&
+        item.linkedSponsorId === linkedSponsorId;
+
       if (isTarget) {
         qty = newQty;
       }
@@ -259,30 +290,76 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       return; // Block update
     }
 
-    updateQuantity(productId, newQty, roomTypeId);
+    updateQuantity(productId, newQty, roomTypeId, isComplimentary, linkedSponsorId);
   };
 
-  // Helper to count total accompanying members
-  const accompanyingMemberCount = useMemo(() => {
+  // Calculate total attendees from cart (all TICKET items)
+  const totalAttendeeCount = useMemo(() => {
     return cart.reduce((count, item) => {
       const nameLower = (item.name || "").toLowerCase();
-      if (nameLower.includes("accompanying")) {
+      const productType = String(item.productType || "").toUpperCase();
+
+      // Exclude meeting packages and hotels
+      if (nameLower.includes("meeting package")) return count;
+      if (productType === "HOTEL") return count;
+
+      // Count all tickets (regular, accompanying, complimentary)
+      if (productType === "TICKET" || nameLower.includes("ticket") || nameLower.includes("accompanying")) {
         return count + (Number(item.quantity) || 0);
       }
+
       return count;
     }, 0);
   }, [cart]);
 
-  // Initialize accompanying member details when count changes
-  useEffect(() => {
-    setAccompanyingMemberDetails(prev => {
-      const newDetails: Record<number, { name: string; designation: string; mobile: string; email: string }> = {};
-      for (let i = 0; i < accompanyingMemberCount; i++) {
-        newDetails[i] = prev[i] || { name: "", designation: "", mobile: "", email: "" };
+  // Generate attendee labels (Attendee vs Accompanying Member)
+  const attendeeLabels = useMemo(() => {
+    const labels: string[] = [];
+    let attendeeIndex = 1;
+    let accompanyingIndex = 1;
+
+    cart.forEach(item => {
+      const nameLower = (item.name || "").toLowerCase();
+      const productType = String(item.productType || "").toUpperCase();
+      const quantity = Number(item.quantity) || 0;
+
+      // Skip meeting packages and hotels
+      if (nameLower.includes("meeting package") || productType === "HOTEL") return;
+
+      // Determine if this is an accompanying member ticket
+      const isAccompanying = nameLower.includes("accompanying");
+
+      for (let i = 0; i < quantity; i++) {
+        if (isAccompanying) {
+          labels.push(`Accompanying Member ${accompanyingIndex++}`);
+        } else {
+          labels.push(`Attendee ${attendeeIndex++}`);
+        }
       }
-      return newDetails;
     });
-  }, [accompanyingMemberCount]);
+
+    return labels;
+  }, [cart]);
+
+  // Initialize attendees array when count changes
+  useEffect(() => {
+    setAttendees(prev => {
+      const newAttendees: AttendeeDetails[] = [];
+      for (let i = 0; i < totalAttendeeCount; i++) {
+        // Preserve existing data or create new with type and label
+        newAttendees[i] = prev[i] || {
+          name: "",
+          designation: "",
+          mobile: "",
+          email: "",
+          tshirtSize: "",
+          type: attendeeLabels[i]?.includes("Accompanying") ? "accompanying" : "regular",
+          label: attendeeLabels[i] || `Attendee ${i + 1}`
+        };
+      }
+      return newAttendees;
+    });
+  }, [totalAttendeeCount, attendeeLabels]);
 
 
 
@@ -293,8 +370,6 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   // New state for additional info
   const [companyName, setCompanyName] = useState("");
-  // const [companyName, setCompanyName] = useState(""); // Removed from here
-  const [tshirtSize, setTshirtSize] = useState("");
   const [referralSource, setReferralSource] = useState("");
 
   const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2"];
@@ -311,10 +386,17 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     designation: "",
   });
 
-  // State for accompanying member details
-  const [accompanyingMemberDetails, setAccompanyingMemberDetails] = useState<
-    Record<number, { name: string; designation: string; mobile: string; email: string }>
-  >({});
+  // State for all attendees (one per ticket)
+  type AttendeeDetails = {
+    name: string;
+    designation: string;
+    mobile: string;
+    email: string;
+    tshirtSize: string;
+    type?: string; // "regular" or "accompanying"
+    label?: string; // Display label like "Attendee 1" or "Accompanying Member 1"
+  };
+  const [attendees, setAttendees] = useState<AttendeeDetails[]>([]);
 
   // Addresses
   const [billingAddress, setBillingAddress] = useState({
@@ -785,15 +867,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }
 
     // Validate Account
-    if (!account.name || !account.email || !account.phone || !billingAddress.line1 || !account.designation) {
-      alert("Please fill in all required account and address fields (including Designation and Contact).");
-      return;
-    }
-
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(account.email)) {
-      alert("Please enter a valid email address.");
+    if (!account.companyName || !billingAddress.line1) {
+      alert("Please fill in Company Name and Billing Address.");
       return;
     }
 
@@ -802,29 +877,30 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    // Validate Additional Info
-    if (!tshirtSize || !referralSource) {
-      alert("Please select your T-Shirt size and tell us how you heard about us.");
+    // Validate Referral Source
+    if (!referralSource) {
+      alert("Please tell us how you heard about us.");
       return;
     }
 
-    // Validate Accompanying Member Details
-    if (accompanyingMemberCount > 0) {
-      for (let i = 0; i < accompanyingMemberCount; i++) {
-        const member = accompanyingMemberDetails[i];
-        if (!member || !member.name || !member.designation || !member.mobile || !member.email) {
-          alert(`Please fill in all details for Accompanying Member ${i + 1}.`);
+    // Validate All Attendee Details
+    if (totalAttendeeCount > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      for (let i = 0; i < totalAttendeeCount; i++) {
+        const attendee = attendees[i];
+        if (!attendee || !attendee.name || !attendee.designation || !attendee.mobile || !attendee.email || !attendee.tshirtSize) {
+          alert(`Please fill in all details for Attendee ${i + 1}.`);
           return;
         }
         // Validate email format
-        if (!emailRegex.test(member.email)) {
-          alert(`Please enter a valid email address for Accompanying Member ${i + 1}.`);
+        if (!emailRegex.test(attendee.email)) {
+          alert(`Please enter a valid email address for Attendee ${i + 1}.`);
           return;
         }
         // Validate mobile (at least 10 digits)
-        const digitsOnly = member.mobile.replace(/\D/g, "");
+        const digitsOnly = attendee.mobile.replace(/\D/g, "");
         if (digitsOnly.length < 10) {
-          alert(`Please enter a valid mobile number for Accompanying Member ${i + 1} (at least 10 digits).`);
+          alert(`Please enter a valid mobile number for Attendee ${i + 1} (at least 10 digits).`);
           return;
         }
       }
@@ -832,15 +908,21 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
     setSubmitting(true);
     try {
+      // Populate account with first attendee's details for backend compatibility
+      const accountWithDetails = {
+        ...account,
+        name: attendees[0]?.name || account.name || "",
+        email: attendees[0]?.email || account.email || "",
+        phone: attendees[0]?.mobile || account.phone || "",
+        designation: attendees[0]?.designation || account.designation || "",
+      };
+
       const payload: any = {
         companyId,
-        account,
+        account: accountWithDetails,
         additionalDetails: {
-          tshirtSize,
           referralSource,
-          accompanyingMembers: accompanyingMemberCount > 0
-            ? Object.values(accompanyingMemberDetails).slice(0, accompanyingMemberCount)
-            : undefined,
+          attendees: totalAttendeeCount > 0 ? attendees : undefined,
         },
         paymentMethod,
         // Pass addresses
@@ -947,30 +1029,6 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                   <label className="text-sm font-semibold text-slate-700">Company Name *</label>
                   <input value={account.companyName} onChange={(e) => setAccount((a) => ({ ...a, companyName: e.target.value }))} placeholder="Enter company name" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
                 </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Designation *</label>
-                  <input value={account.designation} onChange={(e) => setAccount((a) => ({ ...a, designation: e.target.value }))} placeholder="Enter your designation" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Name *</label>
-                  <input value={account.name} onChange={(e) => setAccount((a) => ({ ...a, name: e.target.value }))} placeholder="Enter your name" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Email *</label>
-                  <input value={account.email} onChange={(e) => setAccount((a) => ({ ...a, email: e.target.value }))} placeholder="Enter your email" type="email" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Address 1</label>
-                  <input value={account.address1} onChange={(e) => setAccount((a) => ({ ...a, address1: e.target.value }))} placeholder="Enter address line 1" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Address 2</label>
-                  <input value={account.address2} onChange={(e) => setAccount((a) => ({ ...a, address2: e.target.value }))} placeholder="Enter address line 2" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">Contact *</label>
-                  <input value={account.phone} onChange={(e) => setAccount((a) => ({ ...a, phone: e.target.value.replace(/[^0-9]/g, "") }))} placeholder="Enter contact number" className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none" />
-                </div>
               </div>
 
               {/* Billing Address */}
@@ -1048,22 +1106,22 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               )}
             </div>
 
-            {/* 3. Accompanying Member Details (if any) */}
-            {accompanyingMemberCount > 0 && (
+            {/* 3. Attendee Details (for all ticket holders) */}
+            {totalAttendeeCount > 0 && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                   <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">3</span>
-                  Accompanying Member Details
+                  Attendee Details
                 </h2>
                 <p className="text-sm text-gray-600 mb-6">
-                  Please provide details for each accompanying member ({accompanyingMemberCount} member{accompanyingMemberCount > 1 ? 's' : ''})
+                  Please provide details for each attendee ({totalAttendeeCount} attendee{totalAttendeeCount > 1 ? 's' : ''})
                 </p>
 
                 <div className="space-y-6">
-                  {Array.from({ length: accompanyingMemberCount }).map((_, index) => (
+                  {Array.from({ length: totalAttendeeCount }).map((_, index) => (
                     <div key={index} className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                       <h3 className="font-semibold text-gray-800 mb-4">
-                        Member {index + 1}
+                        {attendeeLabels[index] || `Attendee ${index + 1}`}
                       </h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
@@ -1071,12 +1129,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                             Name *
                           </label>
                           <input
-                            value={accompanyingMemberDetails[index]?.name || ""}
+                            value={attendees[index]?.name || ""}
                             onChange={(e) =>
-                              setAccompanyingMemberDetails((prev) => ({
-                                ...prev,
-                                [index]: { ...prev[index], name: e.target.value },
-                              }))
+                              setAttendees((prev) => {
+                                const updated = [...prev];
+                                updated[index] = { ...updated[index], name: e.target.value };
+                                return updated;
+                              })
                             }
                             placeholder="Enter full name"
                             className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
@@ -1087,12 +1146,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                             Designation *
                           </label>
                           <input
-                            value={accompanyingMemberDetails[index]?.designation || ""}
+                            value={attendees[index]?.designation || ""}
                             onChange={(e) =>
-                              setAccompanyingMemberDetails((prev) => ({
-                                ...prev,
-                                [index]: { ...prev[index], designation: e.target.value },
-                              }))
+                              setAttendees((prev) => {
+                                const updated = [...prev];
+                                updated[index] = { ...updated[index], designation: e.target.value };
+                                return updated;
+                              })
                             }
                             placeholder="Enter designation"
                             className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
@@ -1103,15 +1163,16 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                             Mobile *
                           </label>
                           <input
-                            value={accompanyingMemberDetails[index]?.mobile || ""}
+                            value={attendees[index]?.mobile || ""}
                             onChange={(e) =>
-                              setAccompanyingMemberDetails((prev) => ({
-                                ...prev,
-                                [index]: {
-                                  ...prev[index],
+                              setAttendees((prev) => {
+                                const updated = [...prev];
+                                updated[index] = {
+                                  ...updated[index],
                                   mobile: e.target.value.replace(/[^0-9+\-() ]/g, ""),
-                                },
-                              }))
+                                };
+                                return updated;
+                              })
                             }
                             placeholder="Enter mobile number"
                             className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
@@ -1123,16 +1184,36 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                           </label>
                           <input
                             type="email"
-                            value={accompanyingMemberDetails[index]?.email || ""}
+                            value={attendees[index]?.email || ""}
                             onChange={(e) =>
-                              setAccompanyingMemberDetails((prev) => ({
-                                ...prev,
-                                [index]: { ...prev[index], email: e.target.value },
-                              }))
+                              setAttendees((prev) => {
+                                const updated = [...prev];
+                                updated[index] = { ...updated[index], email: e.target.value };
+                                return updated;
+                              })
                             }
                             placeholder="Enter email address"
                             className="w-full rounded-lg border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none"
                           />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-sm font-semibold text-slate-700">
+                            T-Shirt Size *
+                          </label>
+                          <select
+                            value={attendees[index]?.tshirtSize || ""}
+                            onChange={(e) =>
+                              setAttendees((prev) => {
+                                const updated = [...prev];
+                                updated[index] = { ...updated[index], tshirtSize: e.target.value };
+                                return updated;
+                              })
+                            }
+                            className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none bg-white"
+                          >
+                            <option value="">Select Size</option>
+                            {tshirtOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -1144,24 +1225,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
             {/* 4. Additional Information */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">{accompanyingMemberCount > 0 ? '4' : '3'}</span>
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">{totalAttendeeCount > 0 ? '4' : '3'}</span>
                 Additional Information
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">T-Shirt Size *</label>
-                  <select
-                    value={tshirtSize}
-                    onChange={(e) => setTshirtSize(e.target.value)}
-                    className="w-full rounded-lg border-gray-300 border px-4 py-3 focus:ring-2 focus:ring-indigo-200 outline-none bg-white"
-                  >
-                    <option value="">Select Size</option>
-                    {tshirtOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-                  </select>
-                </div>
-              </div>
-              <div className="space-y-3 pt-4">
+              <div className="space-y-3">
                 <label className="text-sm font-semibold text-slate-700 block">How did you know about our website? *</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {referralOptions.map((opt) => (

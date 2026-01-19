@@ -16,7 +16,8 @@ import {
   CreditCard,
   Tags,
   LogOut,
-  AlertTriangle
+  AlertTriangle,
+  MessageCircle
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -30,6 +31,7 @@ const MENU_ITEMS = [
   { name: "Users", href: "/admin/users", icon: <Users className="h-5 w-5" /> },
   { name: "Membership", href: "/admin/membership", icon: <CreditCard className="h-5 w-5" /> },
   { name: "Coupons", href: "/admin/coupon", icon: <Tags className="h-5 w-5" /> },
+  { name: "Testimonials", href: "/admin/testimony", icon: <MessageCircle className="h-5 w-5" /> },
   { name: "Reports", href: "/admin/reports", icon: <AlertTriangle className="h-5 w-5" /> },
 ];
 

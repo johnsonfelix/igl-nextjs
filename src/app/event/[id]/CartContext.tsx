@@ -25,8 +25,8 @@ export interface CartItem {
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: Omit<CartItem, 'quantity'>, quantity?: number) => void;
-  removeFromCart: (productId: string, roomTypeId?: string) => void;
-  updateQuantity: (productId: string, newQuantity: number, roomTypeId?: string) => void;
+  removeFromCart: (productId: string, roomTypeId?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
+  updateQuantity: (productId: string, newQuantity: number, roomTypeId?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
   clearCart: () => void;
   itemCount: number;
 }
@@ -133,7 +133,11 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     setCart(prev => {
       let nextCart = [...prev];
       const idx = nextCart.findIndex(
-        i => i.productId === newItem.productId && i.roomTypeId === newItem.roomTypeId
+        i =>
+          i.productId === newItem.productId &&
+          i.roomTypeId === newItem.roomTypeId &&
+          i.isComplimentary === newItem.isComplimentary &&
+          i.linkedSponsorId === newItem.linkedSponsorId
       );
       if (idx > -1) {
         nextCart[idx] = { ...nextCart[idx], quantity: nextCart[idx].quantity + quantity };
@@ -146,13 +150,32 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     });
   };
 
-  const removeFromCart = (productId: string, roomTypeId?: string) => {
+  const removeFromCart = (
+    productId: string,
+    roomTypeId?: string,
+    isComplimentary?: boolean,
+    linkedSponsorId?: string
+  ) => {
     setCart(prev => {
       // Find the item being removed to check if it's a sponsor
-      const removedItem = prev.find(i => i.productId === productId && i.roomTypeId === roomTypeId);
+      const removedItem = prev.find(
+        i =>
+          i.productId === productId &&
+          i.roomTypeId === roomTypeId &&
+          i.isComplimentary === isComplimentary &&
+          i.linkedSponsorId === linkedSponsorId
+      );
 
-      // Remove the item itself
-      let nextCart = prev.filter(i => !(i.productId === productId && i.roomTypeId === roomTypeId));
+      // Remove the exact item
+      let nextCart = prev.filter(
+        i =>
+          !(
+            i.productId === productId &&
+            i.roomTypeId === roomTypeId &&
+            i.isComplimentary === isComplimentary &&
+            i.linkedSponsorId === linkedSponsorId
+          )
+      );
 
       // If removing a sponsor, also remove its linked complimentary tickets
       if (removedItem?.productType === "SPONSOR") {
@@ -163,14 +186,33 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     });
   };
 
-  const updateQuantity = (productId: string, newQuantity: number, roomTypeId?: string) => {
+  const updateQuantity = (
+    productId: string,
+    newQuantity: number,
+    roomTypeId?: string,
+    isComplimentary?: boolean,
+    linkedSponsorId?: string
+  ) => {
     setCart(prev => {
       let nextCart;
       if (newQuantity <= 0) {
-        nextCart = prev.filter(i => !(i.productId === productId && i.roomTypeId === roomTypeId));
+        nextCart = prev.filter(
+          i =>
+            !(
+              i.productId === productId &&
+              i.roomTypeId === roomTypeId &&
+              i.isComplimentary === isComplimentary &&
+              i.linkedSponsorId === linkedSponsorId
+            )
+        );
       } else {
         nextCart = prev.map(i =>
-          i.productId === productId && i.roomTypeId === roomTypeId ? { ...i, quantity: newQuantity } : i
+          i.productId === productId &&
+            i.roomTypeId === roomTypeId &&
+            i.isComplimentary === isComplimentary &&
+            i.linkedSponsorId === linkedSponsorId
+            ? { ...i, quantity: newQuantity }
+            : i
         );
       }
       return syncCartDependents(nextCart);

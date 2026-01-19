@@ -360,6 +360,10 @@ model PurchaseOrder {
   shippingState        String?
   shippingZip          String?
   offlinePayment       Boolean     @default(false)
+  account              Json?
+  additionalDetails    Json?
+  paymentMethod        String?
+  paymentProof         String?
   items                OrderItem[]
   company              Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
   coupon               Coupon?     @relation(fields: [couponId], references: [id])
@@ -535,4 +539,16 @@ enum ReportStatus {
   PENDING
   REVIEWED
   RESOLVED
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  role        String
+  description String
+  rating      Int      @default(5)
+  image       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

@@ -24,6 +24,7 @@ interface Order {
     billingCity?: string | null;
     billingCountry?: string | null;
     invoiceNumber?: number;
+    paymentProof?: string | null;
 }
 
 interface OrdersTableProps {
@@ -35,6 +36,37 @@ interface OrdersTableProps {
 
 export default function OrdersTable({ orders, companyName, companyEmail, companyAddress }: OrdersTableProps) {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [paymentProofUrl, setPaymentProofUrl] = useState<{ [key: string]: string }>({});
+    const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
+
+    const handleUploadProof = async (orderId: string) => {
+        const url = paymentProofUrl[orderId];
+        if (!url) {
+            alert("Please enter an image URL");
+            return;
+        }
+
+        setUploading({ ...uploading, [orderId]: true });
+        try {
+            const res = await fetch(`/api/orders/${orderId}/payment-proof`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ paymentProof: url }),
+            });
+
+            if (res.ok) {
+                alert("Payment proof uploaded successfully!");
+                window.location.reload();
+            } else {
+                alert("Failed to upload payment proof");
+            }
+        } catch (error) {
+            console.error("Error uploading proof:", error);
+            alert("Error uploading payment proof");
+        } finally {
+            setUploading({ ...uploading, [orderId]: false });
+        }
+    };
 
     if (orders.length === 0) {
         return (
@@ -62,6 +94,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                 <th className="px-6 py-4">Event / Description</th>
                                 <th className="px-6 py-4">Total</th>
                                 <th className="px-6 py-4">Status</th>
+                                <th className="px-6 py-4">Payment Proof</th>
                                 <th className="px-6 py-4 text-right">Actions</th>
                             </tr>
                         </thead>
@@ -94,6 +127,101 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                         >
                                             {order.status}
                                         </span>
+                                    </td>
+                                    <td className="px-6 py-4">
+                                        {order.paymentProof ? (
+                                            <div className="flex gap-2 items-center">
+                                                <a href={order.paymentProof} target="_blank" rel="noopener noreferrer" className="text-green-600 text-xs">
+                                                    ✓ Uploaded
+                                                </a>
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm("Are you sure you want to delete this payment proof?")) return;
+
+                                                        setUploading({ ...uploading, [order.id]: true });
+                                                        try {
+                                                            const res = await fetch(`/api/orders/${order.id}/payment-proof`, {
+                                                                method: "DELETE",
+                                                            });
+
+                                                            if (res.ok) {
+                                                                alert("Payment proof deleted successfully!");
+                                                                window.location.reload();
+                                                            } else {
+                                                                alert("Failed to delete payment proof");
+                                                            }
+                                                        } catch (error) {
+                                                            console.error("Error deleting proof:", error);
+                                                            alert("Error deleting payment proof");
+                                                        } finally {
+                                                            setUploading({ ...uploading, [order.id]: false });
+                                                        }
+                                                    }}
+                                                    disabled={uploading[order.id]}
+                                                    className="text-red-600 text-xs hover:text-red-700 disabled:opacity-50"
+                                                >
+                                                    {uploading[order.id] ? "..." : "✕ Delete"}
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <div className="flex gap-2 items-center">
+                                                <input
+                                                    type="file"
+                                                    accept="image/*"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+
+                                                        setUploading({ ...uploading, [order.id]: true });
+                                                        try {
+                                                            // Upload to S3
+                                                            const formData = new FormData();
+                                                            formData.append("file", file);
+
+                                                            const uploadRes = await fetch("/api/upload/s3", {
+                                                                method: "POST",
+                                                                body: formData,
+                                                            });
+
+                                                            if (!uploadRes.ok) {
+                                                                throw new Error("Upload failed");
+                                                            }
+
+                                                            const { url } = await uploadRes.json();
+
+                                                            // Save URL to order
+                                                            const saveRes = await fetch(`/api/orders/${order.id}/payment-proof`, {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({ paymentProof: url }),
+                                                            });
+
+                                                            if (saveRes.ok) {
+                                                                alert("Payment proof uploaded successfully!");
+                                                                window.location.reload();
+                                                            } else {
+                                                                alert("Failed to save payment proof");
+                                                            }
+                                                        } catch (error) {
+                                                            console.error("Error uploading proof:", error);
+                                                            alert("Error uploading payment proof");
+                                                        } finally {
+                                                            setUploading({ ...uploading, [order.id]: false });
+                                                        }
+                                                    }}
+                                                    className="hidden"
+                                                    id={`file-${order.id}`}
+                                                    disabled={uploading[order.id]}
+                                                />
+                                                <label
+                                                    htmlFor={`file-${order.id}`}
+                                                    className={`bg-blue-600 text-white px-3 py-1 rounded text-xs cursor-pointer hover:bg-blue-700 ${uploading[order.id] ? "opacity-50 cursor-not-allowed" : ""
+                                                        }`}
+                                                >
+                                                    {uploading[order.id] ? "Uploading..." : "Upload Proof"}
+                                                </label>
+                                            </div>
+                                        )}
                                     </td>
                                     <td className="px-6 py-4 text-right">
                                         <button

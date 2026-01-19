@@ -2680,53 +2680,53 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
         {/* RIGHT COLUMN: SIDEBAR */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6 sticky top-[100px]">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 sticky top-[90px] max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+
+            {/* Header */}
+            <div className="text-center mb-6">
+              <h3 className="text-lg font-bold text-[#004aad] mb-1 leading-tight">Why Sponsor?</h3>
+              <div className="h-1 w-12 bg-gradient-to-r from-emerald-400 to-teal-500 mx-auto rounded-full"></div>
+            </div>
+
+            {/* Unified Content Sections */}
             <div className="space-y-6">
-              <div className="text-center">
-                <h3 className="text-xl font-bold text-[#004aad] mb-2 leading-tight">Why Sponsor This Conference?</h3>
-                <div className="h-1 w-16 bg-gradient-to-r from-emerald-400 to-teal-500 mx-auto rounded-full"></div>
-              </div>
 
-              <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-5 text-white shadow-inner relative overflow-hidden">
-                <div className="relative z-10">
-                  <h4 className="text-sm font-bold uppercase tracking-wider text-emerald-300 mb-2 flex items-center gap-2">
-                    <MapPin size={14} /> Global Digital Reach
-                  </h4>
-                  <p className="text-xs text-blue-100 leading-relaxed mb-3">
-                    Paid ad campaigns targeting logistics professionals across <span className="font-bold text-white">India, Asia-Pacific, Middle East, Europe & USA</span>.
+              {/* Global Reach */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                  <MapPin size={12} className="text-[#004aad]" /> Global Digital Reach
+                </h4>
+                <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-lg p-3 text-white shadow-inner">
+                  <p className="text-[10px] text-blue-100 leading-tight mb-2">
+                    Targeting logistics pros across <span className="font-bold text-white">India, APAC, ME, EU & USA</span>.
                   </p>
-
-                  <div className="bg-white/10 rounded-lg p-3 border border-white/10">
-                    <div className="flex justify-between items-center mb-2 border-b border-white/10 pb-2">
-                      <span className="text-xs text-blue-200">Ad Impressions</span>
-                      <span className="text-sm font-bold">250,000+</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-blue-200">Reaching</span>
-                      <span className="text-sm font-bold">80k–120k Pros</span>
-                    </div>
+                  <div className="flex justify-between items-center text-[10px] border-t border-white/10 pt-2">
+                    <span className="text-blue-200">250k+ Impressions</span>
+                    <span className="font-bold">120k+ Pros</span>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-white rounded-xl border border-gray-100 p-4 shadow-sm">
-                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <Users size={16} className="text-[#004aad]" /> Target Audience
+              {/* Target Audience */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                  <Users size={12} className="text-[#004aad]" /> Target Audience
                 </h4>
                 <div className="flex flex-wrap gap-1.5">
-                  {["Freight Forwarders", "Logistics Owners", "Managers", "CXOs", "Importers & Exporters"].map((role, idx) => (
-                    <span key={idx} className="bg-blue-50 text-[#004aad] px-2 py-1 rounded-md font-bold text-[10px] border border-blue-100">
+                  {["Freight Forwarders", "Logistics Owners", "Managers", "CXOs", "Importers"].map((role, idx) => (
+                    <span key={idx} className="bg-gray-50 text-gray-600 px-2 py-1 rounded-md font-medium text-[10px] border border-gray-100">
                       {role}
                     </span>
                   ))}
                 </div>
               </div>
 
-              <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
-                <h4 className="text-sm font-bold text-emerald-900 mb-3 flex items-center gap-2">
-                  <Check size={16} className="text-emerald-600" /> Key Benefits
+              {/* Key Benefits */}
+              <div>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
+                  <Check size={12} className="text-emerald-600" /> Key Benefits
                 </h4>
-                <ul className="space-y-2">
+                <ul className="space-y-1.5">
                   {[
                     "Premium On-Ground Exposure",
                     "Multi-Channel Promotion",
@@ -2734,8 +2734,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Long-term Brand Recall",
                     "Global Brand Travel"
                   ].map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-2 text-xs text-emerald-800 font-medium">
-                      <div className="mt-0.5 min-w-[4px] h-1 w-1 rounded-full bg-emerald-500"></div>
+                    <li key={i} className="flex items-start gap-2 text-[10px] text-gray-600 font-medium">
+                      <div className="mt-1 min-w-[3px] h-1 w-1 rounded-full bg-emerald-500"></div>
                       <span>{benefit}</span>
                     </li>
                   ))}
@@ -2744,22 +2744,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             </div>
 
-            <div className="mt-8 pt-6 border-t border-gray-100">
+            {/* Cart Button */}
+            <div className="mt-6 pt-4 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
               <button
-                className="w-full bg-[#004aad] text-white font-bold py-4 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2"
+                className="w-full bg-[#004aad] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2"
                 onClick={() => router.push(`/event/${id}/checkout`)}
               >
-                <ShoppingCart className="h-5 w-5" />
-                <div className="flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                <div className="flex items-center gap-2 text-sm">
                   <span>Your Cart</span>
                   {itemCount > 0 && (
-                    <span className="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[24px] flex items-center justify-center">
+                    <span className="bg-red-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[20px] flex items-center justify-center">
                       {itemCount}
                     </span>
                   )}
                 </div>
               </button>
-              {/* <p className="text-center text-xs text-gray-400 mt-3">Proceed to checkout.</p> */}
             </div>
           </div>
         </div>

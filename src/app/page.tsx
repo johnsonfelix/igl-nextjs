@@ -18,7 +18,12 @@ import {
   ThumbsUp,
   Box,
   CheckCircle,
+  Users,
+  MapPin,
 } from "lucide-react";
+import TestimonialsSection from "./components/TestimonialsSection";
+import LatestInquiriesSection from "./components/LatestInquiriesSection";
+import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection";
 
 export default function Home() {
   const [openAccordion, setOpenAccordion] = useState<string | null>("item1");
@@ -114,7 +119,7 @@ export default function Home() {
               nextEl: ".swiper-button-next-custom",
               prevEl: ".swiper-button-prev-custom",
             }}
-            className="h-[600px] lg:h-[750px] w-full group"
+            className="h-[calc(100vh-120px)] min-h-[600px] w-full group"
           >
             {bannerSlides.map((slide) => (
               <SwiperSlide key={slide.id}>
@@ -192,15 +197,13 @@ export default function Home() {
                 Connecting You to <br />
                 Partners <span className="font-bold">Across the World.</span>
               </h3>
-              <div className="relative w-full">
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  className="w-full border border-gray-300 rounded-full py-3 pl-6 pr-14 text-sm text-gray-700 outline-none focus:border-[#004aad] placeholder-gray-400 transition-colors"
-                />
-                <button className="absolute right-1.5 top-1.5 bg-[#004aad] hover:bg-[#003882] text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors shadow-md">
-                  <ArrowRight className="w-5 h-5" />
-                </button>
+              <div className="w-full">
+                <Link
+                  href="/event/cmjn1f6ih0000gad4xa4j7dp3"
+                  className="block w-full bg-[#004aad] hover:bg-[#003882] text-white font-bold py-3 rounded-full text-center transition-colors shadow-md"
+                >
+                  Register Now
+                </Link>
               </div>
               <p className="text-[11px] text-gray-500 mt-3">*Your Global Logistics Partner Awaits.</p>
             </div>
@@ -365,6 +368,15 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Testimonials Section */}
+        <TestimonialsSection />
+
+        {/* Latest Inquiries Section */}
+        <LatestInquiriesSection />
+
+        {/* Sponsorship Benefits Section */}
+        <SponsorshipBenefitsSection />
 
         {/* Why Choose IGLA Section */}
         <section className="py-20">

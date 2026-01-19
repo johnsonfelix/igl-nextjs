@@ -162,6 +162,10 @@ export async function POST(req: NextRequest) {
           billingZip: billingAddress?.zip,
           billingCountry: billingAddress?.country,
           offlinePayment: isOffline,
+          // Save comprehensive order details
+          account: account || {},
+          additionalDetails: body.additionalDetails || {},
+          paymentMethod: paymentMethod || "online",
         },
       });
       console.log(`[OK] Created PurchaseOrder ${purchaseOrder.id} (Offline: ${isOffline})`);
