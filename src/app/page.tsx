@@ -24,6 +24,8 @@ import {
 import TestimonialsSection from "./components/TestimonialsSection";
 import LatestInquiriesSection from "./components/LatestInquiriesSection";
 import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection";
+import PastEventsSection from "./components/PastEventsSection";
+import ScrollingTextSection from "./components/ScrollingTextSection";
 
 export default function Home() {
   const [openAccordion, setOpenAccordion] = useState<string | null>("item1");
@@ -298,6 +300,8 @@ export default function Home() {
           </div>
         </section>
 
+        <ScrollingTextSection />
+
         {/* Conference Highlights Section */}
         <section className="py-20 overflow-hidden relative">
           <div className="container mx-auto px-4">
@@ -368,6 +372,11 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Past Events Section */}
+        <PastEventsSection />
+
+
 
         {/* Testimonials Section */}
         <TestimonialsSection />

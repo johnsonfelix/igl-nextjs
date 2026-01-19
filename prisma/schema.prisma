@@ -552,3 +552,16 @@ model Testimonial {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
+
+model PastEvent {
+  id              String   @id @default(cuid())
+  title           String
+  place           String
+  date            String
+  membersAttended Int
+  description     String   @db.Text
+  mainImage       String
+  carouselImages  String[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

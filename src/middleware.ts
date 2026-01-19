@@ -49,6 +49,8 @@ const publicPrefixes = [
   "/secure-pay",
   "/contact-us",
   "/api/company/inquiry",
+  "/api/past-events",
+  "/past-events",
 ];
 
 /**

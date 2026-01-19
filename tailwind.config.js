@@ -45,6 +45,15 @@ module.exports = {
         "very-light-gray": "#f7f7f7",
         "light-medium-gray": "#eaeaeb",
       },
+      keyframes: {
+        marquee: {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-100%)" },
+        },
+      },
+      animation: {
+        marquee: "marquee 25s linear infinite",
+      },
     },
   },
   plugins: [],

@@ -17,7 +17,8 @@ import {
   Tags,
   LogOut,
   AlertTriangle,
-  MessageCircle
+  MessageCircle,
+  History
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -25,6 +26,7 @@ const MENU_ITEMS = [
   { name: "Sponsors", href: "/admin/sponsors", icon: <Handshake className="h-5 w-5" /> },
   { name: "Companies", href: "/admin/company", icon: <Building2 className="h-5 w-5" /> },
   { name: "Events", href: "/admin/events", icon: <Calendar className="h-5 w-5" /> },
+  { name: "Past Events", href: "/admin/past-events", icon: <History className="h-5 w-5" /> },
   { name: "Hotels", href: "/admin/hotels", icon: <Hotel className="h-5 w-5" /> },
   { name: "Booths", href: "/admin/booths", icon: <Store className="h-5 w-5" /> },
   { name: "Tickets", href: "/admin/tickets", icon: <Ticket className="h-5 w-5" /> },
