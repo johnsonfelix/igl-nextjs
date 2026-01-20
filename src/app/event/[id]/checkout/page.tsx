@@ -21,6 +21,7 @@ type Account = {
   address2: string;
   companyName: string;
   designation: string;
+  memberId: string;
 };
 
 type CouponApplied = {
@@ -384,6 +385,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     address2: "",
     companyName: "",
     designation: "",
+    memberId: "",
   });
 
   // State for all attendees (one per ticket)
@@ -459,6 +461,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         const name = userObj?.name?.toString?.() || data?.name?.toString?.() || "";
         const email = userObj?.email?.toString?.() || "";
         const phone = userObj?.phone?.toString?.() || "";
+        const directors = data?.directors?.toString?.() || "";
+        const companyName = data?.name?.toString?.() || "";
 
         const parts: string[] = [];
         const a = (location.address || "").toString().trim();
@@ -474,11 +478,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         if (!ignore) {
           setAccount((prev) => ({
             ...prev,
-            name: name || prev.name,
+            name: directors || name || prev.name,
             email: email || prev.email,
             phone: phone || prev.phone,
             address1: address1 || prev.address1,
-            companyName: name || prev.companyName,
+            companyName: companyName || name || prev.companyName,
+            memberId: data?.memberId || prev.memberId,
+            designation: data?.designation || prev.designation,
           }));
 
           // Prefill Billing Address
@@ -1392,7 +1398,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 customerDetails={{
                   name: account.name,
                   email: account.email,
-                  address: [account.address1, account.address2, billingAddress.city, billingAddress.country].filter(Boolean).join(", ")
+                  companyName: account.companyName,
+                  designation: account.designation,
+                  address: [account.address1, account.address2, billingAddress.city, billingAddress.country].filter(Boolean).join(", "),
+                  memberId: account.memberId || 'N/A'
                 }}
                 items={orderData.items.map((item: any) => ({
                   name: item.name,

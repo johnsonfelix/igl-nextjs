@@ -316,7 +316,7 @@ const PriceCard = ({
     ? (basePrice - newPrice)
     : (hasListPriceDiscount ? ((originalPrice || 0) - basePrice) : 0);
 
-  const totalSavings = savings * (isTicket ? quantity : 1);
+  const totalSavings = savings * ((isTicket || productType === "SPONSOR") ? quantity : 1);
   const showSavings = savings > 0 && !isSoldOut;
 
   // Display Price Logic:
@@ -395,7 +395,7 @@ const PriceCard = ({
             </div>
 
             {/* Quantity Controls - Compact & Inline */}
-            {isTicket && !isSoldOut && (
+            {(isTicket || productType === "SPONSOR") && !isSoldOut && (
               <div className="flex items-center gap-0 border border-gray-200 rounded overflow-hidden h-7">
                 <button
                   onClick={decrementQuantity}
@@ -425,7 +425,7 @@ const PriceCard = ({
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : 'bg-[#004aad] text-white hover:bg-[#00317a] shadow-sm hover:shadow active:translate-y-0.5'
                     }`}
-                  title="Add to Cart"
+                  title="Buy Now"
                 >
                   <ShoppingCart className="h-4 w-4" />
                 </button>
@@ -538,7 +538,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
 
-  const { itemCount, addToCart } = useCart();
+  const { itemCount, addToCart, cart, updateQuantity } = useCart();
   const { user } = useAuth();
   const [eventData, setEventData] = useState<EventData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -690,16 +690,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   }, [eventData?.purchaseOrders]);
 
   const handleSponsorQuantityChange = (sponsorTypeId: string, delta: number) => {
-    // Toggle logic: If currently selected (qty > 0) then remove (set to 0). If not, add (set to 1).
-    // Ignore delta, just toggle.
     const currentQty = sponsorQuantities[sponsorTypeId] || 0;
-    const nextQty = currentQty > 0 ? 0 : 1;
+    const nextQty = Math.max(0, currentQty + delta);
 
     const nextState = { ...sponsorQuantities };
     if (nextQty === 0) {
       delete nextState[sponsorTypeId];
     } else {
-      nextState[sponsorTypeId] = 1;
+      nextState[sponsorTypeId] = nextQty;
     }
     setSponsorQuantities(nextState);
   };
@@ -1489,10 +1487,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       else if (sName.includes("t shirts") || sName.includes("t-shirt")) freeTickets = 1;
 
                       if (freeTickets > 0) {
+                        // 1. Add free tickets FIRST to ensure validTicketCount stays > 0
+                        // This prevents Accompanying Members from being auto-removed by CartContext dependency logic
                         const standardTicket = eventTickets.find(et =>
-                          et.ticket.name.toLowerCase().includes("regular") ||
-                          et.ticket.name.toLowerCase().includes("standard") ||
-                          et.ticket.name.toLowerCase().includes("ticket")
+                          (et.ticket.name.toLowerCase().includes("regular") ||
+                            et.ticket.name.toLowerCase().includes("standard") ||
+                            et.ticket.name.toLowerCase().includes("ticket")) &&
+                          !et.ticket.name.toLowerCase().includes("accompanying") &&
+                          !et.ticket.name.toLowerCase().includes("meeting package")
                         );
 
                         if (standardTicket) {
@@ -1500,13 +1502,32 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             addToCart({
                               productId: standardTicket.ticket.id,
                               productType: "TICKET",
-                              name: `Hotel - ${standardTicket.ticket.name} (Complimentary)`,
+                              name: `${standardTicket.ticket.name} (Complimentary)`,
                               price: 0,
                               originalPrice: standardTicket.ticket.price,
                               image: standardTicket.ticket.logo || undefined,
                               isComplimentary: true,
                               linkedSponsorId: sponsor.sponsorType.id,
                             });
+                          }
+
+                          // 2. Remove existing paid tickets to avoid double charging
+                          // Only do this if we successfully added the free tickets
+                          let ticketsToDeduct = freeTickets;
+                          const paidTickets = cart.filter(item =>
+                            item.productType === "TICKET" &&
+                            !item.isComplimentary &&
+                            (item.name.toLowerCase().includes("regular") || item.name.toLowerCase().includes("ticket")) &&
+                            !item.name.toLowerCase().includes("accompanying") &&
+                            !item.name.toLowerCase().includes("meeting package")
+                          );
+
+                          for (const paidTicket of paidTickets) {
+                            if (ticketsToDeduct <= 0) break;
+                            const qtyToRemove = Math.min(paidTicket.quantity, ticketsToDeduct);
+                            // Update quantity (0 will remove it)
+                            updateQuantity(paidTicket.productId, paidTicket.quantity - qtyToRemove, paidTicket.roomTypeId, paidTicket.isComplimentary, paidTicket.linkedSponsorId);
+                            ticketsToDeduct -= qtyToRemove;
                           }
                         }
                       }
@@ -1794,7 +1815,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         onClick={handleWizardAddToCart}
                         className="px-6 py-2 bg-[#004aad] text-white rounded-lg font-bold hover:bg-[#00317a] transition-all text-sm"
                       >
-                        Add to Cart
+                        Buy Now
                       </button>
                     </div>
                   </div>
@@ -1838,22 +1859,21 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             )}
                           </div>
 
-                          <div className="mt-6 flex items-center justify-between">
-                            {qty > 0 ? (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, -1); }}
-                                className="w-full py-2 rounded-lg bg-red-50 text-red-600 font-bold border border-red-200 hover:bg-red-100 transition-colors flex items-center justify-center gap-2"
-                              >
-                                <Minus size={16} /> Remove
-                              </button>
-                            ) : (
-                              <button
-                                onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, 1); }}
-                                className="w-full py-2 rounded-lg bg-[#004aad] text-white font-bold hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2 shadow-sm"
-                              >
-                                <Plus size={16} /> Add
-                              </button>
-                            )}
+                          <div className="mt-6 flex items-center justify-between bg-gray-50 rounded-lg p-1 border border-gray-200">
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, -1); }}
+                              className={`p-2 rounded-md transition-colors ${qty === 0 ? 'text-gray-300 cursor-not-allowed' : 'bg-white text-gray-700 shadow-sm hover:text-[#004aad]'}`}
+                              disabled={qty === 0}
+                            >
+                              <Minus size={16} />
+                            </button>
+                            <span className={`font-bold text-lg w-8 text-center ${qty > 0 ? 'text-[#004aad]' : 'text-gray-400'}`}>{qty}</span>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); handleSponsorQuantityChange(sponsorType.id, 1); }}
+                              className="p-2 rounded-md transition-colors bg-white text-gray-700 shadow-sm hover:text-[#004aad] hover:bg-white"
+                            >
+                              <Plus size={16} />
+                            </button>
                           </div>
                         </div>
                       );
@@ -1879,7 +1899,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         onClick={handleWizardAddToCart}
                         className="px-6 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-lg hover:shadow-emerald-200 text-sm"
                       >
-                        Add to Cart
+                        Buy Now
                       </button>
                     </div>
                   </div>
@@ -2353,7 +2373,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   features: ticket.features,
                                 }}
                                 productType="TICKET"
-                                actionText="Add to Cart"
+                                actionText="Buy Now"
                                 offerPercent={best.percent ?? undefined}
                                 offerName={best.name}
                                 isSoldOut={isSoldOut}
@@ -2396,7 +2416,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               features: ticket.features,
                             }}
                             productType="TICKET"
-                            actionText="Add to Cart"
+                            actionText="Buy Now"
                             offerPercent={best.percent ?? undefined}
                             offerName={best.name}
                             isSoldOut={isSoldOut}
@@ -2517,7 +2537,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             features: sponsorType.features,
                           }}
                           productType="SPONSOR"
-                          actionText="Add to Cart"
+                          actionText="Buy Now"
                           offerPercent={discountPercent ?? undefined}
                           offerName={hasDiscount ? (eventData?.earlyBird ? "Early Bird Special" : "Member Discount") : undefined}
                           onAddToCart={handleSponsorAdd}

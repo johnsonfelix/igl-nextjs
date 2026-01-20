@@ -8,7 +8,10 @@ interface InvoiceProps {
     customerDetails: {
         name: string;
         email: string;
+        companyName: string;
+        designation: string;
         address: string;
+        memberId: string;
     };
     items: Array<{
         name: string;
@@ -53,36 +56,54 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
 
             <div className="flex gap-2 mb-2">
                 {/* Customer Details */}
-                <div className="w-1/2 border-2 border-[#004aad]">
+                <div className="w-1/2 border-2 border-[#004aad] flex flex-col">
                     <div className="bg-[#00317a] text-white p-2 px-3 font-bold text-lg" style={{ color: '#ffffff' }}>
                         Customer Details
                     </div>
-                    <div className="p-3 text-sm space-y-1">
-                        <div className="font-bold uppercase text-base mb-1">{customerDetails.name}</div>
-                        <div>Registered Name : <span className="font-semibold">{customerDetails.name}</span></div>
-                        <div className="flex gap-1">
-                            <span>Address :</span>
-                            <span className="break-words w-2/3">{customerDetails.address || 'N/A'}</span>
+                    <div className="p-3 text-sm flex-1">
+                        <div className="mb-2">
+                            <div className="font-bold uppercase text-[#00317a] text-sm">{customerDetails.companyName}</div>
                         </div>
-                        <div>Email : <span className="font-semibold">{customerDetails.email}</span></div>
+                        <div className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-1">
+                            <div className="">Registered Name</div>
+                            <div className="font-bold uppercase">{customerDetails.name}</div>
+
+                            <div className="">&</div>
+                            <div className="">{customerDetails.designation}</div>
+
+                            <div className="">Address</div>
+                            <div className="font-bold break-words">{customerDetails.address || 'N/A'}</div>
+                        </div>
                     </div>
                 </div>
 
                 {/* Invoice Details */}
-                <div className="w-1/2 border-2 border-[#004aad]">
+                <div className="w-1/2 border-2 border-[#004aad] flex flex-col">
                     <div className="bg-[#00317a] text-white p-2 px-3 font-bold text-lg" style={{ color: '#ffffff' }}>
                         Invoice Details
                     </div>
-                    <div className="p-3 text-sm space-y-1">
-                        <div className="grid grid-cols-2">
+                    <div className="p-3 text-sm space-y-1 flex-1">
+                        {/* <div className="grid grid-cols-[120px_auto]">
                             <span style={{ color: '#475569' }}>Details</span>
                             <span className="font-bold">: Registration Fee</span>
+                        </div> */}
+                        <div className="grid grid-cols-[120px_auto]">
+                            <span style={{ color: '#475569' }}>Customer Name</span>
+                            <span className="font-bold uppercase">: {customerDetails.name}</span>
                         </div>
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-[120px_auto]">
+                            <span style={{ color: '#475569' }}>Customer Email</span>
+                            <span className="font-bold">: {customerDetails.email}</span>
+                        </div>
+                        <div className="grid grid-cols-[120px_auto]">
                             <span style={{ color: '#475569' }}>Bill No</span>
                             <span className="font-bold">: {orderId}</span>
                         </div>
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-[120px_auto]">
+                            <span style={{ color: '#475569' }}>Customer Code</span>
+                            <span className="font-bold">: {customerDetails.memberId}</span>
+                        </div>
+                        <div className="grid grid-cols-[120px_auto]">
                             <span style={{ color: '#475569' }}>Bill Date</span>
                             <span className="font-bold">: {new Date(date).toLocaleDateString()}</span>
                         </div>

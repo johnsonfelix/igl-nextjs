@@ -26,6 +26,7 @@ import LatestInquiriesSection from "./components/LatestInquiriesSection";
 import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection";
 import PastEventsSection from "./components/PastEventsSection";
 import ScrollingTextSection from "./components/ScrollingTextSection";
+import PopupAd from "./components/PopupAd";
 
 export default function Home() {
   const [openAccordion, setOpenAccordion] = useState<string | null>("item1");
@@ -108,6 +109,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white text-gray-800 font-sans">
+      <PopupAd />
       <main>
         {/* Banner Section with Swiper */}
         <section className="relative overflow-hidden bg-gray-100">

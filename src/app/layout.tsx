@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
@@ -6,7 +7,7 @@ import Navbar from "./components/navbar";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
-import PopupAd from "./components/PopupAd";
+
 
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
@@ -38,10 +39,23 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${plusJakartaSans.variable} font-sans`}>
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-T7V8EZPCGW"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+
+            gtag('config', 'G-T7V8EZPCGW');
+          `}
+        </Script>
         <Toaster position="top-center" />
         {/* 2. Wrap your entire application with AuthProvider */}
         <Navbar />
-        <PopupAd />
+
         <AuthProvider>
           {children}
         </AuthProvider>
