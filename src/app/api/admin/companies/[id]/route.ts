@@ -52,6 +52,7 @@ export async function PATCH(
             isVerified,
             // New fields
             directors,
+            designation,
             participationYears,
             newMedia, // Array of strings (URLs) to add
             deleteMediaIds, // Array of strings (IDs) to delete
@@ -122,6 +123,7 @@ export async function PATCH(
             isActive,
             isVerified,
             directors,
+            designation,
             participationYears,
             purchasedMembership, // <--- Added this
             memberFromYear, // New Int field

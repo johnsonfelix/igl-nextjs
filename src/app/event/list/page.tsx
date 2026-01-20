@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Calendar, MapPin, Users, ArrowRight, AlertTriangle, Loader, Star } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import EventCountdown from './EventCountdown';
+import PastEventsSection from '../../components/PastEventsSection';
 
 // --- TYPE DEFINITION for an Event ---
 interface Event {
@@ -94,7 +95,6 @@ const EventCard = ({ event }: { event: Event }) => {
 // --- MAIN PAGE COMPONENT ---
 export default function EventsListPage() {
   const [events, setEvents] = useState<Event[]>([]);
-  const [pastEvents, setPastEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -123,15 +123,11 @@ export default function EventsListPage() {
         // Filter events
         const now = new Date();
         const upcomingEvents = data.filter(event => parseISO(event.startDate) > now);
-        const pastEventsList = data.filter(event => parseISO(event.startDate) <= now);
 
         // Sort by date
         upcomingEvents.sort((a, b) => parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime());
-        // Sort past events: newest first
-        pastEventsList.sort((a, b) => parseISO(b.startDate).getTime() - parseISO(a.startDate).getTime());
 
         setEvents(upcomingEvents);
-        setPastEvents(pastEventsList);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred.');
       } finally {
@@ -187,46 +183,10 @@ export default function EventsListPage() {
               ))}
             </div>
 
-            {/* History of Events Section */}
-            {pastEvents.length > 0 && (
-              <div className="mt-24">
-                <div className="flex items-center gap-3 mb-10">
-                  <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
-                  <h2 className="text-3xl font-bold text-gray-800">History of Events</h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  {pastEvents.map((event) => (
-                    <Link key={event.id} href={`/event/${event.id}`} className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition-all hover:-translate-y-1 group">
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <Image
-                          src={event.thumbnail || '/placeholder-event.jpg'}
-                          alt={event.name}
-                          fill
-                          className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute top-3 right-3 bg-gray-900/70 text-white text-xs font-bold px-2 py-1 rounded">
-                          PAST EVENT
-                        </div>
-                      </div>
-                      <div className="p-5">
-                        <div className="flex items-center gap-2 text-xs text-[#004aad] font-bold uppercase tracking-wider mb-2">
-                          <Calendar className="h-3 w-3" />
-                          {format(parseISO(event.startDate), 'MMM yyyy')}
-                        </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-2 line-clamp-2 leading-snug group-hover:text-[#004aad] transition-colors">
-                          {event.name}
-                        </h3>
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
-                          <MapPin className="h-3.5 w-3.5" />
-                          {event.location}
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Past Events Section from Homepage */}
+            <div className="mt-24">
+              <PastEventsSection />
+            </div>
           </>
         )}
       </main>

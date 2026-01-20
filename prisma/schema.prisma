@@ -36,6 +36,7 @@ model Company {
   purchasedMembershipId String?
   membershipPlanId      String?
   directors             String?
+  designation           String?
   participationYears    String?
   scopeOfBusiness       String?
   servicesOffered       String?

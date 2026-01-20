@@ -40,6 +40,7 @@ export default function AdminEditCompanyPage() {
         country: '',
         zipCode: '',
         directors: '',
+        designation: '',
         participationYears: '',
         scopeOfBusiness: '',
         servicesOffered: '',
@@ -82,6 +83,7 @@ export default function AdminEditCompanyPage() {
                     country: data.location?.country || '',
                     zipCode: data.location?.zipCode || '',
                     directors: data.directors || '',
+                    designation: data.designation || '',
                     participationYears: data.participationYears || '',
                     scopeOfBusiness: data.scopeOfBusiness || '',
                     servicesOffered: data.servicesOffered || '',
@@ -267,6 +269,26 @@ export default function AdminEditCompanyPage() {
                                 />
                             </div>
                             <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                                <input
+                                    type="text"
+                                    name="directors"
+                                    value={formData.directors}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Designation</label>
+                                <input
+                                    type="text"
+                                    name="designation"
+                                    value={(formData as any).designation || ''}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Email (for Login)</label>
                                 <input
                                     type="email"
@@ -343,16 +365,7 @@ export default function AdminEditCompanyPage() {
                             </div>
                         </div>
 
-                        <div className="mt-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Directors</label>
-                            <input
-                                type="text"
-                                name="directors"
-                                value={formData.directors}
-                                onChange={handleChange}
-                                className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
-                            />
-                        </div>
+
                         <div className="mt-4">
                             <label className="block text-sm font-medium text-gray-700 mb-1">IGLA Participation Years</label>
                             <input
