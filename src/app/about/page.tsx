@@ -55,7 +55,7 @@ export default function AboutPage() {
                             </div>
                             <h3 className="text-2xl font-bold text-gray-800 mb-4">Global Network</h3>
                             <p className="text-gray-600 leading-relaxed text-lg">
-                                IGLA (Independent Global Logistics Alliance) is a premier network of independent freight forwarders and logistics companies worldwide.
+                                IGLA (Innovative Global Logistics Allianz) is a premier network of independent freight forwarders and logistics companies worldwide.
                                 Established in 2012, we connect trusted partners across continents to provide seamless international shipping solutions.
                             </p>
                         </div>

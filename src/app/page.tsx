@@ -27,8 +27,10 @@ import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection"
 import PastEventsSection from "./components/PastEventsSection";
 import ScrollingTextSection from "./components/ScrollingTextSection";
 import PopupAd from "./components/PopupAd";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function Home() {
+  const { user } = useAuth();
   const [openAccordion, setOpenAccordion] = useState<string | null>("item1");
 
   const toggleAccordion = (id: string) => {
@@ -213,6 +215,30 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* Sign In Banner */}
+        {!user && (
+          <div className="container mx-auto px-4 my-8">
+            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
+              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
+                    <span>💎</span> Sign in to get 50% OFF Sponsorships
+                  </h3>
+                  <p className="text-white/90">
+                    Exclusive offer for members. Log in now to unlock special pricing and benefits.
+                  </p>
+                </div>
+                <Link href="/company/login">
+                  <button className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hover:shadow-xl whitespace-nowrap">
+                    Sign In Now
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* About Us Section Hidden */}
 

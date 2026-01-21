@@ -354,10 +354,8 @@ const PriceCard = ({
         {item.features && item.features.length > 0 && (
           <div className="space-y-0.5 mb-2">
             {item.features.slice(0, 3).map((feature: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-1.5 text-[10px] text-gray-600">
-                <div className="w-3 h-3 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-1.5 h-1.5 text-white" strokeWidth={4} />
-                </div>
+              <div key={idx} className="flex items-center gap-2 text-[16px] text-gray-600">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
                 <span className="font-medium line-clamp-1">{feature}</span>
               </div>
             ))}
@@ -395,7 +393,7 @@ const PriceCard = ({
             </div>
 
             {/* Quantity Controls - Compact & Inline */}
-            {(isTicket || productType === "SPONSOR") && !isSoldOut && (
+            {isTicket && !isSoldOut && (
               <div className="flex items-center gap-0 border border-gray-200 rounded overflow-hidden h-7">
                 <button
                   onClick={decrementQuantity}
@@ -418,17 +416,19 @@ const PriceCard = ({
           {productType === "TICKET" || productType === "SPONSOR" ? (
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={isSoldOut}
-                  className={`p-2 rounded transition-all flex items-center justify-center ${isSoldOut
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : 'bg-[#004aad] text-white hover:bg-[#00317a] shadow-sm hover:shadow active:translate-y-0.5'
-                    }`}
-                  title="Buy Now"
-                >
-                  <ShoppingCart className="h-4 w-4" />
-                </button>
+                {productType !== "SPONSOR" && (
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={isSoldOut}
+                    className={`p-2 rounded transition-all flex items-center justify-center ${isSoldOut
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : 'bg-[#004aad] text-white hover:bg-[#00317a] shadow-sm hover:shadow active:translate-y-0.5'
+                      }`}
+                    title="Buy Now"
+                  >
+                    <ShoppingCart className="h-4 w-4" />
+                  </button>
+                )}
 
                 <button
                   onClick={() => {
@@ -1137,34 +1137,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       });
     }
 
-    // 2. Determine Complimentary Room Eligibility
-    const lowerName = ticketItem.name.toLowerCase();
-    const isMeetingPackage = lowerName.includes("meeting package");
-    const isAccompanying = lowerName.includes("accompanying");
-
-    if (!isMeetingPackage && !isAccompanying) {
-      if (hotels.length > 0) {
-        const hotel = hotels[0];
-        const deluxeRoom = hotel.roomTypes.find(rt => rt.roomType.toLowerCase().includes("deluxe")) || hotel.roomTypes[0];
-
-        if (deluxeRoom) {
-          for (let i = 0; i < quantity; i++) {
-            addToCart({
-              productId: hotel.id,
-              roomTypeId: deluxeRoom.id,
-              productType: "HOTEL",
-              name: `Hotel - ${deluxeRoom.roomType} (Complimentary)`,
-              price: 0,
-              originalPrice: deluxeRoom.price,
-              image: hotel.image || undefined
-            });
-          }
-          toast.success(`Bonus: ${quantity} Complimentary Room(s) added!`);
-        }
-      }
-    } else {
-      toast.success(`${quantity} x ${ticketItem.name} added to cart!`);
-    }
+    toast.success(`${quantity} x ${ticketItem.name} added to cart!`);
   };
 
   // --- BOOKING WIZARD LOGIC ---
@@ -1259,73 +1232,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       }
     });
 
-    // 3. Auto-add Accommodation (Deluxe Room)
-    // Logic: 1 Room holds (1 Ticket + 1 Accompanying).
-    // Meeting Package = 0 Rooms.
-    let ticketCount = 0;
-    let accompanyingCount = 0;
 
-    // Log quantities for debugging
-    console.log("Ticket Quantities:", ticketQuantities);
-
-    Object.entries(ticketQuantities).forEach(([key, qty]) => {
-      const parts = key.split('__');
-      if (parts.length >= 2) {
-        const vName = parts[1];
-        const vNameLower = vName.toLowerCase();
-        console.log(`Checking ticket: ${vName}, Qty: ${qty}`);
-
-        if (vNameLower.includes("meeting package")) {
-          // No room for meeting package
-          return;
-        }
-
-        if (vNameLower.includes("accompanying")) {
-          accompanyingCount += qty;
-        } else if (vNameLower.includes("ticket")) {
-          // Catches "Ticket", "Regular Ticket", "Standard Ticket"
-          ticketCount += qty;
-        }
-      }
-    });
-
-    // Calculate rooms needed
-    // 1 Ticket + 1 Accompanying = 1 Room.
-    const roomsNeeded = Math.max(ticketCount, accompanyingCount);
-
-    console.log(`Calculated Rooms Needed: ${roomsNeeded} (Tickets: ${ticketCount}, Accompanying: ${accompanyingCount})`);
-
-    if (roomsNeeded > 0) {
-      if (hotels.length > 0) {
-        // Find Deluxe Room in the first hotel (Radisson)
-        const hotel = hotels[0];
-        console.log("Selected Hotel:", hotel.hotelName);
-
-        // Try to find Deluxe, otherwise default to the first room type available
-        const deluxeRoom = hotel.roomTypes.find(rt => rt.roomType.toLowerCase().includes("deluxe")) || hotel.roomTypes[0];
-        console.log("Selected Room Type:", deluxeRoom);
-
-        if (deluxeRoom) {
-          for (let i = 0; i < roomsNeeded; i++) {
-            console.log("Adding room to cart...");
-            addToCart({
-              productId: hotel.id,
-              roomTypeId: deluxeRoom.id,
-              productType: "HOTEL",
-              name: `Hotel - ${deluxeRoom.roomType} (Complimentary)`,
-              price: 0,
-              originalPrice: deluxeRoom.price,
-              image: hotel.image || undefined
-            });
-          }
-          toast.success(`${roomsNeeded} ${deluxeRoom.roomType}(s) added automatically!`);
-        } else {
-          console.warn("No room types available in the hotel to auto-add.");
-        }
-      } else {
-        console.warn("No hotels available for this event to auto-add rooms.");
-      }
-    }
 
     toast.success("Items added to cart!");
     closeWizard();
@@ -1463,6 +1370,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               <button
                 onClick={() => {
                   if (selectedSponsorInPopup) {
+                    const isAlreadyInCart = cart.some(item => item.productId === selectedSponsorInPopup && item.productType === "SPONSOR");
+                    if (isAlreadyInCart) {
+                      toast.error("This sponsorship package is already in your cart.");
+                      return;
+                    }
                     // Add selected sponsor to cart
                     const sponsor = eventSponsorTypes.find(s => s.sponsorType.id === selectedSponsorInPopup);
                     if (sponsor) {
@@ -2025,6 +1937,28 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
         {/* LEFT COLUMN: TABS & CONTENT */}
         <div className="lg:col-span-2 space-y-8">
+          {/* Sign In Banner */}
+          {!user && (
+            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
+              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
+                <div>
+                  <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
+                    <span>💎</span> Sign in to get 50% OFF Sponsorships
+                  </h3>
+                  <p className="text-white/90">
+                    Exclusive offer for members. Log in now to unlock special pricing and benefits.
+                  </p>
+                </div>
+                <Link href="/company/login">
+                  <button className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hover:shadow-xl whitespace-nowrap">
+                    Sign In Now
+                  </button>
+                </Link>
+              </div>
+            </div>
+          )}
+
           {/* Tabs Navigation */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2">
             {tabs.map(tab => (
@@ -2465,8 +2399,12 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       const hasDiscount = effectivePrice < sponsorType.price;
                       const discountPercent = hasDiscount ? ((sponsorType.price - effectivePrice) / sponsorType.price) * 100 : null;
 
-                      // Custom Handler for Free Tickets Logic
                       const handleSponsorAdd = (quantityToAdd: number) => {
+                        const isAlreadyInCart = cart.some(item => item.productId === sponsorType.id && item.productType === "SPONSOR");
+                        if (isAlreadyInCart) {
+                          toast.error("This sponsorship package is already in your cart.");
+                          return false;
+                        }
                         console.log('handleSponsorAdd called', { sponsorType: sponsorType.name, quantityToAdd });
 
                         // 1. Add the Sponsor Item itself
@@ -2524,6 +2462,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             console.warn('No standard ticket found!');
                           }
                         }
+                        return true;
                       };
 
                       return (
@@ -2541,6 +2480,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           offerPercent={discountPercent ?? undefined}
                           offerName={hasDiscount ? (eventData?.earlyBird ? "Early Bird Special" : "Member Discount") : undefined}
                           onAddToCart={handleSponsorAdd}
+                          onBuyNow={(qty) => {
+                            if (handleSponsorAdd(qty)) {
+                              router.push(`/event/${id}/checkout`);
+                            }
+                          }}
                         />
                       )
                     })}
@@ -2713,40 +2657,27 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
               {/* Global Reach */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
-                  <MapPin size={12} className="text-[#004aad]" /> Global Digital Reach
+                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
+                  <MapPin size={14} className="text-[#004aad]" /> Global Reach
                 </h4>
-                <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-lg p-3 text-white shadow-inner">
-                  <p className="text-[10px] text-blue-100 leading-tight mb-2">
-                    Targeting logistics pros across <span className="font-bold text-white">India, APAC, ME, EU & USA</span>.
+                <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group">
+                  <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-10 transition-opacity"></div>
+                  <p className="text-xs text-blue-100 text-[18px] leading-relaxed mb-3">
+                    Reach logistics leaders across <span className="font-bold text-white">India, APAC, ME, EU & USA</span>.
                   </p>
-                  <div className="flex justify-between items-center text-[10px] border-t border-white/10 pt-2">
+                  <div className="flex justify-between items-center text-xs border-t border-white/10 pt-3">
                     <span className="text-blue-200">250k+ Impressions</span>
-                    <span className="font-bold">120k+ Pros</span>
+                    <span className="font-bold bg-white/20 px-2 py-0.5 rounded text-[10px]">120k+ Pros</span>
                   </div>
-                </div>
-              </div>
-
-              {/* Target Audience */}
-              <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
-                  <Users size={12} className="text-[#004aad]" /> Target Audience
-                </h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {["Freight Forwarders", "Logistics Owners", "Managers", "CXOs", "Importers"].map((role, idx) => (
-                    <span key={idx} className="bg-gray-50 text-gray-600 px-2 py-1 rounded-md font-medium text-[10px] border border-gray-100">
-                      {role}
-                    </span>
-                  ))}
                 </div>
               </div>
 
               {/* Key Benefits */}
               <div>
-                <h4 className="text-xs font-bold uppercase tracking-wider text-gray-500 mb-2 flex items-center gap-2">
-                  <Check size={12} className="text-emerald-600" /> Key Benefits
+                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
+                  <Check size={14} className="text-emerald-600" /> Key Benefits
                 </h4>
-                <ul className="space-y-1.5">
+                <ul className="space-y-3">
                   {[
                     "Premium On-Ground Exposure",
                     "Multi-Channel Promotion",
@@ -2754,9 +2685,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Long-term Brand Recall",
                     "Global Brand Travel"
                   ].map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[10px] text-gray-600 font-medium">
-                      <div className="mt-1 min-w-[3px] h-1 w-1 rounded-full bg-emerald-500"></div>
-                      <span>{benefit}</span>
+                    <li key={i} className="flex items-start gap-3 text-[18px] text-gray-600 font-medium group">
+                      <div className="mt-1 min-w-[6px] h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-hover:scale-125 transition-all"></div>
+                      <span className="group-hover:text-gray-900 transition-colors">{benefit}</span>
                     </li>
                   ))}
                 </ul>
