@@ -1,0 +1,192 @@
+
+> backend-api@0.1.0 build
+> prisma generate && next build
+
+Environment variables loaded from .env
+Prisma schema loaded from prisma\schema.prisma
+
+✔ Generated Prisma Client (v6.19.2) to .\node_modules\.prisma\client in 125ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+Tip: Need your database queries to be 1000x faster? Accelerate offers you that and more: https://pris.ly/tip-2-accelerate
+
+   ▲ Next.js 15.3.2
+   - Environments: .env.local, .env
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.0s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/91) ...
+   Generating static pages (22/91) 
+   Generating static pages (45/91) 
+   Generating static pages (68/91) 
+prisma:query SELECT "public"."MembershipPlan"."id", "public"."MembershipPlan"."name", "public"."MembershipPlan"."slug", "public"."MembershipPlan"."price", "public"."MembershipPlan"."features", "public"."MembershipPlan"."createdAt", "public"."MembershipPlan"."updatedAt", "public"."MembershipPlan"."description", "public"."MembershipPlan"."thumbnail", "public"."MembershipPlan"."paymentProtection", "public"."MembershipPlan"."discountPercentage" FROM "public"."MembershipPlan" WHERE 1=1 ORDER BY "public"."MembershipPlan"."price" ASC OFFSET $1
+prisma:query SELECT "public"."MembershipPlan"."id", "public"."MembershipPlan"."name", "public"."MembershipPlan"."slug", "public"."MembershipPlan"."price", "public"."MembershipPlan"."description", "public"."MembershipPlan"."thumbnail", "public"."MembershipPlan"."paymentProtection", "public"."MembershipPlan"."discountPercentage", "public"."MembershipPlan"."features" FROM "public"."MembershipPlan" WHERE "public"."MembershipPlan"."price" > $1 ORDER BY "public"."MembershipPlan"."createdAt" ASC OFFSET $2
+ ✓ Generating static pages (91/91)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                                           Size  First Load JS
+┌ ○ /                                                              11.9 kB         159 kB
+├ ○ /_not-found                                                      990 B         103 kB
+├ ○ /about                                                          4.8 kB         136 kB
+├ ○ /account                                                       4.54 kB         106 kB
+├ ○ /admin/booths                                                  5.36 kB         119 kB
+├ ○ /admin/company                                                 5.38 kB         116 kB
+├ ƒ /admin/company/[id]                                            4.71 kB         110 kB
+├ ○ /admin/company/create                                          3.95 kB         109 kB
+├ ○ /admin/coupon                                                  7.33 kB         109 kB
+├ ƒ /admin/dashboard                                               8.57 kB         160 kB
+├ ○ /admin/events                                                  4.11 kB         147 kB
+├ ƒ /admin/events/[id]                                             11.5 kB         168 kB
+├ ○ /admin/events/create                                           12.4 kB         164 kB
+├ ○ /admin/hotels                                                  10.3 kB         162 kB
+├ ○ /admin/membership                                              4.31 kB         106 kB
+├ ○ /admin/past-events                                             3.76 kB         105 kB
+├ ƒ /admin/past-events/[id]                                        5.04 kB         107 kB
+├ ○ /admin/past-events/create                                      4.92 kB         107 kB
+├ ƒ /admin/reports                                                   370 B         102 kB
+├ ○ /admin/sponsors                                                23.2 kB         137 kB
+├ ○ /admin/testimony                                               3.68 kB         105 kB
+├ ƒ /admin/testimony/[id]                                          3.63 kB         105 kB
+├ ○ /admin/testimony/create                                         4.7 kB         106 kB
+├ ○ /admin/tickets                                                 6.17 kB         120 kB
+├ ○ /admin/users                                                   2.68 kB         108 kB
+├ ƒ /api/admin/booth-subtypes                                        370 B         102 kB
+├ ƒ /api/admin/booths                                                370 B         102 kB
+├ ƒ /api/admin/booths/[id]                                           370 B         102 kB
+├ ƒ /api/admin/companies                                             370 B         102 kB
+├ ƒ /api/admin/companies/[id]                                        370 B         102 kB
+├ ƒ /api/admin/companies/[id]/status                                 370 B         102 kB
+├ ƒ /api/admin/companies/[id]/toggle-active                          370 B         102 kB
+├ ƒ /api/admin/companies/[id]/verify                                 370 B         102 kB
+├ ƒ /api/admin/coupons                                               370 B         102 kB
+├ ƒ /api/admin/coupons/[id]                                          370 B         102 kB
+├ ƒ /api/admin/generate-credentials                                  370 B         102 kB
+├ ƒ /api/admin/hotels                                                370 B         102 kB
+├ ƒ /api/admin/hotels/[id]                                           370 B         102 kB
+├ ƒ /api/admin/membership-plans                                      370 B         102 kB
+├ ƒ /api/admin/membership-plans/[id]                                 370 B         102 kB
+├ ƒ /api/admin/offers                                                370 B         102 kB
+├ ƒ /api/admin/offers/[id]                                           370 B         102 kB
+├ ƒ /api/admin/orders/[id]                                           370 B         102 kB
+├ ƒ /api/admin/past-events                                           370 B         102 kB
+├ ƒ /api/admin/past-events/[id]                                      370 B         102 kB
+├ ƒ /api/admin/room-types                                            370 B         102 kB
+├ ƒ /api/admin/room-types/[id]                                       370 B         102 kB
+├ ƒ /api/admin/sponsor-types                                         370 B         102 kB
+├ ƒ /api/admin/sponsors                                              370 B         102 kB
+├ ƒ /api/admin/sponsors/[id]                                         370 B         102 kB
+├ ƒ /api/admin/sponsors/reorder                                      370 B         102 kB
+├ ƒ /api/admin/testimonials                                          370 B         102 kB
+├ ƒ /api/admin/testimonials/[id]                                     370 B         102 kB
+├ ƒ /api/admin/tickets                                               370 B         102 kB
+├ ƒ /api/admin/tickets/[id]                                          370 B         102 kB
+├ ƒ /api/admin/users                                                 370 B         102 kB
+├ ƒ /api/auth/login                                                  370 B         102 kB
+├ ƒ /api/check-api                                                   370 B         102 kB
+├ ƒ /api/checkout                                                    370 B         102 kB
+├ ƒ /api/companies                                                   370 B         102 kB
+├ ƒ /api/companies/[id]                                              370 B         102 kB
+├ ƒ /api/companies/[id]/badge-details                                370 B         102 kB
+├ ƒ /api/companies/by-city                                           370 B         102 kB
+├ ƒ /api/companies/flagged/search                                    370 B         102 kB
+├ ƒ /api/companies/list                                              370 B         102 kB
+├ ƒ /api/companies/search                                            370 B         102 kB
+├ ƒ /api/company/[companyId]/name                                    370 B         102 kB
+├ ƒ /api/company/forgot-password                                     370 B         102 kB
+├ ƒ /api/company/inquiry                                             370 B         102 kB
+├ ƒ /api/company/inquiry/[id]                                        370 B         102 kB
+├ ƒ /api/company/inquiry/response                                    370 B         102 kB
+├ ƒ /api/company/login                                               370 B         102 kB
+├ ƒ /api/company/my-inquiry                                          370 B         102 kB
+├ ƒ /api/company/orders                                              370 B         102 kB
+├ ƒ /api/company/register                                            370 B         102 kB
+├ ƒ /api/company/reset-password                                      370 B         102 kB
+├ ƒ /api/complete-profile                                            370 B         102 kB
+├ ƒ /api/conversations                                               370 B         102 kB
+├ ƒ /api/conversations/[conversationId]/messages                     370 B         102 kB
+├ ƒ /api/conversations/[conversationId]/messages/[messageId]/read    370 B         102 kB
+├ ƒ /api/env                                                         370 B         102 kB
+├ ƒ /api/events                                                      370 B         102 kB
+├ ƒ /api/events/[id]                                                 370 B         102 kB
+├ ƒ /api/events/[id]/agenda                                          370 B         102 kB
+├ ƒ /api/events/[id]/agenda/[agendaId]                               370 B         102 kB
+├ ƒ /api/events/[id]/booth-status                                    370 B         102 kB
+├ ƒ /api/events/[id]/booths/[boothId]/subtypes                       370 B         102 kB
+├ ƒ /api/events/[id]/checkout                                        370 B         102 kB
+├ ƒ /api/events/[id]/hotel-bookings/[companyId]                      370 B         102 kB
+├ ƒ /api/events/[id]/hotels/[hotelId]                                370 B         102 kB
+├ ƒ /api/events/[id]/hotels/[hotelId]/rooms                          370 B         102 kB
+├ ƒ /api/events/[id]/sponsors/[sponsorTypeId]/assignments            370 B         102 kB
+├ ƒ /api/events/[id]/venue                                           370 B         102 kB
+├ ƒ /api/fix-sponsors                                                370 B         102 kB
+├ ƒ /api/inquiries                                                   370 B         102 kB
+├ ƒ /api/inquiries/latest                                            370 B         102 kB
+├ ƒ /api/inquiries/responded-by/[companyId]                          370 B         102 kB
+├ ƒ /api/logout                                                      370 B         102 kB
+├ ƒ /api/me                                                          370 B         102 kB
+├ ƒ /api/membership-plans                                            370 B         102 kB
+├ ƒ /api/membership/purchase                                         370 B         102 kB
+├ ƒ /api/orders/[id]/payment-proof                                   370 B         102 kB
+├ ƒ /api/past-events                                                 370 B         102 kB
+├ ƒ /api/public/debug-sponsors                                       370 B         102 kB
+├ ƒ /api/public/debug-sponsors-2                                     370 B         102 kB
+├ ƒ /api/public/debug-sponsors-3                                     370 B         102 kB
+├ ƒ /api/public/fix-sponsors                                         370 B         102 kB
+├ ƒ /api/public/remove-website-po                                    370 B         102 kB
+├ ƒ /api/register                                                    370 B         102 kB
+├ ƒ /api/reports                                                     370 B         102 kB
+├ ƒ /api/sponsors/[id]                                               370 B         102 kB
+├ ƒ /api/testimonials                                                370 B         102 kB
+├ ƒ /api/tickets/[id]                                                370 B         102 kB
+├ ƒ /api/upload-url                                                  370 B         102 kB
+├ ƒ /api/upload/s3                                                   370 B         102 kB
+├ ○ /by-laws                                                         370 B         102 kB
+├ ƒ /company/[id]/edit                                             2.21 kB         104 kB
+├ ƒ /company/details/[id]                                          5.61 kB         117 kB
+├ ○ /company/forgot-password                                       1.76 kB         113 kB
+├ ○ /company/login                                                 2.29 kB         113 kB
+├ ○ /company/register                                                 3 kB         114 kB
+├ ○ /company/reset-password                                        2.02 kB         113 kB
+├ ○ /contact-us                                                    3.27 kB         111 kB
+├ ○ /cookies-policy                                                  370 B         102 kB
+├ ƒ /dashboard                                                     5.18 kB         115 kB
+├ ○ /directory                                                        4 kB         115 kB
+├ ƒ /event/[id]                                                    20.7 kB         137 kB
+├ ƒ /event/[id]/cart                                               4.74 kB         110 kB
+├ ƒ /event/[id]/checkout                                           10.5 kB         123 kB
+├ ƒ /event/[id]/hotel/[hotelId]                                    4.04 kB         109 kB
+├ ƒ /event/[id]/sponsor/[sponsorId]                                3.36 kB         110 kB
+├ ƒ /event/[id]/ticket/[ticketId]                                  3.49 kB         110 kB
+├ ○ /event/list                                                    5.65 kB         153 kB
+├ ○ /inquiry                                                       3.58 kB         121 kB
+├ ƒ /inquiry/[id]                                                  5.47 kB         116 kB
+├ ƒ /inquiry/[id]/respond                                          4.71 kB         106 kB
+├ ○ /inquiry/my-inquiries                                          3.03 kB         114 kB
+├ ƒ /inquiry/my-inquiries/[id]                                      3.6 kB         111 kB
+├ ○ /inquiry/my-responses                                           3.3 kB         114 kB
+├ ○ /inquiry/new                                                   4.81 kB         107 kB
+├ ○ /membership                                                    3.98 kB         109 kB
+├ ○ /membership/become-member                                      3.97 kB         109 kB
+├ ○ /membership/general/elite                                       3.5 kB         109 kB
+├ ƒ /membership/purchase/[membershipType]                          4.97 kB         113 kB
+├ ƒ /past-events/[id]                                              2.58 kB         144 kB
+├ ○ /payment-protection                                              370 B         102 kB
+├ ○ /privacy-policy                                                  370 B         102 kB
+├ ○ /risk                                                          5.26 kB         116 kB
+├ ○ /secure-pay                                                    2.69 kB         114 kB
+└ ○ /test                                                            370 B         102 kB
++ First Load JS shared by all                                       102 kB
+  ├ chunks/1684-5514e4c7cad5986f.js                                46.4 kB
+  ├ chunks/4bd1b696-33b6bb887214c4b9.js                            53.2 kB
+  └ other shared chunks (total)                                    2.12 kB
+
+
+ƒ Middleware                                                       33.7 kB
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+

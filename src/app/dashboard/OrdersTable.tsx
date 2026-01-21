@@ -285,7 +285,10 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                 customerDetails={{
                                     name: companyName,
                                     email: companyEmail,
-                                    address: companyAddress
+                                    address: companyAddress,
+                                    companyName: companyName,
+                                    designation: "", // Not provided in props
+                                    memberId: "" // Not provided in props
                                 }}
                                 items={selectedOrder.items.map(item => ({
                                     name: item.name,

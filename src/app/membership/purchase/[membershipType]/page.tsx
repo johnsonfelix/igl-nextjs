@@ -263,7 +263,12 @@ const PurchasePage: NextPage = () => {
                   customerDetails={{
                     name: user?.name || user?.email || 'Valued Customer',
                     email: user?.email || '',
-                    address: companyName
+                    address: companyName, // Using companyName as address was existing logic? Or is it strange? The prop is address.
+                    // The existing code mapped address: companyName.
+                    // I will add the missing ones.
+                    companyName: companyName,
+                    designation: "",
+                    memberId: ""
                   }}
                   items={invoiceData.items ? invoiceData.items.map((item: any) => ({
                     name: item.name,
