@@ -1990,34 +1990,36 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-12 animate-fadeIn">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fadeIn">
                     {Object.entries(sponsorsByType).map(([typeName, companies]) => (
-                      <div key={typeName}>
+                      <div key={typeName} className="h-full">
                         <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                           <div className="h-8 w-1.5 bg-[#004aad] rounded-full"></div>
                           {typeName}
                         </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-2 gap-4">
                           {companies.map((company: any) => (
                             <div
                               key={company.id}
-                              className="group relative bg-white rounded-2xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden"
+                              className="group relative bg-white rounded-xl p-4 flex flex-col items-center text-center shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100/80 hover:border-blue-100 overflow-hidden"
                             >
-                              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#004aad] to-indigo-400 transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                              <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-blue-100 group-hover:bg-[#004aad] transition-colors"></div>
 
-                              <div className="w-28 h-28 mb-6 relative rounded-2xl overflow-hidden border border-gray-100 bg-white shadow-sm flex items-center justify-center group-hover:border-[#004aad]/20 transition-colors">
+                              <div className="w-full h-24 mb-3 relative rounded-lg bg-white flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-300">
                                 {company.logoUrl ? (
-                                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-3" />
+                                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-2" />
                                 ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
-                                  <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-3" />
+                                  <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-2" />
                                 ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-3xl font-bold text-[#004aad] bg-gradient-to-br from-blue-50 to-indigo-50">
+                                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-[#004aad] bg-blue-50">
                                     {company.name.charAt(0)}
                                   </div>
                                 )}
                               </div>
 
-                              <h4 className="text-xl font-bold text-gray-900 mb-1 group-hover:text-[#004aad] transition-colors">{company.name}</h4>
+                              <h4 className="text-sm font-semibold text-gray-700 group-hover:text-[#004aad] transition-colors line-clamp-2 leading-tight min-h-[2.5rem] flex items-center justify-center">
+                                {company.name}
+                              </h4>
 
                             </div>
                           ))}
@@ -2391,15 +2393,18 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
                 <div className="space-y-12">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {eventSponsorTypes.map(({ sponsorType }) => {
+                    {eventSponsorTypes.map(({ sponsorType, quantity }) => {
                       const qty = sponsorQuantities[sponsorType.id] || 0;
                       const effectivePrice = getEffectiveSponsorPrice(sponsorType);
+                      const isSoldOut = quantity <= 0;
 
                       // Calculate discount percentage for badge display
                       const hasDiscount = effectivePrice < sponsorType.price;
                       const discountPercent = hasDiscount ? ((sponsorType.price - effectivePrice) / sponsorType.price) * 100 : null;
 
                       const handleSponsorAdd = (quantityToAdd: number) => {
+                        if (isSoldOut) return false;
+
                         const isAlreadyInCart = cart.some(item => item.productId === sponsorType.id && item.productType === "SPONSOR");
                         if (isAlreadyInCart) {
                           toast.error("This sponsorship package is already in your cart.");
@@ -2479,6 +2484,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           actionText="Buy Now"
                           offerPercent={discountPercent ?? undefined}
                           offerName={hasDiscount ? (eventData?.earlyBird ? "Early Bird Special" : "Member Discount") : undefined}
+                          isSoldOut={isSoldOut}
                           onAddToCart={handleSponsorAdd}
                           onBuyNow={(qty) => {
                             if (handleSponsorAdd(qty)) {
@@ -2662,7 +2668,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </h4>
                 <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-10 transition-opacity"></div>
-                  <p className="text-xs text-blue-100 text-[18px] leading-relaxed mb-3">
+                  <p className="text-xs text-blue-100 text-[15px] leading-relaxed mb-3">
                     Reach logistics leaders across <span className="font-bold text-white">India, Asia Pacific, Middle East, Europe Union & USA</span>.
                   </p>
                   <div className="flex justify-between items-center text-xs border-t border-white/10 pt-3">
@@ -2685,7 +2691,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Long-term Brand Recall",
                     "Global Brand Travel"
                   ].map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-3 text-[16px] text-gray-600 font-medium group">
+                    <li key={i} className="flex items-start gap-3 text-[14px] text-gray-600 font-medium group">
                       <div className="mt-1 min-w-[6px] h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-hover:scale-125 transition-all"></div>
                       <span className="group-hover:text-gray-900 transition-colors">{benefit}</span>
                     </li>

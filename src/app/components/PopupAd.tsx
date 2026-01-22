@@ -69,11 +69,14 @@ export default function PopupAd() {
                     <X size={22} />
                 </button>
                 <div onClick={handleAdClick} className="cursor-pointer">
-                    <img
-                        src="/images/popup.jpg"
-                        alt="Special Offer"
-                        className="max-w-[80vw] max-h-[75vh] w-auto h-auto object-contain rounded-2xl"
-                    />
+                    <picture>
+                        <source media="(max-width: 768px)" srcSet="/popup-ad.png" />
+                        <img
+                            src="/images/popup.jpg"
+                            alt="Special Offer"
+                            className="max-w-[80vw] max-h-[75vh] w-auto h-auto object-contain rounded-2xl"
+                        />
+                    </picture>
                 </div>
             </div>
         </div>

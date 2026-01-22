@@ -222,7 +222,7 @@ export default function EventFormPage() {
         })),
         sponsorTypes: selectedSponsorTypeIds.map((id) => ({
           id,
-          quantity: sponsorQuantities[id] || 1,
+          quantity: sponsorQuantities[id] ?? 1,
         })),
         roomTypes: selectedRoomTypeIds.map((id) => ({
           id,
@@ -756,10 +756,13 @@ export default function EventFormPage() {
                           </div>
                           {selectedSponsorTypeIds.includes(st.id) && (
                             <Input
-                              type="number" min={1}
+                              type="number" min={0}
                               className="w-16 h-8 text-sm"
-                              value={sponsorQuantities[st.id] || 1}
-                              onChange={(e) => setSponsorQuantities({ ...sponsorQuantities, [st.id]: parseInt(e.target.value) || 1 })}
+                              value={sponsorQuantities[st.id] ?? 1}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                setSponsorQuantities({ ...sponsorQuantities, [st.id]: isNaN(val) ? 0 : val })
+                              }}
                             />
                           )}
                         </div>

@@ -125,14 +125,14 @@ export default function Home() {
               nextEl: ".swiper-button-next-custom",
               prevEl: ".swiper-button-prev-custom",
             }}
-            className="h-[calc(100vh-120px)] min-h-[600px] w-full group"
+            className="h-auto lg:h-[calc(100vh-120px)] min-h-[100vh] lg:min-h-[600px] w-full group"
           >
             {bannerSlides.map((slide) => (
               <SwiperSlide key={slide.id}>
-                <div className="h-full w-full flex flex-col lg:flex-row">
-                  {/* Left Side (Text) */}
-                  <div className="lg:w-5/12 relative h-[500px] lg:h-full">
-                    <div className="absolute inset-0">
+                <div className="h-full w-full flex flex-col-reverse lg:flex-row">
+                  {/* Left Side (Text) - Bottom on mobile */}
+                  <div className="w-full lg:w-5/12 relative flex-1 bg-white lg:bg-transparent -mt-8 lg:mt-0 z-10 rounded-t-3xl lg:rounded-none">
+                    <div className="absolute inset-0 hidden lg:block">
                       <Image
                         src={slide.leftImage}
                         alt="Banner Background"
@@ -141,11 +141,11 @@ export default function Home() {
                       />
 
                     </div>
-                    <div className="relative z-10 h-full flex flex-col justify-center px-8 lg:px-16 text-white">
+                    <div className="relative z-10 h-full flex flex-col justify-center px-6 py-12 lg:px-16 text-gray-900 lg:text-white">
                       <span className="text-sm tracking-widest uppercase border-b-2 border-white/30 inline-block mb-6 pb-1 w-fit">
                         {slide.welcome}
                       </span>
-                      <h1 className="text-5xl lg:text-7xl font-bold leading-tight mb-8">
+                      <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 lg:mb-8">
                         {slide.title1}<br />
                         {/* <span className="relative">
                           {slide.title2}
@@ -161,12 +161,12 @@ export default function Home() {
                         </span><br /> */}
                         {slide.title3}
                       </h1>
-                      <div className="flex flex-wrap gap-4">
-                        <Link href="/membership/become-member" className="bg-white text-black px-8 py-4 rounded-full font-bold shadow-lg hover:bg-gray-50 flex items-center gap-2 transition-transform hover:scale-105">
+                      <div className="flex flex-col sm:flex-row flex-wrap gap-4">
+                        <Link href="/membership/become-member" className="bg-[#004aad] lg:bg-white text-white lg:text-black px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold shadow-lg hover:bg-[#003882] lg:hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           <ThumbsUp className="w-5 h-5" />
                           Discover more
                         </Link>
-                        <Link href="/event/list" className="text-white border border-white/50 px-8 py-4 rounded-full font-bold hover:bg-white/10 flex items-center gap-2 transition-transform hover:scale-105">
+                        <Link href="/event/list" className="text-[#004aad] lg:text-white border border-[#004aad]/30 lg:border-white/50 px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold hover:bg-[#004aad]/5 lg:hover:bg-white/10 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           View services
                           <Box className="w-5 h-5" />
                         </Link>
@@ -174,13 +174,14 @@ export default function Home() {
                     </div>
                   </div>
 
-                  {/* Right Side (Image) */}
-                  <div className="lg:w-7/12 relative h-[300px] lg:h-full">
+                  {/* Right Side (Image) - Top on mobile */}
+                  <div className="w-full lg:w-7/12 relative h-[50vh] lg:h-full">
                     <Image
                       src={slide.bgImage}
                       alt="Banner Image"
                       fill
                       className="object-cover"
+                      priority
                     />
                   </div>
                 </div>
