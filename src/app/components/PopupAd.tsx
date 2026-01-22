@@ -70,7 +70,7 @@ export default function PopupAd() {
                 </button>
                 <div onClick={handleAdClick} className="cursor-pointer">
                     <img
-                        src="/images/bg-2.jpg"
+                        src="/images/popup.jpg"
                         alt="Special Offer"
                         className="max-w-[80vw] max-h-[75vh] w-auto h-auto object-contain rounded-2xl"
                     />
