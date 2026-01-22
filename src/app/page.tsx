@@ -218,13 +218,13 @@ export default function Home() {
 
         {/* Sign In Banner */}
         {!user && (
-          <div className="container mx-auto px-4 my-8">
+          <div className="container mx-auto px-4 my-8 -mt-36 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
             <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
               <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
                 <div>
                   <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span>💎</span> Sign in to get 50% OFF Sponsorships
+                    <span>💎</span> Sign in to get 50% OFF on Sponsorships
                   </h3>
                   <p className="text-white/90">
                     Exclusive offer for members. Log in now to unlock special pricing and benefits.
@@ -240,166 +240,18 @@ export default function Home() {
           </div>
         )}
 
+        {/* Sponsorship Benefits Section */}
+        <SponsorshipBenefitsSection />
+
         {/* About Us Section Hidden */}
 
         {/* Why Choose Us Section Hidden */}
 
-        {/* Why Partner with IGLA (Accordion) */}
-        <section className="py-20 bg-white">
-          <div className="container mx-auto px-4">
-            <div className="grid lg:grid-cols-2 gap-12 items-center">
-              <div className="relative">
-                <Image src="/images/why-partner-with-us.jpg" alt="Why Partner" width={600} height={500} className="rounded-lg shadow-lg w-[64%] mx-auto block" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="w-8 h-[2px] bg-primary"></span>
-                  <span className="text-primary font-bold uppercase text-sm tracking-widest">Why Partner with IGLA?</span>
-                </div>
-                <h3 className="text-3xl font-bold mb-8">Unlock Global Business Potential</h3>
 
-                <div className="space-y-4">
-                  {/* Accordion Item 1 */}
-                  <div className={`border rounded-lg overflow-hidden transition-all ${openAccordion === 'item1' ? 'shadow-md' : ''}`}>
-                    <button
-                      onClick={() => toggleAccordion('item1')}
-                      className={`w-full flex justify-between items-center p-4 font-bold text-left text-lg ${openAccordion === 'item1' ? 'bg-white text-gray-900' : 'bg-gray-50 text-gray-600'}`}
-                    >
-                      Find Trusted Logistics Experts Worldwide
-                      {openAccordion === 'item1' ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                    </button>
-                    {openAccordion === 'item1' && (
-                      <div className="p-4 bg-white text-gray-600 text-sm leading-relaxed border-t">
-                        Access a carefully vetted community of professionals across five continents no more searching blindly or risking unreliable partnerships.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion Item 2 */}
-                  <div className={`border rounded-lg overflow-hidden transition-all ${openAccordion === 'item2' ? 'shadow-md' : ''}`}>
-                    <button
-                      onClick={() => toggleAccordion('item2')}
-                      className={`w-full flex justify-between items-center p-4 font-bold text-left text-lg ${openAccordion === 'item2' ? 'bg-white text-gray-900' : 'bg-gray-50 text-gray-600'}`}
-                    >
-                      Tailored Expertise for Every Logistics Need
-                      {openAccordion === 'item2' ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                    </button>
-                    {openAccordion === 'item2' && (
-                      <div className="p-4 bg-white text-gray-600 text-sm leading-relaxed border-t">
-                        From air and sea freight to specialized cargo, our members offer niche services to handle complex and diverse requirements.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion Item 3 */}
-                  <div className={`border rounded-lg overflow-hidden transition-all ${openAccordion === 'item3' ? 'shadow-md' : ''}`}>
-                    <button
-                      onClick={() => toggleAccordion('item3')}
-                      className={`w-full flex justify-between items-center p-4 font-bold text-left text-lg ${openAccordion === 'item3' ? 'bg-white text-gray-900' : 'bg-gray-50 text-gray-600'}`}
-                    >
-                      Partner with Confidence, Every Time
-                      {openAccordion === 'item3' ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                    </button>
-                    {openAccordion === 'item3' && (
-                      <div className="p-4 bg-white text-gray-600 text-sm leading-relaxed border-t">
-                        With IGLA’s Payment Protection Fund and strict member screening, every deal comes with built in trust and peace of mind.
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Accordion Item 4 */}
-                  <div className={`border rounded-lg overflow-hidden transition-all ${openAccordion === 'item4' ? 'shadow-md' : ''}`}>
-                    <button
-                      onClick={() => toggleAccordion('item4')}
-                      className={`w-full flex justify-between items-center p-4 font-bold text-left text-lg ${openAccordion === 'item4' ? 'bg-white text-gray-900' : 'bg-gray-50 text-gray-600'}`}
-                    >
-                      Grow with Trusted Global Partners
-                      {openAccordion === 'item4' ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
-                    </button>
-                    {openAccordion === 'item4' && (
-                      <div className="p-4 bg-white text-gray-600 text-sm leading-relaxed border-t">
-                        Join a network where every member is verified, every connection is meaningful, and every opportunity is built on trust.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         <ScrollingTextSection />
 
-        {/* Conference Highlights Section */}
-        <section className="py-20 overflow-hidden relative">
-          <div className="container mx-auto px-4">
-            <div className="flex flex-wrap items-center mb-8 md:mb-12 text-center lg:text-left">
-              <div className="w-full lg:w-5/12 mb-8 md:mb-0">
-                <div>
-                  <span className="text-base text-[#004aad] font-semibold uppercase tracking-wider mb-2 block">Conference Highlights</span>
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-800 tracking-tight">Where Global Partnerships Begin</h2>
-                </div>
-              </div>
-              <div className="w-full lg:w-5/12 mb-8 md:mb-0">
-                {/* Optional: Description can go here if needed later */}
-              </div>
-              <div className="w-full lg:w-2/12 flex justify-center lg:justify-end gap-4">
-                {/* Swiper Custom Navigation */}
-                <div className="highlight-prev w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-black hover:text-white hover:border-black transition-all">
-                  <ChevronLeft className="w-6 h-6" />
-                </div>
-                <div className="highlight-next w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-black hover:text-white hover:border-black transition-all">
-                  <ChevronRight className="w-6 h-6" />
-                </div>
-              </div>
-            </div>
 
-            <div className="row">
-              <div className="w-full">
-                <Swiper
-                  modules={[Autoplay, Navigation]}
-                  spaceBetween={30}
-                  slidesPerView={1}
-                  loop={true}
-                  navigation={{
-                    nextEl: ".highlight-next",
-                    prevEl: ".highlight-prev",
-                  }}
-                  autoplay={{
-                    delay: 3000,
-                    disableOnInteraction: false,
-                  }}
-                  breakpoints={{
-                    640: { slidesPerView: 2 },
-                    1024: { slidesPerView: 3 },
-                    1280: { slidesPerView: 4 },
-                  }}
-                  className="pb-12"
-                >
-                  {conferenceHighlights.map((item, index) => (
-                    <SwiperSlide key={index}>
-                      <div className="text-center group p-4 hover:translate-y-[-5px] transition-transform duration-300">
-                        <h4 className="text-gray-800 text-2xl font-bold mb-0 tracking-tight">{item.year}</h4>
-
-                        <div className="relative mt-6 mb-6">
-                          <span className="absolute top-1/2 left-0 w-full h-[1px] bg-gray-300 -translate-y-1/2"></span>
-                          <div className="relative z-10 w-8 h-8 mx-auto bg-white rounded-full flex items-center justify-center shadow-sm border border-gray-100">
-                            <span className="w-2.5 h-2.5 rounded-full bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3]"></span>
-                          </div>
-                        </div>
-
-                        <span className="inline-block font-semibold text-gray-800 text-lg mb-3">{item.location}</span>
-                        <p className="text-gray-500 text-sm leading-relaxed max-w-[85%] mx-auto">
-                          {item.description}
-                        </p>
-                      </div>
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Past Events Section */}
         <PastEventsSection />
@@ -412,8 +264,7 @@ export default function Home() {
         {/* Latest Inquiries Section */}
         <LatestInquiriesSection />
 
-        {/* Sponsorship Benefits Section */}
-        <SponsorshipBenefitsSection />
+
 
         {/* Why Choose IGLA Section */}
         <section className="py-20">

@@ -354,7 +354,7 @@ const PriceCard = ({
         {item.features && item.features.length > 0 && (
           <div className="space-y-0.5 mb-2">
             {item.features.slice(0, 3).map((feature: string, idx: number) => (
-              <div key={idx} className="flex items-center gap-2 text-[16px] text-gray-600">
+              <div key={idx} className="flex items-center gap-2 text-[13px] text-gray-600">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0"></div>
                 <span className="font-medium line-clamp-1">{feature}</span>
               </div>
@@ -1938,13 +1938,13 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         {/* LEFT COLUMN: TABS & CONTENT */}
         <div className="lg:col-span-2 space-y-8">
           {/* Sign In Banner */}
-          {!user && (
+          {/* {!user && (
             <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
               <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
                 <div>
                   <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span>💎</span> Sign in to get 50% OFF Sponsorships
+                    <span>💎</span> Sign in to get 50% OFF on Sponsorships
                   </h3>
                   <p className="text-white/90">
                     Exclusive offer for members. Log in now to unlock special pricing and benefits.
@@ -1957,7 +1957,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </Link>
               </div>
             </div>
-          )}
+          )} */}
 
           {/* Tabs Navigation */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2">
@@ -2663,7 +2663,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-10 transition-opacity"></div>
                   <p className="text-xs text-blue-100 text-[18px] leading-relaxed mb-3">
-                    Reach logistics leaders across <span className="font-bold text-white">India, APAC, ME, EU & USA</span>.
+                    Reach logistics leaders across <span className="font-bold text-white">India, Asia Pacific, Middle East, Europe Union & USA</span>.
                   </p>
                   <div className="flex justify-between items-center text-xs border-t border-white/10 pt-3">
                     <span className="text-blue-200">250k+ Impressions</span>
@@ -2685,7 +2685,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Long-term Brand Recall",
                     "Global Brand Travel"
                   ].map((benefit, i) => (
-                    <li key={i} className="flex items-start gap-3 text-[18px] text-gray-600 font-medium group">
+                    <li key={i} className="flex items-start gap-3 text-[16px] text-gray-600 font-medium group">
                       <div className="mt-1 min-w-[6px] h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-hover:scale-125 transition-all"></div>
                       <span className="group-hover:text-gray-900 transition-colors">{benefit}</span>
                     </li>

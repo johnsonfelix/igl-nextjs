@@ -82,54 +82,18 @@ export default function TestimonialsSection() {
                                 bulletClass: 'swiper-pagination-bullet !bg-white !opacity-50',
                                 bulletActiveClass: 'swiper-pagination-bullet-active !opacity-100 !bg-[#c6ff00]'
                             }}
-                            className="rounded-2xl shadow-2xl !overflow-visible"
+                            className="!overflow-visible"
                         >
                             {TESTIMONIALS.map((testimonial) => (
                                 <SwiperSlide key={testimonial.id}>
-                                    <div className="bg-white rounded-2xl overflow-hidden shadow-2xl">
-                                        <div className="grid sm:grid-cols-[45%_55%] min-h-[350px]">
-                                            {/* Person Image */}
-                                            <div className="relative bg-gradient-to-br from-gray-100 to-gray-50 min-h-[300px] sm:min-h-full">
-                                                <Image
-                                                    src={testimonial.image}
-                                                    alt={testimonial.name}
-                                                    fill
-                                                    className="object-cover object-top"
-                                                    sizes="(max-width: 640px) 100vw, 45vw"
-                                                />
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="p-8 flex flex-col justify-center relative">
-                                                <Quote className="absolute top-6 right-6 text-gray-100 w-16 h-16 -z-0" />
-
-                                                {/* Star Rating Badge */}
-                                                <div className="relative z-10 inline-flex items-center gap-1 bg-gradient-to-r from-orange-400 to-orange-500 rounded-full px-4 py-2 w-fit mb-6 shadow-sm">
-                                                    {Array.from({ length: 5 }).map((_, i) => (
-                                                        <Star
-                                                            key={i}
-                                                            size={14}
-                                                            className="fill-white text-white"
-                                                        />
-                                                    ))}
-                                                </div>
-
-                                                {/* Testimonial Text */}
-                                                <p className="relative z-10 text-gray-600 text-sm leading-relaxed mb-6 font-medium">
-                                                    "{testimonial.description}"
-                                                </p>
-
-                                                {/* Author Info */}
-                                                <div className="relative z-10 mt-auto border-t border-gray-100 pt-4">
-                                                    <h4 className="text-gray-900 font-bold text-base uppercase tracking-wide">
-                                                        {testimonial.name}
-                                                    </h4>
-                                                    <p className="text-[#004aad] text-xs font-bold mt-1 uppercase">
-                                                        {testimonial.role}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div className="h-[400px] relative w-full flex items-center justify-center transition-transform hover:scale-105 duration-300">
+                                        <Image
+                                            src={testimonial.image}
+                                            alt={testimonial.name}
+                                            fill
+                                            className="object-contain drop-shadow-2xl rounded-2xl"
+                                            sizes="(max-width: 640px) 100vw, 50vw"
+                                        />
                                     </div>
                                 </SwiperSlide>
                             ))}
