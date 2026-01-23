@@ -37,7 +37,7 @@ export default function SponsorshipBenefitsSection() {
     const regions = ["India", "Asia-Pacific", "Middle East", "Europe", "USA"];
 
     return (
-        <section className="py-20 bg-white">
+        <section className="hidden md:block py-20 bg-white">
             <div className="container mx-auto px-4">
                 {/* Main Content Grid */}
                 <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">

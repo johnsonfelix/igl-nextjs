@@ -70,7 +70,7 @@ export default function PopupAd() {
                 </button>
                 <div onClick={handleAdClick} className="cursor-pointer">
                     <picture>
-                        <source media="(max-width: 768px)" srcSet="/popup-ad.png" />
+                        <source media="(max-width: 768px)" srcSet="/images/popup-ad.png" />
                         <img
                             src="/images/popup.jpg"
                             alt="Special Offer"

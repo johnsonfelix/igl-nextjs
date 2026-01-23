@@ -46,7 +46,7 @@ export default function LatestInquiriesSection() {
     if (loading || inquiries.length === 0) return null;
 
     return (
-        <section className="py-20 bg-gray-50">
+        <section className="py-5 bg-gray-50">
             <div className="container mx-auto px-4">
                 {/* Section Header */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">

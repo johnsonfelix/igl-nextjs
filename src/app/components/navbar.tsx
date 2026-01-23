@@ -64,6 +64,7 @@ export default function Navbar() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [showSignInBanner, setShowSignInBanner] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const user = useUser();
@@ -126,7 +127,7 @@ export default function Navbar() {
               Grab now
             </Link>
           </div>
-          <div className="flex gap-4 mt-2 md:mt-0 text-black">
+          <div className="hidden md:flex gap-4 mt-2 md:mt-0 text-black">
             <a href="tel:+919940100929" className="hover:text-black flex items-center gap-2">
               <Phone className="w-4 h-4 text-black" />
               <span className="text-black">+91 99401 00929</span>
@@ -217,12 +218,66 @@ export default function Navbar() {
             ) : (
               // Login Button - Shown if user is not filtered out or specific location requested, here it is standard auth logic
               // If user is not logged in, show a login button
-              <div className="hidden md:block">
+              <div className="hidden md:block relative">
                 <Link href="/company/login">
                   <button className="bg-gradient-to-r from-[#2ebb79] to-[#12ade8] hover:opacity-90 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-all shadow-md flex items-center gap-2">
                     <LogIn className="w-4 h-4" /> Login
                   </button>
                 </Link>
+
+                {/* Sign In Banner Popup */}
+                {showSignInBanner && (
+                  <div className="absolute top-full right-0 mt-4 w-[400px] z-50 animate-fadeIn select-none filter drop-shadow-2xl">
+                    {/* Triangle pointer */}
+                    <div className="absolute -top-2 right-10 w-4 h-4 bg-[#004aad] transform rotate-45 z-0"></div>
+
+                    {/* Back Card (Orange) */}
+                    <div className="bg-gradient-to-br from-[#2ebb79] to-[#004aad] rounded-2xl p-6 pb-28 shadow-lg relative text-white">
+                      {/* Decorative Pattern */}
+                      <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
+
+                      {/* Front Card (Cream/Message Bubble) */}
+                      <div className="absolute -bottom-0 left-4 right-4 bg-white text-gray-800 rounded-xl p-4 shadow-xl border border-teal-100 flex items-start gap-3 transform transition-transform hover:-translate-y-1 z-20">
+                        {/* Tail for bubble effect */}
+                        <div className="absolute -top-2 left-8 w-4 h-4 bg-white transform rotate-45 border-t border-l border-teal-100"></div>
+
+                        <div className="flex-1">
+                          <p className="font-bold text-sm leading-snug">
+                            <span className="text-[#004aad]">Exclusive Offer:</span> Exclusive offer for members. Log in now to unlock <span className="underline decoration-teal-300 decoration-2">special pricing and benefits.</span>
+                          </p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setShowSignInBanner(false);
+                          }}
+                          className="text-gray-400 hover:text-gray-900 transition-colors p-1 hover:bg-gray-100 rounded-full flex-shrink-0"
+                        >
+                          <X size={16} strokeWidth={2.5} />
+                        </button>
+                      </div>
+
+                      <div className="relative z-10 flex justify-between items-start">
+                        <div className="flex-1">
+                          <h3 className="text-2xl font-extrabold mb-1 drop-shadow-sm tracking-tight leading-none text-white">Sign in to get</h3>
+                          <h3 className="text-2xl font-extrabold mb-4 drop-shadow-sm text-[#ceeba3] leading-none">50% OFF on Sponsorships</h3>
+                        </div>
+
+                        {/* Decorative Elements */}
+                        <div className="absolute right-0 top-0 opacity-90 pointer-events-none transform scale-75 origin-top-right">
+                          <div className="relative transform rotate-12 bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30 shadow-xl">
+                            <span className="text-4xl filter drop-shadow-lg">🎁</span>
+                          </div>
+                          <div className="absolute -bottom-8 -left-8 transform -rotate-12 bg-white/20 backdrop-blur-sm p-2 rounded-xl border border-white/30 shadow-xl">
+                            <span className="text-2xl filter drop-shadow-lg">💎</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+
+                  </div>
+                )}
               </div>
             )}
           </div>

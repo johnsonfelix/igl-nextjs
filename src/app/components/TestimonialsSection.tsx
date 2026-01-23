@@ -65,7 +65,7 @@ export default function TestimonialsSection() {
                     </div>
 
                     {/* Right Side - Testimonial Slider */}
-                    <div className="relative">
+                    <div className="relative w-full min-w-0">
                         <Swiper
                             modules={[Autoplay, Navigation, Pagination, EffectFade]}
                             spaceBetween={30}
@@ -92,7 +92,7 @@ export default function TestimonialsSection() {
                                             alt={testimonial.name}
                                             fill
                                             className="object-contain drop-shadow-2xl rounded-2xl"
-                                            sizes="(max-width: 640px) 100vw, 50vw"
+                                            sizes="(max-width: 768px) 100vw, 50vw"
                                         />
                                     </div>
                                 </SwiperSlide>

@@ -46,7 +46,7 @@ export default function PastEventsSection() {
     if (events.length === 0 && !loading) return null;
 
     return (
-        <section className="py-20 bg-gray-50 relative overflow-hidden">
+        <section className="py-5 bg-gray-50 relative overflow-hidden">
             <div className="container mx-auto px-4">
                 <div className="flex flex-wrap items-center mb-12 text-center lg:text-left justify-between">
                     <div>
@@ -64,7 +64,14 @@ export default function PastEventsSection() {
                     </div>
                 </div>
 
-                <div className="relative">
+                <div className="relative group">
+                    {/* Mobile Navigation Arrows */}
+                    <div className="past-prev absolute top-[120px] left-4 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-lg text-[#004aad] hover:bg-[#004aad] hover:text-white transition-all lg:hidden">
+                        <ArrowRight className="w-5 h-5 rotate-180" />
+                    </div>
+                    <div className="past-next absolute top-[120px] right-4 z-20 -translate-y-1/2 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center cursor-pointer shadow-lg text-[#004aad] hover:bg-[#004aad] hover:text-white transition-all lg:hidden">
+                        <ArrowRight className="w-5 h-5" />
+                    </div>
                     <Swiper
                         modules={[Autoplay, Navigation, Pagination]}
                         spaceBetween={30}

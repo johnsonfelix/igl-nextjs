@@ -249,6 +249,7 @@ const PriceCard = ({
   onAddToCart,
   onBuyNow,
   eventId,
+  soldTo,
 }: {
   item: { id: string; name: string; image: string | null; price: number; originalPrice?: number; features?: string[] };
   productType: CartItem["productType"];
@@ -259,6 +260,7 @@ const PriceCard = ({
   onAddToCart?: (quantity: number) => void;
   onBuyNow?: (quantity: number) => void;
   eventId?: string;
+  soldTo?: { name: string; logoUrl?: string | null };
 }) => {
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
@@ -342,9 +344,25 @@ const PriceCard = ({
           alt={item.name}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
-        {isSoldOut && <div className="absolute inset-0 bg-white/50 flex items-center justify-center">
-          <span className="bg-white/80 text-gray-800 px-3 py-1 rounded font-bold border border-gray-200 text-xs uppercase tracking-wider">Sold Out</span>
-        </div>}
+        {isSoldOut && (
+          <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center p-4 text-center">
+            {soldTo ? (
+              <>
+                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sponsored By</div>
+                <div className="w-16 h-16 mb-2 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center p-2 shadow-sm">
+                  {soldTo.logoUrl ? (
+                    <img src={soldTo.logoUrl} alt={soldTo.name} className="w-full h-full object-contain" />
+                  ) : (
+                    <div className="text-xl font-bold text-gray-400">{soldTo.name.charAt(0)}</div>
+                  )}
+                </div>
+                <div className="font-bold text-gray-900 text-sm line-clamp-2">{soldTo.name}</div>
+              </>
+            ) : (
+              <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded font-bold border border-gray-200 text-xs uppercase tracking-wider">Sold Out</span>
+            )}
+          </div>
+        )}
       </div>
 
       <div className="p-3 flex-grow flex flex-col gap-2">
@@ -1301,24 +1319,24 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     <div
                       key={sponsorType.id}
                       onClick={() => setSelectedSponsorInPopup(sponsorType.id)}
-                      className={`cursor-pointer border-2 rounded-xl p-5 transition-all relative group ${isSelected
+                      className={`cursor-pointer border-2 rounded-xl p-4 md:p-5 transition-all relative group ${isSelected
                         ? 'border-emerald-500 bg-emerald-50 shadow-lg scale-105'
                         : 'border-gray-200 hover:border-emerald-300 hover:shadow-md'
-                        }`}
+                        } flex flex-row md:flex-col gap-4 md:gap-0 items-center md:items-stretch`}
                     >
                       {hasDiscount && (
-                        <div className="absolute top-3 right-3 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
+                        <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-red-500 text-white text-[10px] md:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full shadow-lg z-10">
                           {discountPercent}% OFF
                         </div>
                       )}
 
                       {isSelected && (
-                        <div className="absolute top-3 left-3 bg-emerald-500 text-white rounded-full p-1 shadow-lg z-10">
-                          <Check className="h-4 w-4" />
+                        <div className="absolute top-2 left-2 md:top-3 md:left-3 bg-emerald-500 text-white rounded-full p-1 shadow-lg z-10">
+                          <Check className="h-3 w-3 md:h-4 md:w-4" />
                         </div>
                       )}
 
-                      <div className="h-20 w-full bg-gray-100 rounded-lg mb-4 overflow-hidden flex items-center justify-center">
+                      <div className="h-20 w-20 md:w-full bg-gray-100 rounded-lg md:mb-4 overflow-hidden flex items-center justify-center shrink-0">
                         {sponsorType.image ? (
                           <img src={sponsorType.image} alt={sponsorType.name} className="h-full w-full object-contain p-2" />
                         ) : (
@@ -1326,29 +1344,31 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         )}
                       </div>
 
-                      <h4 className="text-base font-bold text-gray-900 mb-2 line-clamp-2">{sponsorType.name}</h4>
+                      <div className="flex-1 text-left">
+                        <h4 className="text-base font-bold text-gray-900 mb-1 md:mb-2 line-clamp-2 md:line-clamp-2 leading-tight pr-6 md:pr-0">{sponsorType.name}</h4>
 
-                      <div className="flex flex-col gap-1 mb-3">
-                        {hasDiscount ? (
-                          <>
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-xl font-bold text-emerald-600">${formatPrice(effectivePrice)}</span>
-                              <span className="text-sm text-gray-400 line-through">${sponsorType.price.toLocaleString()}</span>
-                            </div>
-                            <span className="text-xs text-green-600 font-semibold">
-                              Save ${(sponsorType.price - effectivePrice).toFixed(0)}
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-xl font-bold text-gray-800">${sponsorType.price.toLocaleString()}</span>
+                        <div className="flex flex-col gap-0.5 md:gap-1 mb-2 md:mb-3">
+                          {hasDiscount ? (
+                            <>
+                              <div className="flex items-baseline gap-2">
+                                <span className="text-lg md:text-xl font-bold text-emerald-600">${formatPrice(effectivePrice)}</span>
+                                <span className="text-xs md:text-sm text-gray-400 line-through">${sponsorType.price.toLocaleString()}</span>
+                              </div>
+                              <span className="text-[10px] md:text-xs text-green-600 font-semibold">
+                                Save ${(sponsorType.price - effectivePrice).toFixed(0)}
+                              </span>
+                            </>
+                          ) : (
+                            <span className="text-lg md:text-xl font-bold text-gray-800">${sponsorType.price.toLocaleString()}</span>
+                          )}
+                        </div>
+
+                        {freeTickets > 0 && (
+                          <div className="bg-yellow-100 text-yellow-800 text-[10px] md:text-xs font-bold px-2 py-1 md:px-3 md:py-1.5 rounded-lg flex items-center gap-1 w-fit">
+                            <span>🎟️</span> {freeTickets} Free Ticket{freeTickets > 1 ? 's' : ''}
+                          </div>
                         )}
                       </div>
-
-                      {freeTickets > 0 && (
-                        <div className="bg-yellow-100 text-yellow-800 text-xs font-bold px-3 py-1.5 rounded-lg flex items-center gap-1">
-                          <span>🎟️</span> {freeTickets} Free Ticket{freeTickets > 1 ? 's' : ''}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -1883,9 +1903,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           <div className="relative w-full max-w-5xl bg-transparent p-0" onClick={e => e.stopPropagation()}>
             <button
               onClick={() => setVenueGalleryOpen(false)}
-              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+              className="fixed top-4 right-4 z-[110] bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors backdrop-blur-sm"
             >
-              <X size={32} />
+              <X size={24} />
             </button>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {VENUE_IMAGES.map((img, idx) => (
@@ -1975,7 +1995,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             ))}
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 min-h-[500px]">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 md:p-8 min-h-[500px]">
 
             {activeTab === "Event Sponsors" && (
               <Section title="Event Sponsors">
@@ -1990,14 +2010,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     </p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 animate-fadeIn">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fadeIn">
                     {Object.entries(sponsorsByType).map(([typeName, companies]) => (
                       <div key={typeName} className="h-full">
                         <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                           <div className="h-8 w-1.5 bg-[#004aad] rounded-full"></div>
                           {typeName}
                         </h3>
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 gap-4">
                           {companies.map((company: any) => (
                             <div
                               key={company.id}
@@ -2005,7 +2025,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             >
                               <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-blue-100 group-hover:bg-[#004aad] transition-colors"></div>
 
-                              <div className="w-full h-24 mb-3 relative rounded-lg bg-white flex items-center justify-center grayscale group-hover:grayscale-0 transition-all duration-300">
+                              <div className="w-full h-24 mb-3 relative rounded-lg bg-white flex items-center justify-center transition-all duration-300">
                                 {company.logoUrl ? (
                                   <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-2" />
                                 ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
@@ -2147,7 +2167,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         {/* RIGHT: DETAILS LIST */}
                         <div className="lg:col-span-2 p-8 lg:p-10 flex flex-col justify-center">
                           <div className="mb-8 border-b border-gray-100 pb-6">
-                            <h3 className="text-3xl font-bold text-gray-900 mb-2">{showVenue.name}</h3>
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">{showVenue.name}</h3>
                             <p className="text-gray-500 font-medium flex items-center gap-2">
                               <MapPin className="h-5 w-5 text-[#004aad]" />
                               {showVenue.location || "Bangkok, Thailand"}
@@ -2218,7 +2238,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "Agenda" && (
               <div className="animate-fadeIn space-y-8">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">Event Schedule</h2>
+                <h2 className="text-xl font-bold text-gray-800 mb-6">Event Schedule</h2>
                 {agendaItems.length > 0 ? (
                   Object.entries(
                     agendaItems.reduce((acc, item) => {
@@ -2236,7 +2256,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             <Calendar className="h-5 w-5" />
                           </div>
                           <div>
-                            <h3 className="text-lg font-bold text-gray-800">
+                            <h3 className="text-base font-bold text-gray-800">
                               {format(parseISO(date), "EEEE, MMMM d, yyyy")}
                             </h3>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
@@ -2255,7 +2275,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   </div>
                                 </div>
                                 <div>
-                                  <h4 className="text-lg font-bold text-gray-800 mb-2">{item.title}</h4>
+                                  <h4 className="text-base font-bold text-gray-800 mb-2">{item.title}</h4>
                                   <p className="text-gray-600 leading-relaxed text-sm">{item.description}</p>
                                 </div>
                               </div>
@@ -2275,7 +2295,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="animate-fadeIn space-y-8">
                 {/* Tickets Section */}
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">Available Tickets</h2>
+                  <h2 className="text-xl font-bold text-gray-800 mb-6">Available Tickets</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {eventTickets
                       .sort((a, b) => {
@@ -2385,7 +2405,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {/* --- Sponsorship Opportunities (Restored) --- */}
             {activeTab === "Tickets" && eventSponsorTypes.length > 0 && (
-              <div className="mt-12 pt-8 border-t border-gray-100">
+              <div className=" pt-8">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
                   <div className="h-8 w-1.5 bg-[#004aad] rounded-full"></div>
                   Sponsorship Opportunities
@@ -2491,6 +2511,19 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               router.push(`/event/${id}/checkout`);
                             }
                           }}
+                          soldTo={isSoldOut ? (() => {
+                            // Find company that likely bought this
+                            // Logic: sponsorsByType key usually matches sponsorType.name
+                            const purchasers = sponsorsByType[sponsorType.name];
+                            if (purchasers && purchasers.length > 0) {
+                              const purchaser = purchasers[0];
+                              return {
+                                name: purchaser.name,
+                                logoUrl: purchaser.logoUrl || (purchaser.media?.find((m: any) => m.type === 'LOGO')?.url),
+                              };
+                            }
+                            return undefined;
+                          })() : undefined}
                         />
                       )
                     })}
@@ -2503,26 +2536,26 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               <div className="animate-fadeIn space-y-8">
                 {/* Featured Hotel Header */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                  <div className="relative h-96 w-full">
+                  <div className="relative h-64 md:h-96 w-full">
                     <img
                       src="/images/h-Bangkok.jpg"
                       alt="Radisson Suites Bangkok Sukhumvit"
                       className="w-full h-full object-cover"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
-                      <h2 className="text-4xl font-bold text-white mb-2">Radisson Suites Bangkok Sukhumvit</h2>
-                      <p className="text-white/90 text-lg flex items-center gap-2">
-                        <MapPin className="h-5 w-5 text-orange-400" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-4 md:p-8">
+                      <h2 className="text-2xl md:text-4xl font-bold text-white mb-2">Radisson Suites Bangkok Sukhumvit</h2>
+                      <p className="text-white/90 text-sm md:text-lg flex items-center gap-2">
+                        <MapPin className="h-4 w-4 md:h-5 md:w-5 text-orange-400" />
                         23/2 Soi Sukhumvit 13, Khlong Toei Nuea, Watthana, Bangkok 10110, Thailand
                       </p>
                     </div>
                   </div>
 
-                  <div className="p-8">
+                  <div className="p-4 md:p-8">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                       <div className="space-y-6">
                         <div>
-                          <h3 className="text-2xl font-bold text-gray-800 mb-4">About the Hotel</h3>
+                          <h3 className="text-xl md:text-2xl font-bold text-gray-800 mb-4">About the Hotel</h3>
                           <p className="text-gray-600 leading-relaxed text-sm">
                             Experience the perfect blend of style and convenience at Radisson Suites Bangkok Sukhumvit.
                             Located in the vibrant Sukhumvit district, our hotel offers easy access to the city's
@@ -2535,16 +2568,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         <div>
                           <h3 className="text-xl font-bold text-gray-800 mb-4">Gallery</h3>
                           <div className="grid grid-cols-2 gap-4">
-                            <img src="/images/h-Bangkok.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
-                            <img src="/images/h-Bangkok1.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
-                            <img src="/images/h-Bangkok2.jpg" className="rounded-lg h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <img src="/images/h-Bangkok.jpg" className="rounded-lg h-24 md:h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <img src="/images/h-Bangkok1.jpg" className="rounded-lg h-24 md:h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
+                            <img src="/images/h-Bangkok2.jpg" className="rounded-lg h-24 md:h-32 w-full object-cover shadow-sm hover:scale-105 transition-transform" />
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.preventDefault();
                                 setVenueGalleryOpen(true);
                               }}
-                              className="bg-gray-100 rounded-lg h-32 w-full flex items-center justify-center text-gray-400 font-medium hover:bg-gray-200 transition-colors cursor-pointer"
+                              className="bg-gray-100 rounded-lg h-24 md:h-32 w-full flex items-center justify-center text-gray-400 font-medium hover:bg-gray-200 transition-colors cursor-pointer"
                             >
                               + More Photos
                             </button>
@@ -2553,7 +2586,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       </div>
 
                       <div className="space-y-6">
-                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 h-full">
+                        <div className="bg-blue-50 p-4 md:p-6 rounded-xl border border-blue-100 h-full">
                           <h3 className="text-lg font-bold text-[#004aad] mb-4 flex items-center gap-2">
                             <Hotel className="h-5 w-5" /> Hotel Amenities
                           </h3>
@@ -2604,7 +2637,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                              assuming the event only has this one hotel or they are all valid options for it. 
                              If there are multiple hotels, this might be confusing, but the user said "this IS the hotel".
                          */}
-                          <div className="p-6">
+                          <div className="p-4 md:p-6">
                             {/* Rooms List - Always Visible */}
                             <div className="">
                               <div className="space-y-3">
@@ -2663,9 +2696,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
               {/* Global Reach */}
               <div>
-                <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
+                {/* <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
                   <MapPin size={14} className="text-[#004aad]" /> Global Reach
-                </h4>
+                </h4> */}
                 <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-10 transition-opacity"></div>
                   <p className="text-xs text-blue-100 text-[15px] leading-relaxed mb-3">
@@ -2689,7 +2722,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Multi-Channel Promotion",
                     "Visibility in Networking Zones",
                     "Long-term Brand Recall",
-                    "Global Brand Travel"
+                    "Global Brand Travel",
+                    "We run Ads Across these platforms LINKEDIN, GOOGLE ADS, WHATAPP MARKETING, FACEBOOK, INSTAGRAM,"
                   ].map((benefit, i) => (
                     <li key={i} className="flex items-start gap-3 text-[14px] text-gray-600 font-medium group">
                       <div className="mt-1 min-w-[6px] h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-hover:scale-125 transition-all"></div>

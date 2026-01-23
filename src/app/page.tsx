@@ -43,9 +43,9 @@ export default function Home() {
       bgImage: "/images/bg-4.jpg",
       leftImage: "/images/left-carousel-igla.jpg",
       welcome: "Welcome to IGLA",
-      title1: "11th",
+      title1: "11th ANNUAL",
       title2: "Link Up",
-      title3: "ANNUAL CONFERENCE 2026",
+      title3: "CONFERENCE 2026",
       desc: "",
       separator: true
     },
@@ -125,7 +125,7 @@ export default function Home() {
               nextEl: ".swiper-button-next-custom",
               prevEl: ".swiper-button-prev-custom",
             }}
-            className="h-auto lg:h-[calc(100vh-120px)] min-h-[100vh] lg:min-h-[600px] w-full group"
+            className="h-auto lg:h-[calc(100vh-120px)] min-h-auto md:min-h-[100vh] lg:min-h-[600px] w-full group"
           >
             {bannerSlides.map((slide) => (
               <SwiperSlide key={slide.id}>
@@ -145,7 +145,7 @@ export default function Home() {
                       <span className="text-sm tracking-widest uppercase border-b-2 border-white/30 inline-block mb-6 pb-1 w-fit">
                         {slide.welcome}
                       </span>
-                      <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 lg:mb-8">
+                      <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 lg:mb-8">
                         {slide.title1}<br />
                         {/* <span className="relative">
                           {slide.title2}
@@ -219,7 +219,7 @@ export default function Home() {
 
         {/* Sign In Banner */}
         {!user && (
-          <div className="container mx-auto px-4 my-8 -mt-36 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
+          <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-36 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
             <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
               <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">

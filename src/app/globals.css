@@ -111,3 +111,9 @@ body {
     margin: 5mm;
   }
 }
+
+@media (max-width: 1024px) {
+  .swiper-pagination {
+    display: none !important;
+  }
+}
