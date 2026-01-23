@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageCircle, Star, Quote } from "lucide-react";
+import { MessageCircle, Star, Quote, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Autoplay, Navigation, Pagination, EffectFade } from "swiper/modules";
@@ -65,7 +65,7 @@ export default function TestimonialsSection() {
                     </div>
 
                     {/* Right Side - Testimonial Slider */}
-                    <div className="relative w-full min-w-0">
+                    <div className="relative w-full min-w-0 group">
                         <Swiper
                             modules={[Autoplay, Navigation, Pagination, EffectFade]}
                             spaceBetween={30}
@@ -81,6 +81,10 @@ export default function TestimonialsSection() {
                                 clickable: true,
                                 bulletClass: 'swiper-pagination-bullet !bg-white !opacity-50',
                                 bulletActiveClass: 'swiper-pagination-bullet-active !opacity-100 !bg-[#c6ff00]'
+                            }}
+                            navigation={{
+                                nextEl: ".swiper-button-next-testimonial",
+                                prevEl: ".swiper-button-prev-testimonial",
                             }}
                             className="!overflow-visible"
                         >
@@ -98,6 +102,14 @@ export default function TestimonialsSection() {
                                 </SwiperSlide>
                             ))}
                         </Swiper>
+
+                        {/* Custom Navigation Arrows */}
+                        <div className="swiper-button-prev-testimonial absolute -left-8 md:-left-12 top-1/2 -translate-y-1/2 z-20 cursor-pointer text-white hover:text-[#c6ff00] transition-colors hover:scale-110 hidden md:block">
+                            <ChevronLeft size={64} strokeWidth={2.5} />
+                        </div>
+                        <div className="swiper-button-next-testimonial absolute -right-8 md:-right-12 top-1/2 -translate-y-1/2 z-20 cursor-pointer text-white hover:text-[#c6ff00] transition-colors hover:scale-110 hidden md:block">
+                            <ChevronRight size={64} strokeWidth={2.5} />
+                        </div>
                     </div>
                 </div>
             </div>

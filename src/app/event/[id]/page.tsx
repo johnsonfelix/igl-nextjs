@@ -342,13 +342,13 @@ const PriceCard = ({
         <img
           src={item.image || "/placeholder.png"}
           alt={item.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${item.name === "T Shirts" ? "opacity-60" : ""}`}
         />
         {isSoldOut && (
           <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center p-4 text-center">
             {soldTo ? (
               <>
-                <div className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Sponsored By</div>
+                <div className="text-xs font-bold text-black uppercase tracking-widest mb-2">Sponsored By</div>
                 <div className="w-16 h-16 mb-2 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center p-2 shadow-sm">
                   {soldTo.logoUrl ? (
                     <img src={soldTo.logoUrl} alt={soldTo.name} className="w-full h-full object-contain" />
@@ -2723,7 +2723,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     "Visibility in Networking Zones",
                     "Long-term Brand Recall",
                     "Global Brand Travel",
-                    "We run Ads Across these platforms LINKEDIN, GOOGLE ADS, WHATAPP MARKETING, FACEBOOK, INSTAGRAM,"
+                    "We run ads across the below given platforms:",
+                    "LINKEDIN, GOOGLE ADS, WHATAPP MARKETING, FACEBOOK, INSTAGRAM"
                   ].map((benefit, i) => (
                     <li key={i} className="flex items-start gap-3 text-[14px] text-gray-600 font-medium group">
                       <div className="mt-1 min-w-[6px] h-1.5 w-1.5 rounded-full bg-emerald-500 group-hover:bg-emerald-400 group-hover:scale-125 transition-all"></div>
