@@ -145,6 +145,8 @@ export default async function DashboardPage() {
             companyName={company.name}
             companyEmail={user.email}
             companyAddress={[company?.location?.address, company?.location?.city, company?.location?.country].filter(Boolean).join(", ") || "Address not available"}
+            designation={company.designation || company.location?.contactPersonDesignation || ""}
+            memberId={company.memberId || ""}
           />
         </div>
 

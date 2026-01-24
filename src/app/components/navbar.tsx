@@ -7,6 +7,7 @@ import { Menu, X, User, Phone, Mail, Download, LogIn } from "lucide-react";
 import { Button } from "@/app/components/ui/button";
 import Image from "next/image";
 import toast from "react-hot-toast";
+import EventNavCard from "@/components/EventNavCard";
 
 interface User {
   email?: string;
@@ -51,7 +52,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Home", href: "/" },
   { name: "Membership", href: "/membership/become-member" },
-  { name: "Event", href: "/event/list" },
+  { name: "Event", href: "/event/cmjn1f6ih0000gad4xa4j7dp3" },
   { name: "Company Directory", href: "/directory" },
   { name: "Inquiry", href: "/inquiry" },
   { name: "Risk Protection", href: "/secure-pay" },
@@ -156,14 +157,23 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex gap-6 font-medium text-gray-700 items-center">
             {displayNavItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`transition font-medium text-[15px] hover:text-[#2ebb79] ${pathname === item.href ? "text-[#2ebb79]" : "text-[#232323]"
-                  }`}
-              >
-                {item.name}
-              </Link>
+              <div key={item.href} className="relative group h-full flex items-center">
+                <Link
+                  href={item.href}
+                  className={`transition font-medium text-[15px] hover:text-[#2ebb79] py-4 ${pathname === item.href ? "text-[#2ebb79]" : "text-[#232323]"
+                    }`}
+                >
+                  {item.name}
+                </Link>
+
+                {item.name === "Event" && (
+                  <div className="absolute top-[80%] left-1/2 -translate-x-1/2 w-[600px] pt-4 hidden group-hover:block hover:block transition-all duration-300 z-50">
+                    <div className="bg-white rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden">
+                      <EventNavCard />
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
 

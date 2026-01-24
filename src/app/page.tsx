@@ -199,31 +199,15 @@ export default function Home() {
           </div>
 
           {/* Floating Popup Box */}
-          <div className="hidden md:flex absolute bottom-0 right-4 lg:right-16 z-20 w-[380px] bg-white rounded-t-3xl shadow-2xl animate-fade-in-up">
-            <div className="w-full p-8 flex flex-col justify-center text-center">
-              <h3 className="text-2xl font-normal leading-tight text-gray-900 mb-6">
-                Connecting You to <br />
-                Partners <span className="font-bold">Across the World.</span>
-              </h3>
-              <div className="w-full">
-                <Link
-                  href="/event/cmjn1f6ih0000gad4xa4j7dp3"
-                  className="block w-full bg-[#004aad] hover:bg-[#003882] text-white font-bold py-3 rounded-full text-center transition-colors shadow-md"
-                >
-                  Register Now
-                </Link>
-              </div>
-              <p className="text-[11px] text-gray-500 mt-3">*Your Global Logistics Partner Awaits.</p>
-            </div>
-          </div>
+          {/* Floating Popup Box Removed */}
         </section>
 
         {/* Sign In Banner */}
         {/* Next Event Countdown Section */}
-        <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-55 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
+        <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-65 relative z-30 md:max-w-4xl md:ml-auto lg:mr-16">
           <div className="bg-[#004aad] rounded-xl p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
             {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
+            <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
               <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                 <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
               </svg>
@@ -245,6 +229,12 @@ export default function Home() {
               <div className="flex flex-col items-center gap-4">
                 <div className="text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
                 <EventCountdown targetDate="2026-03-25T00:00:00.000Z" />
+                <Link
+                  href="/event/cmjn1f6ih0000gad4xa4j7dp3"
+                  className="mt-4 bg-white text-[#004aad] px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors"
+                >
+                  Register Now
+                </Link>
               </div>
             </div>
           </div>

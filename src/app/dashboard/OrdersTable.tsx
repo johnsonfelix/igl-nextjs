@@ -32,9 +32,11 @@ interface OrdersTableProps {
     companyName: string;
     companyEmail: string;
     companyAddress: string;
+    designation: string;
+    memberId: string;
 }
 
-export default function OrdersTable({ orders, companyName, companyEmail, companyAddress }: OrdersTableProps) {
+export default function OrdersTable({ orders, companyName, companyEmail, companyAddress, designation, memberId }: OrdersTableProps) {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [paymentProofUrl, setPaymentProofUrl] = useState<{ [key: string]: string }>({});
     const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
@@ -287,8 +289,8 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                     email: companyEmail,
                                     address: companyAddress,
                                     companyName: companyName,
-                                    designation: "", // Not provided in props
-                                    memberId: "" // Not provided in props
+                                    designation: designation,
+                                    memberId: memberId
                                 }}
                                 items={selectedOrder.items.map(item => ({
                                     name: item.name,

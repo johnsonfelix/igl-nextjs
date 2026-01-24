@@ -2,6 +2,7 @@
 
 import React, { use, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Loader, Check, ArrowLeft, LockKeyhole, Plus, Minus, Trash2 } from "lucide-react";
 import { useCart } from "@/app/event/[id]/CartContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -256,6 +257,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const companyId = user?.companyId ?? "";
 
   const { cart, clearCart, updateQuantity, removeFromCart } = useCart();
+  const router = useRouter();
 
   const handleUpdateQuantity = (productId: string, newQty: number, roomTypeId?: string, isComplimentary?: boolean, linkedSponsorId?: string) => {
     // Validate: Accompanying <= Ticket
@@ -909,6 +911,33 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           alert(`Please enter a valid mobile number for Attendee ${i + 1} (at least 10 digits).`);
           return;
         }
+      }
+    }
+    // Check if account exists (Guest Mode)
+    const primaryEmail = (attendees.length > 0 ? attendees[0].email : account.email) || "";
+    console.log("Checking email existence:", { primaryEmail, userState: user, attendeesLen: attendees.length });
+
+    if (!user && primaryEmail) {
+      try {
+        const checkRes = await fetch("/api/auth/check-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: primaryEmail }),
+        });
+
+        console.log("Check API status:", checkRes.status);
+        if (checkRes.ok) {
+          const { exists } = await checkRes.json();
+          console.log("Check API result:", exists);
+          if (exists) {
+            alert("An account with this email already exists.\n\nPlease log in to continue with your existing account.");
+
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Email check failed", err);
+        // Fallback: Proceed, backend will handle or fail
       }
     }
 

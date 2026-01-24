@@ -28,10 +28,10 @@ export default function ContactUs() {
                     <span className="block text-emerald-300 font-bold tracking-wider uppercase text-sm mb-4">
                         Get in touch
                     </span>
-                    <h1 className="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
+                    <h1 className="text-3xl md:text-4xl font-extrabold mb-6 leading-tight">
                         Connect Globally. <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-teal-200">Grow Securely.</span>
                     </h1>
-                    <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto font-light">
+                    <p className="text-sm md:text-xl text-white/80 max-w-2xl mx-auto font-light">
                         Whether you're looking to join IGLA, collaborate with us, or simply learn more, our global team is here to help.
                     </p>
                 </div>
@@ -67,9 +67,8 @@ export default function ContactUs() {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Our Headquarters</h3>
                             <p className="text-gray-500 text-sm mb-6">Visit our main office</p>
                             <p className="text-gray-700 leading-relaxed font-medium">
-                                # Amber 16 F 2, Olympia Opaline 33,<br />
-                                Rajiv Gandhi Road, Navalur<br />
-                                Chennai - 600 130
+                                Europe | Americas | Africa / Australia | South East Asia | Middle East
+                                | India
                             </p>
                         </div>
 
@@ -138,6 +137,12 @@ export default function ContactUs() {
                             email="varadha@igla.asia"
                             mapImage="/images/middle_east_map.png"
                         />
+                        <RegionalCard
+                            region="India"
+                            name="IGLA India"
+                            email="info@igla.asia"
+                            mapImage="/images/india.png"
+                        />
                     </div>
                 </div>
             </section>
@@ -149,10 +154,9 @@ export default function ContactUs() {
 // Reusable Component for Regional Cards
 function RegionalCard({ region, name, email, mapImage }: { region: string, name: string, email: string, mapImage: string }) {
     return (
-        <div className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
+        <div className="group bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
             {/* Map Header */}
             <div className="h-40 relative bg-gray-50 overflow-hidden">
-                <div className="absolute inset-0 bg-blue-900/5 group-hover:bg-transparent transition-colors z-10"></div>
                 <Image
                     src={mapImage}
                     alt={`${region} Map`}

@@ -1999,55 +1999,81 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "Event Sponsors" && (
               <Section title="Event Sponsors">
-                {Object.keys(sponsorsByType).length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
-                    <div className="bg-gray-50 p-6 rounded-full mb-4">
-                      <ShieldCheck className="w-12 h-12 text-gray-300" />
-                    </div>
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">Be our first sponsor!</h3>
-                    <p className="text-gray-500 max-w-md mx-auto">
-                      Showcase your brand to industry leaders. Contact us to learn about sponsorship opportunities.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-fadeIn">
-                    {Object.entries(sponsorsByType).map(([typeName, companies]) => (
-                      <div key={typeName} className="h-full">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-                          <div className="h-8 w-1.5 bg-[#004aad] rounded-full"></div>
-                          {typeName}
-                        </h3>
-                        <div className="grid grid-cols-1 gap-4">
-                          {companies.map((company: any) => (
-                            <div
-                              key={company.id}
-                              className="group relative bg-white rounded-xl p-4 flex flex-col items-center text-center shadow-sm hover:shadow-lg transition-all duration-300 border border-gray-100/80 hover:border-blue-100 overflow-hidden"
-                            >
-                              <div className="absolute top-3 right-3 w-1.5 h-1.5 rounded-full bg-blue-100 group-hover:bg-[#004aad] transition-colors"></div>
+                {(() => {
+                  const soldSponsors = eventSponsorTypes.filter(s => s.quantity <= 0);
 
-                              <div className="w-full h-24 mb-3 relative rounded-lg bg-white flex items-center justify-center transition-all duration-300">
-                                {company.logoUrl ? (
-                                  <img src={company.logoUrl} alt={company.name} className="w-full h-full object-contain p-2" />
-                                ) : company.media?.find((m: any) => m.type === 'LOGO') ? (
-                                  <img src={company.media.find((m: any) => m.type === 'LOGO').url} alt={company.name} className="w-full h-full object-contain p-2" />
-                                ) : (
-                                  <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-[#004aad] bg-blue-50">
-                                    {company.name.charAt(0)}
-                                  </div>
-                                )}
+                  if (soldSponsors.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 text-center animate-fadeIn">
+                        <div className="bg-gray-50 p-6 rounded-full mb-4">
+                          <ShieldCheck className="w-12 h-12 text-gray-300" />
+                        </div>
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">Be our first sponsor!</h3>
+                        <p className="text-gray-500 max-w-md mx-auto">
+                          Showcase your brand to industry leaders. Contact us to learn about sponsorship opportunities.
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-8 animate-fadeIn">
+                      <div className="flex flex-col gap-4">
+                        {soldSponsors.map(({ sponsorType }) => {
+                          const companies = sponsorsByType[sponsorType.name];
+                          const sponsorCompany = (companies && companies.length > 0) ? companies[0] : null;
+
+                          if (!sponsorCompany) return null;
+
+                          return (
+                            <div key={sponsorType.id} className="group flex flex-col md:flex-row items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-200 overflow-hidden min-h-[180px]">
+                              {/* --- LEFT: Sponsorship Item --- */}
+                              <div className="w-full md:w-[40%] p-8 flex items-center gap-6 bg-gray-50/50 h-full border-b md:border-b-0 md:border-r border-gray-100">
+                                <div className="w-32 h-32 bg-white rounded-xl p-2 shadow-sm flex-shrink-0 border border-gray-100 flex items-center justify-center">
+                                  <img
+                                    src={sponsorType.image || "/placeholder.png"}
+                                    alt={sponsorType.name}
+                                    className="max-w-full max-h-full object-contain"
+                                  />
+                                </div>
+                                <div>
+                                  <span className="text-xs font-bold text-gray-400 uppercase tracking-wider block mb-1">Sponsorship</span>
+                                  <h3 className="text-xl font-bold text-gray-800 leading-tight group-hover:text-[#004aad] transition-colors">{sponsorType.name}</h3>
+                                </div>
                               </div>
 
-                              <h4 className="text-sm font-semibold text-gray-700 group-hover:text-[#004aad] transition-colors line-clamp-2 leading-tight min-h-[2.5rem] flex items-center justify-center">
-                                {company.name}
-                              </h4>
+                              {/* --- MIDDLE: Connection --- */}
+                              <div className="hidden md:flex items-center justify-center px-4 md:px-8">
+                                <div className="flex flex-col items-center gap-1">
+                                  <div className="text-xs font-bold text-[#004aad] uppercase tracking-widest whitespace-nowrap">Sponsored By</div>
+                                  <div className="h-px w-20 bg-gradient-to-r from-transparent via-blue-200 to-transparent group-hover:via-[#004aad]/50 transition-colors"></div>
+                                </div>
+                              </div>
 
+                              {/* --- RIGHT: Company --- */}
+                              <div className="w-full md:flex-1 p-8 flex items-center justify-between md:justify-end gap-8 h-full">
+
+
+                                <div className="h-24 w-48 flex items-center justify-center md:justify-end flex-shrink-0">
+                                  {sponsorCompany.logoUrl ? (
+                                    <img src={sponsorCompany.logoUrl} alt={sponsorCompany.name} className="max-h-full max-w-full object-contain" />
+                                  ) : (
+                                    <div className="text-3xl font-bold text-gray-300">{sponsorCompany.name.charAt(0)}</div>
+                                  )}
+                                </div>
+
+                                {/* Mobile-only Name (if needed for better layout) */}
+                                <div className="md:hidden">
+                                  <h4 className="text-xl font-bold text-gray-900">{sponsorCompany.name}</h4>
+                                </div>
+                              </div>
                             </div>
-                          ))}
-                        </div>
+                          );
+                        })}
                       </div>
-                    ))}
-                  </div>
-                )}
+                    </div>
+                  );
+                })()}
               </Section>
             )}
 

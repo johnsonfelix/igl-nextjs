@@ -2,11 +2,14 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-hot-toast";
 import {
     Search, Filter, ChevronDown, CheckCircle, AlertCircle, XCircle,
     Clock, Eye, Download, FileText, ShoppingBag, Truck, CreditCard,
-    Calendar, User, Mail, Phone, MapPin, Info
+    Calendar, User, Mail, Phone, MapPin, Info, Trash2, Printer
 } from "lucide-react";
+import { InvoiceTemplate } from "@/app/components/InvoiceTemplate";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/app/components/ui/card";
 import { Button } from "@/app/components/ui/button";
 import { Badge } from "@/app/components/ui/badge";
@@ -34,6 +37,9 @@ interface Order {
         name: string;
         email?: string; // Derived or direct
         logoUrl?: string; // Optional
+        memberId?: string;
+        designation?: string;
+        address?: string;
     };
     event?: {
         name: string;
@@ -57,11 +63,13 @@ interface DashboardClientProps {
 }
 
 export default function DashboardClient({ orders = [], stats }: DashboardClientProps) {
+    const [ordersList, setOrdersList] = useState<Order[]>(orders);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
     const [detailsOrder, setDetailsOrder] = useState<any | null>(null);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
+    const [viewInvoiceOrder, setViewInvoiceOrder] = useState<Order | null>(null);
 
     const fetchOrderDetails = async (orderId: string) => {
         setLoadingDetails(true);
@@ -82,7 +90,30 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
         }
     };
 
-    const filteredOrders = orders.filter(order =>
+    const deleteOrder = async (orderId: string) => {
+        if (!confirm("Are you sure you want to delete this order? This action cannot be undone.")) return;
+
+        try {
+            const res = await fetch(`/api/admin/orders/${orderId}`, {
+                method: "DELETE"
+            });
+
+            if (res.ok) {
+                // Optimistic update
+                setOrdersList(prev => prev.filter(o => o.id !== orderId));
+                toast.success("Order deleted successfully!");
+            } else {
+                const data = await res.json().catch(() => ({}));
+                toast.error(data.error || "Failed to delete order");
+            }
+        } catch (error) {
+            console.error("Error deleting order:", error);
+            toast.error("Error deleting order");
+        }
+    };
+
+
+    const filteredOrders = ordersList.filter(order =>
         order.company.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         order.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
@@ -127,10 +158,8 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
             {/* Stats Overview */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { label: "Total Revenue", value: `$${stats.totalRevenue.toLocaleString("en-US")}`, icon: CreditCard, color: "text-blue-600", bg: "bg-blue-50" },
                     { label: "Total Orders", value: stats.totalOrders, icon: ShoppingBag, color: "text-purple-600", bg: "bg-purple-50" },
                     { label: "Pending Processing", value: stats.pendingOrders, icon: Clock, color: "text-amber-600", bg: "bg-amber-50" },
-                    { label: "Avg. Order Value", value: `$${Math.round(stats.avgOrderValue).toLocaleString("en-US")}`, icon: TrendingUp, color: "text-emerald-600", bg: "bg-emerald-50" },
                 ].map((stat, i) => (
                     <Card key={i} className="border-gray-100 shadow-sm hover:shadow-md transition-shadow">
                         <CardContent className="p-6 flex items-center justify-between">
@@ -233,6 +262,16 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                 >
                                                     <Info size={14} className="mr-1" />
                                                     Details
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                                    onClick={() => deleteOrder(order.id)}>
+                                                    <Trash2 size={14} className="mr-1" />
+                                                    Delete
+                                                </Button>
+                                                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                                                    onClick={() => setViewInvoiceOrder(order)}>
+                                                    <Printer size={14} className="mr-1" />
+                                                    Invoice
                                                 </Button>
                                                 <Sheet>
                                                     <SheetTrigger asChild>
@@ -339,7 +378,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                                             {order.status}
                                                                         </Badge>
                                                                         {order.offlinePayment && (
-                                                                            <Badge variant="secondary" className="ml-2 bg-gray-200 text-gray-700">
+                                                                            <Badge variant="secondary" className="ml-2 bg-gray-200 text-white">
                                                                                 Offline
                                                                             </Badge>
                                                                         )}
@@ -565,6 +604,69 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                     </motion.div>
                 )}
             </AnimatePresence>
+            {/* Invoice Viewer Modal */}
+            {viewInvoiceOrder && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print:p-0 print:bg-white print:static">
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-none print:max-h-none print:w-full">
+                        {/* Modal Header */}
+                        <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10 print:hidden">
+                            <h3 className="text-lg font-bold text-gray-900">Invoice Details</h3>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={async () => {
+                                        const element = document.getElementById('invoice-component');
+                                        if (!element) return;
+
+                                        // Dynamic import
+                                        const html2pdf = (await import('html2pdf.js')).default;
+
+                                        const opt = {
+                                            margin: 0,
+                                            filename: `Invoice_${viewInvoiceOrder.id.slice(-8)}.pdf`,
+                                            image: { type: 'jpeg', quality: 0.98 } as any,
+                                            html2canvas: { scale: 2, useCORS: true },
+                                            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                                        } as any;
+
+                                        html2pdf().set(opt).from(element).save();
+                                    }}
+                                    className="flex items-center gap-2 bg-[#004aad] text-white px-4 py-2 rounded-md font-medium hover:bg-[#00317a] transition-all"
+                                >
+                                    <Download className="w-4 h-4" /> Download PDF
+                                </button>
+                                <button
+                                    onClick={() => setViewInvoiceOrder(null)}
+                                    className="p-2 hover:bg-gray-100 rounded-full text-gray-500 transition-colors"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="p-8 print:p-0 printable-area">
+                            <InvoiceTemplate
+                                orderId={viewInvoiceOrder.id.slice(-8).toUpperCase()} // Or use proper invoice number if available
+                                date={viewInvoiceOrder.createdAt}
+                                customerDetails={{
+                                    name: viewInvoiceOrder.company.name,
+                                    email: viewInvoiceOrder.company.email || "",
+                                    address: viewInvoiceOrder.company.address || "",
+                                    companyName: viewInvoiceOrder.company.name,
+                                    designation: viewInvoiceOrder.company.designation || "",
+                                    memberId: viewInvoiceOrder.company.memberId || ""
+                                }}
+                                items={viewInvoiceOrder.items.map(item => ({
+                                    name: item.name,
+                                    quantity: item.quantity,
+                                    price: item.price,
+                                    total: Number((item.price * item.quantity).toFixed(2))
+                                }))}
+                                totalAmount={viewInvoiceOrder.totalAmount}
+                            />
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

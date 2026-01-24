@@ -13,15 +13,16 @@ export default async function DashboardPage() {
                 select: {
                     name: true,
                     logoUrl: true,
-                    // email might not be directly on company based on schema inspection earlier (it was on Location or User), 
-                    // but looking at schema: company has userId? No, User has companies.
-                    // Location has email.
-                    // Let's check schema again mentally. 
-                    // Company has `location Location?`. Location has `email`.
-                    // Company doesn't have email field directly.
-                    // But `DashboardClient` interface has optional email.
+                    memberId: true,
+                    designation: true,
                     location: {
-                        select: { email: true }
+                        select: {
+                            email: true,
+                            address: true,
+                            city: true,
+                            country: true,
+                            contactPersonDesignation: true
+                        }
                     }
                 }
             },
@@ -59,7 +60,10 @@ export default async function DashboardPage() {
         company: {
             name: order.company.name,
             email: order.company.location?.email || undefined,
-            logoUrl: order.company.logoUrl || undefined
+            logoUrl: order.company.logoUrl || undefined,
+            memberId: order.company.memberId || undefined,
+            designation: order.company.designation || order.company.location?.contactPersonDesignation || undefined,
+            address: [order.company.location?.address, order.company.location?.city, order.company.location?.country].filter(Boolean).join(", ") || undefined,
         },
         offlinePayment: order.offlinePayment
     }));

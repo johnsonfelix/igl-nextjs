@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
+import { sendEmail } from "@/lib/email";
 
 const prisma = new PrismaClient();
 
@@ -102,7 +103,8 @@ export async function POST(req: NextRequest) {
         } else {
           // New User -> Create User, Company
           console.log(`[INFO] Creating new user for ${email}`);
-          const hashedPassword = await hash("IGLA2026!", 10);
+          const tempPassword = Math.random().toString(36).slice(-8) + "Aa1!";
+          const hashedPassword = await hash(tempPassword, 10);
 
           const newUser = await tx.user.create({
             data: {
@@ -113,6 +115,23 @@ export async function POST(req: NextRequest) {
               role: "USER"
             }
           });
+
+          // Send credential email (Fire and forget, or await?)
+          // We await to ensure valid email or catch error, although we don't want to fail valid payment?
+          // Let's await but wrap in try catch to not block order
+          await sendEmail({
+            to: email,
+            subject: "Your Account for IGLA 2026",
+            html: `
+               <div style="font-family: sans-serif; padding: 20px;">
+                 <h2>Welcome to IGLA 2026</h2>
+                 <p>Thank you for registering. An account has been created for you.</p>
+                 <p><strong>Email:</strong> ${email}</p>
+                 <p><strong>Temporary Password:</strong> ${tempPassword}</p>
+                 <p>Please <a href="${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/login">login</a> and change your password.</p>
+               </div>
+             `
+          }).catch(err => console.error("Failed to send welcome email:", err));
 
           const newCompany = await tx.company.create({
             data: {
@@ -461,7 +480,140 @@ export async function POST(req: NextRequest) {
     });
 
     console.log("--- CHECKOUT TRANSACTION COMPLETED SUCCESSFULLY ---");
+
+    // --- Send Email Notification ---
+    try {
+      const finalOrder = result;
+      const attendees = body.additionalDetails?.attendees;
+
+      // Determine recipient: Attendee 1's email or fallback to account email
+      let recipientEmail = account.email;
+      let recipientName = account.name;
+
+      if (Array.isArray(attendees) && attendees.length > 0 && attendees[0].email) {
+        recipientEmail = attendees[0].email;
+        recipientName = attendees[0].name || recipientName;
+      }
+
+      if (recipientEmail) {
+        console.log(`[INFO] Sending invoice email to ${recipientEmail}`);
+
+        const invoiceHtml = generateInvoiceEmailHtml({
+          order: finalOrder,
+          account,
+          attendees,
+          billingAddress
+        });
+
+        await sendEmail({
+          to: recipientEmail,
+          subject: `Order Confirmation & Invoice - #${finalOrder.invoiceNumber ? `IGLA${10000 + finalOrder.invoiceNumber}` : finalOrder.id.slice(-8).toUpperCase()}`,
+          html: invoiceHtml
+        });
+        console.log(`[OK] Email sent successfully to ${recipientEmail}`);
+      } else {
+        console.warn("[WARN] No recipient email found, skipping email notification.");
+      }
+    } catch (emailError) {
+      console.error("Failed to send checkout email:", emailError);
+      // We do not fail the request if email fails, as the order is already created
+    }
+
     return NextResponse.json(result, { status: 201 });
+
+    // Helper to generate HTML email
+    function generateInvoiceEmailHtml({ order, account, attendees, billingAddress }: any) {
+      const invoiceNo = order.invoiceNumber ? `IGLA${10000 + order.invoiceNumber}` : order.id.slice(-8).toUpperCase();
+      const dateStr = new Date().toLocaleDateString();
+      const totalAmount = order.totalAmount;
+
+      // Format Items
+      const itemsHtml = order.items.map((item: any) => `
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$${item.price.toLocaleString()}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #ddd; text-align: right;">$${(item.price * item.quantity).toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+      return `
+    <div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; color: #333;">
+      <div style="background-color: #f8f9fa; padding: 20px; text-align: center; border-bottom: 2px solid #004aad;">
+        <h2 style="color: #004aad; margin: 0;">Order Confirmation</h2>
+      </div>
+      
+      <div style="padding: 20px;">
+        <p style="font-size: 16px; line-height: 1.5;">
+          Dear ${account.name},
+        </p>
+        
+        <p style="font-size: 16px; line-height: 1.5; background-color: #e6fffa; border: 1px solid #b2f5ea; padding: 15px; border-radius: 5px; color: #234e52;">
+          <strong>Your order placed successfully and complete the payment process and update the payment details in your order page</strong>
+        </p>
+
+        <div style="margin-top: 30px; border: 1px solid #eee; border-radius: 5px; overflow: hidden;">
+          <div style="background-color: #00317a; color: white; padding: 10px 15px;">
+            <h3 style="margin: 0;">Invoice #${invoiceNo}</h3>
+          </div>
+          
+          <div style="padding: 20px;">
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+              <tr>
+                <td style="width: 50%; vertical-align: top;">
+                  <strong>Billed To:</strong><br>
+                  ${account.companyName}<br>
+                  ${account.name}<br>
+                  ${billingAddress?.line1 || ''}<br>
+                  ${billingAddress?.city || ''}, ${billingAddress?.country || ''}
+                </td>
+                <td style="width: 50%; vertical-align: top; text-align: right;">
+                  <strong>Date:</strong> ${dateStr}<br>
+                  <strong>Total Amount:</strong> $${totalAmount.toLocaleString()}
+                </td>
+              </tr>
+            </table>
+
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f1f5f9;">
+                  <th style="padding: 10px; text-align: left; border-bottom: 2px solid #ddd;">Item</th>
+                  <th style="padding: 10px; text-align: center; border-bottom: 2px solid #ddd;">Qty</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Price</th>
+                  <th style="padding: 10px; text-align: right; border-bottom: 2px solid #ddd;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding: 15px; text-align: right; font-weight: bold;">Grand Total</td>
+                  <td style="padding: 15px; text-align: right; font-weight: bold; font-size: 18px; color: #004aad;">$${totalAmount.toLocaleString()}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        <div style="margin-top: 30px; font-size: 14px; color: #666;">
+          <h4 style="color: #00317a;">Payment Information (Bank Transfer)</h4>
+          <p>
+            Beneficiary's Bank: HDFC Bank Limited<br>
+            Branch: G N Chetty rd Branch, TNagar<br>
+            SWIFT CODE: HDFCINBBCHE<br>
+            ACCOUNT NAME: INNOVATIVE GLOBAL LOGISTICS ALLIANZ<br>
+            ACCOUNT NO: 50200035538980
+          </p>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center; font-size: 12px; color: #999;">
+          <p>&copy; 2026 Innovative Global Logistics Allianz. All rights reserved.</p>
+        </div>
+      </div>
+    </div>
+  `;
+    }
   } catch (error: any) {
     console.error("--- CHECKOUT TRANSACTION FAILED ---");
     console.error("Error during checkout:", error);

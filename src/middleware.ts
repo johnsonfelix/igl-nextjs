@@ -21,7 +21,9 @@ const publicPrefixes = [
   "/api/company/login",
   "/api/auth/login",
   "/api/company/forgot-password",
+  "/api/company/forgot-password",
   "/api/company/reset-password",
+  "/api/auth/check-email", // Guest checkout check
 
   // open/public APIs & upload presign endpoint used by the app
   "/api/public",
