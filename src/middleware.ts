@@ -51,6 +51,8 @@ const publicPrefixes = [
   "/api/company/inquiry",
   "/api/past-events",
   "/past-events",
+  "/privacy-policy",
+  "/cookies-policy",
 ];
 
 /**

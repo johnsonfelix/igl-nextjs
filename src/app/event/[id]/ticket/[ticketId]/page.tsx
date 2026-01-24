@@ -74,7 +74,7 @@ export default function TicketDetailsPage({
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50">
                 <div className="flex flex-col items-center gap-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+                    <Loader2 className="h-8 w-8 animate-spin text-[#004aad]" />
                     <p className="text-gray-500">Loading ticket details...</p>
                 </div>
             </div>
@@ -88,7 +88,7 @@ export default function TicketDetailsPage({
                     <h1 className="text-2xl font-bold text-gray-900">Ticket Not Found</h1>
                     <button
                         onClick={() => router.back()}
-                        className="mt-4 text-emerald-600 hover:underline flex items-center justify-center gap-2"
+                        className="mt-4 text-[#004aad] hover:underline flex items-center justify-center gap-2"
                     >
                         <ArrowLeft size={16} /> Go Back
                     </button>
@@ -108,21 +108,21 @@ export default function TicketDetailsPage({
             <div className="max-w-4xl mx-auto">
                 <button
                     onClick={() => router.back()}
-                    className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-gray-900 transition-colors"
+                    className="mb-6 flex items-center text-sm font-medium text-gray-500 hover:text-[#004aad] transition-colors"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Back to Event
                 </button>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all hover:shadow-2xl">
                     <div className="grid grid-cols-1 md:grid-cols-2">
                         {/* Image Section */}
-                        <div className="relative h-64 md:h-auto bg-gray-100 p-8 flex items-center justify-center">
+                        <div className="relative h-64 md:h-auto bg-gradient-to-br from-gray-50 to-blue-50/30 p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100">
                             {ticket.logo ? (
                                 <img
                                     src={ticket.logo}
                                     alt={ticket.name}
-                                    className="max-w-full max-h-full object-contain drop-shadow-lg"
+                                    className="max-w-full max-h-full object-contain drop-shadow-xl transform hover:scale-105 transition-transform duration-500"
                                 />
                             ) : (
                                 <div className="flex flex-col items-center justify-center text-gray-400">
@@ -131,22 +131,22 @@ export default function TicketDetailsPage({
                                 </div>
                             )}
                             {hasDiscount && (
-                                <div className="absolute top-4 right-4 bg-red-600 text-white text-sm font-bold px-3 py-1 rounded-full shadow-md">
+                                <div className="absolute top-4 right-4 bg-rose-500 text-white text-sm font-bold px-3 py-1 rounded-full shadow-lg animate-pulse">
                                     {discountPercentage}% OFF
                                 </div>
                             )}
                         </div>
 
                         {/* Details Section */}
-                        <div className="p-8 flex flex-col">
+                        <div className="p-8 flex flex-col justify-center">
                             <div className="mb-6">
-                                <h1 className="text-3xl font-bold text-gray-900 mb-2">{ticket.name}</h1>
+                                <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">{ticket.name}</h1>
                                 <div className="flex items-baseline gap-3 mt-4">
-                                    <span className="text-4xl font-bold text-emerald-600">
+                                    <span className="text-5xl font-extrabold text-[#004aad] tracking-tight">
                                         ${effectivePrice.toLocaleString()}
                                     </span>
                                     {hasDiscount && (
-                                        <span className="text-lg text-gray-400 line-through">
+                                        <span className="text-xl text-gray-400 line-through">
                                             ${ticket.price.toLocaleString()}
                                         </span>
                                     )}
@@ -154,11 +154,11 @@ export default function TicketDetailsPage({
                             </div>
 
                             {ticket.description && (
-                                <div className="mb-8 p-4 bg-gray-50 rounded-xl border border-gray-100">
-                                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+                                <div className="mb-8 p-5 bg-blue-50/50 rounded-xl border border-blue-100/50">
+                                    <h3 className="text-xs font-bold text-[#004aad] uppercase tracking-widest mb-2">
                                         Description
                                     </h3>
-                                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap">
+                                    <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-sm">
                                         {ticket.description}
                                     </p>
                                 </div>
@@ -166,60 +166,21 @@ export default function TicketDetailsPage({
 
                             {ticket.features && ticket.features.length > 0 && (
                                 <div className="mb-8">
-                                    <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3">
+                                    <h3 className="text-xs font-bold text-[#004aad] uppercase tracking-widest mb-3">
                                         Includes
                                     </h3>
                                     <ul className="space-y-3">
                                         {ticket.features.map((feature, idx) => (
-                                            <li key={idx} className="flex items-start gap-3 text-gray-700">
-                                                <div className="mt-1 min-w-[1.25rem] h-5 w-5 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0">
-                                                    <Check className="h-3 w-3 text-emerald-600" strokeWidth={3} />
+                                            <li key={idx} className="flex items-start gap-3 group">
+                                                <div className="mt-1 min-w-[1.25rem] h-5 w-5 rounded-full bg-[#004aad]/10 group-hover:bg-[#004aad] transition-colors flex items-center justify-center flex-shrink-0">
+                                                    <Check className="h-3 w-3 text-[#004aad] group-hover:text-white transition-colors" strokeWidth={3} />
                                                 </div>
-                                                <span>{feature}</span>
+                                                <span className="text-gray-700 group-hover:text-gray-900 transition-colors">{feature}</span>
                                             </li>
                                         ))}
                                     </ul>
                                 </div>
                             )}
-
-                            {/* <div className="mt-auto pt-6 border-t border-gray-100 space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <label className="text-sm font-medium text-gray-700">Quantity:</label>
-                                    <div className="flex items-center border border-gray-200 rounded-lg">
-                                        <button
-                                            onClick={() => setSelectedQuantity(Math.max(1, selectedQuantity - 1))}
-                                            className="px-3 py-1.5 hover:bg-gray-50 text-gray-600 border-r border-gray-200"
-                                        >
-                                            -
-                                        </button>
-                                        <span className="px-4 py-1.5 font-semibold min-w-[3rem] text-center">
-                                            {selectedQuantity}
-                                        </span>
-                                        <button
-                                            onClick={() => setSelectedQuantity(Math.min(99, selectedQuantity + 1))}
-                                            className="px-3 py-1.5 hover:bg-gray-50 text-gray-600 border-l border-gray-200"
-                                        >
-                                            +
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <button
-                                        onClick={handleAddToCart}
-                                        className="flex items-center justify-center gap-2 w-full py-3 px-4 border border-emerald-600 text-emerald-600 font-bold rounded-xl hover:bg-emerald-50 transition-colors"
-                                    >
-                                        <ShoppingCart size={20} />
-                                        Add to Cart
-                                    </button>
-                                    <button
-                                        onClick={handleBuyNow}
-                                        className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-all hover:-translate-y-0.5"
-                                    >
-                                        Buy Now
-                                    </button>
-                                </div>
-                            </div> */}
                         </div>
                     </div>
                 </div>

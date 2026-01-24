@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useEffect, useState } from 'react';
 import { differenceInSeconds, parseISO } from 'date-fns';
@@ -49,7 +49,7 @@ export default function EventCountdown({ targetDate }: { targetDate: string }) {
     }
 
     return (
-        <div className="flex gap-1.5 text-white animate-fadeIn">
+        <div className="flex gap-3 text-white animate-fadeIn">
             <TimeUnit value={timeLeft.days} label="Days" />
             <TimeUnit value={timeLeft.hours} label="Hrs" />
             <TimeUnit value={timeLeft.minutes} label="Mins" />
@@ -59,8 +59,8 @@ export default function EventCountdown({ targetDate }: { targetDate: string }) {
 }
 
 const TimeUnit = ({ value, label }: { value: number; label: string }) => (
-    <div className="bg-black/60 backdrop-blur-md border border-white/20 rounded-md py-1.5 px-2 min-w-[36px] flex flex-col items-center justify-center shadow-sm">
-        <span className="text-sm font-bold leading-none mb-0.5">{value.toString().padStart(2, '0')}</span>
-        <span className="text-[8px] uppercase font-medium tracking-tight opacity-90">{label}</span>
+    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-lg py-2 px-3 min-w-[60px] flex flex-col items-center justify-center shadow-sm">
+        <span className="text-2xl font-bold leading-none mb-1">{value.toString().padStart(2, '0')}</span>
+        <span className="text-[10px] uppercase font-medium tracking-wider opacity-80">{label}</span>
     </div>
 );

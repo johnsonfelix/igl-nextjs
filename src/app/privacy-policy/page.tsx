@@ -102,7 +102,7 @@ export default function PrivacyPolicy() {
                         <p className="mb-4">If you have any questions, contact us at:</p>
                         <div className="space-y-2">
                             <p>
-                                <span className="font-semibold">Email:</span> <a href="mailto:igla.webhooks@gmail.com" className="text-blue-600 hover:underline">igla.webhooks@gmail.com</a>
+                                <span className="font-semibold">Email:</span> <a href="mailto:sales@igla.asia" className="text-blue-600 hover:underline">sales@igla.asia</a>
                             </p>
                         </div>
                     </section>

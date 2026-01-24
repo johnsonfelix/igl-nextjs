@@ -21,6 +21,7 @@ import {
   Users,
   MapPin,
 } from "lucide-react";
+import EventCountdown from "@/components/EventCountdown";
 import TestimonialsSection from "./components/TestimonialsSection";
 import LatestInquiriesSection from "./components/LatestInquiriesSection";
 import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection";
@@ -218,28 +219,36 @@ export default function Home() {
         </section>
 
         {/* Sign In Banner */}
-        {!user && (
-          <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-36 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
-            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
-              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span>💎</span> Sign in to get 50% OFF on Sponsorships
-                  </h3>
-                  <p className="text-white/90">
-                    Exclusive offer for members. Log in now to unlock special pricing and benefits.
-                  </p>
+        {/* Next Event Countdown Section */}
+        <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-55 relative z-30 md:max-w-4xl md:mx-0 lg:ml-16">
+          <div className="bg-[#004aad] rounded-xl p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+              </svg>
+            </div>
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
+              <div>
+                <span className="inline-block py-1 px-3 rounded bg-white/20 text-xs font-bold uppercase tracking-widest mb-3 backdrop-blur-sm border border-white/10">
+                  Next Event
+                </span>
+                <h3 className="text-2xl md:text-3xl font-bold mb-2">
+                  The 20th Global Freight<br />Forwarders Conference
+                </h3>
+                <div className="flex items-center justify-center md:justify-start gap-2 text-white/80 text-sm">
+                  <MapPin className="w-4 h-4" /> Shanghai, China
                 </div>
-                <Link href="/company/login">
-                  <button className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hover:shadow-xl whitespace-nowrap">
-                    Sign In Now
-                  </button>
-                </Link>
+              </div>
+
+              <div className="flex flex-col items-center gap-4">
+                <div className="text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
+                <EventCountdown targetDate="2026-03-25T00:00:00.000Z" />
               </div>
             </div>
           </div>
-        )}
+        </div>
 
         {/* Sponsorship Benefits Section */}
         <SponsorshipBenefitsSection />
@@ -281,7 +290,7 @@ export default function Home() {
                 { title: "Global Coverage", desc: "Access to logistics partners in major ports and cities worldwide" },
                 { title: "Competitive Rates", desc: "Benefit from collective negotiating power and volume discounts" },
                 { title: "24/7 Support", desc: "Round-the-clock assistance for urgent shipments and inquiries" },
-                { title: "Technology Platform", desc: "Modern digital tools for tracking, communication, and collaboration" },
+                { title: "Technology Platform", desc: "Modern digital tools for communication, and collaboration" },
                 { title: "Risk Management", desc: "Comprehensive vetting and monitoring to minimize business risks" }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-start gap-4 bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#004aad]/20 transition-all">

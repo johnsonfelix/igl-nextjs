@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, ArrowRight, AlertTriangle, Loader, Star } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
-import EventCountdown from './EventCountdown';
+import EventCountdown from '../../../components/EventCountdown';
 import PastEventsSection from '../../components/PastEventsSection';
 
 // --- TYPE DEFINITION for an Event ---

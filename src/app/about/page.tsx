@@ -219,7 +219,7 @@ export default function AboutPage() {
                             { title: "Global Coverage", desc: "Access to logistics partners in major ports and cities worldwide" },
                             { title: "Competitive Rates", desc: "Benefit from collective negotiating power and volume discounts" },
                             { title: "24/7 Support", desc: "Round-the-clock assistance for urgent shipments and inquiries" },
-                            { title: "Technology Platform", desc: "Modern digital tools for tracking, communication, and collaboration" },
+                            { title: "Technology Platform", desc: "Modern digital tools for communication, and collaboration" },
                             { title: "Risk Management", desc: "Comprehensive vetting and monitoring to minimize business risks" }
                         ].map((item, idx) => (
                             <div key={idx} className="flex items-start gap-4 bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-[#004aad]/20 transition-all">
