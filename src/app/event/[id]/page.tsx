@@ -345,7 +345,7 @@ const PriceCard = ({
           className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${item.name === "T Shirts" ? "opacity-60" : ""}`}
         />
         {isSoldOut && (
-          <div className="absolute inset-0 bg-white/90 flex flex-col items-center justify-center p-4 text-center">
+          <div className="absolute inset-0 bg-white/60 flex flex-col items-center justify-center p-4 text-center">
             {soldTo ? (
               <>
                 <div className="text-xs font-bold text-black uppercase tracking-widest mb-2">Sponsored By</div>

@@ -198,47 +198,45 @@ export default function Home() {
             <ChevronRight className="w-10 h-10" />
           </div>
 
-          {/* Floating Popup Box */}
-          {/* Floating Popup Box Removed */}
-        </section>
-
-        {/* Sign In Banner */}
-        {/* Next Event Countdown Section */}
-        <div className="container mx-auto px-4 my-4 lg:my-8 mt-0 lg:-mt-65 relative z-30 md:max-w-4xl md:ml-auto lg:mr-16">
-          <div className="bg-[#004aad] rounded-xl p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
-            {/* Background Pattern */}
-            <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
-              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-              </svg>
-            </div>
-
-            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-left">
-              <div>
-                <span className="inline-block py-1 px-3 rounded bg-white/20 text-xs font-bold uppercase tracking-widest mb-3 backdrop-blur-sm border border-white/10">
-                  Next Event
-                </span>
-                <h3 className="text-2xl md:text-3xl font-bold mb-2">
-                  The 20th Global Freight<br />Forwarders Conference
-                </h3>
-                <div className="flex items-center justify-center md:justify-start gap-2 text-white/80 text-sm">
-                  <MapPin className="w-4 h-4" /> Shanghai, China
-                </div>
+          {/* Next Event Countdown Section - Moved inside Hero for absolute positioning */}
+          <div className="relative lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xl 2xl:max-w-2xl">
+            <div className="bg-[#004aad] rounded-xl p-5 lg:p-6 2xl:p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
+              {/* Background Pattern */}
+              <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
+                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                  <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+                </svg>
               </div>
 
-              <div className="flex flex-col items-center gap-4">
-                <div className="text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
-                <EventCountdown targetDate="2026-03-25T00:00:00.000Z" />
-                <Link
-                  href="/event/cmjn1f6ih0000gad4xa4j7dp3"
-                  className="mt-4 bg-white text-[#004aad] px-8 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors"
-                >
-                  Register Now
-                </Link>
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-5 lg:gap-6 2xl:gap-8 text-center md:text-left">
+                <div>
+                  <span className="inline-block py-1 px-3 rounded bg-white/20 text-[10px] 2xl:text-xs font-bold uppercase tracking-widest mb-2 2xl:mb-3 backdrop-blur-sm border border-white/10">
+                    Next Event
+                  </span>
+                  <h3 className="text-xl lg:text-2xl 2xl:text-3xl font-bold mb-2">
+                    The 20th Global Freight<br />Forwarders Conference
+                  </h3>
+                  <div className="flex items-center justify-center md:justify-start gap-2 text-white/80 text-xs 2xl:text-sm">
+                    <MapPin className="w-3 h-3 2xl:w-4 2xl:h-4" /> Shanghai, China
+                  </div>
+                </div>
+
+                <div className="flex flex-col items-center gap-3 2xl:gap-4">
+                  <div className="text-xs 2xl:text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
+                  <EventCountdown targetDate="2026-03-25T00:00:00.000Z" />
+                  <Link
+                    href="/event/cmjn1f6ih0000gad4xa4j7dp3"
+                    className="mt-2 text-sm 2xl:text-base lg:mt-4 bg-white text-[#004aad] px-6 py-2 2xl:px-8 2xl:py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+                  >
+                    Register Now
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* Sign In Banner */}
 
         {/* Sponsorship Benefits Section */}
         <SponsorshipBenefitsSection />

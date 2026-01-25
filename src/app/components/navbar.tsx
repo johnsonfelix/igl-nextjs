@@ -237,22 +237,22 @@ export default function Navbar() {
 
                 {/* Sign In Banner Popup */}
                 {showSignInBanner && (
-                  <div className="absolute top-full right-0 mt-4 w-[400px] z-50 animate-fadeIn select-none filter drop-shadow-2xl">
+                  <div className="absolute top-full right-0 mt-4 w-[320px] 2xl:w-[400px] z-50 animate-fadeIn select-none filter drop-shadow-2xl">
                     {/* Triangle pointer */}
                     <div className="absolute -top-2 right-10 w-4 h-4 bg-[#004aad] transform rotate-45 z-0"></div>
 
                     {/* Back Card (Orange) */}
-                    <div className="bg-gradient-to-br from-[#2ebb79] to-[#004aad] rounded-2xl p-6 pb-28 shadow-lg relative text-white">
+                    <div className="bg-gradient-to-br from-[#2ebb79] to-[#004aad] rounded-2xl p-5 pb-24 2xl:p-6 2xl:pb-28 shadow-lg relative text-white">
                       {/* Decorative Pattern */}
                       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
 
                       {/* Front Card (Cream/Message Bubble) */}
-                      <div className="absolute -bottom-0 left-4 right-4 bg-white text-gray-800 rounded-xl p-4 shadow-xl border border-teal-100 flex items-start gap-3 transform transition-transform hover:-translate-y-1 z-20">
+                      <div className="absolute -bottom-0 left-4 right-4 bg-white text-gray-800 rounded-xl p-3 2xl:p-4 shadow-xl border border-teal-100 flex items-start gap-3 transform transition-transform hover:-translate-y-1 z-20">
                         {/* Tail for bubble effect */}
                         <div className="absolute -top-2 left-8 w-4 h-4 bg-white transform rotate-45 border-t border-l border-teal-100"></div>
 
                         <div className="flex-1">
-                          <p className="font-bold text-sm leading-snug">
+                          <p className="font-bold text-xs 2xl:text-sm leading-snug">
                             <span className="text-[#004aad]">Exclusive Offer:</span> Exclusive offer for members. Log in now to unlock <span className="underline decoration-teal-300 decoration-2">special pricing and benefits.</span>
                           </p>
                         </div>
@@ -269,8 +269,8 @@ export default function Navbar() {
 
                       <div className="relative z-10 flex justify-between items-start">
                         <div className="flex-1">
-                          <h3 className="text-2xl font-extrabold mb-1 drop-shadow-sm tracking-tight leading-none text-white">Sign in to get</h3>
-                          <h3 className="text-2xl font-extrabold mb-4 drop-shadow-sm text-[#ceeba3] leading-none">50% OFF on Sponsorships</h3>
+                          <h3 className="text-xl 2xl:text-2xl font-extrabold mb-1 drop-shadow-sm tracking-tight leading-none text-white">Sign in to get</h3>
+                          <h3 className="text-xl 2xl:text-2xl font-extrabold mb-4 drop-shadow-sm text-[#ceeba3] leading-none">50% OFF on Sponsorships</h3>
                         </div>
 
                         {/* Decorative Elements */}
