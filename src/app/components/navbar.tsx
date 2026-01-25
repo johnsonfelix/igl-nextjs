@@ -109,6 +109,8 @@ export default function Navbar() {
     });
   };
 
+  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
+
   // Filter nav items: Hide "Admin" unless user is ADMIN
   const displayNavItems = navItems.filter((item) => {
     if (item.name === "Admin") {
@@ -157,7 +159,12 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex gap-6 font-medium text-gray-700 items-center">
             {displayNavItems.map((item) => (
-              <div key={item.href} className="relative group h-full flex items-center">
+              <div
+                key={item.href}
+                className="relative group h-full flex items-center"
+                onMouseEnter={() => setHoveredItem(item.name)}
+                onMouseLeave={() => setHoveredItem(null)}
+              >
                 <Link
                   href={item.href}
                   className={`transition font-medium text-[15px] hover:text-[#2ebb79] py-4 ${pathname === item.href ? "text-[#2ebb79]" : "text-[#232323]"
@@ -167,9 +174,9 @@ export default function Navbar() {
                 </Link>
 
                 {item.name === "Event" && (
-                  <div className="absolute top-[80%] left-1/2 -translate-x-1/2 w-[600px] pt-4 hidden group-hover:block hover:block transition-all duration-300 z-50">
+                  <div className={`absolute top-[80%] left-1/2 -translate-x-1/2 w-[600px] pt-4 transition-all duration-300 z-50 ${hoveredItem === "Event" ? "block opacity-100 visible" : "hidden opacity-0 invisible"}`}>
                     <div className="bg-white rounded-xl shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2)] border border-gray-100 overflow-hidden">
-                      <EventNavCard />
+                      <EventNavCard onLinkClick={() => setHoveredItem(null)} />
                     </div>
                   </div>
                 )}

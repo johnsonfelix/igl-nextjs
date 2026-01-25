@@ -5,10 +5,11 @@ import Image from 'next/image';
 import { MapPin, Users, Calendar, ArrowRight } from 'lucide-react';
 import EventCountdown from './EventCountdown';
 
-export default function EventNavCard() {
+export default function EventNavCard({ onLinkClick }: { onLinkClick?: () => void }) {
     return (
         <Link
             href="/event/cmjn1f6ih0000gad4xa4j7dp3"
+            onClick={onLinkClick}
             className="block bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden transition-all duration-300 group hover:shadow-xl hover:-translate-y-1 w-full"
         >
             <div className="relative h-48 w-full overflow-hidden">
