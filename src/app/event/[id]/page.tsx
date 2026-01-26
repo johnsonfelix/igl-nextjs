@@ -1925,7 +1925,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
         <img
-          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event-bangkok-hero.png" : (thumbnail || "/images/h-Bangkok5.jpg")}
+          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event_banner.png" : (thumbnail || "/images/h-Bangkok5.jpg")}
           alt={name}
           className="w-full h-full object-cover"
         />

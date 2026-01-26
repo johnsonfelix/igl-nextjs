@@ -48,7 +48,8 @@ export default function Home() {
       title2: "Link Up",
       title3: "CONFERENCE 2026",
       desc: "",
-      separator: true
+      separator: true,
+      link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
     },
     {
       id: 2,
@@ -59,7 +60,8 @@ export default function Home() {
       title2: "Connect.",
       title3: "Offer",
       desc: "",
-      separator: true
+      separator: true,
+      link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
     },
     {
       id: 3,
@@ -70,7 +72,8 @@ export default function Home() {
       title2: "Forwarders",
       title3: "Opportunity",
       desc: "",
-      separator: true
+      separator: true,
+      link: "/membership/become-member"
     }
   ];
 
@@ -163,14 +166,14 @@ export default function Home() {
                         {slide.title3}
                       </h1>
                       <div className="flex flex-col sm:flex-row flex-wrap gap-4">
-                        <Link href="/membership/become-member" className="bg-[#004aad] lg:bg-white text-white lg:text-black px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold shadow-lg hover:bg-[#003882] lg:hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform hover:scale-105">
+                        <Link href={slide.link || "/membership/become-member"} className="bg-[#004aad] lg:bg-white text-white lg:text-black px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold shadow-lg hover:bg-[#003882] lg:hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           <ThumbsUp className="w-5 h-5" />
                           Discover more
                         </Link>
-                        <Link href="/event/list" className="text-[#004aad] lg:text-white border border-[#004aad]/30 lg:border-white/50 px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold hover:bg-[#004aad]/5 lg:hover:bg-white/10 flex items-center justify-center gap-2 transition-transform hover:scale-105">
+                        {/* <Link href="/event/list" className="text-[#004aad] lg:text-white border border-[#004aad]/30 lg:border-white/50 px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold hover:bg-[#004aad]/5 lg:hover:bg-white/10 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           View services
                           <Box className="w-5 h-5" />
-                        </Link>
+                        </Link> */}
                       </div>
                     </div>
                   </div>
