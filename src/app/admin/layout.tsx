@@ -18,7 +18,8 @@ import {
   LogOut,
   AlertTriangle,
   MessageCircle,
-  History
+  History,
+  FileText
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -35,6 +36,7 @@ const MENU_ITEMS = [
   { name: "Coupons", href: "/admin/coupon", icon: <Tags className="h-5 w-5" /> },
   { name: "Testimonials", href: "/admin/testimony", icon: <MessageCircle className="h-5 w-5" /> },
   { name: "Reports", href: "/admin/reports", icon: <AlertTriangle className="h-5 w-5" /> },
+  { name: "Invoices", href: "/admin/invoice", icon: <FileText className="h-5 w-5" /> },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

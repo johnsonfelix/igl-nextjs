@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
             const newCompany = await tx.company.create({
               data: {
                 name: account.companyName || account.name || "Default Company",
-                memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`,
+                memberId: `IGLA${Math.floor(10000 + Math.random() * 90000)}`,
                 userId: existingUser.id,
                 location: {
                   create: {
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
             data: {
               name: account.companyName || account.name || "Default Company",
               userId: newUser.id,
-              memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`,
+              memberId: `IGLA${Math.floor(10000 + Math.random() * 90000)}`,
               location: {
                 create: {
                   address: account.address1 || "",
@@ -469,7 +469,7 @@ export async function POST(req: NextRequest) {
       const finalOrder = await tx.purchaseOrder.update({
         where: { id: purchaseOrder.id },
         data: updateData,
-        include: { items: true },
+        include: { items: true, company: true },
       });
 
       console.log(
@@ -600,7 +600,7 @@ export async function POST(req: NextRequest) {
           <h4 style="color: #00317a;">Payment Information (Bank Transfer)</h4>
           <p>
             Beneficiary's Bank: HDFC Bank Limited<br>
-            Branch: G N Chetty rd Branch, TNagar<br>
+            Branch: Parrys Corner Branch<br>
             SWIFT CODE: HDFCINBBCHE<br>
             ACCOUNT NAME: INNOVATIVE GLOBAL LOGISTICS ALLIANZ<br>
             ACCOUNT NO: 50200035538980

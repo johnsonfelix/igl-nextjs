@@ -1425,12 +1425,19 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 orderId={orderData.invoiceNumber ? `IGLA${10000 + orderData.invoiceNumber}` : orderData.id}
                 date={orderData.createdAt || new Date()}
                 customerDetails={{
-                  name: account.name,
-                  email: account.email,
-                  companyName: account.companyName,
-                  designation: account.designation,
-                  address: [account.address1, account.address2, billingAddress.city, billingAddress.country].filter(Boolean).join(", "),
-                  memberId: account.memberId || 'N/A'
+                  name: orderData.account?.name || account.name || attendees[0]?.name || "",
+                  email: orderData.account?.email || account.email || attendees[0]?.email || "",
+                  companyName: orderData.account?.companyName || account.companyName || "",
+                  designation: orderData.account?.designation || account.designation || attendees[0]?.designation || "",
+                  address: [
+                    orderData.billingAddressLine1 || billingAddress.line1,
+                    orderData.billingAddressLine2 || billingAddress.line2,
+                    orderData.billingCity || billingAddress.city,
+                    orderData.billingState || billingAddress.state,
+                    orderData.billingCountry || billingAddress.country,
+                    orderData.billingZip || billingAddress.zip
+                  ].filter(Boolean).join(", "),
+                  memberId: orderData.company?.memberId || orderData.account?.memberId || account.memberId || 'N/A'
                 }}
                 items={orderData.items.map((item: any) => ({
                   name: item.name,
