@@ -167,7 +167,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                     <div className="mb-2">
                         <div className="font-bold text-[#00317a]">Beneficiary's Bank</div>
                         <div>HDFC Bank Limited</div>
-                        <div>G N Chetty rd Branch, TNagar</div>
+                        <div>Parrys Corner Branch</div>
                         <div>SWIFT CODE: HDFCINBBCHE</div>
                         <div>ACCOUNT NAME: INNOVATIVE GLOBAL LOGISTICS ALLIANZ</div>
                         <div>ACCOUNT NO: 50200035538980</div>
