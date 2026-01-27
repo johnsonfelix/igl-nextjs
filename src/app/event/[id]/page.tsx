@@ -1929,7 +1929,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         {id === "cmjn1f6ih0000gad4xa4j7dp3" ? (
           <div
             className="w-full h-full"
-            style={{ background: 'linear-gradient(159deg, rgba(0,71,171,1) 0%, rgba(28,169,201,1) 100%)' }}
+            style={{ background: 'linear-gradient(159deg, rgb(1 12 28) 0%, rgb(28 65 201) 100%)' }}
           ></div>
         ) : (
           <>
@@ -2049,8 +2049,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           return (
                             <div key={sponsorType.id} className="group flex flex-col md:flex-row items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-200 overflow-hidden min-h-[180px]">
                               {/* --- LEFT: Sponsorship Item --- */}
-                              <div className="w-full md:w-[40%] p-8 flex items-center gap-6 h-full border-b md:border-b-0 md:border-r border-gray-100">
-                                <div className="w-32 h-32 bg-white rounded-xl p-2 shadow-sm flex-shrink-0 border border-gray-100 flex items-center justify-center">
+                              <div className="w-full md:w-[40%] p-4 md:p-8 flex items-center gap-4 md:gap-6 h-full border-b md:border-b-0 md:border-r border-gray-100">
+                                <div className="w-20 h-20 md:w-32 md:h-32 bg-white rounded-xl p-2 shadow-sm flex-shrink-0 border border-gray-100 flex items-center justify-center">
                                   <img
                                     src={sponsorType.image || "/placeholder.png"}
                                     alt={sponsorType.name}
@@ -2072,7 +2072,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               </div>
 
                               {/* --- RIGHT: Company --- */}
-                              <div className="w-full md:flex-1 p-8 flex items-center justify-between md:justify-end gap-8 h-full">
+                              <div className="w-full md:flex-1 p-4 md:p-8 flex items-center justify-between md:justify-end gap-8 h-full">
 
 
                                 <div className="h-24 w-48 flex items-center justify-center md:justify-end flex-shrink-0">
@@ -2084,7 +2084,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                 </div>
 
                                 {/* Mobile-only Name (if needed for better layout) */}
-                                <div className="md:hidden">
+                                {/* Mobile-only Name (Hidden as per request) */}
+                                <div className="hidden">
                                   <h4 className="text-xl font-bold text-gray-900">{sponsorCompany.name}</h4>
                                 </div>
                               </div>
@@ -2318,7 +2319,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row gap-6">
                                 <div className="min-w-[140px] flex-shrink-0">
                                   <div className="inline-flex items-center justify-center bg-blue-50 text-[#004aad] px-3 py-1.5 rounded-lg text-sm font-bold border border-blue-100">
-                                    {format(parseISO(item.startTime), "h:mm a")} - {format(parseISO(item.endTime), "h:mm a")}
+                                    {format(parseISO(item.startTime), "HH:mm")} - {format(parseISO(item.endTime), "HH:mm")}
                                   </div>
                                 </div>
                                 <div>

@@ -54,6 +54,7 @@ export default function Home() {
     {
       id: 2,
       bgImage: "/images/bg-2.jpg",
+      bgImageMobile: "/images/bg-2-mobile.jpg",
       leftImage: "/images/demo-green-energy-slider-left-01.jpg",
       welcome: "Welcome to IGLA",
       title1: "EARLY BIRD OFFER",
@@ -184,9 +185,21 @@ export default function Home() {
                       src={slide.bgImage}
                       alt="Banner Image"
                       fill
-                      className="object-cover"
+                      className={`object-cover ${// @ts-ignore
+                        slide.bgImageMobile ? 'hidden lg:block' : ''}`}
                       priority
                     />
+                    { // @ts-ignore
+                      slide.bgImageMobile && (
+                        <Image
+                          // @ts-ignore
+                          src={slide.bgImageMobile}
+                          alt="Banner Image Mobile"
+                          fill
+                          className="object-cover lg:hidden"
+                          priority
+                        />
+                      )}
                   </div>
                 </div>
               </SwiperSlide>
