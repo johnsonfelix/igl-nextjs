@@ -23,7 +23,9 @@ import {
   Coffee,
   Info,
   ShieldCheck,
+  Timer,
 } from "lucide-react";
+import EventCountdown from "@/components/EventCountdown";
 import { format, parseISO } from "date-fns";
 import { useCart, CartItem } from "./CartContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -1924,16 +1926,35 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
-        <img
-          src={id === "cmjn1f6ih0000gad4xa4j7dp3" ? "/images/event_banner.png" : (thumbnail || "/images/h-Bangkok5.jpg")}
-          alt={name}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
+        {id === "cmjn1f6ih0000gad4xa4j7dp3" ? (
+          <div
+            className="w-full h-full"
+            style={{ background: 'linear-gradient(159deg, rgba(0,71,171,1) 0%, rgba(28,169,201,1) 100%)' }}
+          ></div>
+        ) : (
+          <>
+            <img
+              src={thumbnail || "/images/h-Bangkok5.jpg"}
+              alt={name}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-[#004aad]/80 mix-blend-multiply"></div>
+          </>
+        )}
+
         <div className="absolute inset-0 flex flex-col justify-center px-4 md:px-12 max-w-7xl mx-auto">
           <Link href="/event/list" className="text-white/80 hover:text-white flex items-center gap-2 mb-4 font-medium transition-colors w-fit">
             <ArrowLeft className="h-4 w-4" /> Back to Events
           </Link>
+
+          {/* Event Timer */}
+          <div className="absolute top-6 right-4 md:right-12 flex lg:hidden flex-col items-end z-20">
+            <div className="text-[10px] uppercase tracking-widest font-bold text-white/80 mb-1">
+              Event Starts In
+            </div>
+            <EventCountdown targetDate={startDate} size="compact" />
+          </div>
+
           <div className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full w-fit mb-4 border border-white/30 text-white text-xs font-bold uppercase tracking-wider">
             {eventData.eventType} Event
           </div>
@@ -2028,7 +2049,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           return (
                             <div key={sponsorType.id} className="group flex flex-col md:flex-row items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-200 overflow-hidden min-h-[180px]">
                               {/* --- LEFT: Sponsorship Item --- */}
-                              <div className="w-full md:w-[40%] p-8 flex items-center gap-6 bg-gray-50/50 h-full border-b md:border-b-0 md:border-r border-gray-100">
+                              <div className="w-full md:w-[40%] p-8 flex items-center gap-6 h-full border-b md:border-b-0 md:border-r border-gray-100">
                                 <div className="w-32 h-32 bg-white rounded-xl p-2 shadow-sm flex-shrink-0 border border-gray-100 flex items-center justify-center">
                                   <img
                                     src={sponsorType.image || "/placeholder.png"}

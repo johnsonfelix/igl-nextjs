@@ -56,25 +56,25 @@ export default function Home() {
       bgImage: "/images/bg-2.jpg",
       leftImage: "/images/demo-green-energy-slider-left-01.jpg",
       welcome: "Welcome to IGLA",
-      title1: "Early Bird",
+      title1: "EARLY BIRD OFFER",
       title2: "Connect.",
-      title3: "Offer",
+      title3: "UPTO 50% OFF",
       desc: "",
       separator: true,
       link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
     },
-    {
-      id: 3,
-      bgImage: "/images/bg-1.jpg",
-      leftImage: "/images/demo-green-energy-slider-left-01.jpg", // Reusing potentially same bg for left side based on HTML
-      welcome: "Welcome to IGLA",
-      title1: "Sponsorship",
-      title2: "Forwarders",
-      title3: "Opportunity",
-      desc: "",
-      separator: true,
-      link: "/membership/become-member"
-    }
+    // {
+    //   id: 3,
+    //   bgImage: "/images/bg-1.jpg",
+    //   leftImage: "/images/demo-green-energy-slider-left-01.jpg", // Reusing potentially same bg for left side based on HTML
+    //   welcome: "Welcome to IGLA",
+    //   title1: "Sponsorship",
+    //   title2: "Forwarders",
+    //   title3: "Opportunity",
+    //   desc: "",
+    //   separator: true,
+    //   link: "/membership/become-member"
+    // }
   ];
 
   const teamMembers = [
@@ -168,7 +168,7 @@ export default function Home() {
                       <div className="flex flex-col sm:flex-row flex-wrap gap-4">
                         <Link href={slide.link || "/membership/become-member"} className="bg-[#004aad] lg:bg-white text-white lg:text-black px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold shadow-lg hover:bg-[#003882] lg:hover:bg-gray-50 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           <ThumbsUp className="w-5 h-5" />
-                          Discover more
+                          Register Now
                         </Link>
                         {/* <Link href="/event/list" className="text-[#004aad] lg:text-white border border-[#004aad]/30 lg:border-white/50 px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold hover:bg-[#004aad]/5 lg:hover:bg-white/10 flex items-center justify-center gap-2 transition-transform hover:scale-105">
                           View services
@@ -202,7 +202,7 @@ export default function Home() {
           </div>
 
           {/* Next Event Countdown Section - Moved inside Hero for absolute positioning */}
-          <div className="relative lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xs 2xl:max-w-2xl">
+          <div className="hidden lg:block lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xs 2xl:max-w-2xl">
             <div className="bg-[#004aad] rounded-xl p-4 lg:p-3 2xl:p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
               {/* Background Pattern */}
               <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
