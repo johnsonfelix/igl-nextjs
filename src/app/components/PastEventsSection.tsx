@@ -119,11 +119,11 @@ export default function PastEventsSection() {
 
                                             <div className="space-y-2 mb-4">
                                                 <div className="flex items-center text-sm text-gray-500">
-                                                    <MapPin className="w-4 h-4 mr-2 text-[#79cbca]" />
+                                                    <MapPin className="w-4 h-4 mr-2 text-[#004aad]" />
                                                     {event.place}
                                                 </div>
                                                 <div className="flex items-center text-sm text-gray-500">
-                                                    <Users className="w-4 h-4 mr-2 text-[#79cbca]" />
+                                                    <Users className="w-4 h-4 mr-2 text-[#004aad]" />
                                                     {event.membersAttended} Members Attended
                                                 </div>
                                             </div>
