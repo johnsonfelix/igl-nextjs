@@ -17,12 +17,28 @@ interface InvoiceProps {
         name: string;
         quantity: number;
         price: number;
+        originalPrice?: number;
         total: number;
     }>;
     totalAmount: number;
+    currency?: string;
 }
 
-export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAmount }: InvoiceProps) => {
+export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAmount, currency = 'USD' }: InvoiceProps) => {
+    const formatPrice = (amount: number) => {
+        if (currency === 'THB') {
+            return `฿${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
+        try {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: currency,
+            }).format(amount);
+        } catch (e) {
+            return `${currency} ${amount.toFixed(2)}`;
+        }
+    };
+
     return (
         <div
             id="invoice-component"
@@ -114,7 +130,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <th className="p-2 border-r text-left" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Item Name</th>
                         <th className="p-2 border-r w-24" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Rate</th>
                         <th className="p-2 border-r w-14" style={{ borderColor: 'rgba(255,255,255,0.2)' }}>Qty</th>
-                        <th className="p-2 w-28">Total (USD)</th>
+                        <th className="p-2 w-28">Total ({currency})</th>
                     </tr>
                 </thead>
                 <tbody className="text-sm">
@@ -122,9 +138,18 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <tr key={idx} className="border-b" style={{ borderColor: '#e5e7eb' }}>
                             <td className="p-2 border-r border-[#004aad] text-center">{idx + 1}</td>
                             <td className="p-2 border-r border-[#004aad]">{item.name}</td>
-                            <td className="p-2 border-r border-[#004aad] text-center">{item.price !== 0 ? '$' + item.price : item.price}</td>
+                            <td className="p-2 border-r border-[#004aad] text-center">
+                                {item.originalPrice && item.originalPrice > item.price && (
+                                    <div className="text-xs text-gray-400 line-through">
+                                        {formatPrice(item.originalPrice)}
+                                    </div>
+                                )}
+                                <div className={item.originalPrice && item.originalPrice > item.price ? "font-bold text-[#004aad]" : ""}>
+                                    {formatPrice(item.price)}
+                                </div>
+                            </td>
                             <td className="p-2 border-r border-[#004aad] text-center">{item.quantity}</td>
-                            <td className="p-2 text-center font-bold">{item.total !== 0 ? '$' + item.total : item.total}</td>
+                            <td className="p-2 text-center font-bold">{item.total !== 0 ? formatPrice(item.total) : item.total}</td>
                         </tr>
                     ))}
                     {/* Maintain a few empty rows for structure */}
@@ -146,7 +171,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <td className="p-0">
                             <div className="flex flex-col h-full">
                                 <div className="text-center text-xs font-bold text-[#00317a] border-b border-[#004aad] p-1">Grand Total</div>
-                                <div className="text-center font-bold text-lg p-2">{totalAmount !== 0 ? '$' + totalAmount : totalAmount}</div>
+                                <div className="text-center font-bold text-lg p-2">{totalAmount !== 0 ? formatPrice(totalAmount) : totalAmount}</div>
                             </div>
                         </td>
                     </tr>

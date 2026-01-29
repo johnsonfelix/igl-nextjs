@@ -375,7 +375,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const [companyName, setCompanyName] = useState("");
   const [referralSource, setReferralSource] = useState("");
 
-  const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2"];
+  const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2", "XL3", "XL4"];
   const referralOptions = ["Social Media", "Word of Mouth", "Website", "Others"];
 
   // account

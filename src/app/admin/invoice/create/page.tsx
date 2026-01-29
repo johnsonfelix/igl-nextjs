@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { InvoiceTemplate } from "@/app/components/InvoiceTemplate";
-import { Plus, Trash2, Download, Save, ArrowLeft } from "lucide-react";
+import { Plus, Trash2, Download, Save, ArrowLeft, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { SearchableSelect } from "@/app/components/ui/SearchableSelect";
@@ -13,6 +13,8 @@ export default function CreateInvoicePage() {
     const [formData, setFormData] = useState({
         invoiceNumber: "", // Will be auto-populated
         date: new Date().toISOString().split("T")[0],
+        currency: "USD",
+        isAutoFilled: false,
         customerDetails: {
             name: "",
             email: "",
@@ -22,13 +24,14 @@ export default function CreateInvoicePage() {
             memberId: "",
         },
         items: [
-            { name: "Conference Ticket", quantity: 1, price: 0, total: 0 },
+            { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false },
         ],
     });
 
     const componentRef = useRef<HTMLDivElement>(null);
 
     const [companies, setCompanies] = useState<any[]>([]);
+    const [products, setProducts] = useState<any[]>([]);
 
     useEffect(() => {
         // Fetch next invoice number
@@ -50,6 +53,19 @@ export default function CreateInvoicePage() {
                 }
             })
             .catch(err => console.error("Failed to fetch companies", err));
+
+        // Fetch products (Tickets & Sponsors)
+        Promise.all([
+            fetch('/api/admin/tickets').then(r => r.json()),
+            fetch('/api/admin/sponsor-types').then(r => r.json())
+        ]).then(([tickets, sponsors]) => {
+            const combined = [
+                ...(Array.isArray(tickets) ? tickets.map((t: any) => ({ ...t, type: 'Ticket' })) : []),
+                ...(Array.isArray(sponsors) ? sponsors.map((s: any) => ({ ...s, type: 'Sponsor' })) : [])
+            ];
+            setProducts(combined);
+        }).catch(err => console.error("Failed to fetch products", err));
+
     }, []);
 
     const handleCompanySelect = (companyId: string) => {
@@ -60,10 +76,11 @@ export default function CreateInvoicePage() {
             const loc = company.location || {};
             setFormData(prev => ({
                 ...prev,
+                isAutoFilled: true,
                 customerDetails: {
                     ...prev.customerDetails,
                     name: loc.contactPerson || company.directors || "",
-                    email: loc.email || "", // Email usually in location, or maybe add company.user.email if needed?
+                    email: loc.email || "",
                     companyName: company.name,
                     designation: loc.contactPersonDesignation || company.designation || "",
                     memberId: company.memberId,
@@ -71,6 +88,25 @@ export default function CreateInvoicePage() {
                 }
             }));
         }
+    };
+
+    const handleClearAutoFill = () => {
+        setFormData(prev => ({
+            ...prev,
+            isAutoFilled: false,
+            customerDetails: {
+                name: "",
+                email: "",
+                companyName: "",
+                designation: "",
+                address: "",
+                memberId: "",
+            }
+        }));
+    };
+
+    const handleInvoiceNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData(prev => ({ ...prev, invoiceNumber: e.target.value }));
     };
 
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -97,7 +133,7 @@ export default function CreateInvoicePage() {
     const addItem = () => {
         setFormData((prev) => ({
             ...prev,
-            items: [...prev.items, { name: "", quantity: 1, price: 0, total: 0 }],
+            items: [...prev.items, { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false }],
         }));
     };
 
@@ -170,6 +206,8 @@ export default function CreateInvoicePage() {
         }
     };
 
+    const currencies = ["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB"];
+
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
             {/* --- FORM SECTION --- */}
@@ -183,8 +221,16 @@ export default function CreateInvoicePage() {
 
                 {/* Company Selection */}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                        <label className="text-sm font-bold text-gray-700">Auto-fill from Company</label>
+                        {formData.isAutoFilled && (
+                            <button onClick={handleClearAutoFill} className="text-xs text-red-500 hover:text-red-700 font-semibold">
+                                Clear / Unlock
+                            </button>
+                        )}
+                    </div>
                     <SearchableSelect
-                        label="Auto-fill from Company"
+                        label=""
                         placeholder="Search company by name or ID..."
                         options={companies.map(c => ({
                             id: c.id,
@@ -193,6 +239,12 @@ export default function CreateInvoicePage() {
                         }))}
                         onSelect={handleCompanySelect}
                     />
+                    {formData.isAutoFilled && (
+                        <p className="text-xs text-green-600 mt-2 flex items-center gap-1">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            Details locked from company profile
+                        </p>
+                    )}
                 </div>
 
                 {/* Invoice Meta */}
@@ -201,11 +253,26 @@ export default function CreateInvoicePage() {
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Invoice No</label>
-                            <input type="text" value={formData.invoiceNumber} readOnly className="w-full border rounded-lg p-2 text-sm bg-gray-50 text-gray-500 cursor-not-allowed" />
+                            <input
+                                type="text"
+                                value={formData.invoiceNumber}
+                                onChange={handleInvoiceNumberChange}
+                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Date</label>
                             <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                        <div className="col-span-2">
+                            <label className="block text-xs font-bold text-gray-500 mb-1">Currency</label>
+                            <select
+                                value={formData.currency}
+                                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                            >
+                                {currencies.map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -216,29 +283,71 @@ export default function CreateInvoicePage() {
                     <div className="space-y-3">
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Full Name</label>
-                            <input name="name" value={formData.customerDetails.name} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="John Doe" />
+                            <input
+                                name="name"
+                                value={formData.customerDetails.name}
+                                onChange={handleCustomerChange}
+                                readOnly={formData.isAutoFilled}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                placeholder="John Doe"
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Email</label>
-                            <input name="email" value={formData.customerDetails.email} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="john@example.com" />
+                            <input
+                                name="email"
+                                value={formData.customerDetails.email}
+                                onChange={handleCustomerChange}
+                                readOnly={formData.isAutoFilled}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                placeholder="john@example.com"
+                            />
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Company Name</label>
-                            <input name="companyName" value={formData.customerDetails.companyName} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Acme Inc" />
+                            <input
+                                name="companyName"
+                                value={formData.customerDetails.companyName}
+                                onChange={handleCustomerChange}
+                                readOnly={formData.isAutoFilled}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                placeholder="Acme Inc"
+                            />
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 mb-1">Designation</label>
-                                <input name="designation" value={formData.customerDetails.designation} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Director" />
+                                <input
+                                    name="designation"
+                                    value={formData.customerDetails.designation}
+                                    onChange={handleCustomerChange}
+                                    readOnly={formData.isAutoFilled}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    placeholder="Director"
+                                />
                             </div>
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 mb-1">Member ID</label>
-                                <input name="memberId" value={formData.customerDetails.memberId} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="IGLA-123" />
+                                <input
+                                    name="memberId"
+                                    value={formData.customerDetails.memberId}
+                                    onChange={handleCustomerChange}
+                                    readOnly={formData.isAutoFilled}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    placeholder="IGLA-123"
+                                />
                             </div>
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Address</label>
-                            <textarea name="address" value={formData.customerDetails.address} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none" placeholder="123 Street, City, Country" />
+                            <textarea
+                                name="address"
+                                value={formData.customerDetails.address}
+                                onChange={handleCustomerChange}
+                                readOnly={formData.isAutoFilled}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                placeholder="123 Street, City, Country"
+                            />
                         </div>
                     </div>
                 </div>
@@ -256,20 +365,77 @@ export default function CreateInvoicePage() {
                         {formData.items.map((item, index) => (
                             <div key={index} className="flex gap-2 items-start group">
                                 <div className="flex-1 space-y-2">
-                                    <input
-                                        placeholder="Item Name"
-                                        value={item.name}
-                                        onChange={(e) => handleItemChange(index, 'name', e.target.value)}
-                                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                    />
+                                    <div className="flex gap-2 items-center">
+                                        <div className="flex-1">
+                                            {/* @ts-ignore */}
+                                            {/* @ts-ignore */}
+                                            {item.isCustom ? (
+                                                <div className="relative">
+                                                    <input
+                                                        placeholder="Item Name"
+                                                        value={item.name}
+                                                        onChange={(e) => handleItemChange(index, 'name', e.target.value)}
+                                                        className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none pr-8"
+                                                        autoFocus
+                                                    />
+                                                    <button
+                                                        // @ts-ignore
+                                                        onClick={() => handleItemChange(index, 'isCustom', false)}
+                                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
+                                                        title="Search Product"
+                                                    >
+                                                        <Search className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <SearchableSelect
+                                                    label=""
+                                                    placeholder="Select Product..."
+                                                    options={products.map(p => ({
+                                                        id: p.id,
+                                                        label: p.name,
+                                                        subLabel: `${p.type} - $${p.price}`
+                                                    }))}
+                                                    onSelect={(val) => {
+                                                        const p = products.find(prod => prod.id === val);
+                                                        if (p) {
+                                                            const newItems = [...formData.items];
+                                                            // @ts-ignore
+                                                            newItems[index].name = p.name;
+                                                            // @ts-ignore
+                                                            newItems[index].price = p.sellingPrice ?? p.price;
+                                                            // @ts-ignore
+                                                            newItems[index].originalPrice = p.price;
+                                                            // @ts-ignore
+                                                            newItems[index].total = newItems[index].quantity * (p.sellingPrice ?? p.price);
+                                                            // @ts-ignore
+                                                            newItems[index].isCustom = true;
+                                                            setFormData(prev => ({ ...prev, items: newItems }));
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        </div>
+                                    </div>
+
                                     <div className="flex gap-2">
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Price</label>
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Actual Price</label>
+                                            <input
+                                                type="number"
+                                                // @ts-ignore
+                                                value={item.originalPrice || 0}
+                                                onChange={(e) => handleItemChange(index, 'originalPrice', parseFloat(e.target.value) || 0)}
+                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-gray-500"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Selling Price</label>
                                             <input
                                                 type="number"
                                                 value={item.price}
                                                 onChange={(e) => handleItemChange(index, 'price', parseFloat(e.target.value) || 0)}
-                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-800"
                                             />
                                         </div>
                                         <div className="w-20">
@@ -283,8 +449,9 @@ export default function CreateInvoicePage() {
                                         </div>
                                         <div className="w-24">
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Total</label>
-                                            <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700">
-                                                ${item.total.toFixed(2)}
+                                            <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700 flex items-center h-[38px]">
+                                                {/* Display grand total with currency code in edit form */}
+                                                {(item.quantity * item.price).toFixed(2)}
                                             </div>
                                         </div>
                                     </div>
@@ -298,7 +465,9 @@ export default function CreateInvoicePage() {
 
                     <div className="mt-4 pt-4 border-t flex justify-between items-center">
                         <span className="font-bold text-gray-600">Grand Total</span>
-                        <span className="font-bold text-xl text-blue-600">${calculateGrandTotal().toFixed(2)}</span>
+                        <span className="font-bold text-xl text-blue-600">
+                            {formData.currency} {calculateGrandTotal().toFixed(2)}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -322,6 +491,7 @@ export default function CreateInvoicePage() {
                             customerDetails={formData.customerDetails}
                             items={formData.items}
                             totalAmount={calculateGrandTotal()}
+                            currency={formData.currency}
                         />
                     </div>
                 </div>
