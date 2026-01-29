@@ -23,15 +23,18 @@ export async function GET(request: Request) {
     const offset = Math.max(0, Number(params.get('offset') ?? '0'));
 
     // NEW: Status controls
-    // - status=ALL            -> no status filter (return all)
-    // - statuses=LIVE,BLOCKLISTED (CSV) -> filter to provided list
-    // - (default)             -> LIVE only (backwards compatible)
     const statusParam = (params.get('status') || '').toUpperCase(); // 'ALL' or ''
     const statusesCsv = params.get('statuses'); // e.g. "LIVE,BLOCKLISTED"
     const includeInactive = params.get('includeInactive') === '1';  // if true, don't filter isActive=true
 
+    // NEW: Newly Registered filter -> changed to Sort by Registration
+    const sortByRegistration = params.get('newlyRegistered') === 'true' || params.get('sortByRegistration') === 'true';
+
     // ------------------ build where ------------------
     const where: any = {};
+
+    // Note: REMOVED the 7-day filter logic as per request.
+    // We now only use this flag to trigger the sort order.
 
     // Status filter
     if (statusParam === 'ALL') {
@@ -73,6 +76,11 @@ export async function GET(request: Request) {
         skip: offset,
         take: limit,
         orderBy: (() => {
+          // If filtering by newly registered, force sort by createdAt desc
+          if (sortByRegistration) {
+            return { createdAt: 'desc' };
+          }
+
           const sort = params.get('sort');
           const ord = (params.get('order') ?? 'asc').toLowerCase();
           const direction = ord === 'desc' ? 'desc' : 'asc';

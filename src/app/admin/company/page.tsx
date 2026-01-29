@@ -13,6 +13,7 @@ import {
   Edit3,
   UserCheck,
   UserX,
+  Calendar,
 } from 'lucide-react';
 
 // -------------------- Types --------------------
@@ -45,6 +46,7 @@ interface Company {
   logoUrl?: string | null;
   isVerified: boolean;
   isActive: boolean;
+  createdAt?: string; // <-- Added
   status?: CompanyStatus; // <-- NEW
   services?: string[];      // adapt to your real types if needed
   partners?: string[];
@@ -109,6 +111,7 @@ export default function AdminCompaniesListPage() {
   const [companyName, setCompanyName] = useState('');
   const [memberId, setMemberId] = useState('');
   const [port, setPort] = useState('');
+  const [sortByDate, setSortByDate] = useState(false); // Changed from newlyRegistered
   const tabs = ['Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Company Name');
 
@@ -144,7 +147,7 @@ export default function AdminCompaniesListPage() {
     }, 400); // debounce
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [country, city, companyName, memberId, port]);
+  }, [country, city, companyName, memberId, port, sortByDate]);
 
   const buildQuery = () => {
     const params: Record<string, string> = {};
@@ -154,6 +157,7 @@ export default function AdminCompaniesListPage() {
     if (companyName) params.name = companyName;
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
+    if (sortByDate) params.sortByRegistration = 'true'; // Param renamed
 
     // 👇 force backend to return everything
     // params.status = 'ALL'; // Use explicit statuses to be sure
@@ -397,6 +401,19 @@ export default function AdminCompaniesListPage() {
               <Search size={22} />
             </button>
           </div>
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              onClick={() => setSortByDate(!sortByDate)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg border text-sm font-medium transition-all ${sortByDate
+                ? 'bg-teal-600 text-white border-teal-600 shadow-md ring-2 ring-teal-200'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-teal-400'
+                }`}
+            >
+              {sortByDate && <CheckCircle size={16} />}
+              Sort by Registration
+            </button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr,340px] gap-8">
@@ -447,6 +464,12 @@ export default function AdminCompaniesListPage() {
                           <MapPin size={14} />
                           {displayLocation || '—'}
                         </p>
+                        {company.createdAt && (
+                          <p className="text-sm text-gray-500 flex items-center gap-1.5 mt-1">
+                            <Calendar size={14} />
+                            Registered: {new Date(company.createdAt).toLocaleDateString()}
+                          </p>
+                        )}
                         <div className="flex flex-wrap items-center gap-2 mt-4">
                           <StatusBadge status={company.status} />
                           {company.isVerified && <MembershipBadge isVerified={true} />}
