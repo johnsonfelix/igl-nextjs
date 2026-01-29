@@ -1276,10 +1276,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
             </div>
 
-            {/* 4. Payment Method */}
+            {/* 5. Payment Method */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">4</span>
+                <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">{totalAttendeeCount > 0 ? '5' : '4'}</span>
                 Payment Method
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

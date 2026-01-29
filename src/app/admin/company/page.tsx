@@ -14,6 +14,8 @@ import {
   UserCheck,
   UserX,
   Calendar,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 // -------------------- Types --------------------
@@ -112,6 +114,10 @@ export default function AdminCompaniesListPage() {
   const [memberId, setMemberId] = useState('');
   const [port, setPort] = useState('');
   const [sortByDate, setSortByDate] = useState(false); // Changed from newlyRegistered
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const itemsPerPage = 10;
+
   const tabs = ['Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Company Name');
 
@@ -147,6 +153,11 @@ export default function AdminCompaniesListPage() {
     }, 400); // debounce
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [country, city, companyName, memberId, port, sortByDate, currentPage]);
+
+  // Reset to page 1 when filters change (excluding currentPage)
+  useEffect(() => {
+    setCurrentPage(1);
   }, [country, city, companyName, memberId, port, sortByDate]);
 
   const buildQuery = () => {
@@ -157,7 +168,11 @@ export default function AdminCompaniesListPage() {
     if (companyName) params.name = companyName;
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
-    if (sortByDate) params.sortByRegistration = 'true'; // Param renamed
+    if (sortByDate) params.sortByRegistration = 'true';
+
+    // Pagination
+    params.limit = String(itemsPerPage);
+    params.offset = String((currentPage - 1) * itemsPerPage);
 
     // 👇 force backend to return everything
     // params.status = 'ALL'; // Use explicit statuses to be sure
@@ -176,9 +191,12 @@ export default function AdminCompaniesListPage() {
       const res = await fetch(url, { cache: 'no-store' }); // Ensure fresh data
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const json = await res.json();
-      // Handle both old array format (fallback) and new object format
+      // Handle response format which includes pagination data
       const data = Array.isArray(json) ? json : (json.data || []);
       setCompanies(data);
+      if (json.totalPages) {
+        setTotalPages(json.totalPages);
+      }
     } catch (err) {
       setCompanies([]);
       setError(err instanceof Error ? err.message : String(err));
@@ -553,6 +571,31 @@ export default function AdminCompaniesListPage() {
                 </div>
               );
             })}
+
+            {/* Pagination Controls */}
+            {!loading && companies.length > 0 && (
+              <div className="flex justify-center items-center gap-4 mt-8">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-600 transition"
+                  title="Previous Page"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+                <div className="text-sm font-medium text-gray-600">
+                  Page <span className="text-teal-600 font-bold">{currentPage}</span> of <span className="text-gray-900">{totalPages}</span>
+                </div>
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 rounded-lg border bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 text-gray-600 transition"
+                  title="Next Page"
+                >
+                  <ChevronRight size={20} />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Right column placeholder - you can add filters/stats here */}

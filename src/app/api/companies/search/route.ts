@@ -101,6 +101,6 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     console.error('API /api/companies/search error:', error);
-    return NextResponse.json({ error: 'Failed to fetch companies' }, { status: 500 });
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
