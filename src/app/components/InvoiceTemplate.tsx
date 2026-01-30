@@ -153,8 +153,20 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                             <td className="p-2 border-r border-[#004aad]">{item.name}</td>
                             <td className="p-2 border-r border-[#004aad] text-center">
                                 {item.originalPrice && item.originalPrice > item.price && (
-                                    <div className="text-xs text-[#9ca3af] line-through">
-                                        {formatPrice(item.originalPrice)}
+                                    <div style={{ position: 'relative', display: 'inline-block' }}>
+                                        <span className="text-xs text-[#6b7280]">
+                                            {formatPrice(item.originalPrice || 0)}
+                                        </span>
+                                        <svg style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            left: 0,
+                                            width: '100%',
+                                            height: '100%',
+                                            pointerEvents: 'none'
+                                        }}>
+                                            <line x1="0" y1="85%" x2="100%" y2="85%" stroke="#6b7280" strokeWidth="1.5" />
+                                        </svg>
                                     </div>
                                 )}
                                 <div className={item.originalPrice && item.originalPrice > item.price ? "font-bold text-[#004aad]" : ""}>
