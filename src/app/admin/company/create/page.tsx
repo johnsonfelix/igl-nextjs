@@ -41,6 +41,7 @@ export default function AdminCreateCompanyPage() {
         mobile: '',
         skype: '',
         wechat: '',
+        taxNumber: '',
     });
 
     useEffect(() => {
@@ -161,6 +162,7 @@ export default function AdminCreateCompanyPage() {
                 },
                 scopeOfBusiness: formData.scopeOfBusiness,
                 servicesOffered: formData.servicesOffered,
+                taxNumber: formData.taxNumber,
                 media: uploadedMediaUrls // Send array of URLs
             };
 
@@ -244,6 +246,16 @@ export default function AdminCreateCompanyPage() {
                                     type="date"
                                     name="established"
                                     value={formData.established}
+                                    onChange={handleChange}
+                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Tax Number</label>
+                                <input
+                                    type="text"
+                                    name="taxNumber"
+                                    value={formData.taxNumber}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
                                 />
@@ -385,9 +397,9 @@ export default function AdminCreateCompanyPage() {
 
                             <div className="md:col-span-2">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
-                                <input
-                                    type="text"
+                                <textarea
                                     name="address"
+                                    rows={3}
                                     value={formData.address}
                                     onChange={handleChange}
                                     className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
@@ -424,7 +436,7 @@ export default function AdminCreateCompanyPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Postal Code</label>
                                 <input
                                     type="text"
                                     name="zipCode"

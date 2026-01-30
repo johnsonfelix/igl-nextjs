@@ -38,6 +38,7 @@ export async function PATCH(
     const { id } = await params;
     try {
         const body = await request.json();
+        console.log("PATCH Company Payload:", JSON.stringify(body, null, 2));
         const {
             name,
             memberId,
@@ -58,10 +59,13 @@ export async function PATCH(
             deleteMediaIds, // Array of strings (IDs) to delete
             purchasedMembership, // <--- Added this
             memberFromYear,
+            taxNumber,
             // New fields for capabilities
             scopeOfBusiness,
             servicesOffered,
         } = body;
+
+        console.log("Location received:", JSON.stringify(location, null, 2));
 
         // Location upsert
         let locationUpdate = {};
@@ -76,7 +80,7 @@ export async function PATCH(
                             country: location.country || '',
                             zipCode: location.zipCode || '',
                             contactPerson: location.contactPerson || null,
-                            mobile: location.mobile || null,
+                            mobile: location.mobile ?? null,
                             skype: location.skype || null,
                             wechat: location.wechat || null,
                             email: location.email || null,
@@ -88,7 +92,7 @@ export async function PATCH(
                             country: location.country || '',
                             zipCode: location.zipCode || '',
                             contactPerson: location.contactPerson || null,
-                            mobile: location.mobile || null,
+                            mobile: location.mobile ?? null,
                             skype: location.skype || null,
                             wechat: location.wechat || null,
                             email: location.email || null,
@@ -127,6 +131,7 @@ export async function PATCH(
             participationYears,
             purchasedMembership, // <--- Added this
             memberFromYear, // New Int field
+            taxNumber,
             scopeOfBusiness,
             servicesOffered,
             ...locationUpdate,

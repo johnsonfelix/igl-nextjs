@@ -22,9 +22,12 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
             designation: "",
             address: "",
             memberId: "",
+            phoneNumber: "",
+            taxNumber: "",
+            postalCode: "",
         },
         items: [
-            { name: "Conference Ticket", quantity: 1, price: 0, total: 0 },
+            { name: "Conference Ticket", quantity: 1, price: 0, originalPrice: 0, total: 0 },
         ],
     });
 
@@ -47,6 +50,9 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                         designation: "",
                         address: "",
                         memberId: "",
+                        phoneNumber: "",
+                        taxNumber: "",
+                        postalCode: "",
                     },
                     items: data.items || [],
                 });
@@ -60,7 +66,13 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     }, [id, router]);
 
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+
+        // Restrict to numbers only for Phone Number and Postal Code
+        if (name === 'phoneNumber' || name === 'postalCode') {
+            value = value.replace(/\D/g, '');
+        }
+
         setFormData((prev) => ({
             ...prev,
             customerDetails: { ...prev.customerDetails, [name]: value },
@@ -83,7 +95,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     const addItem = () => {
         setFormData((prev) => ({
             ...prev,
-            items: [...prev.items, { name: "", quantity: 1, price: 0, total: 0 }],
+            items: [...prev.items, { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0 }],
         }));
     };
 
@@ -178,7 +190,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
             {/* --- FORM SECTION --- */}
-            <div className="w-full lg:w-1/3 overflow-y-auto pr-4 pb-20">
+            <div className="w-full lg:w-1/2 overflow-y-auto pr-4 pb-20">
                 <div className="flex items-center gap-4 mb-6">
                     <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
                         <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -228,8 +240,22 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 mb-1">Address</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Address</label>
                             <textarea name="address" value={formData.customerDetails.address} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none" placeholder="123 Street, City, Country" />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">Phone Number</label>
+                                <input name="phoneNumber" value={(formData.customerDetails as any).phoneNumber || ''} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">Postal Code</label>
+                                <input name="postalCode" value={(formData.customerDetails as any).postalCode || ''} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1">Tax Number</label>
+                            <input name="taxNumber" value={(formData.customerDetails as any).taxNumber || ''} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
                     </div>
                 </div>
@@ -255,12 +281,22 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                                     />
                                     <div className="flex gap-2">
                                         <div className="flex-1">
-                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Price</label>
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Actual Price</label>
+                                            <input
+                                                type="number"
+                                                // @ts-ignore
+                                                value={item.originalPrice || 0}
+                                                onChange={(e) => handleItemChange(index, 'originalPrice', parseFloat(e.target.value) || 0)}
+                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-gray-500"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-[10px] text-gray-400 font-bold uppercase">Selling Price</label>
                                             <input
                                                 type="number"
                                                 value={item.price}
                                                 onChange={(e) => handleItemChange(index, 'price', parseFloat(e.target.value) || 0)}
-                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none font-bold text-gray-800"
                                             />
                                         </div>
                                         <div className="w-20">
@@ -274,8 +310,9 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                                         </div>
                                         <div className="w-24">
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Total</label>
-                                            <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700">
-                                                ${item.total.toFixed(2)}
+                                            <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700 flex items-center h-[38px]">
+                                                {/* Display grand total with currency code in edit form */}
+                                                {(item.quantity * item.price).toFixed(2)}
                                             </div>
                                         </div>
                                     </div>

@@ -22,6 +22,9 @@ export default function CreateInvoicePage() {
             designation: "",
             address: "",
             memberId: "",
+            phoneNumber: "",
+            taxNumber: "",
+            postalCode: "",
         },
         items: [
             { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false },
@@ -84,7 +87,10 @@ export default function CreateInvoicePage() {
                     companyName: company.name,
                     designation: loc.contactPersonDesignation || company.designation || "",
                     memberId: company.memberId,
-                    address: [loc.address, loc.city, loc.state, loc.country, loc.zipCode].filter(Boolean).join(", "),
+                    address: [loc.address, loc.city, loc.state, loc.country].filter(Boolean).join(", "),
+                    phoneNumber: loc.mobile || loc.phone || "",
+                    taxNumber: company.taxNumber || "",
+                    postalCode: loc.zipCode || "",
                 }
             }));
         }
@@ -101,6 +107,9 @@ export default function CreateInvoicePage() {
                 designation: "",
                 address: "",
                 memberId: "",
+                phoneNumber: "",
+                taxNumber: "",
+                postalCode: "",
             }
         }));
     };
@@ -110,7 +119,13 @@ export default function CreateInvoicePage() {
     };
 
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+        let { name, value } = e.target;
+
+        // Restrict to numbers only for Phone Number and Postal Code
+        if (name === 'phoneNumber' || name === 'postalCode') {
+            value = value.replace(/\D/g, '');
+        }
+
         setFormData((prev) => ({
             ...prev,
             customerDetails: { ...prev.customerDetails, [name]: value },
@@ -211,7 +226,7 @@ export default function CreateInvoicePage() {
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
             {/* --- FORM SECTION --- */}
-            <div className="w-full lg:w-1/3 overflow-y-auto pr-4 pb-20">
+            <div className="w-full lg:w-1/2 overflow-y-auto pr-4 pb-20">
                 <div className="flex items-center gap-4 mb-6">
                     <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
                         <ArrowLeft className="w-5 h-5 text-gray-600" />
@@ -347,6 +362,38 @@ export default function CreateInvoicePage() {
                                 readOnly={formData.isAutoFilled}
                                 className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 placeholder="123 Street, City, Country"
+                            />
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">Phone Number</label>
+                                <input
+                                    name="phoneNumber"
+                                    value={(formData.customerDetails as any).phoneNumber || ''}
+                                    onChange={handleCustomerChange}
+                                    readOnly={formData.isAutoFilled}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">Postal Code</label>
+                                <input
+                                    name="postalCode"
+                                    value={(formData.customerDetails as any).postalCode || ''}
+                                    onChange={handleCustomerChange}
+                                    readOnly={formData.isAutoFilled}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                />
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-xs font-bold text-gray-500 mb-1">Tax Number</label>
+                            <input
+                                name="taxNumber"
+                                value={(formData.customerDetails as any).taxNumber || ''}
+                                onChange={handleCustomerChange}
+                                readOnly={formData.isAutoFilled}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                             />
                         </div>
                     </div>

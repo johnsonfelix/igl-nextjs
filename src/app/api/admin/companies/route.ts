@@ -39,6 +39,7 @@ export async function POST(request: Request) {
             participationYears,
             scopeOfBusiness,
             servicesOffered,
+            taxNumber,
             media, // Array of strings (URLs) for gallery
         } = body;
 
@@ -109,6 +110,7 @@ export async function POST(request: Request) {
                 participationYears,
                 scopeOfBusiness,
                 servicesOffered,
+                taxNumber,
                 ...locationData,
                 ...mediaData,
             },

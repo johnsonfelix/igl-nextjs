@@ -12,6 +12,10 @@ interface InvoiceProps {
         designation: string;
         address: string;
         memberId: string;
+        // New fields
+        phoneNumber?: string;
+        taxNumber?: string;
+        postalCode?: string;
     };
     items: Array<{
         name: string;
@@ -80,14 +84,19 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                             <div className="font-bold uppercase text-[#00317a] text-sm">{customerDetails.companyName}</div>
                         </div>
                         <div className="grid grid-cols-[110px_1fr] gap-x-2 gap-y-1">
-                            <div className="">Registered Name</div>
-                            <div>
-                                <div className="font-bold uppercase leading-tight">{customerDetails.name}</div>
-                                <div className="leading-tight">{customerDetails.designation}</div>
-                            </div>
+                            {/* Removed Registered Name section as requested */}
 
                             <div className="">Address</div>
                             <div className="font-bold break-words leading-tight">{customerDetails.address || 'N/A'}</div>
+
+                            <div className="">Tel</div>
+                            <div className="font-bold leading-tight">{customerDetails.phoneNumber || 'N/A'}</div>
+
+                            <div className="">Tax Number</div>
+                            <div className="font-bold leading-tight">{customerDetails.taxNumber || 'N/A'}</div>
+
+                            <div className="">Postal Code</div>
+                            <div className="font-bold leading-tight">{customerDetails.postalCode || 'N/A'}</div>
                         </div>
                     </div>
                 </div>
@@ -99,11 +108,16 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                     </div>
                     <div className="p-3 text-sm space-y-1 flex-1">
                         <div className="grid grid-cols-[110px_auto]">
-                            <span style={{ color: '#475569' }}>Customer Name</span>
-                            <span className="font-bold uppercase">: {customerDetails.name}</span>
+                            <span style={{ color: '#475569' }}>Participant Name</span>
+                            <div>
+                                <div className="font-bold uppercase">: {customerDetails.name}</div>
+                                {customerDetails.designation && (
+                                    <div className="text-xs pl-2">{customerDetails.designation}</div>
+                                )}
+                            </div>
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
-                            <span style={{ color: '#475569' }}>Customer Email</span>
+                            <span style={{ color: '#475569' }}>Email</span>
                             <span className="font-bold truncate">: {customerDetails.email}</span>
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
@@ -111,7 +125,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                             <span className="font-bold">: {orderId}</span>
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
-                            <span style={{ color: '#475569' }}>Customer Code</span>
+                            <span style={{ color: '#475569' }}>Member Code</span>
                             <span className="font-bold">: {customerDetails.memberId}</span>
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
