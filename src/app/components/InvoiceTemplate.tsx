@@ -51,7 +51,6 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 backgroundColor: '#ffffff',
                 color: '#1e293b', // slate-800
                 width: '210mm',
-                minHeight: '296mm', // Slightly less than 297mm to prevent overflow to 2nd page
                 padding: '10mm', // standard margin
                 boxSizing: 'border-box'
             }}
@@ -208,12 +207,24 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                     </div>
                     <div className="w-1/2">
                         <h4 className="font-bold text-[#00317a] mb-1">Remarks:</h4>
-                        <ol className="list-decimal list-inside space-y-1 text-xs leading-snug" style={{ color: '#334155' }}>
-                            <li>We will confirm your registration once we have received your full payment.</li>
-                            <li>Bank transfer must be NET and FREE of all charges (Bank Transfer cost to be borne by the participant).</li>
-                            <li>Registration cancellations received prior to 10th January 2025 will be eligible to receive a 50% refund.</li>
-                            <li>Cancellations received after 10th January 2025 will not be eligible for a refund.</li>
-                        </ol>
+                        <div className="space-y-1 text-xs leading-snug" style={{ color: '#334155' }}>
+                            <div className="flex gap-1">
+                                <span className="w-3 shrink-0">1.</span>
+                                <div>We will confirm your registration once we have received your full payment.</div>
+                            </div>
+                            <div className="flex gap-1">
+                                <span className="w-3 shrink-0">2.</span>
+                                <div>Bank transfer must be NET and FREE of all charges (Bank Transfer cost to be borne by the participant).</div>
+                            </div>
+                            <div className="flex gap-1">
+                                <span className="w-3 shrink-0">3.</span>
+                                <div>Registration cancellations received prior to 10th January 2025 will be eligible to receive a 50% refund.</div>
+                            </div>
+                            <div className="flex gap-1">
+                                <span className="w-3 shrink-0">4.</span>
+                                <div>Cancellations received after 10th January 2025 will not be eligible for a refund.</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="text-xs text-center mt-2" style={{ color: '#9ca3af' }}>
