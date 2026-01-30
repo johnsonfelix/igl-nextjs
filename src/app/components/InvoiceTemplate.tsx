@@ -118,7 +118,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
                             <span style={{ color: '#475569' }}>Email</span>
-                            <span className="font-bold truncate">: {customerDetails.email}</span>
+                            <span className="font-bold">: {customerDetails.email}</span>
                         </div>
                         <div className="grid grid-cols-[110px_auto]">
                             <span style={{ color: '#475569' }}>Bill No</span>
@@ -154,7 +154,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                             <td className="p-2 border-r border-[#004aad]">{item.name}</td>
                             <td className="p-2 border-r border-[#004aad] text-center">
                                 {item.originalPrice && item.originalPrice > item.price && (
-                                    <div className="text-xs text-gray-400 line-through">
+                                    <div className="text-xs text-[#9ca3af] line-through">
                                         {formatPrice(item.originalPrice)}
                                     </div>
                                 )}

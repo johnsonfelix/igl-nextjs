@@ -31,7 +31,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
         ],
     });
 
-    const componentRef = useRef<HTMLDivElement>(null);
+
 
     useEffect(() => {
         fetch(`/api/admin/invoices/${id}`)
@@ -163,7 +163,8 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
         const saved = await handleUpdate(false);
         if (!saved) return;
 
-        if (!componentRef.current) return;
+        const element = document.getElementById('invoice-component');
+        if (!element) return;
 
         try {
             // Dynamic import to avoid SSR issues
@@ -172,13 +173,12 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
             const opt = {
                 margin: 0,
                 filename: `Invoice-${formData.invoiceNumber}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                image: { type: 'jpeg', quality: 0.98 } as any,
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
+            } as any;
 
-            // @ts-ignore
-            html2pdf().set(opt).from(componentRef.current).save();
+            html2pdf().set(opt).from(element).save();
         } catch (error) {
             console.error("Download failed", error);
             toast.error("Failed to download PDF");
@@ -349,7 +349,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                 </div>
 
                 <div className="shadow-2xl print:shadow-none bg-white">
-                    <div ref={componentRef}>
+                    <div>
                         <InvoiceTemplate
                             orderId={formData.invoiceNumber}
                             date={formData.date}
