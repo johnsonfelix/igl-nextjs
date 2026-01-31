@@ -15,6 +15,8 @@ export default function CreateInvoicePage() {
         date: new Date().toISOString().split("T")[0],
         currency: "USD",
         isAutoFilled: false,
+        companyId: "", // Added for Order creation
+        lockedFields: [] as string[],
         customerDetails: {
             name: "",
             email: "",
@@ -27,7 +29,7 @@ export default function CreateInvoicePage() {
             postalCode: "",
         },
         items: [
-            { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false },
+            { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false, productId: "", productType: "" },
         ],
     });
 
@@ -77,20 +79,28 @@ export default function CreateInvoicePage() {
         const company = companies.find(c => c.id === companyId);
         if (company) {
             const loc = company.location || {};
+            const details = {
+                name: loc.contactPerson || company.directors || "",
+                email: loc.email || "",
+                companyName: company.name,
+                designation: loc.contactPersonDesignation || company.designation || "",
+                memberId: company.memberId,
+                address: [loc.address, loc.city, loc.state, loc.country].filter(Boolean).join(", "),
+                phoneNumber: loc.mobile || loc.phone || "",
+                taxNumber: company.taxNumber || "",
+                postalCode: loc.zipCode || "",
+            };
+
+            const locked = Object.keys(details).filter(key => !!details[key as keyof typeof details]);
+
             setFormData(prev => ({
                 ...prev,
                 isAutoFilled: true,
+                companyId: company.id,
+                lockedFields: locked,
                 customerDetails: {
                     ...prev.customerDetails,
-                    name: loc.contactPerson || company.directors || "",
-                    email: loc.email || "",
-                    companyName: company.name,
-                    designation: loc.contactPersonDesignation || company.designation || "",
-                    memberId: company.memberId,
-                    address: [loc.address, loc.city, loc.state, loc.country].filter(Boolean).join(", "),
-                    phoneNumber: loc.mobile || loc.phone || "",
-                    taxNumber: company.taxNumber || "",
-                    postalCode: loc.zipCode || "",
+                    ...details
                 }
             }));
         }
@@ -100,6 +110,8 @@ export default function CreateInvoicePage() {
         setFormData(prev => ({
             ...prev,
             isAutoFilled: false,
+            companyId: "",
+            lockedFields: [],
             customerDetails: {
                 name: "",
                 email: "",
@@ -148,7 +160,7 @@ export default function CreateInvoicePage() {
     const addItem = () => {
         setFormData((prev) => ({
             ...prev,
-            items: [...prev.items, { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false }],
+            items: [...prev.items, { name: "", quantity: 1, price: 0, originalPrice: 0, total: 0, isCustom: false, productId: "", productType: "" }],
         }));
     };
 
@@ -302,8 +314,8 @@ export default function CreateInvoicePage() {
                                 name="name"
                                 value={formData.customerDetails.name}
                                 onChange={handleCustomerChange}
-                                readOnly={formData.isAutoFilled}
-                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                readOnly={formData.lockedFields.includes('name')}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('name') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 placeholder="John Doe"
                             />
                         </div>
@@ -313,8 +325,8 @@ export default function CreateInvoicePage() {
                                 name="email"
                                 value={formData.customerDetails.email}
                                 onChange={handleCustomerChange}
-                                readOnly={formData.isAutoFilled}
-                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                readOnly={formData.lockedFields.includes('email')}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('email') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 placeholder="john@example.com"
                             />
                         </div>
@@ -324,8 +336,8 @@ export default function CreateInvoicePage() {
                                 name="companyName"
                                 value={formData.customerDetails.companyName}
                                 onChange={handleCustomerChange}
-                                readOnly={formData.isAutoFilled}
-                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                readOnly={formData.lockedFields.includes('companyName')}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('companyName') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 placeholder="Acme Inc"
                             />
                         </div>
@@ -336,8 +348,8 @@ export default function CreateInvoicePage() {
                                     name="designation"
                                     value={formData.customerDetails.designation}
                                     onChange={handleCustomerChange}
-                                    readOnly={formData.isAutoFilled}
-                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    readOnly={formData.lockedFields.includes('designation')}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('designation') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                     placeholder="Director"
                                 />
                             </div>
@@ -347,8 +359,8 @@ export default function CreateInvoicePage() {
                                     name="memberId"
                                     value={formData.customerDetails.memberId}
                                     onChange={handleCustomerChange}
-                                    readOnly={formData.isAutoFilled}
-                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    readOnly={formData.lockedFields.includes('memberId')}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('memberId') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                     placeholder="IGLA-123"
                                 />
                             </div>
@@ -359,8 +371,8 @@ export default function CreateInvoicePage() {
                                 name="address"
                                 value={formData.customerDetails.address}
                                 onChange={handleCustomerChange}
-                                readOnly={formData.isAutoFilled}
-                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                readOnly={formData.lockedFields.includes('address')}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none h-24 resize-none ${formData.lockedFields.includes('address') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 placeholder="123 Street, City, Country"
                             />
                         </div>
@@ -371,8 +383,8 @@ export default function CreateInvoicePage() {
                                     name="phoneNumber"
                                     value={(formData.customerDetails as any).phoneNumber || ''}
                                     onChange={handleCustomerChange}
-                                    readOnly={formData.isAutoFilled}
-                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    readOnly={formData.lockedFields.includes('phoneNumber')}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('phoneNumber') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                             <div>
@@ -381,8 +393,8 @@ export default function CreateInvoicePage() {
                                     name="postalCode"
                                     value={(formData.customerDetails as any).postalCode || ''}
                                     onChange={handleCustomerChange}
-                                    readOnly={formData.isAutoFilled}
-                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                    readOnly={formData.lockedFields.includes('postalCode')}
+                                    className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('postalCode') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                                 />
                             </div>
                         </div>
@@ -392,8 +404,8 @@ export default function CreateInvoicePage() {
                                 name="taxNumber"
                                 value={(formData.customerDetails as any).taxNumber || ''}
                                 onChange={handleCustomerChange}
-                                readOnly={formData.isAutoFilled}
-                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.isAutoFilled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
+                                readOnly={formData.lockedFields.includes('taxNumber')}
+                                className={`w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none ${formData.lockedFields.includes('taxNumber') ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : ''}`}
                             />
                         </div>
                     </div>
@@ -457,6 +469,11 @@ export default function CreateInvoicePage() {
                                                             newItems[index].total = newItems[index].quantity * (p.sellingPrice ?? p.price);
                                                             // @ts-ignore
                                                             newItems[index].isCustom = true;
+                                                            // @ts-ignore
+                                                            newItems[index].productId = p.id;
+                                                            // @ts-ignore
+                                                            newItems[index].productType = p.type;
+
                                                             setFormData(prev => ({ ...prev, items: newItems }));
                                                         }
                                                     }}
