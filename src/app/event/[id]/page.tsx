@@ -351,7 +351,7 @@ const PriceCard = ({
             {soldTo ? (
               <>
                 <div className="text-xs font-bold text-black uppercase tracking-widest mb-2">Sponsored By</div>
-                <div className="w-16 h-16 mb-2 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center p-2 shadow-sm">
+                <div className="w-25 h-25 mb-2 rounded-full bg-gray-50 border border-gray-100 flex items-center justify-center shadow-sm">
                   {soldTo.logoUrl ? (
                     <img src={soldTo.logoUrl} alt={soldTo.name} className="w-full h-full object-contain" />
                   ) : (
