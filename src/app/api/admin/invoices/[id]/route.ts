@@ -27,7 +27,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
                 date: new Date(date),
                 customerDetails,
                 items,
-                totalAmount
+                totalAmount,
+                currency: body.currency
             }
         });
 

@@ -541,12 +541,35 @@ export default function CreateInvoicePage() {
                         ))}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                        <span className="font-bold text-gray-600">Grand Total</span>
-                        <span className="font-bold text-xl text-blue-600">
-                            {formData.currency} {calculateGrandTotal().toFixed(2)}
-                        </span>
-                    </div>
+                    {formData.currency === 'INR' ? (
+                        <div className="mt-4 pt-4 border-t space-y-2">
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>Total (Excl. Tax)</span>
+                                <span>{formData.currency} {(calculateGrandTotal() / 1.18).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>CGST (9%)</span>
+                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>SGST (9%)</span>
+                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t mt-2">
+                                <span className="font-bold text-gray-600">Grand Total</span>
+                                <span className="font-bold text-xl text-blue-600">
+                                    {formData.currency} {calculateGrandTotal().toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                            <span className="font-bold text-gray-600">Grand Total</span>
+                            <span className="font-bold text-xl text-blue-600">
+                                {formData.currency} {calculateGrandTotal().toFixed(2)}
+                            </span>
+                        </div>
+                    )}
                 </div>
             </div>
 

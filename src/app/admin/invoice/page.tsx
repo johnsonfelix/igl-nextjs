@@ -107,7 +107,7 @@ export default function InvoiceListPage() {
                                             {inv.customerDetails?.companyName || '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-800">
-                                            ${inv.totalAmount.toFixed(2)}
+                                            {inv.currency || 'USD'} {inv.totalAmount.toFixed(2)}
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex items-center justify-end gap-2">

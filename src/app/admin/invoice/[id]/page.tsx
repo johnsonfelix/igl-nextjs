@@ -15,6 +15,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     const [formData, setFormData] = useState({
         invoiceNumber: "",
         date: "",
+        currency: "USD",
         customerDetails: {
             name: "",
             email: "",
@@ -43,6 +44,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                 setFormData({
                     invoiceNumber: data.invoiceNumber,
                     date: new Date(data.date).toISOString().split("T")[0],
+                    currency: data.currency || "USD",
                     customerDetails: data.customerDetails || {
                         name: "",
                         email: "",
@@ -118,7 +120,8 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    totalAmount: calculateGrandTotal()
+                    totalAmount: calculateGrandTotal(),
+                    currency: formData.currency
                 })
             });
 
@@ -209,6 +212,16 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                         <div>
                             <label className="block text-xs font-bold text-gray-500 mb-1">Date</label>
                             <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
+                        </div>
+                        <div className="col-span-2">
+                            <label className="block text-xs font-bold text-gray-500 mb-1">Currency</label>
+                            <select
+                                value={formData.currency}
+                                onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
+                                className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                            >
+                                {["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB"].map(c => <option key={c} value={c}>{c}</option>)}
+                            </select>
                         </div>
                     </div>
                 </div>
@@ -324,10 +337,33 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                         ))}
                     </div>
 
-                    <div className="mt-4 pt-4 border-t flex justify-between items-center">
-                        <span className="font-bold text-gray-600">Grand Total</span>
-                        <span className="font-bold text-xl text-blue-600">${calculateGrandTotal().toFixed(2)}</span>
-                    </div>
+                    {formData.currency === 'INR' ? (
+                        <div className="mt-4 pt-4 border-t space-y-2">
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>Total (Excl. Tax)</span>
+                                <span>{formData.currency} {(calculateGrandTotal() / 1.18).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>CGST (9%)</span>
+                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-sm text-gray-500">
+                                <span>SGST (9%)</span>
+                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                            </div>
+                            <div className="flex justify-between items-center pt-2 border-t mt-2">
+                                <span className="font-bold text-gray-600">Grand Total</span>
+                                <span className="font-bold text-xl text-blue-600">
+                                    {formData.currency} {calculateGrandTotal().toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                            <span className="font-bold text-gray-600">Grand Total</span>
+                            <span className="font-bold text-xl text-blue-600">{formData.currency} {calculateGrandTotal().toFixed(2)}</span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="mt-8">
@@ -356,6 +392,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                             customerDetails={formData.customerDetails}
                             items={formData.items}
                             totalAmount={calculateGrandTotal()}
+                            currency={formData.currency}
                         />
                     </div>
                 </div>

@@ -576,6 +576,7 @@ model ManualInvoice {
   customerDetails Json
   items           Json
   totalAmount     Float
+  currency        String   @default("USD")
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

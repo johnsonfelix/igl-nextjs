@@ -25,7 +25,8 @@ export async function POST(request: Request) {
                 date: new Date(date),
                 customerDetails, // Json
                 items, // Json
-                totalAmount
+                totalAmount,
+                currency: body.currency || "USD" // Default to USD if not provided
             }
         });
 

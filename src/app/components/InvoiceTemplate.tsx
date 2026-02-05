@@ -198,13 +198,44 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 </tbody>
                 <tfoot>
                     <tr className="border-t-2 border-[#004aad]">
-                        <td colSpan={4} className="p-2 text-right text-xs pr-4 border-r border-[#004aad]" style={{ color: '#6b7280' }}>
+                        <td colSpan={3} className="p-2 text-right text-xs pr-4 border-r border-[#004aad]" style={{ color: '#6b7280' }}>
                             ***Bank Charges Included
                         </td>
-                        <td className="p-0">
-                            <div className="flex flex-col h-full">
-                                <div className="text-center text-xs font-bold text-[#00317a] border-b border-[#004aad] p-1">Grand Total</div>
-                                <div className="text-center font-bold text-lg p-2">{totalAmount !== 0 ? formatPrice(totalAmount) : totalAmount}</div>
+                        <td className="p-0" colSpan={2}>
+                            <div className="flex flex-col h-full text-xs">
+                                {currency === 'INR' ? (
+                                    <>
+                                        <div className="grid grid-cols-2 border-b border-[#004aad]">
+                                            <div className="p-1 border-r border-[#004aad] text-center font-bold text-[#00317a]">Total</div>
+                                            <div className="p-1 text-right pr-2">
+                                                {formatPrice(totalAmount / 1.18)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 border-b border-[#004aad]">
+                                            <div className="p-1 border-r border-[#004aad] text-center font-bold text-[#00317a]">CGST (9%)</div>
+                                            <div className="p-1 text-right pr-2">
+                                                {formatPrice((totalAmount / 1.18) * 0.09)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 border-b border-[#004aad]">
+                                            <div className="p-1 border-r border-[#004aad] text-center font-bold text-[#00317a]">SGST (9%)</div>
+                                            <div className="p-1 text-right pr-2">
+                                                {formatPrice((totalAmount / 1.18) * 0.09)}
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2" style={{ backgroundColor: '#eff6ff' }}>
+                                            <div className="p-1 border-r border-[#004aad] text-center font-bold text-[#00317a]">Grand Total</div>
+                                            <div className="p-1 text-right font-bold pr-2 text-sm">
+                                                {formatPrice(totalAmount)}
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <div className="text-center font-bold text-[#00317a] border-b border-[#004aad] p-1">Grand Total</div>
+                                        <div className="text-center font-bold text-lg p-2">{totalAmount !== 0 ? formatPrice(totalAmount) : totalAmount}</div>
+                                    </>
+                                )}
                             </div>
                         </td>
                     </tr>
