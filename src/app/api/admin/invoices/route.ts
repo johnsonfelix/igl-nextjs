@@ -64,7 +64,8 @@ export async function POST(request: Request) {
                         designation: customerDetails.designation,
                         memberId: customerDetails.memberId,
                         phone: customerDetails.phoneNumber,
-                        taxNumber: customerDetails.taxNumber
+                        taxNumber: customerDetails.taxNumber,
+                        gstNumber: customerDetails.gstNumber
                     }
                 }
             });

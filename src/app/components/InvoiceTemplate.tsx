@@ -15,6 +15,7 @@ interface InvoiceProps {
         // New fields
         phoneNumber?: string;
         taxNumber?: string;
+        gstNumber?: string;
         postalCode?: string;
     };
     items: Array<{
@@ -93,6 +94,13 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
 
                             <div className="">Tax Number</div>
                             <div className="font-bold leading-tight">{customerDetails.taxNumber || 'N/A'}</div>
+
+                            {customerDetails.gstNumber && (
+                                <>
+                                    <div className="">GST Number</div>
+                                    <div className="font-bold leading-tight">{customerDetails.gstNumber}</div>
+                                </>
+                            )}
 
                             <div className="">Postal Code</div>
                             <div className="font-bold leading-tight">{customerDetails.postalCode || 'N/A'}</div>
