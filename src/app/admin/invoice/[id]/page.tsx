@@ -26,6 +26,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
             phoneNumber: "",
             taxNumber: "",
             postalCode: "",
+            gstNumber: "",
         },
         items: [
             { name: "Conference Ticket", quantity: 1, price: 0, originalPrice: 0, total: 0 },
@@ -55,6 +56,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                         phoneNumber: "",
                         taxNumber: "",
                         postalCode: "",
+                        gstNumber: "",
                     },
                     items: data.items || [],
                 });
@@ -270,6 +272,18 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                             <label className="block text-xs font-bold text-gray-500 mb-1">Tax Number</label>
                             <input name="taxNumber" value={(formData.customerDetails as any).taxNumber || ''} onChange={handleCustomerChange} className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
                         </div>
+                        {formData.currency === "INR" && (
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 mb-1">GST Number</label>
+                                <input
+                                    name="gstNumber"
+                                    value={(formData.customerDetails as any).gstNumber || ''}
+                                    onChange={handleCustomerChange}
+                                    className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                                    placeholder="GSTIN..."
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
 
