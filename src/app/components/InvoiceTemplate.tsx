@@ -68,7 +68,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                         <p>Amber 16 F 2, Olympia Opaline, 33, Rajiv Gandhi Road,</p>
                         <p>Navalur, Chennai - 600 130, India.</p>
                         <p>Mob : +91 9940100929 , Mail : <span className="font-bold">sales@igla.asia</span></p>
-                        <p>Website : <span className="font-bold">http://igla.asia/</span></p>
+                        <p>Website : <span className="font-bold">www.igla.asia</span></p>
                     </div>
                 </div>
             </div>
