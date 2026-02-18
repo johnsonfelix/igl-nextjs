@@ -74,7 +74,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                     <div style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.5' }}>
                         <p style={{ margin: '0' }}>Amber 16 F 2, Olympia Opaline, 33, Rajiv Gandhi Road,</p>
                         <p style={{ margin: '0' }}>Navalur, Chennai - 600 130, India.</p>
-                        <p style={{ margin: '4px 0 0 0' }}>Mob : +91 9940100929 , Mail : <span style={{ fontWeight: 'bold' }}>sales@igla.asia</span></p>
+                        <p style={{ margin: '4px 0 0 0' }}>Mob : +91 9363027279 , Mail : <span style={{ fontWeight: 'bold' }}>sales@igla.asia</span></p>
                         <p style={{ margin: '0' }}>Website : <span style={{ fontWeight: 'bold' }}>www.igla.asia</span></p>
                     </div>
                 </div>
