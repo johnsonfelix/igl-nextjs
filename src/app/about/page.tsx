@@ -260,7 +260,7 @@ export default function AboutPage() {
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-gray-800 mb-2">Phone</h4>
-                                    <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+91 99401 00929</a>
+                                    <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+91 93630 27279</a>
                                 </div>
                             </div>
 
