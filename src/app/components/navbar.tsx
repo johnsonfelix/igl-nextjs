@@ -131,10 +131,10 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex gap-4 mt-2 md:mt-0 text-black">
-            <a href="tel:+919363027279" className="hover:text-black flex items-center gap-2">
+            {/* <a href="tel:+919363027279" className="hover:text-black flex items-center gap-2">
               <Phone className="w-4 h-4 text-black" />
               <span className="text-black">+91 93630 27279</span>
-            </a>
+            </a> */}
             <a href="mailto:sales@igla.asia" className="hover:text-black flex items-center gap-2">
               <Mail className="w-4 h-4 text-black" />
               <span className="text-black">sales@igla.asia</span>

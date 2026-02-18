@@ -46,8 +46,8 @@ export default function Footer() {
                 </div>
                 <div>
                     <h4 className="font-bold text-lg mb-6">Get in touch</h4>
-                    <p className="text-white/80 mb-4 text-sm">Amber 16 F 2, Olympia Opaline 33,<br /> Rajiv Gandhi Road, Navalur - 600 130</p>
-                    <p className="text-white/80 mb-2 flex items-center gap-2"><Phone className="w-4 h-4" /> +91 93630 27279</p>
+                    <p className="text-white/80 mb-4 text-sm">Contact Headedquarters for more details</p>
+                    {/* <p className="text-white/80 mb-2 flex items-center gap-2"><Phone className="w-4 h-4" /> +91 93630 27279</p> */}
                     <p className="text-white/80 mb-6 flex items-center gap-2"><Mail className="w-4 h-4" /> sales@igla.asia</p>
                     <Link href="/membership/become-member" className="bg-white text-[#004aad] px-6 py-3 rounded-full font-bold inline-block hover:bg-gray-100 transition-colors shadow-lg">Become a Member</Link>
                 </div>

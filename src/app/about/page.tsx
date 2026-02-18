@@ -254,7 +254,7 @@ export default function AboutPage() {
                                 </div>
                             </div>
 
-                            <div className="flex items-start gap-4">
+                            {/* <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
                                     <Phone size={24} className="text-blue-600" />
                                 </div>
@@ -262,7 +262,7 @@ export default function AboutPage() {
                                     <h4 className="font-bold text-gray-800 mb-2">Phone</h4>
                                     <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+91 93630 27279</a>
                                 </div>
-                            </div>
+                            </div> */}
 
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">

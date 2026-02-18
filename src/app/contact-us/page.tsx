@@ -50,9 +50,9 @@ export default function ContactUs() {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Talk to Us</h3>
                             <p className="text-gray-500 text-sm mb-6">Support available during business hours</p>
                             <div className="space-y-3">
-                                <a href="tel:9363027279" className="block text-lg font-bold text-[#004aad] hover:underline">
+                                {/* <a href="tel:9363027279" className="block text-lg font-bold text-[#004aad] hover:underline">
                                     +91 93630 27279
-                                </a>
+                                </a> */}
                                 <a href="mailto:sales@igla.asia" className="block text-gray-700 font-medium hover:text-[#004aad]">
                                     sales@igla.asia
                                 </a>
@@ -67,7 +67,7 @@ export default function ContactUs() {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Our Headquarters</h3>
                             <p className="text-gray-500 text-sm mb-6">Visit our main office</p>
                             <p className="text-gray-700 leading-relaxed font-medium">
-                                Europe | Americas | Africa / Australia | South East Asia | Middle East
+                                Europe | Americas | Africa | Australia | South East Asia | Middle East
                                 | India
                             </p>
                         </div>
