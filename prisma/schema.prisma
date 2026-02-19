@@ -580,3 +580,22 @@ model ManualInvoice {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model SiteVisit {
+  id        String   @id @default(cuid())
+  sessionId String
+  page      String
+  referrer  String?
+  ip        String?
+  country   String?
+  city      String?
+  device    String?
+  browser   String?
+  os        String?
+  duration  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([sessionId])
+  @@index([country])
+}

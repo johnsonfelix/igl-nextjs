@@ -39,6 +39,8 @@ const publicPrefixes = [
   "/api/admin/booth-subtypes", // public booth options
   "/api/inquiries", // for submitting and viewing inquiries
   "/api/testimonials", // public testimonials
+  "/api/chat", // AI chatbot (public)
+  "/api/analytics/track", // visitor analytics (public)
 
   // Public pages
   "/membership",

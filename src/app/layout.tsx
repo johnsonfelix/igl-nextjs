@@ -5,6 +5,8 @@ import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import Navbar from "./components/navbar";
 import Footer from "@/components/Footer";
+import ChatWidget from "@/components/ChatWidget";
+import SiteTracker from "@/components/SiteTracker";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
@@ -111,6 +113,8 @@ export default function RootLayout({
           {children}
         </AuthProvider>
         <Footer />
+        <ChatWidget />
+        <SiteTracker />
       </body>
     </html>
   );

@@ -19,11 +19,13 @@ import {
   AlertTriangle,
   MessageCircle,
   History,
-  FileText
+  FileText,
+  BarChart3
 } from "lucide-react";
 
 const MENU_ITEMS = [
   { name: "Dashboard", href: "/admin/dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+  { name: "Statistics", href: "/admin/statistics", icon: <BarChart3 className="h-5 w-5" /> },
   { name: "Sponsors", href: "/admin/sponsors", icon: <Handshake className="h-5 w-5" /> },
   { name: "Companies", href: "/admin/company", icon: <Building2 className="h-5 w-5" /> },
   { name: "Events", href: "/admin/events", icon: <Calendar className="h-5 w-5" /> },
