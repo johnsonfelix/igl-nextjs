@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { MessageCircle, X, Send, Bot, User, Loader2 } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 
 interface Message {
     role: 'user' | 'assistant';
@@ -15,6 +16,18 @@ export default function ChatWidget() {
     const [isLoading, setIsLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const hydrated = useRef(false);
+
+    // Restore state from sessionStorage after mount (avoids hydration mismatch)
+    useEffect(() => {
+        try {
+            const savedMessages = sessionStorage.getItem('chat_messages');
+            if (savedMessages) setMessages(JSON.parse(savedMessages));
+            const savedOpen = sessionStorage.getItem('chat_open');
+            if (savedOpen === 'true') setIsOpen(true);
+        } catch { }
+        hydrated.current = true;
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,6 +36,20 @@ export default function ChatWidget() {
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
+
+    // Persist messages to sessionStorage
+    useEffect(() => {
+        if (hydrated.current) {
+            sessionStorage.setItem('chat_messages', JSON.stringify(messages));
+        }
+    }, [messages]);
+
+    // Persist open/closed state to sessionStorage
+    useEffect(() => {
+        if (hydrated.current) {
+            sessionStorage.setItem('chat_open', String(isOpen));
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen && inputRef.current) {
@@ -134,7 +161,7 @@ export default function ChatWidget() {
                                     lineHeight: '1.2',
                                 }}
                             >
-                                IGLA Assistant
+                                IGLA Ai Assistant
                             </div>
                             <div
                                 style={{
@@ -337,29 +364,35 @@ export default function ChatWidget() {
                                 </div>
                             )}
                             <div
+                                className={msg.role === 'assistant' ? 'chat-bubble-assistant' : undefined}
                                 style={{
-                                    maxWidth: '75%',
-                                    padding: '10px 14px',
+                                    maxWidth: '80%',
+                                    padding: msg.role === 'assistant' ? '12px 16px' : '10px 14px',
                                     borderRadius:
                                         msg.role === 'user'
-                                            ? '16px 16px 4px 16px'
-                                            : '16px 16px 16px 4px',
+                                            ? '18px 18px 4px 18px'
+                                            : '18px 18px 18px 4px',
                                     background:
                                         msg.role === 'user'
                                             ? 'linear-gradient(135deg, #004aad, #2563eb)'
                                             : '#ffffff',
-                                    color: msg.role === 'user' ? '#fff' : '#1a1a2e',
+                                    color: msg.role === 'user' ? '#fff' : '#1f2937',
                                     fontSize: '14px',
-                                    lineHeight: '1.5',
+                                    lineHeight: '1.6',
                                     boxShadow:
                                         msg.role === 'assistant'
-                                            ? '0 1px 3px rgba(0,0,0,0.08)'
-                                            : 'none',
-                                    whiteSpace: 'pre-wrap',
+                                            ? '0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)'
+                                            : '0 1px 2px rgba(0,74,173,0.15)',
+                                    whiteSpace: msg.role === 'user' ? 'pre-wrap' : undefined,
                                     wordBreak: 'break-word',
+                                    animation: 'chatFadeIn 0.3s ease-out',
                                 }}
                             >
-                                {msg.content}
+                                {msg.role === 'assistant' ? (
+                                    <ReactMarkdown>{msg.content}</ReactMarkdown>
+                                ) : (
+                                    msg.content
+                                )}
                             </div>
                             {msg.role === 'user' && (
                                 <div
@@ -537,6 +570,115 @@ export default function ChatWidget() {
         @keyframes spin {
           from { transform: rotate(0deg); }
           to { transform: rotate(360deg); }
+        }
+        @keyframes chatFadeIn {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ---- Markdown styling inside assistant bubbles ---- */
+        .chat-bubble-assistant p {
+          margin: 0 0 8px 0;
+          line-height: 1.6;
+        }
+        .chat-bubble-assistant p:last-child {
+          margin-bottom: 0;
+        }
+
+        .chat-bubble-assistant ul,
+        .chat-bubble-assistant ol {
+          margin: 6px 0 10px 0;
+          padding-left: 20px;
+        }
+        .chat-bubble-assistant ul {
+          list-style: none;
+          padding-left: 16px;
+        }
+        .chat-bubble-assistant ul li {
+          position: relative;
+          padding-left: 6px;
+          margin-bottom: 6px;
+          line-height: 1.55;
+        }
+        .chat-bubble-assistant ul li::before {
+          content: '';
+          position: absolute;
+          left: -12px;
+          top: 8px;
+          width: 5px;
+          height: 5px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #004aad, #2ebb79);
+        }
+        .chat-bubble-assistant ol li {
+          margin-bottom: 6px;
+          line-height: 1.55;
+          padding-left: 2px;
+        }
+
+        .chat-bubble-assistant strong {
+          font-weight: 650;
+          color: #111827;
+        }
+        .chat-bubble-assistant em {
+          font-style: italic;
+          color: #374151;
+        }
+
+        .chat-bubble-assistant a {
+          color: #2ebb79;
+          font-weight: 600;
+          text-decoration: none;
+          border-bottom: 1.5px solid transparent;
+          transition: border-color 0.2s, color 0.2s;
+          cursor: pointer;
+        }
+        .chat-bubble-assistant a:hover {
+          color: #004aad;
+          border-bottom-color: #004aad;
+        }
+
+        .chat-bubble-assistant h1,
+        .chat-bubble-assistant h2,
+        .chat-bubble-assistant h3,
+        .chat-bubble-assistant h4 {
+          margin: 10px 0 6px 0;
+          font-weight: 700;
+          color: #111827;
+          line-height: 1.3;
+        }
+        .chat-bubble-assistant h1 { font-size: 16px; }
+        .chat-bubble-assistant h2 { font-size: 15px; }
+        .chat-bubble-assistant h3 { font-size: 14px; }
+        .chat-bubble-assistant h4 { font-size: 13px; }
+        .chat-bubble-assistant h1:first-child,
+        .chat-bubble-assistant h2:first-child,
+        .chat-bubble-assistant h3:first-child {
+          margin-top: 0;
+        }
+
+        .chat-bubble-assistant code {
+          background: #f3f4f6;
+          padding: 1px 5px;
+          border-radius: 4px;
+          font-size: 13px;
+          font-family: 'Menlo', 'Consolas', monospace;
+          color: #004aad;
+        }
+
+        .chat-bubble-assistant blockquote {
+          border-left: 3px solid #2ebb79;
+          margin: 8px 0;
+          padding: 4px 12px;
+          color: #4b5563;
+          background: #f9fafb;
+          border-radius: 0 6px 6px 0;
+        }
+
+        .chat-bubble-assistant hr {
+          border: none;
+          border-top: 1px solid #e5e7eb;
+          margin: 10px 0;
         }
       `}</style>
         </>

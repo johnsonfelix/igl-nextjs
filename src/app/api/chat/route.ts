@@ -112,6 +112,7 @@ async function getKnowledgeContext(): Promise<string> {
             sections.push('\n=== UPCOMING EVENTS ===');
             for (const evt of upcomingEvents) {
                 const lines = [`Event: ${evt.name}`];
+                lines.push(`  Event Page: /event/${evt.id}`);
                 lines.push(`  Location: ${evt.location}`);
                 if (evt.startDate) lines.push(`  Start Date: ${evt.startDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
                 if (evt.endDate) lines.push(`  End Date: ${evt.endDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}`);
@@ -272,7 +273,17 @@ Your behavior:
 - If you don't know something specific, say so and suggest contacting sales@igla.asia.
 - Keep responses short (2-4 sentences) unless the user asks for detailed information.
 - Use bullet points or short lists when presenting multiple items like plan features or event details.
-- Provide helpful links to relevant pages when applicable (e.g., "You can view our membership plans at /membership").`;
+- IMPORTANT: When referring to website pages, ALWAYS use markdown link syntax so they are clickable. Examples:
+  - [View Membership Plans](/membership/become-member)
+  - [Register Your Company](/company/register)
+  - For events, ALWAYS link to the specific event page using its ID from the live data, e.g. [View Event Details](/event/EVENT_ID). Do NOT link to the generic /event page.
+  - [Submit an Inquiry](/inquiry)
+  - [Search Member Directory](/directory)
+  - [Contact Us](/contact-us)
+  - [Risk Management](/risk)
+  - [Learn About Payment Protection](/payment-protection)
+  - [IGLAPay](/secure-pay)
+  Never write a bare path like /membership — always wrap it in a markdown link.`;
 
         const converseMessages = messages.map((msg) => ({
             role: msg.role as 'user' | 'assistant',
