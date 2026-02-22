@@ -7,6 +7,7 @@ import Navbar from "./components/navbar";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import SiteTracker from "@/components/SiteTracker";
+import CookieConsent from "@/components/CookieConsent";
 import { AuthProvider } from "./context/AuthContext";
 import { Inter, Plus_Jakarta_Sans } from 'next/font/google';
 
@@ -115,6 +116,7 @@ export default function RootLayout({
         <Footer />
         <ChatWidget />
         <SiteTracker />
+        <CookieConsent />
       </body>
     </html>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 function getSessionId(): string {
@@ -13,13 +13,32 @@ function getSessionId(): string {
     return sid;
 }
 
+function hasConsent(): boolean {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('cookie_consent') === 'accepted';
+}
+
 export default function SiteTracker() {
     const pathname = usePathname();
     const startRef = useRef<number>(Date.now());
     const lastPathRef = useRef<string>(pathname);
+    const [consentGiven, setConsentGiven] = useState(false);
+
+    // Listen for consent changes
+    useEffect(() => {
+        setConsentGiven(hasConsent());
+
+        const handleConsentChange = (e: Event) => {
+            const detail = (e as CustomEvent).detail;
+            setConsentGiven(detail === 'accepted');
+        };
+        window.addEventListener('cookie-consent-change', handleConsentChange);
+        return () => window.removeEventListener('cookie-consent-change', handleConsentChange);
+    }, []);
 
     // Send duration for the previous page
     const sendDuration = (page: string) => {
+        if (!hasConsent()) return;
         const duration = Math.round((Date.now() - startRef.current) / 1000);
         if (duration < 1) return;
         const sid = getSessionId();
@@ -34,7 +53,8 @@ export default function SiteTracker() {
 
     // Track page view
     useEffect(() => {
-        // Skip admin pages from tracking
+        // Skip if no consent or admin pages
+        if (!consentGiven) return;
         if (pathname.startsWith('/admin')) return;
 
         const sid = getSessionId();
@@ -61,7 +81,7 @@ export default function SiteTracker() {
         }).catch(() => { });
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pathname]);
+    }, [pathname, consentGiven]);
 
     // Send duration on page unload
     useEffect(() => {
