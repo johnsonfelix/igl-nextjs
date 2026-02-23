@@ -70,7 +70,12 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 </div>
                 <div style={{ width: '66.67%', padding: '16px' }}>
                     <h1 style={{ fontSize: '20px', fontWeight: 'bold', color: blue, marginBottom: '4px', lineHeight: '1.1', margin: '0 0 4px 0' }}>Innovative Global Logistics Allianz</h1>
-                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: blue, marginBottom: '12px', lineHeight: '1.1', margin: '0 0 12px 0' }}>( IGLA )</h2>
+                    <h2 style={{ fontSize: '18px', fontWeight: 'bold', color: blue, marginBottom: currency === 'INR' ? '8px' : '12px', lineHeight: '1.1', margin: `0 0 ${currency === 'INR' ? '8px' : '12px'} 0` }}>( IGLA )</h2>
+                    {currency === 'INR' && (
+                        <div style={{ fontSize: '13px', fontWeight: '600', color: darkBlue, marginBottom: '8px' }}>
+                            GSTIN: 33AAHFI3000R1ZF
+                        </div>
+                    )}
                     {/* <div style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.5' }}>
                         <p style={{ margin: '0' }}>Amber 16 F 2, Olympia Opaline, 33, Rajiv Gandhi Road,</p>
                         <p style={{ margin: '0' }}>Navalur, Chennai - 600 130, India.</p>
