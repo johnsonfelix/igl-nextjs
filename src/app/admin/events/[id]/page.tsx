@@ -303,7 +303,20 @@ export default function EventViewPage() {
     eventTickets = [],
     eventSponsorTypes = [],
     venue,
+    purchaseOrders = [],
   } = event;
+
+  // Count assigned sponsors per sponsor type from completed purchase orders
+  const assignedCountByType: Record<string, number> = {};
+  purchaseOrders.forEach((po: any) => {
+    if (po.status === 'COMPLETED' && Array.isArray(po.items)) {
+      po.items.forEach((item: any) => {
+        if (item.productType === 'SPONSOR') {
+          assignedCountByType[item.productId] = (assignedCountByType[item.productId] || 0) + 1;
+        }
+      });
+    }
+  });
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-8 font-sans">
@@ -613,7 +626,15 @@ export default function EventViewPage() {
                           </Button>
                         </div>
                         <p className="text-xs text-gray-500 mt-1 line-clamp-1">{es.sponsorType.description}</p>
-                        <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-gray-600 text-[10px] font-bold uppercase tracking-wide">{es.quantity} slots left</div>
+                        {(() => {
+                          const assigned = assignedCountByType[es.sponsorType.id] || 0;
+                          const slotsLeft = Math.max(0, es.quantity - assigned);
+                          return (
+                            <div className={`mt-2 inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide ${slotsLeft === 0 ? 'bg-red-50 text-red-600' : 'bg-gray-100 text-gray-600'}`}>
+                              {slotsLeft === 0 ? 'Fully Assigned' : `${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} left`}
+                            </div>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))

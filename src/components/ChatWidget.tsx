@@ -161,7 +161,7 @@ export default function ChatWidget() {
                                     lineHeight: '1.2',
                                 }}
                             >
-                                IGLA Ai Assistant
+                                ZARA
                             </div>
                             <div
                                 style={{
@@ -247,7 +247,7 @@ export default function ChatWidget() {
                                     marginBottom: '8px',
                                 }}
                             >
-                                Welcome to IGLA! 👋
+                                Hi, I&apos;m ZARA! 👋
                             </h3>
                             <p
                                 style={{
@@ -258,7 +258,7 @@ export default function ChatWidget() {
                                     margin: '0 auto',
                                 }}
                             >
-                                I&apos;m your logistics assistant. Ask me about membership, events, services, or anything about IGLA!
+                                I&apos;m your IGLA logistics assistant. Ask me about membership, events, services, or anything about IGLA!
                             </p>
                             {/* Quick action chips */}
                             <div

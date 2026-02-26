@@ -2464,7 +2464,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     {eventSponsorTypes.map(({ sponsorType, quantity }) => {
                       const qty = sponsorQuantities[sponsorType.id] || 0;
                       const effectivePrice = getEffectiveSponsorPrice(sponsorType);
-                      const isSoldOut = quantity <= 0;
+                      const assignedCount = (sponsorsByType[sponsorType.name] || []).length;
+                      const remainingSlots = quantity - assignedCount;
+                      const isSoldOut = remainingSlots <= 0;
 
                       // Calculate discount percentage for badge display
                       const hasDiscount = effectivePrice < sponsorType.price;

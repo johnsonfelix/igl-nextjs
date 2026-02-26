@@ -25,7 +25,8 @@ async function getKnowledgeContext(): Promise<string> {
             testimonials,
         ] = await Promise.all([
             prisma.membershipPlan.findMany({
-                orderBy: { price: 'asc' },
+                where: { price: { gt: 0 } },
+                orderBy: { price: 'desc' },
                 select: {
                     name: true,
                     price: true,
@@ -251,7 +252,7 @@ export async function POST(req: NextRequest) {
         // Fetch live data from the database
         const dynamicContext = await getKnowledgeContext();
 
-        const systemPrompt = `You are the IGLA AI Assistant — a friendly, knowledgeable helper for the IGLA website.
+        const systemPrompt = `You are ZARA — IGLA's friendly, knowledgeable AI assistant for the IGLA website. Your name is ZARA.
 
 ${STATIC_KNOWLEDGE}
 
