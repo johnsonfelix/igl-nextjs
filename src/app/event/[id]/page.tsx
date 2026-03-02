@@ -2021,7 +2021,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             {activeTab === "Event Sponsors" && (
               <Section title="Event Sponsors">
                 {(() => {
-                  const soldSponsors = eventSponsorTypes.filter(s => s.quantity <= 0);
+                  const soldSponsors = eventSponsorTypes.filter(s => {
+                    const assignedCount = (sponsorsByType[s.sponsorType.name] || []).length;
+                    return assignedCount >= s.quantity && assignedCount > 0;
+                  });
 
                   if (soldSponsors.length === 0) {
                     return (
