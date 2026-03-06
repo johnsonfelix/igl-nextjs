@@ -21,7 +21,6 @@ export async function POST(req: NextRequest) {
         }
 
         // Verify both companies have a COMPLETED purchase order OR are on the dummy list
-        const allowedEventIds = ['cmdyonggh0001gadoi0yvmd5t', eventId];
         const dummyNames = DUMMY_COMPANY_NAMES;
 
         const [fromComp, toComp] = await Promise.all([
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
                 where: { id: fromCompanyId },
                 include: {
                     purchaseOrders: {
-                        where: { status: 'COMPLETED', eventId: { in: allowedEventIds } }
+                        where: { status: 'COMPLETED' }
                     }
                 }
             }),
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
                 where: { id: toCompanyId },
                 include: {
                     purchaseOrders: {
-                        where: { status: 'COMPLETED', eventId: { in: allowedEventIds } }
+                        where: { status: 'COMPLETED' }
                     }
                 }
             }),
