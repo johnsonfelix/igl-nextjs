@@ -32,25 +32,51 @@ export async function POST(request: Request) {
 
         // 2. Conditionally Create Purchase Order (If Company ID exists)
         if (companyId) {
-            // Map items to OrderItem structure
+            // Determine eventId from product associations
+            let eventId: string | undefined;
+
+            for (const item of items) {
+                if (eventId) break;
+                const pid = item.productId;
+                if (!pid || pid === "MANUAL_ITEM") continue;
+
+                const pType = (item.productType || "").toUpperCase();
+
+                if (pType === "TICKET") {
+                    // Look up event via EventTicket join table
+                    const eventTicket = await prisma.eventTicket.findFirst({
+                        where: { ticketId: pid },
+                        select: { eventId: true },
+                    });
+                    if (eventTicket) eventId = eventTicket.eventId;
+                } else if (pType === "SPONSOR") {
+                    // Look up event via EventSponsorType join table
+                    const eventSponsor = await prisma.eventSponsorType.findFirst({
+                        where: { sponsorTypeId: pid },
+                        select: { eventId: true },
+                    });
+                    if (eventSponsor) eventId = eventSponsor.eventId;
+                }
+            }
+
+            // Map items to OrderItem structure with normalized productType
             const orderItems = items.map((item: any) => ({
                 name: item.name,
-                productId: item.productId || "MANUAL_ITEM", // Fallback if custom
-                productType: item.productType || "MANUAL_ITEM",
+                productId: item.productId || "MANUAL_ITEM",
+                productType: (item.productType || "MANUAL_ITEM").toUpperCase(),
                 quantity: item.quantity,
                 price: item.price,
-                // Additional fields if needed
             }));
 
             await prisma.purchaseOrder.create({
                 data: {
                     companyId: companyId,
                     totalAmount: totalAmount,
-                    status: "PENDING", // So it shows as Pending on Dashboard
+                    status: "COMPLETED", // Invoices are created after payment is received
+                    ...(eventId ? { eventId } : {}),
                     billingAddressLine1: customerDetails.address,
-                    billingCity: customerDetails.city, // Might need parsing if address is string
+                    billingCity: customerDetails.city,
                     billingCountry: customerDetails.country,
-                    // Additional mapping
                     items: {
                         create: orderItems
                     },

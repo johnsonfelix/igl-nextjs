@@ -3,8 +3,10 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import prisma from "@/app/lib/prisma";
+import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 import CompleteProfileButton from "@/app/components/CompleteProfileButton";
 import OrdersTable from "@/app/dashboard/OrdersTable";
+import MeetingRequestSection from "@/app/dashboard/MeetingRequestSection";
 import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag, ShoppingBag } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -54,6 +56,31 @@ export default async function DashboardPage() {
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  // Determine if the company is eligible to send meeting requests
+  // They are eligible if they have ANY completed purchase order OR if they are one of the dummy companies
+  const dummyNames = DUMMY_COMPANY_NAMES;
+
+  const isEligibleForMeetings =
+    orders.some(o => o.status === 'COMPLETED') ||
+    dummyNames.some(name => company.name.toLowerCase().includes(name.toLowerCase().trim()));
+
+  const conferenceTickets: { eventId: string; eventName: string }[] = [];
+
+  if (isEligibleForMeetings) {
+    // Fetch all events that have meeting slots
+    const eventsWithSlots = await prisma.event.findMany({
+      where: {
+        meetingSlots: { some: {} }
+      },
+      select: { id: true, name: true }
+    });
+
+    for (const e of eventsWithSlots) {
+      conferenceTickets.push({ eventId: e.id, eventName: e.name });
+    }
+
+  }
 
   return (
     <main className="min-h-screen bg-gray-50/50">
@@ -137,6 +164,13 @@ export default async function DashboardPage() {
             </div>
           ))}
         </div>
+
+        {/* Meeting Requests Section */}
+        {conferenceTickets.length > 0 && (
+          <div className="mb-12">
+            <MeetingRequestSection companyId={company.id} conferenceTickets={conferenceTickets} />
+          </div>
+        )}
 
         {/* Orders Section */}
         <div className="mb-12">

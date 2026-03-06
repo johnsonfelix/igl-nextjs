@@ -56,6 +56,10 @@ model Company {
   partners              Partner[]         @relation("CompanyPartners")
   services              Service[]         @relation("CompanyServices")
   readMessages          Message[]         @relation("ReadMessages")
+  meetingSessions       MeetingSession[]
+  meetingSessionsB      MeetingSession[] @relation("CompanyBMeetings")
+  sentMeetingRequests   MeetingRequest[] @relation("SentMeetingRequests")
+  receivedMeetingRequests MeetingRequest[] @relation("ReceivedMeetingRequests")
 }
 
 model Service {
@@ -152,6 +156,8 @@ model Event {
   purchaseOrders    PurchaseOrder[]
   venue             Venue?
   hotels            Hotel[]            @relation("EventHotels")
+  meetingSlots      MeetingSlot[]
+  meetingRequests   MeetingRequest[]
 }
 
 model SponsorType {
@@ -598,4 +604,62 @@ model SiteVisit {
   @@index([createdAt])
   @@index([sessionId])
   @@index([country])
+}
+
+model MeetingSlot {
+  id              String           @id @default(cuid())
+  eventId         String
+  title           String           @default("One-to-One Meeting")
+  startTime       DateTime
+  endTime         DateTime
+  sessions        Int              @default(1)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  event           Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  meetingSessions MeetingSession[]
+
+  @@index([eventId])
+}
+
+model MeetingSession {
+  id            String       @id @default(cuid())
+  meetingSlotId String
+  sessionIndex  Int
+  startTime     DateTime
+  endTime       DateTime
+  companyId     String?
+  companyBId    String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  meetingSlot   MeetingSlot  @relation(fields: [meetingSlotId], references: [id], onDelete: Cascade)
+  company       Company?     @relation(fields: [companyId], references: [id])
+  companyB      Company?     @relation("CompanyBMeetings", fields: [companyBId], references: [id])
+
+  @@index([meetingSlotId])
+  meetingRequests MeetingRequest[]
+}
+
+model MeetingRequest {
+  id               String         @id @default(cuid())
+  eventId          String
+  meetingSessionId String
+  fromCompanyId    String
+  toCompanyId      String
+  status           RequestStatus  @default(PENDING)
+  message          String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  event            Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  meetingSession   MeetingSession @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+  fromCompany      Company        @relation("SentMeetingRequests", fields: [fromCompanyId], references: [id])
+  toCompany        Company        @relation("ReceivedMeetingRequests", fields: [toCompanyId], references: [id])
+
+  @@unique([meetingSessionId, fromCompanyId, toCompanyId])
+  @@index([eventId])
+}
+
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
 }

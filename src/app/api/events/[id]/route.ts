@@ -68,6 +68,18 @@ export async function GET(req: NextRequest) {
         },
         agendaItems: true,
         venue: true,
+        meetingSlots: {
+          include: {
+            meetingSessions: {
+              include: {
+                company: { select: { id: true, name: true, logoUrl: true } },
+                companyB: { select: { id: true, name: true, logoUrl: true } },
+              },
+              orderBy: { sessionIndex: 'asc' },
+            },
+          },
+          orderBy: { startTime: 'asc' },
+        },
         purchaseOrders: {
           where: {
             status: 'COMPLETED',

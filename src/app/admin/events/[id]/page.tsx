@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 import {
   Loader2,
   Plus,
@@ -16,6 +17,7 @@ import {
   Edit2,
   Trash2,
   Image as ImageIcon,
+  Users,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -26,6 +28,7 @@ import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
 import BoothSubTypeManager from '@/app/components/BoothSubTypeManager';
 import SponsorAssignmentManager from '@/app/components/SponsorAssignmentManager';
+import MeetingSlotManager from '@/app/components/MeetingSlotManager';
 import { uploadFileToS3 } from '@/app/lib/s3-upload';
 
 // Helpers
@@ -38,7 +41,7 @@ const formatDate = (date?: string) =>
     })
     : '';
 const formatTime = (date?: string) =>
-  date ? new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
+  date ? new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }) : '';
 
 export default function EventViewPage() {
   const params = useParams();
@@ -54,6 +57,9 @@ export default function EventViewPage() {
   // Assignment sheet state
   const [isAssignmentSheetOpen, setIsAssignmentSheetOpen] = useState(false);
   const [selectedSponsorType, setSelectedSponsorType] = useState<any>(null); // For assignment
+
+  // Meeting sheet state
+  const [isMeetingSheetOpen, setIsMeetingSheetOpen] = useState(false);
 
   // Agenda sheet state
   const [isAgendaSheetOpen, setIsAgendaSheetOpen] = useState(false);
@@ -378,8 +384,8 @@ export default function EventViewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left column */}
           <div className="lg:col-span-2 space-y-8">
-            {/* BOOTHS */}
-            <motion.section
+            {/* BOOTHS - Currently Hidden */}
+            {/* <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
@@ -439,6 +445,104 @@ export default function EventViewPage() {
                   <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
                 </SheetContent>
               </Sheet>
+            </motion.section> */}
+
+            {/* ONE-TO-ONE MEETINGS */}
+            <motion.section
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.05 }}
+              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100"
+            >
+              <HeaderWithAction
+                title="One-to-One Meetings"
+                buttonLabel="Manage Meetings"
+                icon={<Users size={24} className="text-[#5da765]" />}
+                onAction={() => setIsMeetingSheetOpen(true)}
+              />
+
+              <div className="mt-6">
+                {event.meetingSlots && event.meetingSlots.length > 0 ? (
+                  <div className="space-y-3">
+                    {event.meetingSlots.map((slot: any) => (
+                      <div key={slot.id} className="p-4 rounded-xl border border-gray-100 bg-gray-50/50">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="h-8 w-8 rounded-lg bg-[#5da765]/10 flex items-center justify-center">
+                            <Users size={16} className="text-[#5da765]" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-gray-800 text-sm">{slot.title}</span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              {formatDate(slot.startTime)} • {formatTime(slot.startTime)} — {formatTime(slot.endTime)}
+                            </span>
+                          </div>
+                          <span className="ml-auto px-2 py-0.5 bg-[#5da765]/10 text-[#5da765] text-[10px] font-bold rounded-md uppercase">
+                            {slot.sessions} sessions
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {slot.meetingSessions?.map((session: any, idx: number) => {
+                            const compA = session.company;
+                            const compB = session.companyB;
+                            const hasAny = compA || compB;
+                            return (
+                              <div
+                                key={session.id}
+                                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold border ${hasAny
+                                  ? 'bg-[#5da765]/5 border-[#5da765]/15 text-gray-700'
+                                  : 'bg-gray-100 border-gray-200 text-gray-400'
+                                  }`}
+                              >
+                                <span className="text-gray-500 font-bold">#{idx + 1}</span>
+                                <span className={compA ? 'text-blue-600' : 'text-gray-400'}>
+                                  {compA ? compA.name : 'Unassigned'}
+                                </span>
+                                <span className="text-gray-300 mx-1">↔</span>
+                                <span className={compB ? 'text-orange-600' : 'text-gray-400'}>
+                                  {compB ? compB.name : 'Unassigned'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-8 text-center rounded-xl border border-dashed border-gray-200 bg-gray-50/50">
+                    <Users size={32} className="mx-auto text-gray-300 mb-3" />
+                    <p className="text-gray-500 font-medium text-sm">No meeting slots configured</p>
+                  </div>
+                )}
+              </div>
+
+              {/* DUMMY COMPANIES DISPLAY */}
+              {/* <div className="mt-8 pt-6 border-t border-gray-100">
+                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-amber-400"></span>
+                  Configured Dummy Companies
+                </h4>
+                <div className="flex flex-wrap gap-2">
+                  {DUMMY_COMPANY_NAMES.map((name: string, i: number) => (
+                    <span key={i} className="px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-200 uppercase">
+                      {name}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-wider">
+                  Editable in <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">src/lib/constants.ts</code>
+                </p>
+              </div> */}
+
+              {isMeetingSheetOpen && (
+                <MeetingSlotManager
+                  eventId={eventId}
+                  onClose={() => {
+                    setIsMeetingSheetOpen(false);
+                    fetchEvent();
+                  }}
+                />
+              )}
             </motion.section>
 
             {/* AGENDA */}
@@ -581,6 +685,8 @@ export default function EventViewPage() {
                 </SheetContent>
               </Sheet>
             </motion.section>
+
+
 
             {/* SPONSORS */}
             <motion.section

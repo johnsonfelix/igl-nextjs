@@ -26,6 +26,39 @@ export async function markOrderAsPaid(orderId: string) {
                 }
             });
 
+            // If eventId is not set, try to determine it from the order items
+            if (!updatedOrder.eventId) {
+                let eventId: string | undefined;
+                for (const item of updatedOrder.items) {
+                    if (eventId) break;
+                    if (!item.productId || item.productId === "MANUAL_ITEM") continue;
+
+                    const pType = (item.productType || "").toUpperCase();
+                    if (pType === "TICKET") {
+                        const eventTicket = await tx.eventTicket.findFirst({
+                            where: { ticketId: item.productId },
+                            select: { eventId: true },
+                        });
+                        if (eventTicket) eventId = eventTicket.eventId;
+                    } else if (pType === "SPONSOR") {
+                        const eventSponsor = await tx.eventSponsorType.findFirst({
+                            where: { sponsorTypeId: item.productId },
+                            select: { eventId: true },
+                        });
+                        if (eventSponsor) eventId = eventSponsor.eventId;
+                    }
+                }
+
+                if (eventId) {
+                    await tx.purchaseOrder.update({
+                        where: { id: orderId },
+                        data: { eventId },
+                    });
+                    // Update the local object so stock reduction can use it
+                    (updatedOrder as any).eventId = eventId;
+                }
+            }
+
             // Handle Stock Reduction for Event Items
             if (updatedOrder.eventId) {
                 for (const item of updatedOrder.items) {
