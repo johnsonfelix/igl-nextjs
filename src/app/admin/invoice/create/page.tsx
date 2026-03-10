@@ -180,13 +180,16 @@ export default function CreateInvoicePage() {
     const handleSave = async (redirect = true) => {
         try {
             setLoading(true);
+            const finalAmount = formData.currency === 'INR' ? calculateGrandTotal() * 1.18 : calculateGrandTotal();
+            const payload = {
+                ...formData,
+                totalAmount: finalAmount
+            };
+
             const res = await fetch('/api/admin/invoices', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    ...formData,
-                    totalAmount: calculateGrandTotal()
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!res.ok) throw new Error('Failed to save');
@@ -544,21 +547,21 @@ export default function CreateInvoicePage() {
                     {formData.currency === 'INR' ? (
                         <div className="mt-4 pt-4 border-t space-y-2">
                             <div className="flex justify-between items-center text-sm text-gray-500">
-                                <span>Total (Excl. Tax)</span>
-                                <span>{formData.currency} {(calculateGrandTotal() / 1.18).toFixed(2)}</span>
+                                <span>Total (Base)</span>
+                                <span>{formData.currency} {calculateGrandTotal().toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>CGST (9%)</span>
-                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {(calculateGrandTotal() * 0.09).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>SGST (9%)</span>
-                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {(calculateGrandTotal() * 0.09).toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t mt-2">
                                 <span className="font-bold text-gray-600">Grand Total</span>
                                 <span className="font-bold text-xl text-blue-600">
-                                    {formData.currency} {calculateGrandTotal().toFixed(2)}
+                                    {formData.currency} {(calculateGrandTotal() * 1.18).toFixed(2)}
                                 </span>
                             </div>
                         </div>
@@ -591,7 +594,7 @@ export default function CreateInvoicePage() {
                             date={formData.date}
                             customerDetails={formData.customerDetails}
                             items={formData.items}
-                            totalAmount={calculateGrandTotal()}
+                            totalAmount={formData.currency === 'INR' ? calculateGrandTotal() * 1.18 : calculateGrandTotal()}
                             currency={formData.currency}
                         />
                     </div>

@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Users, Send, CheckCircle, XCircle, Clock, Building2, ArrowRight, X, Loader2, MessageSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Users, Send, CheckCircle, XCircle, Clock, Building2, ArrowRight, X, Loader2, MessageSquare, ChevronDown, MapPin } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -22,33 +22,41 @@ interface MeetingSessionOption {
     endTime: string;
     companyId: string | null;
     companyBId: string | null;
-    meetingSlot: {
-        title: string;
-        startTime: string;
-        endTime: string;
-    };
+    table: string | null;
+}
+
+interface MeetingSlotOption {
+    id: string;
+    eventId: string;
+    title: string;
+    startTime: string;
+    endTime: string;
+    sessions: number;
+    meetingSessions: MeetingSessionOption[];
 }
 
 interface CompanyOption {
     id: string;
     name: string;
     logoUrl: string | null;
+    location?: { city: string; country: string } | null;
 }
 
 interface MeetingRequest {
     id: string;
     status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
     message: string | null;
+    declineReason: string | null;
     createdAt: string;
     fromCompany: CompanyOption;
     toCompany: CompanyOption;
     event: { id: string; name: string };
-    meetingSession: {
+    meetingSlot: {
         id: string;
-        sessionIndex: number;
+        title: string;
         startTime: string;
         endTime: string;
-        meetingSlot: { title: string; startTime: string; endTime: string };
+        meetingSessions?: { table: string | null }[];
     };
 }
 
@@ -70,11 +78,37 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
     const [loadingRequests, setLoadingRequests] = useState(false);
     const [sending, setSending] = useState(false);
     const [processingId, setProcessingId] = useState<string | null>(null);
+    const [decliningRequestId, setDecliningRequestId] = useState<string | null>(null);
+    const [declineReason, setDeclineReason] = useState('');
 
     // Form state
-    const [selectedSessionId, setSelectedSessionId] = useState('');
+    const [slots, setSlots] = useState<MeetingSlotOption[]>([]);
+    const [busyMap, setBusyMap] = useState<Map<string, Set<string>>>(new Map());
+    const [selectedSlotId, setSelectedSlotId] = useState('');
     const [selectedCompanyId, setSelectedCompanyId] = useState('');
     const [message, setMessage] = useState('');
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+    // Logic to close dropdown if clicked outside
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownOpen(false);
+            }
+        };
+
+        if (isDropdownOpen) {
+            document.addEventListener('mousedown', handleClickOutside);
+        } else {
+            document.removeEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [isDropdownOpen]);
 
     useEffect(() => {
         fetchRequests();
@@ -97,7 +131,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
     const openModal = async (ticket: ConferenceTicket) => {
         setSelectedEvent(ticket);
         setShowModal(true);
-        setSelectedSessionId('');
+        setSelectedSlotId('');
         setSelectedCompanyId('');
         setMessage('');
         setLoadingSessions(true);
@@ -106,24 +140,30 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
             // Fetch available sessions for this event
             const sessRes = await fetch(`/api/events/${ticket.eventId}/meetings`);
             if (sessRes.ok) {
-                const slots = await sessRes.json();
-                // Flatten all sessions from all slots, filter to those not fully booked
-                const allSessions: MeetingSessionOption[] = [];
-                for (const slot of slots) {
+                const fetchedSlots = await sessRes.json();
+                setSlots(fetchedSlots);
+
+                const newBusyMap = new Map<string, Set<string>>();
+
+                for (const slot of fetchedSlots) {
+                    // Track busy company per time slot entirely
+                    const timeKey = `${slot.startTime}_${slot.endTime}`;
+                    if (!newBusyMap.has(timeKey)) newBusyMap.set(timeKey, new Set());
+                    const busySet = newBusyMap.get(timeKey)!;
+
                     for (const session of slot.meetingSessions || []) {
-                        if (!(session.companyId && session.companyBId)) {
-                            allSessions.push({
-                                ...session,
-                                meetingSlot: {
-                                    title: slot.title,
-                                    startTime: slot.startTime,
-                                    endTime: slot.endTime,
-                                },
-                            });
+                        if (session.companyId) {
+                            busySet.add(typeof session.companyId === 'string' ? session.companyId : session.companyId.id || session.companyId);
                         }
+                        if (session.companyBId) {
+                            busySet.add(typeof session.companyBId === 'string' ? session.companyBId : session.companyBId.id || session.companyBId);
+                        }
+                        // Also from company objects if populated
+                        if ((session as any).company?.id) busySet.add((session as any).company.id);
+                        if ((session as any).companyB?.id) busySet.add((session as any).companyB.id);
                     }
                 }
-                setSessions(allSessions);
+                setBusyMap(newBusyMap);
             }
 
             // Fetch companies that bought tickets for this event (excluding current company)
@@ -140,8 +180,8 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
     };
 
     const handleSendRequest = async () => {
-        if (!selectedSessionId || !selectedCompanyId || !selectedEvent) {
-            toast.error('Please select a session and a company');
+        if (!selectedSlotId || !selectedCompanyId || !selectedEvent) {
+            toast.error('Please select a time slot and a company');
             return;
         }
 
@@ -152,7 +192,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     eventId: selectedEvent.eventId,
-                    meetingSessionId: selectedSessionId,
+                    meetingSlotId: selectedSlotId,
                     fromCompanyId: companyId,
                     toCompanyId: selectedCompanyId,
                     message: message || undefined,
@@ -175,13 +215,13 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
         }
     };
 
-    const handleRespond = async (requestId: string, status: 'ACCEPTED' | 'DECLINED') => {
+    const handleRespond = async (requestId: string, status: 'ACCEPTED' | 'DECLINED', reason?: string) => {
         setProcessingId(requestId);
         try {
             const res = await fetch(`/api/meeting-requests/${requestId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ status }),
+                body: JSON.stringify({ status, declineReason: reason }),
             });
 
             if (res.ok) {
@@ -226,7 +266,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
     const incomingRequests = requests.filter((r) => r.toCompany.id === companyId);
     const outgoingRequests = requests.filter((r) => r.fromCompany.id === companyId);
 
-    const statusBadge = (status: string) => {
+    const statusBadge = (status: string, table?: string | null) => {
         switch (status) {
             case 'PENDING':
                 return (
@@ -236,9 +276,16 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 );
             case 'ACCEPTED':
                 return (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
-                        <CheckCircle className="h-3 w-3" /> Accepted
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-700 border border-green-200">
+                            <CheckCircle className="h-3 w-3" /> Accepted
+                        </span>
+                        {table && (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-bold bg-[#004aad]/10 text-[#004aad]">
+                                <MapPin className="h-3 w-3 flex-none" /> {table}
+                            </span>
+                        )}
+                    </div>
                 );
             case 'DECLINED':
                 return (
@@ -312,10 +359,15 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                     <span className="text-sm text-gray-500">You</span>
                                                 </div>
                                                 <div className="text-xs text-gray-500">
-                                                    {req.meetingSession.meetingSlot.title} · Session #{req.meetingSession.sessionIndex + 1} · {formatTime24(req.meetingSession.startTime)} – {formatTime24(req.meetingSession.endTime)}
+                                                    {formatDate(req.meetingSlot.startTime)} · {req.meetingSlot.title} · {formatTime24(req.meetingSlot.startTime)} – {formatTime24(req.meetingSlot.endTime)}
                                                 </div>
                                                 {req.message && (
                                                     <p className="text-xs text-gray-600 mt-1 italic">&quot;{req.message}&quot;</p>
+                                                )}
+                                                {req.status === 'DECLINED' && req.declineReason && (
+                                                    <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-100">
+                                                        <span className="font-bold">Decline reason:</span> {req.declineReason}
+                                                    </div>
                                                 )}
                                             </div>
                                             <div className="flex items-center gap-2 flex-none">
@@ -330,15 +382,15 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                             Accept
                                                         </button>
                                                         <button
-                                                            onClick={() => handleRespond(req.id, 'DECLINED')}
-                                                            disabled={processingId === req.id}
+                                                            onClick={() => { setDecliningRequestId(req.id); setDeclineReason(''); }}
+                                                            disabled={processingId === req.id || decliningRequestId !== null}
                                                             className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-gray-200 text-gray-700 text-xs font-bold hover:bg-gray-300 transition-colors disabled:opacity-50"
                                                         >
                                                             <XCircle className="h-3 w-3" /> Decline
                                                         </button>
                                                     </>
                                                 ) : (
-                                                    statusBadge(req.status)
+                                                    statusBadge(req.status, req.meetingSlot.meetingSessions?.[0]?.table)
                                                 )}
                                             </div>
                                         </div>
@@ -363,11 +415,16 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                     <span className="font-bold text-sm text-gray-800">{req.toCompany.name}</span>
                                                 </div>
                                                 <div className="text-xs text-gray-500">
-                                                    {req.meetingSession.meetingSlot.title} · Session #{req.meetingSession.sessionIndex + 1} · {formatTime24(req.meetingSession.startTime)} – {formatTime24(req.meetingSession.endTime)}
+                                                    {formatDate(req.meetingSlot.startTime)} · {req.meetingSlot.title} · {formatTime24(req.meetingSlot.startTime)} – {formatTime24(req.meetingSlot.endTime)}
                                                 </div>
+                                                {req.status === 'DECLINED' && req.declineReason && (
+                                                    <div className="mt-2 text-xs text-red-600 bg-red-50 p-2 rounded-md border border-red-100">
+                                                        <span className="font-bold">Decline reason:</span> {req.declineReason}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="flex flex-col items-end gap-2 text-right flex-none">
-                                                {statusBadge(req.status)}
+                                                {statusBadge(req.status, req.meetingSlot.meetingSessions?.[0]?.table)}
                                                 {req.status === 'PENDING' && (
                                                     <button
                                                         onClick={() => handleCancel(req.id)}
@@ -437,63 +494,52 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                 <h4 className="text-base font-bold text-gray-800">Select Meeting Session</h4>
                                             </div>
 
-                                            {sessions.length === 0 ? (
+                                            {slots.length === 0 ? (
                                                 <div className="text-sm text-gray-400 py-12 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
                                                     <Clock className="mx-auto h-10 w-10 text-gray-300 mb-3" />
-                                                    <p className="font-semibold text-gray-500">No available sessions found</p>
-                                                    <p className="mt-1">All slots might be fully booked.</p>
+                                                    <p className="font-semibold text-gray-500">No meeting slots available</p>
+                                                    <p className="mt-1">Check back later for open slots.</p>
                                                 </div>
                                             ) : (
-                                                <div className="space-y-6 pr-2">
-                                                    {Object.entries(sessions.reduce((acc, session) => {
-                                                        const dateStr = formatDate(session.startTime);
-                                                        if (!acc[dateStr]) acc[dateStr] = [];
-                                                        acc[dateStr].push(session);
-                                                        return acc;
-                                                    }, {} as Record<string, MeetingSessionOption[]>)).map(([date, dateSessions]) => (
-                                                        <div key={date} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                                                            <div className="bg-gradient-to-r from-gray-50 to-white px-5 py-3 border-b border-gray-100 flex items-center gap-3">
+                                                <div className="space-y-3">
+                                                    {slots.map((slot: any) => (
+                                                        <label
+                                                            key={slot.id}
+                                                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer block ${selectedSlotId === slot.id
+                                                                    ? 'border-[#004aad] bg-[#004aad]/5 shadow-sm'
+                                                                    : 'bg-white border-gray-100 hover:border-gray-300'
+                                                                }`}
+                                                        >
+                                                            <div className="flex items-center gap-3 mb-3">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="meetingSlot"
+                                                                    className="h-4 w-4 accent-[#004aad] flex-none"
+                                                                    checked={selectedSlotId === slot.id}
+                                                                    onChange={() => {
+                                                                        setSelectedSlotId(slot.id);
+                                                                        setSelectedCompanyId('');
+                                                                    }}
+                                                                />
                                                                 <div className="h-8 w-8 rounded-lg bg-[#004aad]/10 flex items-center justify-center">
-                                                                    <Clock className="h-4 w-4 text-[#004aad]" />
+                                                                    <Users className="h-4 w-4 text-[#004aad]" />
                                                                 </div>
-                                                                <h4 className="font-bold text-gray-800">{date}</h4>
-                                                                <span className="ml-auto text-xs font-bold text-[#004aad] bg-[#004aad]/10 px-2.5 py-1 rounded-md">
-                                                                    {dateSessions.length} slots
+                                                                <div>
+                                                                    <span className="font-bold text-gray-800 text-sm">{slot.title}</span>
+                                                                    <span className="text-xs text-gray-500 ml-2">
+                                                                        {formatDate(slot.startTime)} • {formatTime24(slot.startTime)} — {formatTime24(slot.endTime)}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="ml-auto px-2 py-0.5 bg-[#004aad]/10 text-[#004aad] text-[10px] font-bold rounded-md uppercase">
+                                                                    {slot.sessions} sessions
                                                                 </span>
                                                             </div>
-                                                            <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                                                {dateSessions.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime()).map((session) => (
-                                                                    <label
-                                                                        key={session.id}
-                                                                        className={`relative flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${selectedSessionId === session.id
-                                                                            ? 'border-[#004aad] bg-[#004aad]/5 shadow-sm'
-                                                                            : 'border-transparent bg-gray-50 hover:bg-gray-100'
-                                                                            }`}
-                                                                    >
-                                                                        <input
-                                                                            type="radio"
-                                                                            name="session"
-                                                                            value={session.id}
-                                                                            checked={selectedSessionId === session.id}
-                                                                            onChange={() => setSelectedSessionId(session.id)}
-                                                                            className="mt-1 accent-[#004aad] h-4 w-4"
-                                                                        />
-                                                                        <div className="flex-1">
-                                                                            <div className="text-sm font-bold text-gray-800 leading-tight mb-1" title={session.meetingSlot.title}>
-                                                                                {session.meetingSlot.title.length > 25 ? session.meetingSlot.title.substring(0, 25) + "..." : session.meetingSlot.title}
-                                                                            </div>
-                                                                            <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium">
-                                                                                <span>Session #{session.sessionIndex + 1}</span>
-                                                                                <span className="w-1 h-1 rounded-full bg-gray-300"></span>
-                                                                                <span className="text-[#004aad]">
-                                                                                    {formatTime24(session.startTime)} – {formatTime24(session.endTime)}
-                                                                                </span>
-                                                                            </div>
-                                                                        </div>
-                                                                    </label>
-                                                                ))}
+                                                            <div className="pl-7">
+                                                                <p className="text-xs text-gray-500 font-medium">
+                                                                    Contains {slot.meetingSessions.length} parallel meeting tables.
+                                                                </p>
                                                             </div>
-                                                        </div>
+                                                        </label>
                                                     ))}
                                                 </div>
                                             )}
@@ -506,25 +552,123 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                     <div className="h-8 w-8 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold text-sm">2</div>
                                                     <h4 className="text-base font-bold text-gray-800">Select Company</h4>
                                                 </div>
-                                                {companies.length === 0 ? (
-                                                    <div className="text-sm text-gray-400 py-6 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
-                                                        No other companies found
-                                                    </div>
-                                                ) : (
-                                                    <div className="relative">
-                                                        <Building2 className="absolute left-3.5 top-3.5 h-5 w-5 text-gray-400" />
-                                                        <select
-                                                            className="w-full h-12 pl-11 pr-4 rounded-xl border-gray-200 text-sm font-medium focus:ring-[#004aad] focus:border-[#004aad] bg-white shadow-sm"
-                                                            value={selectedCompanyId}
-                                                            onChange={(e) => setSelectedCompanyId(e.target.value)}
-                                                        >
-                                                            <option value="">— Choose a company —</option>
-                                                            {companies.map((c) => (
-                                                                <option key={c.id} value={c.id}>{c.name}</option>
-                                                            ))}
-                                                        </select>
-                                                    </div>
-                                                )}
+                                                {(() => {
+                                                    const selectedSlot = slots.find((s) => s.id === selectedSlotId);
+                                                    const timeKey = selectedSlot ? `${selectedSlot.startTime}_${selectedSlot.endTime}` : null;
+                                                    const busyCompanyIds = new Set(timeKey ? busyMap.get(timeKey) || new Set() : []);
+
+                                                    let availableCompanies = companies.filter(c => !busyCompanyIds.has(c.id));
+
+                                                    if (availableCompanies.length === 0) {
+                                                        return (
+                                                            <div className="text-sm text-gray-400 py-6 text-center border border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+                                                                {timeKey ? 'No available companies for this time slot' : 'Select a time slot first'}
+                                                            </div>
+                                                        );
+                                                    }
+
+                                                    const selectedCompany = availableCompanies.find(c => c.id === selectedCompanyId);
+
+                                                    return (
+                                                        <div className="relative" ref={dropdownRef}>
+                                                            {/* Custom Dropdown Trigger */}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => !(!selectedSlotId) && setIsDropdownOpen(!isDropdownOpen)}
+                                                                disabled={!selectedSlotId}
+                                                                className={`w-full h-auto min-h-[48px] py-2 pl-4 pr-10 rounded-xl border text-left flex items-center justify-between transition-colors bg-white ${!selectedSlotId ? 'opacity-50 cursor-not-allowed border-gray-200' :
+                                                                        isDropdownOpen ? 'border-[#004aad] ring-2 ring-[#004aad]/20 shadow-sm' : 'border-gray-200 hover:border-gray-300 shadow-sm'
+                                                                    }`}
+                                                            >
+                                                                {!selectedSlotId ? (
+                                                                    <span className="text-gray-500 font-medium text-sm flex items-center gap-3">
+                                                                        <Building2 className="h-5 w-5 text-gray-400 flex-none" />
+                                                                        — Select a time slot first —
+                                                                    </span>
+                                                                ) : !selectedCompany ? (
+                                                                    <span className="text-gray-500 font-medium text-sm flex items-center gap-3">
+                                                                        <Building2 className="h-5 w-5 text-gray-400 flex-none" />
+                                                                        — Choose a company —
+                                                                    </span>
+                                                                ) : (
+                                                                    <div className="flex items-center gap-3 flex-1 min-w-0 pr-2">
+                                                                        <div className="h-8 w-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center flex-none overflow-hidden">
+                                                                            {selectedCompany.logoUrl ? (
+                                                                                <img src={selectedCompany.logoUrl} alt="" className="w-full h-full object-contain p-1" />
+                                                                            ) : (
+                                                                                <Building2 className="h-4 w-4 text-gray-400" />
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="font-bold text-gray-900 text-sm truncate">{selectedCompany.name}</div>
+                                                                            {selectedCompany.location && (
+                                                                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-0.5 truncate">
+                                                                                    <MapPin className="h-3 w-3 flex-none" />
+                                                                                    {selectedCompany.location.city ? `${selectedCompany.location.city}, ` : ''}{selectedCompany.location.country}
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                <ChevronDown className={`absolute right-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                                                            </button>
+
+                                                            {/* Dropdown Menu */}
+                                                            <AnimatePresence>
+                                                                {isDropdownOpen && (
+                                                                    <motion.div
+                                                                        initial={{ opacity: 0, y: -5 }}
+                                                                        animate={{ opacity: 1, y: 0 }}
+                                                                        exit={{ opacity: 0, y: -5 }}
+                                                                        transition={{ duration: 0.15 }}
+                                                                        className="absolute z-20 top-[calc(100%+8px)] left-0 w-full bg-white border border-gray-100 shadow-xl rounded-xl overflow-hidden"
+                                                                    >
+                                                                        <div className="max-h-60 overflow-y-auto py-2 overscroll-contain no-scrollbar">
+                                                                            {availableCompanies.map((c) => {
+                                                                                const isSelected = selectedCompanyId === c.id;
+                                                                                return (
+                                                                                    <button
+                                                                                        key={c.id}
+                                                                                        type="button"
+                                                                                        onClick={() => {
+                                                                                            setSelectedCompanyId(c.id);
+                                                                                            setIsDropdownOpen(false);
+                                                                                        }}
+                                                                                        className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${isSelected ? 'bg-[#004aad]/5' : 'hover:bg-gray-50'
+                                                                                            }`}
+                                                                                    >
+                                                                                        <div className={`h-10 w-10 rounded-xl flex items-center justify-center flex-none border transition-colors ${isSelected ? 'bg-white border-[#004aad]/20' : 'bg-white border-gray-100'
+                                                                                            } overflow-hidden`}>
+                                                                                            {c.logoUrl ? (
+                                                                                                <img src={c.logoUrl} alt="" className="w-full h-full object-contain p-1.5" />
+                                                                                            ) : (
+                                                                                                <Building2 className={`h-5 w-5 ${isSelected ? 'text-[#004aad]' : 'text-gray-400'}`} />
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <div className="flex-1 min-w-0 pt-0.5">
+                                                                                            <div className={`font-bold text-sm truncate ${isSelected ? 'text-[#004aad]' : 'text-gray-900'}`}>
+                                                                                                {c.name}
+                                                                                            </div>
+                                                                                            {c.location && (
+                                                                                                <div className="text-xs text-gray-500 flex items-center gap-1 mt-1 truncate">
+                                                                                                    <MapPin className="h-3 w-3" />
+                                                                                                    {c.location.city ? `${c.location.city}, ` : ''}{c.location.country}
+                                                                                                </div>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        {isSelected && (
+                                                                                            <CheckCircle className="h-5 w-5 text-[#004aad] flex-none mt-1" />
+                                                                                        )}
+                                                                                    </button>
+                                                                                );
+                                                                            })}
+                                                                        </div>
+                                                                    </motion.div>
+                                                                )}
+                                                            </AnimatePresence>
+                                                        </div>
+                                                    );
+                                                })()}
                                             </div>
 
                                             <div>
@@ -545,7 +689,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                             <div className="pt-6 border-t border-gray-100 mt-auto">
                                                 <button
                                                     onClick={handleSendRequest}
-                                                    disabled={sending || !selectedSessionId || !selectedCompanyId}
+                                                    disabled={sending || !selectedSlotId || !selectedCompanyId}
                                                     className="w-full h-14 rounded-xl bg-[#004aad] text-white text-base font-bold hover:bg-[#003a8c] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 active:scale-[0.98]"
                                                 >
                                                     {sending ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
@@ -558,6 +702,71 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Decline Modal */}
+            <AnimatePresence>
+                {decliningRequestId && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+                    >
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !processingId && setDecliningRequestId(null)} />
+
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden"
+                        >
+                            <div className="px-6 py-5 border-b border-gray-100 flex items-center justify-between">
+                                <h3 className="text-lg font-bold text-gray-900">Decline Meeting Request</h3>
+                                <button
+                                    onClick={() => !processingId && setDecliningRequestId(null)}
+                                    disabled={!!processingId}
+                                    className="p-1 rounded-lg hover:bg-gray-100 text-gray-500 disabled:opacity-50"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                            <div className="p-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Reason for declining (required)</label>
+                                <textarea
+                                    className="w-full rounded-xl border-gray-200 text-sm focus:ring-red-500 focus:border-red-500 shadow-sm p-3 placeholder-gray-400"
+                                    rows={3}
+                                    placeholder="Please provide a brief reason..."
+                                    value={declineReason}
+                                    onChange={(e) => setDeclineReason(e.target.value)}
+                                    autoFocus
+                                    disabled={!!processingId}
+                                />
+                                <div className="mt-6 flex justify-end gap-3">
+                                    <button
+                                        onClick={() => setDecliningRequestId(null)}
+                                        disabled={!!processingId}
+                                        className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors disabled:opacity-50"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            if (!declineReason.trim()) { toast.error("Reason is required"); return; }
+                                            await handleRespond(decliningRequestId, 'DECLINED', declineReason);
+                                            setDecliningRequestId(null);
+                                        }}
+                                        disabled={!declineReason.trim() || !!processingId}
+                                        className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2 relative"
+                                    >
+                                        {processingId === decliningRequestId && <Loader2 className="h-4 w-4 animate-spin absolute left-2" />}
+                                        <span className={processingId === decliningRequestId ? 'pl-6' : ''}>Confirm Decline</span>
+                                    </button>
+                                </div>
                             </div>
                         </motion.div>
                     </motion.div>

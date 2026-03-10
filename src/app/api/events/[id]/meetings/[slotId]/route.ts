@@ -31,7 +31,7 @@ export async function PATCH(req: NextRequest) {
         if (!slotId) return NextResponse.json({ error: 'Slot ID required' }, { status: 400 });
 
         const body = await req.json();
-        const { sessionId, companyId, companyBId } = body;
+        const { sessionId, companyId, companyBId, table } = body;
 
         if (!sessionId) {
             return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
@@ -50,6 +50,7 @@ export async function PATCH(req: NextRequest) {
         const updateData: any = {};
         if ('companyId' in body) updateData.companyId = companyId || null;
         if ('companyBId' in body) updateData.companyBId = companyBId || null;
+        if ('table' in body) updateData.table = table || null;
 
         const updated = await prisma.meetingSession.update({
             where: { id: sessionId },

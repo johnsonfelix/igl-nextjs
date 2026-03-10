@@ -21,13 +21,14 @@ export async function GET(req: NextRequest) {
                         id: true,
                         name: true,
                         logoUrl: true,
+                        location: { select: { city: true, country: true } },
                     },
                 },
             },
         });
 
         // Deduplicate companies (a company might have multiple orders)
-        const companyMap = new Map<string, { id: string; name: string; logoUrl: string | null }>();
+        const companyMap = new Map<string, { id: string; name: string; logoUrl: string | null; location?: { city: string; country: string } | null }>();
         for (const order of orders) {
             if (!companyMap.has(order.company.id)) {
                 companyMap.set(order.company.id, order.company);
@@ -48,6 +49,7 @@ export async function GET(req: NextRequest) {
                 id: true,
                 name: true,
                 logoUrl: true,
+                location: { select: { city: true, country: true } },
             }
         });
 

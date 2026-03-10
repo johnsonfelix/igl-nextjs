@@ -1,0 +1,13 @@
+Deleting DECLINED duplicate records...
+  Deleted cmmk85rsw0003gatstz0j2o3c (DECLINED): 1 row(s)
+  Deleted cmmeenmjv0008gas09daefc95 (DECLINED): 1 row(s)
+Creating unique index...
+  ✅ Unique index created successfully!
+
+=== Final verification ===
+Total MeetingRequest records: 6
+  Index: MeetingRequest_pkey
+  Index: MeetingRequest_eventId_idx
+  Index: MeetingRequest_meetingSlotId_fromCompanyId_toCompanyId_key
+
+=== Done! ===

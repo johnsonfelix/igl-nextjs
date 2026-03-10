@@ -501,6 +501,14 @@ export default function EventViewPage() {
                                 <span className={compB ? 'text-orange-600' : 'text-gray-400'}>
                                   {compB ? compB.name : 'Unassigned'}
                                 </span>
+                                {session.table && (
+                                  <>
+                                    <span className="text-gray-300 mx-1">|</span>
+                                    <span className="text-[#5da765] font-bold">
+                                      {session.table}
+                                    </span>
+                                  </>
+                                )}
                               </div>
                             );
                           })}

@@ -617,6 +617,7 @@ model MeetingSlot {
   updatedAt       DateTime         @updatedAt
   event           Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   meetingSessions MeetingSession[]
+  meetingRequests MeetingRequest[]
 
   @@index([eventId])
 }
@@ -629,6 +630,7 @@ model MeetingSession {
   endTime       DateTime
   companyId     String?
   companyBId    String?
+  table         String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   meetingSlot   MeetingSlot  @relation(fields: [meetingSlotId], references: [id], onDelete: Cascade)
@@ -636,25 +638,25 @@ model MeetingSession {
   companyB      Company?     @relation("CompanyBMeetings", fields: [companyBId], references: [id])
 
   @@index([meetingSlotId])
-  meetingRequests MeetingRequest[]
 }
 
 model MeetingRequest {
   id               String         @id @default(cuid())
   eventId          String
-  meetingSessionId String
+  meetingSlotId    String
   fromCompanyId    String
   toCompanyId      String
   status           RequestStatus  @default(PENDING)
   message          String?
+  declineReason    String?
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   event            Event          @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  meetingSession   MeetingSession @relation(fields: [meetingSessionId], references: [id], onDelete: Cascade)
+  meetingSlot      MeetingSlot    @relation(fields: [meetingSlotId], references: [id], onDelete: Cascade)
   fromCompany      Company        @relation("SentMeetingRequests", fields: [fromCompanyId], references: [id])
   toCompany        Company        @relation("ReceivedMeetingRequests", fields: [toCompanyId], references: [id])
 
-  @@unique([meetingSessionId, fromCompanyId, toCompanyId])
+  @@unique([meetingSlotId, fromCompanyId, toCompanyId])
   @@index([eventId])
 }
 

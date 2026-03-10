@@ -22,6 +22,7 @@ interface MeetingSessionData {
     company: { id: string; name: string; logoUrl: string | null } | null;
     companyBId: string | null;
     companyB: { id: string; name: string; logoUrl: string | null } | null;
+    table?: string | null;
 }
 
 interface MeetingSlotData {
@@ -60,7 +61,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
     const [creating, setCreating] = useState(false);
     const [showForm, setShowForm] = useState(false);
     const [assigningSessionId, setAssigningSessionId] = useState<string | null>(null);
-    const [assigningField, setAssigningField] = useState<'A' | 'B' | null>(null);
+    const [assigningField, setAssigningField] = useState<'A' | 'B' | 'table' | null>(null);
 
     // Edit sessions state
     const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
@@ -180,15 +181,17 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
         }
     };
 
-    const handleAssign = async (slotId: string, sessionId: string, field: 'A' | 'B', companyId: string) => {
+    const handleAssign = async (slotId: string, sessionId: string, field: 'A' | 'B' | 'table', value: string) => {
         setAssigningSessionId(sessionId);
         setAssigningField(field);
         try {
             const payload: any = { sessionId };
             if (field === 'A') {
-                payload.companyId = companyId || null;
-            } else {
-                payload.companyBId = companyId || null;
+                payload.companyId = value || null;
+            } else if (field === 'B') {
+                payload.companyBId = value || null;
+            } else if (field === 'table') {
+                payload.table = value || null;
             }
 
             const res = await fetch(`/api/events/${eventId}/meetings/${slotId}`, {
@@ -197,7 +200,11 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                 body: JSON.stringify(payload),
             });
             if (res.ok) {
-                toast.success(companyId ? 'Company assigned' : 'Company removed');
+                if (field === 'table') {
+                    toast.success('Table updated');
+                } else {
+                    toast.success(value ? 'Company assigned' : 'Company removed');
+                }
                 fetchSlots();
             } else {
                 toast.error('Failed to assign');
@@ -250,8 +257,19 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
         return `${perSession} min each`;
     };
 
-    const isAssigning = (sessionId: string, field: 'A' | 'B') =>
+    const isAssigning = (sessionId: string, field: 'A' | 'B' | 'table') =>
         assigningSessionId === sessionId && assigningField === field;
+
+    const getBookedCompanyIds = (slot: MeetingSlotData, currentSessionId: string) => {
+        const booked = new Set<string>();
+        slot.meetingSessions.forEach(s => {
+            if (s.id !== currentSessionId) {
+                if (s.companyId) booked.add(s.companyId);
+                if (s.companyBId) booked.add(s.companyBId);
+            }
+        });
+        return booked;
+    };
 
     return (
         <AnimatePresence>
@@ -526,10 +544,10 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                             </div>
                                         )}
 
-                                        {/* Sessions — two company columns */}
+                                        {/* Sessions — two company columns + Table */}
                                         <div className="p-5 space-y-3">
                                             {/* Column headers */}
-                                            <div className="hidden md:grid grid-cols-[48px_1fr_48px_1fr] gap-3 px-4 pb-2">
+                                            <div className="hidden md:grid grid-cols-[48px_1fr_48px_1fr_120px] gap-3 px-4 pb-2">
                                                 <div />
                                                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                                                     Company A
@@ -538,14 +556,21 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
                                                     Company B
                                                 </div>
+                                                <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                                    Table
+                                                </div>
                                             </div>
 
-                                            {slot.meetingSessions.map((session, idx) => (
+                                            {slot.meetingSessions.map((session, idx) => {
+                                                const bookedIds = getBookedCompanyIds(slot, session.id);
+                                                const availableCompanies = companies.filter(c => !bookedIds.has(c.id));
+                                                
+                                                return (
                                                 <div
                                                     key={session.id}
                                                     className="group rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all p-4"
                                                 >
-                                                    <div className="grid grid-cols-1 md:grid-cols-[48px_1fr_48px_1fr] gap-3 items-center">
+                                                    <div className="grid grid-cols-1 md:grid-cols-[48px_1fr_48px_1fr_120px] gap-3 items-center">
                                                         {/* Session index badge */}
                                                         <div className="hidden md:flex flex-none w-10 h-10 rounded-lg bg-white border border-gray-200 items-center justify-center text-sm font-bold text-gray-600 shadow-sm">
                                                             {idx + 1}
@@ -569,7 +594,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                                     }
                                                                 >
                                                                     <option value="">— Select Company A —</option>
-                                                                    {companies.map((c) => (
+                                                                    {availableCompanies.map((c) => (
                                                                         <option key={c.id} value={c.id}>
                                                                             {c.name}
                                                                         </option>
@@ -606,7 +631,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                                     }
                                                                 >
                                                                     <option value="">— Select Company B —</option>
-                                                                    {companies.map((c) => (
+                                                                    {availableCompanies.map((c) => (
                                                                         <option key={c.id} value={c.id}>
                                                                             {c.name}
                                                                         </option>
@@ -618,10 +643,39 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                             </div>
                                                         </div>
 
+                                                        {/* Table Assignment */}
+                                                        <div>
+                                                            <div className="md:hidden text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 mt-3">
+                                                                Table
+                                                            </div>
+                                                            <div className="relative">
+                                                                <select
+                                                                    className="w-full h-10 rounded-lg border-gray-200 text-sm font-medium focus:ring-[#5da765] focus:border-[#5da765] disabled:opacity-50 bg-white pr-8"
+                                                                    value={session.table || ''}
+                                                                    disabled={isAssigning(session.id, 'table')}
+                                                                    onChange={(e) =>
+                                                                        handleAssign(slot.id, session.id, 'table', e.target.value)
+                                                                    }
+                                                                >
+                                                                    <option value="">— Select Table —</option>
+                                                                    {Array.from({ length: 25 }, (_, i) => `T${i + 1}`).map((t) => (
+                                                                        <option key={t} value={t}>
+                                                                            {t}
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                                {isAssigning(session.id, 'table') && (
+                                                                    <div className="absolute right-2 top-1/2 -translate-y-1/2">
+                                                                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
 
                                                     </div>
                                                 </div>
-                                            ))}
+                                            );
+                                        })}
                                         </div>
                                     </motion.div>
                                 ))}

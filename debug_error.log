@@ -1,0 +1,14 @@
+PrismaClientKnownRequestError: 
+Invalid `prisma.meetingRequest.create()` invocation in
+D:\Projects\Logistics\web\backend-api\debug_meeting_request.ts:21:60
+
+  18 const eventId = slot.eventId;
+  19 const meetingSlotId = slot.id;
+  20 
+→ 21 const meetingRequest = await prisma.meetingRequest.create(
+The column `meetingSlotId` does not exist in the current database.
+    at ei.handleRequestError (D:\Projects\Logistics\web\backend-api\node_modules\.prisma\client\runtime\library.js:125:7268)
+    at ei.handleAndLogRequestError (D:\Projects\Logistics\web\backend-api\node_modules\.prisma\client\runtime\library.js:125:6593)
+    at ei.request (D:\Projects\Logistics\web\backend-api\node_modules\.prisma\client\runtime\library.js:125:6300)
+    at async a (D:\Projects\Logistics\web\backend-api\node_modules\.prisma\client\runtime\library.js:134:9551)
+    at async main (D:\Projects\Logistics\web\backend-api\debug_meeting_request.ts:21:32)

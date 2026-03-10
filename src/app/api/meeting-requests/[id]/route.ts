@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest) {
         if (!requestId) return NextResponse.json({ error: 'Request ID required' }, { status: 400 });
 
         const body = await req.json();
-        const { status } = body;
+        const { status, declineReason } = body;
 
         if (!status || !['ACCEPTED', 'DECLINED'].includes(status)) {
             return NextResponse.json(
@@ -25,7 +25,11 @@ export async function PATCH(req: NextRequest) {
 
         const meetingRequest = await prisma.meetingRequest.findUnique({
             where: { id: requestId },
-            include: { meetingSession: true },
+            include: { 
+                meetingSlot: {
+                    include: { meetingSessions: true }
+                }
+            },
         });
 
         if (!meetingRequest) {
@@ -40,34 +44,42 @@ export async function PATCH(req: NextRequest) {
         }
 
         if (status === 'ACCEPTED') {
-            // Auto-assign both companies to the session
-            const session = meetingRequest.meetingSession;
+            // Find an open session in the slot
+            const sessions = meetingRequest.meetingSlot?.meetingSessions || [];
+            const openSession = sessions.find(s => !s.companyId || !s.companyBId);
 
-            // Determine which slots are free
+            if (!openSession) {
+                return NextResponse.json(
+                    { error: 'This time slot is already fully booked' },
+                    { status: 409 }
+                );
+            }
+
+            // Determine which slots are free in the session
             let updateData: any = {};
-            if (!session.companyId && !session.companyBId) {
+            if (!openSession.companyId && !openSession.companyBId) {
                 // Both slots free — assign fromCompany to A, toCompany to B
                 updateData = {
                     companyId: meetingRequest.fromCompanyId,
                     companyBId: meetingRequest.toCompanyId,
                 };
-            } else if (!session.companyId) {
+            } else if (!openSession.companyId) {
                 // Slot A free
                 updateData = { companyId: meetingRequest.fromCompanyId };
-            } else if (!session.companyBId) {
+            } else if (!openSession.companyBId) {
                 // Slot B free
                 updateData = { companyBId: meetingRequest.toCompanyId };
-            } else {
-                return NextResponse.json(
-                    { error: 'This session is already fully booked' },
-                    { status: 409 }
-                );
+            }
+
+            // Assign table number based on session index if not already assigned
+            if (!openSession.table) {
+                updateData.table = `T${openSession.sessionIndex + 1}`;
             }
 
             // Update session and request in a transaction
             await prisma.$transaction([
                 prisma.meetingSession.update({
-                    where: { id: meetingRequest.meetingSessionId },
+                    where: { id: openSession.id },
                     data: updateData,
                 }),
                 prisma.meetingRequest.update({
@@ -79,7 +91,7 @@ export async function PATCH(req: NextRequest) {
             // Just decline
             await prisma.meetingRequest.update({
                 where: { id: requestId },
-                data: { status: 'DECLINED' },
+                data: { status: 'DECLINED', declineReason: declineReason || null },
             });
         }
 
@@ -89,11 +101,7 @@ export async function PATCH(req: NextRequest) {
                 fromCompany: { select: { id: true, name: true, logoUrl: true } },
                 toCompany: { select: { id: true, name: true, logoUrl: true } },
                 event: { select: { id: true, name: true } },
-                meetingSession: {
-                    include: {
-                        meetingSlot: { select: { title: true, startTime: true, endTime: true } },
-                    },
-                },
+                meetingSlot: { select: { title: true, startTime: true, endTime: true } },
             },
         });
 

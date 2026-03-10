@@ -7,11 +7,11 @@ import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
-        const { eventId, meetingSessionId, fromCompanyId, toCompanyId, message } = body;
+        const { eventId, meetingSlotId, fromCompanyId, toCompanyId, message } = body;
 
-        if (!eventId || !meetingSessionId || !fromCompanyId || !toCompanyId) {
+        if (!eventId || !meetingSlotId || !fromCompanyId || !toCompanyId) {
             return NextResponse.json(
-                { error: 'eventId, meetingSessionId, fromCompanyId, and toCompanyId are required' },
+                { error: 'eventId, meetingSlotId, fromCompanyId, and toCompanyId are required' },
                 { status: 400 }
             );
         }
@@ -58,40 +58,46 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Verify the session belongs to this event
-        const session = await prisma.meetingSession.findFirst({
+        // Verify the slot belongs to this event and has available session space
+        const slot = await prisma.meetingSlot.findFirst({
             where: {
-                id: meetingSessionId,
-                meetingSlot: { eventId },
+                id: meetingSlotId,
+                eventId,
             },
+            include: {
+                meetingSessions: true,
+            }
         });
 
-        if (!session) {
-            return NextResponse.json({ error: 'Meeting session not found for this event' }, { status: 404 });
+        if (!slot) {
+            return NextResponse.json({ error: 'Meeting slot not found for this event' }, { status: 404 });
         }
 
-        // Check if session is already fully assigned
-        if (session.companyId && session.companyBId) {
-            return NextResponse.json({ error: 'This session is already fully booked' }, { status: 409 });
+        // Check if the slot as a whole is already fully booked
+        // i.e., all sessions have both companyId and companyBId assigned
+        const hasOpenSession = slot.meetingSessions.some(session => !session.companyId || !session.companyBId);
+
+        if (!hasOpenSession && slot.meetingSessions.length > 0) {
+            return NextResponse.json({ error: 'All sessions in this time slot are already fully booked' }, { status: 409 });
         }
 
         // Check for existing request
         const existing = await prisma.meetingRequest.findFirst({
             where: {
-                meetingSessionId,
+                meetingSlotId,
                 fromCompanyId,
                 toCompanyId,
             },
         });
 
         if (existing) {
-            return NextResponse.json({ error: 'A meeting request already exists for this session' }, { status: 409 });
+            return NextResponse.json({ error: 'A meeting request already exists for this time slot' }, { status: 409 });
         }
 
         const meetingRequest = await prisma.meetingRequest.create({
             data: {
                 eventId,
-                meetingSessionId,
+                meetingSlotId,
                 fromCompanyId,
                 toCompanyId,
                 message: message || null,
@@ -107,11 +113,7 @@ export async function POST(req: NextRequest) {
                         user: { select: { email: true } }
                     }
                 },
-                meetingSession: {
-                    include: {
-                        meetingSlot: { select: { title: true, startTime: true, endTime: true } },
-                    },
-                },
+                meetingSlot: { select: { title: true, startTime: true, endTime: true } },
                 event: { select: { name: true } }
             },
         });
@@ -125,13 +127,18 @@ export async function POST(req: NextRequest) {
 
         if (toEmail) {
             const eventName = meetingRequest.event?.name || 'an upcoming event';
-            const sessionTitle = meetingRequest.meetingSession.meetingSlot.title;
-            const sessionNum = meetingRequest.meetingSession.sessionIndex + 1;
+            const sessionTitle = meetingRequest.meetingSlot.title;
 
             // Format time helper local to block
+            const sessionDate = new Date(meetingRequest.meetingSlot.startTime).toLocaleDateString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
             const fmtTime = (d: Date) => new Date(d).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
-            const sTime = fmtTime(meetingRequest.meetingSession.startTime);
-            const eTime = fmtTime(meetingRequest.meetingSession.endTime);
+            const sTime = fmtTime(meetingRequest.meetingSlot.startTime);
+            const eTime = fmtTime(meetingRequest.meetingSlot.endTime);
 
             try {
                 await sendEmail({
@@ -144,7 +151,8 @@ export async function POST(req: NextRequest) {
                             <p><strong>${meetingRequest.fromCompany.name}</strong> has requested a One-to-One meeting with you at <strong>${eventName}</strong>.</p>
                             
                             <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                                <p style="margin: 0 0 10px 0;"><strong>Session:</strong> ${sessionTitle} (Session #${sessionNum})</p>
+                                <p style="margin: 0 0 10px 0;"><strong>Slot:</strong> ${sessionTitle}</p>
+                                <p style="margin: 0 0 10px 0;"><strong>Date:</strong> ${sessionDate}</p>
                                 <p style="margin: 0 0 10px 0;"><strong>Time:</strong> ${sTime} - ${eTime}</p>
                                 ${meetingRequest.message ? `<p style="margin: 0; padding-top: 10px; border-top: 1px solid #e9ecef;"><strong>Message:</strong> "${meetingRequest.message}"</p>` : ''}
                             </div>
@@ -164,9 +172,12 @@ export async function POST(req: NextRequest) {
         }
 
         return NextResponse.json(meetingRequest);
-    } catch (error) {
-        console.error('[MEETING_REQUEST_POST]', error);
-        return NextResponse.json({ error: 'Failed to create meeting request' }, { status: 500 });
+    } catch (error: any) {
+        console.error('[MEETING_REQUEST_POST] Full error:', error);
+        console.error('[MEETING_REQUEST_POST] Error message:', error?.message);
+        console.error('[MEETING_REQUEST_POST] Error code:', error?.code);
+        console.error('[MEETING_REQUEST_POST] Error meta:', JSON.stringify(error?.meta));
+        return NextResponse.json({ error: 'Failed to create meeting request', details: error?.message }, { status: 500 });
     }
 }
 
@@ -188,10 +199,24 @@ export async function GET(req: NextRequest) {
                 fromCompany: { select: { id: true, name: true, logoUrl: true } },
                 toCompany: { select: { id: true, name: true, logoUrl: true } },
                 event: { select: { id: true, name: true } },
-                meetingSession: {
-                    include: {
-                        meetingSlot: { select: { title: true, startTime: true, endTime: true } },
-                    },
+                meetingSlot: { 
+                    select: { 
+                        title: true, 
+                        startTime: true, 
+                        endTime: true,
+                        meetingSessions: {
+                            where: {
+                                OR: [
+                                    { companyId: companyId },
+                                    { companyBId: companyId }
+                                ]
+                            },
+                            select: {
+                                table: true,
+                                sessionIndex: true
+                            }
+                        }
+                    } 
                 },
             },
             orderBy: { createdAt: 'desc' },

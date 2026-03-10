@@ -1,15 +1,5 @@
 import nodemailer from 'nodemailer';
 
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST,
-    port: parseInt(process.env.SMTP_PORT || '587'),
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-    },
-});
-
 export async function sendEmail({
     to,
     subject,
@@ -30,8 +20,22 @@ export async function sendEmail({
         return;
     }
 
+    const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        secure: false, // true for 465, false for other ports
+        auth: {
+            user: process.env.SMTP_USER,
+            pass: process.env.SMTP_PASS,
+        },
+    });
+
+    const fromAddress = process.env.SMTP_FROM || '"Support" <sales@igla.asia>';
+
+    console.log(`[EMAIL_SEND] Sending from ${fromAddress} to ${to}`);
+
     await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"Support" <no-reply@logistics.com>',
+        from: fromAddress,
         to,
         subject,
         html,
