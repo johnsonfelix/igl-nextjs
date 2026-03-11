@@ -29,6 +29,8 @@ interface InvoiceProps {
 }
 
 export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAmount, currency = 'USD' }: InvoiceProps) => {
+    const baseTotal = items.reduce((acc, item) => acc + (item.total || 0), 0);
+
     const formatPrice = (amount: number) => {
         if (currency === 'THB') {
             return `฿${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -222,25 +224,25 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                                         <div style={{ display: 'flex', borderBottom: `1px solid ${blue}` }}>
                                             <div style={{ flex: 1, padding: '4px', borderRight: `1px solid ${blue}`, textAlign: 'center', fontWeight: 'bold', color: darkBlue }}>Total</div>
                                             <div style={{ flex: 1, padding: '4px', textAlign: 'right', paddingRight: '8px' }}>
-                                                {formatPrice(totalAmount / 1.18)}
+                                                {formatPrice(baseTotal)}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', borderBottom: `1px solid ${blue}` }}>
                                             <div style={{ flex: 1, padding: '4px', borderRight: `1px solid ${blue}`, textAlign: 'center', fontWeight: 'bold', color: darkBlue }}>CGST (9%)</div>
                                             <div style={{ flex: 1, padding: '4px', textAlign: 'right', paddingRight: '8px' }}>
-                                                {formatPrice((totalAmount / 1.18) * 0.09)}
+                                                {formatPrice(Math.round(baseTotal * 0.09))}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', borderBottom: `1px solid ${blue}` }}>
                                             <div style={{ flex: 1, padding: '4px', borderRight: `1px solid ${blue}`, textAlign: 'center', fontWeight: 'bold', color: darkBlue }}>SGST (9%)</div>
                                             <div style={{ flex: 1, padding: '4px', textAlign: 'right', paddingRight: '8px' }}>
-                                                {formatPrice((totalAmount / 1.18) * 0.09)}
+                                                {formatPrice(Math.round(baseTotal * 0.09))}
                                             </div>
                                         </div>
                                         <div style={{ display: 'flex', backgroundColor: '#eff6ff' }}>
                                             <div style={{ flex: 1, padding: '4px', borderRight: `1px solid ${blue}`, textAlign: 'center', fontWeight: 'bold', color: darkBlue }}>Grand Total</div>
                                             <div style={{ flex: 1, padding: '4px', textAlign: 'right', fontWeight: 'bold', paddingRight: '8px', fontSize: '13px' }}>
-                                                {formatPrice(totalAmount)}
+                                                {formatPrice(Math.round(baseTotal) + Math.round(baseTotal * 0.09) * 2)}
                                             </div>
                                         </div>
                                     </>

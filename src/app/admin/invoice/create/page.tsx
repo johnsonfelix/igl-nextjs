@@ -180,7 +180,10 @@ export default function CreateInvoicePage() {
     const handleSave = async (redirect = true) => {
         try {
             setLoading(true);
-            const finalAmount = formData.currency === 'INR' ? calculateGrandTotal() * 1.18 : calculateGrandTotal();
+            const baseT = calculateGrandTotal();
+            const cgst = Math.round(baseT * 0.09);
+            const sgst = Math.round(baseT * 0.09);
+            const finalAmount = formData.currency === 'INR' ? Math.round(baseT) + cgst + sgst : Math.round(baseT);
             const payload = {
                 ...formData,
                 totalAmount: finalAmount
@@ -552,16 +555,16 @@ export default function CreateInvoicePage() {
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>CGST (9%)</span>
-                                <span>{formData.currency} {(calculateGrandTotal() * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {Math.round(calculateGrandTotal() * 0.09)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>SGST (9%)</span>
-                                <span>{formData.currency} {(calculateGrandTotal() * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {Math.round(calculateGrandTotal() * 0.09)}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t mt-2">
                                 <span className="font-bold text-gray-600">Grand Total</span>
                                 <span className="font-bold text-xl text-blue-600">
-                                    {formData.currency} {(calculateGrandTotal() * 1.18).toFixed(2)}
+                                    {formData.currency} {Math.round(calculateGrandTotal()) + Math.round(calculateGrandTotal() * 0.09) * 2}
                                 </span>
                             </div>
                         </div>
@@ -569,7 +572,7 @@ export default function CreateInvoicePage() {
                         <div className="mt-4 pt-4 border-t flex justify-between items-center">
                             <span className="font-bold text-gray-600">Grand Total</span>
                             <span className="font-bold text-xl text-blue-600">
-                                {formData.currency} {calculateGrandTotal().toFixed(2)}
+                                {formData.currency} {Math.round(calculateGrandTotal())}
                             </span>
                         </div>
                     )}
@@ -594,7 +597,7 @@ export default function CreateInvoicePage() {
                             date={formData.date}
                             customerDetails={formData.customerDetails}
                             items={formData.items}
-                            totalAmount={formData.currency === 'INR' ? calculateGrandTotal() * 1.18 : calculateGrandTotal()}
+                            totalAmount={formData.currency === 'INR' ? Math.round(calculateGrandTotal()) + Math.round(calculateGrandTotal() * 0.09) * 2 : Math.round(calculateGrandTotal())}
                             currency={formData.currency}
                         />
                     </div>

@@ -117,12 +117,16 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     const handleUpdate = async (redirect = true) => {
         try {
             setLoading(true);
+            const baseT = calculateGrandTotal();
+            const cgst = Math.round(baseT * 0.09);
+            const sgst = Math.round(baseT * 0.09);
+            const finalAmount = formData.currency === 'INR' ? Math.round(baseT) + cgst + sgst : Math.round(baseT);
             const res = await fetch(`/api/admin/invoices/${id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     ...formData,
-                    totalAmount: calculateGrandTotal(),
+                    totalAmount: finalAmount,
                     currency: formData.currency
                 })
             });
@@ -354,28 +358,28 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                     {formData.currency === 'INR' ? (
                         <div className="mt-4 pt-4 border-t space-y-2">
                             <div className="flex justify-between items-center text-sm text-gray-500">
-                                <span>Total (Excl. Tax)</span>
-                                <span>{formData.currency} {(calculateGrandTotal() / 1.18).toFixed(2)}</span>
+                                <span>Total (Base)</span>
+                                <span>{formData.currency} {calculateGrandTotal().toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>CGST (9%)</span>
-                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {Math.round(calculateGrandTotal() * 0.09)}</span>
                             </div>
                             <div className="flex justify-between items-center text-sm text-gray-500">
                                 <span>SGST (9%)</span>
-                                <span>{formData.currency} {((calculateGrandTotal() / 1.18) * 0.09).toFixed(2)}</span>
+                                <span>{formData.currency} {Math.round(calculateGrandTotal() * 0.09)}</span>
                             </div>
                             <div className="flex justify-between items-center pt-2 border-t mt-2">
                                 <span className="font-bold text-gray-600">Grand Total</span>
                                 <span className="font-bold text-xl text-blue-600">
-                                    {formData.currency} {calculateGrandTotal().toFixed(2)}
+                                    {formData.currency} {Math.round(calculateGrandTotal()) + Math.round(calculateGrandTotal() * 0.09) * 2}
                                 </span>
                             </div>
                         </div>
                     ) : (
                         <div className="mt-4 pt-4 border-t flex justify-between items-center">
                             <span className="font-bold text-gray-600">Grand Total</span>
-                            <span className="font-bold text-xl text-blue-600">{formData.currency} {calculateGrandTotal().toFixed(2)}</span>
+                            <span className="font-bold text-xl text-blue-600">{formData.currency} {Math.round(calculateGrandTotal())}</span>
                         </div>
                     )}
                 </div>
@@ -405,7 +409,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                             date={formData.date}
                             customerDetails={formData.customerDetails}
                             items={formData.items}
-                            totalAmount={calculateGrandTotal()}
+                            totalAmount={formData.currency === 'INR' ? Math.round(calculateGrandTotal()) + Math.round(calculateGrandTotal() * 0.09) * 2 : Math.round(calculateGrandTotal())}
                             currency={formData.currency}
                         />
                     </div>
