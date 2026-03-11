@@ -26,6 +26,14 @@ interface Order {
     invoiceNumber?: number;
     paymentProof?: string | null;
     currency?: string;
+    manualInvoice?: {
+        invoiceNumber: string;
+        date: Date | string;
+        currency: string;
+        totalAmount: number;
+        customerDetails: any;
+        items: any[];
+    } | null;
 }
 
 interface OrdersTableProps {
@@ -286,29 +294,65 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                         </div>
 
                         <div className="p-8 print:p-0 printable-area">
-                            <InvoiceTemplate
-                                orderId={selectedOrder.invoiceNumber ? `IGLA${10000 + selectedOrder.invoiceNumber}` : selectedOrder.id}
-                                date={selectedOrder.createdAt}
-                                customerDetails={{
-                                    name: companyName,
-                                    email: companyEmail,
-                                    address: companyAddress,
-                                    companyName: companyName,
-                                    designation: designation,
-                                    memberId: memberId,
-                                    phoneNumber: phoneNumber,
-                                    taxNumber: taxNumber,
-                                    postalCode: postalCode,
-                                }}
-                                items={selectedOrder.items.map(item => ({
-                                    name: item.name,
-                                    quantity: item.quantity,
-                                    price: item.price,
-                                    total: Number((item.price * item.quantity).toFixed(2))
-                                }))}
-                                totalAmount={selectedOrder.totalAmount}
-                                currency={selectedOrder.currency || currency}
-                            />
+                            {(() => {
+                                const inv = selectedOrder.manualInvoice;
+                                if (inv) {
+                                    const cd = inv.customerDetails || {};
+                                    return (
+                                        <InvoiceTemplate
+                                            orderId={inv.invoiceNumber}
+                                            date={inv.date}
+                                            customerDetails={{
+                                                name: cd.name || '',
+                                                email: cd.email || '',
+                                                companyName: cd.companyName || '',
+                                                designation: cd.designation || '',
+                                                address: cd.address || '',
+                                                memberId: cd.memberId || '',
+                                                phoneNumber: cd.phoneNumber || '',
+                                                taxNumber: cd.taxNumber || '',
+                                                postalCode: cd.postalCode || '',
+                                                gstNumber: cd.gstNumber || '',
+                                            }}
+                                            items={inv.items.map((item: any) => ({
+                                                name: item.name,
+                                                quantity: item.quantity,
+                                                price: item.price,
+                                                originalPrice: item.originalPrice,
+                                                total: item.total ?? Number((item.price * item.quantity).toFixed(2)),
+                                            }))}
+                                            totalAmount={inv.totalAmount}
+                                            currency={inv.currency}
+                                        />
+                                    );
+                                }
+                                // Fallback: derive from company data (for orders without a linked manual invoice)
+                                return (
+                                    <InvoiceTemplate
+                                        orderId={selectedOrder.invoiceNumber ? `IGLA${10000 + selectedOrder.invoiceNumber}` : selectedOrder.id}
+                                        date={selectedOrder.createdAt}
+                                        customerDetails={{
+                                            name: companyName,
+                                            email: companyEmail,
+                                            address: companyAddress,
+                                            companyName: companyName,
+                                            designation: designation,
+                                            memberId: memberId,
+                                            phoneNumber: phoneNumber,
+                                            taxNumber: taxNumber,
+                                            postalCode: postalCode,
+                                        }}
+                                        items={selectedOrder.items.map(item => ({
+                                            name: item.name,
+                                            quantity: item.quantity,
+                                            price: item.price,
+                                            total: Number((item.price * item.quantity).toFixed(2))
+                                        }))}
+                                        totalAmount={selectedOrder.totalAmount}
+                                        currency={selectedOrder.currency || currency}
+                                    />
+                                );
+                            })()}
                         </div>
                     </div>
                 </div>

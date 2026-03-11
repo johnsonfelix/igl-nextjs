@@ -57,19 +57,25 @@ export default async function DashboardPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  // Enrich each order with currency from the linked ManualInvoice (if any)
+  // Attach the full ManualInvoice to each order (so dashboard invoice = admin invoice)
   const orders = await Promise.all(rawOrders.map(async (order) => {
     const details = order.additionalDetails as any;
     const invoiceId = details?.invoiceId;
-    let currency = 'USD';
+    let manualInvoice = null;
     if (invoiceId) {
-      const manualInvoice = await prisma.manualInvoice.findUnique({
+      manualInvoice = await prisma.manualInvoice.findUnique({
         where: { id: invoiceId },
-        select: { currency: true }
+        select: {
+          invoiceNumber: true,
+          date: true,
+          currency: true,
+          totalAmount: true,
+          customerDetails: true,
+          items: true,
+        }
       });
-      if (manualInvoice?.currency) currency = manualInvoice.currency;
     }
-    return { ...order, currency };
+    return { ...order, manualInvoice: manualInvoice as any };
   }));
 
   // Determine if the company is eligible to send meeting requests

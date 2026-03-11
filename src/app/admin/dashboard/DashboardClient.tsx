@@ -268,11 +268,11 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                     <Trash2 size={14} className="mr-1" />
                                                     Delete
                                                 </Button>
-                                                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
+                                                {false && <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-700 hover:bg-gray-50"
                                                     onClick={() => setViewInvoiceOrder(order)}>
                                                     <Printer size={14} className="mr-1" />
                                                     Invoice
-                                                </Button>
+                                                </Button>}
                                                 <Sheet>
                                                     <SheetTrigger asChild>
                                                         <Button variant="ghost" size="sm" className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
