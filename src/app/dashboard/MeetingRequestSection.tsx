@@ -943,7 +943,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
 
                                                     return (
                                                         <React.Fragment key={slot.id}>
-                                                            {is11_27Mar && (
+                                                            {false && is11_27Mar && (
                                                                 <div className="p-4 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-white flex items-center justify-between shadow-sm opacity-70">
                                                                     <div className="flex items-center gap-4">
                                                                         <div className="h-5 w-5 rounded border border-orange-300 bg-orange-50 flex items-center justify-center">

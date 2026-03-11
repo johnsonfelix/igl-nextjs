@@ -48,7 +48,7 @@ export default async function DashboardPage() {
   }
 
   // Fetch Orders
-  const orders = await prisma.purchaseOrder.findMany({
+  const rawOrders = await prisma.purchaseOrder.findMany({
     where: { companyId: company.id },
     include: {
       items: true,
@@ -56,6 +56,21 @@ export default async function DashboardPage() {
     },
     orderBy: { createdAt: 'desc' }
   });
+
+  // Enrich each order with currency from the linked ManualInvoice (if any)
+  const orders = await Promise.all(rawOrders.map(async (order) => {
+    const details = order.additionalDetails as any;
+    const invoiceId = details?.invoiceId;
+    let currency = 'USD';
+    if (invoiceId) {
+      const manualInvoice = await prisma.manualInvoice.findUnique({
+        where: { id: invoiceId },
+        select: { currency: true }
+      });
+      if (manualInvoice?.currency) currency = manualInvoice.currency;
+    }
+    return { ...order, currency };
+  }));
 
   // Determine if the company is eligible to send meeting requests
   // They are eligible if they have ANY completed purchase order OR if they are one of the dummy companies
@@ -181,6 +196,8 @@ export default async function DashboardPage() {
             companyAddress={[company?.location?.address, company?.location?.city, company?.location?.country].filter(Boolean).join(", ") || "Address not available"}
             designation={company.designation || company.location?.contactPersonDesignation || ""}
             memberId={company.memberId || ""}
+            phoneNumber={company.location?.phone || ""}
+            postalCode={company.location?.zipCode || ""}
           />
         </div>
 

@@ -25,6 +25,7 @@ interface Order {
     billingCountry?: string | null;
     invoiceNumber?: number;
     paymentProof?: string | null;
+    currency?: string;
 }
 
 interface OrdersTableProps {
@@ -34,9 +35,13 @@ interface OrdersTableProps {
     companyAddress: string;
     designation: string;
     memberId: string;
+    phoneNumber?: string;
+    taxNumber?: string;
+    postalCode?: string;
+    currency?: string;
 }
 
-export default function OrdersTable({ orders, companyName, companyEmail, companyAddress, designation, memberId }: OrdersTableProps) {
+export default function OrdersTable({ orders, companyName, companyEmail, companyAddress, designation, memberId, phoneNumber, taxNumber, postalCode, currency = 'USD' }: OrdersTableProps) {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [paymentProofUrl, setPaymentProofUrl] = useState<{ [key: string]: string }>({});
     const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
@@ -290,7 +295,10 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                     address: companyAddress,
                                     companyName: companyName,
                                     designation: designation,
-                                    memberId: memberId
+                                    memberId: memberId,
+                                    phoneNumber: phoneNumber,
+                                    taxNumber: taxNumber,
+                                    postalCode: postalCode,
                                 }}
                                 items={selectedOrder.items.map(item => ({
                                     name: item.name,
@@ -299,6 +307,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                     total: Number((item.price * item.quantity).toFixed(2))
                                 }))}
                                 totalAmount={selectedOrder.totalAmount}
+                                currency={selectedOrder.currency || currency}
                             />
                         </div>
                     </div>
