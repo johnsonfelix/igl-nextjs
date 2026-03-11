@@ -376,7 +376,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                     </div>
                                     <div>
                                         <Label className="text-gray-700 font-semibold mb-1.5 block">
-                                            Sessions
+                                            Tables
                                             {previewDuration() && (
                                                 <span className="ml-2 text-xs font-normal text-[#5da765]">
                                                     ({previewDuration()})
@@ -448,7 +448,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                         <Clock className="h-3 w-3" />
                                                         {formatDate(slot.startTime)} • {formatTime(slot.startTime)} — {formatTime(slot.endTime)}
                                                         <span className="ml-2 px-2 py-0.5 bg-[#5da765]/10 text-[#5da765] text-xs font-bold rounded-md">
-                                                            {slot.sessions} sessions
+                                                            {slot.sessions} tables
                                                         </span>
                                                     </p>
                                                 </div>
@@ -481,7 +481,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                             <div className="mx-5 mt-4 p-4 rounded-xl bg-amber-50/50 border border-amber-200/50">
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex-1">
-                                                        <Label className="text-gray-600 font-semibold text-xs uppercase tracking-wider mb-1.5 block">Number of Sessions</Label>
+                                                        <Label className="text-gray-600 font-semibold text-xs uppercase tracking-wider mb-1.5 block">Number of Tables</Label>
                                                         <div className="flex items-center gap-2">
                                                             <Button
                                                                 variant="outline"
@@ -536,8 +536,8 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                 {editSessionCount !== slot.sessions && (
                                                     <p className="text-xs text-amber-700 mt-2 font-medium">
                                                         {editSessionCount > slot.sessions
-                                                            ? `Adding ${editSessionCount - slot.sessions} session(s). Times will be recalculated.`
-                                                            : `Removing ${slot.sessions - editSessionCount} session(s) from the end. Company assignments on removed sessions will be lost.`
+                                                            ? `Adding ${editSessionCount - slot.sessions} table(s). Times will be recalculated.`
+                                                            : `Removing ${slot.sessions - editSessionCount} table(s) from the end. Company assignments on removed tables will be lost.`
                                                         }
                                                     </p>
                                                 )}

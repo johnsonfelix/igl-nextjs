@@ -25,6 +25,16 @@ export async function GET(req: NextRequest) {
                     },
                     orderBy: { sessionIndex: 'asc' },
                 },
+                blockedMeetingSlots: true,
+                meetingRequests: {
+                    where: {
+                        status: { in: ['PENDING', 'ACCEPTED'] },
+                    },
+                    select: {
+                        fromCompanyId: true,
+                        toCompanyId: true,
+                    },
+                },
             },
             orderBy: { startTime: 'asc' },
         });
@@ -81,6 +91,16 @@ export async function POST(req: NextRequest) {
                         companyB: { select: { id: true, name: true, logoUrl: true } },
                     },
                     orderBy: { sessionIndex: 'asc' },
+                },
+                blockedMeetingSlots: true,
+                meetingRequests: {
+                    where: {
+                        status: { in: ['PENDING', 'ACCEPTED'] },
+                    },
+                    select: {
+                        fromCompanyId: true,
+                        toCompanyId: true,
+                    },
                 },
             },
         });

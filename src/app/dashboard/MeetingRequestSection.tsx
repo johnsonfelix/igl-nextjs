@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Users, Send, CheckCircle, XCircle, Clock, Building2, ArrowRight, X, Loader2, MessageSquare, ChevronDown, MapPin } from 'lucide-react';
+import { Users, Send, CheckCircle, XCircle, Clock, Building2, ArrowRight, X, Loader2, MessageSquare, ChevronDown, MapPin, Coffee } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,6 +33,8 @@ interface MeetingSlotOption {
     endTime: string;
     sessions: number;
     meetingSessions: MeetingSessionOption[];
+    blockedMeetingSlots?: { companyId: string }[];
+    meetingRequests?: { fromCompanyId: string; toCompanyId: string }[];
 }
 
 interface CompanyOption {
@@ -80,6 +82,12 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
     const [processingId, setProcessingId] = useState<string | null>(null);
     const [decliningRequestId, setDecliningRequestId] = useState<string | null>(null);
     const [declineReason, setDeclineReason] = useState('');
+
+    // Block status state
+    const [showBlockModal, setShowBlockModal] = useState(false);
+    const [blockingSlots, setBlockingSlots] = useState<Set<string>>(new Set());
+    const [savingBlocks, setSavingBlocks] = useState(false);
+    const [blockEvent, setBlockEvent] = useState<ConferenceTicket | null>(null);
 
     // Form state
     const [slots, setSlots] = useState<MeetingSlotOption[]>([]);
@@ -162,6 +170,17 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                         if ((session as any).company?.id) busySet.add((session as any).company.id);
                         if ((session as any).companyB?.id) busySet.add((session as any).companyB.id);
                     }
+
+                    // Track explicit blocks
+                    for (const block of slot.blockedMeetingSlots || []) {
+                        if (block.companyId) busySet.add(block.companyId);
+                    }
+
+                    // Track pending/accepted requests
+                    for (const req of slot.meetingRequests || []) {
+                        if (req.fromCompanyId) busySet.add(req.fromCompanyId);
+                        if (req.toCompanyId) busySet.add(req.toCompanyId);
+                    }
                 }
                 setBusyMap(newBusyMap);
             }
@@ -176,6 +195,62 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
             toast.error('Failed to load data');
         } finally {
             setLoadingSessions(false);
+        }
+    };
+
+    const openBlockModal = async (ticket: ConferenceTicket) => {
+        setBlockEvent(ticket);
+        setShowBlockModal(true);
+        setBlockingSlots(new Set());
+        setLoadingSessions(true);
+
+        try {
+            // Fetch available sessions for this event
+            const sessRes = await fetch(`/api/events/${ticket.eventId}/meetings`);
+            if (sessRes.ok) {
+                const fetchedSlots = await sessRes.json();
+                setSlots(fetchedSlots);
+            }
+
+            // Fetch explicitly blocked slots for this company
+            const blockRes = await fetch(`/api/meeting-requests/blocked-slots?companyId=${companyId}&eventId=${ticket.eventId}`);
+            if (blockRes.ok) {
+                const blockedSlotIds = await blockRes.json();
+                setBlockingSlots(new Set(blockedSlotIds));
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Failed to load slots');
+        } finally {
+            setLoadingSessions(false);
+        }
+    };
+
+    const handleSaveBlocks = async () => {
+        if (!blockEvent) return;
+        setSavingBlocks(true);
+        try {
+            const res = await fetch('/api/meeting-requests/blocked-slots', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    companyId,
+                    eventId: blockEvent.eventId,
+                    meetingSlotIds: Array.from(blockingSlots),
+                }),
+            });
+
+            if (res.ok) {
+                toast.success('Blocked status updated!');
+                setShowBlockModal(false);
+            } else {
+                toast.error('Failed to update blocked status');
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error('Error updating blocked status');
+        } finally {
+            setSavingBlocks(false);
         }
     };
 
@@ -314,22 +389,39 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
 
                 <div className="space-y-3">
                     {conferenceTickets.map((ticket) => (
-                        <button
-                            key={ticket.eventId}
-                            onClick={() => openModal(ticket)}
-                            className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white hover:from-[#004aad]/5 hover:to-white hover:border-[#004aad]/20 transition-all group"
-                        >
-                            <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 rounded-lg bg-[#004aad]/10 flex items-center justify-center group-hover:bg-[#004aad]/20 transition-colors">
-                                    <Send className="h-4 w-4 text-[#004aad]" />
+                        <div key={ticket.eventId} className="space-y-2">
+                            <button
+                                onClick={() => openModal(ticket)}
+                                className="w-full flex items-center justify-between p-4 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50 to-white hover:from-[#004aad]/5 hover:to-white hover:border-[#004aad]/20 transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-[#004aad]/10 flex items-center justify-center group-hover:bg-[#004aad]/20 transition-colors">
+                                        <Send className="h-4 w-4 text-[#004aad]" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-bold text-gray-800 text-sm">Request One-to-One Meeting</div>
+                                        <div className="text-xs text-gray-500">{ticket.eventName}</div>
+                                    </div>
                                 </div>
-                                <div className="text-left">
-                                    <div className="font-bold text-gray-800 text-sm">Request One-to-One Meeting</div>
-                                    <div className="text-xs text-gray-500">{ticket.eventName}</div>
+                                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-[#004aad] transition-colors" />
+                            </button>
+
+                            <button
+                                onClick={() => openBlockModal(ticket)}
+                                className="w-full flex items-center justify-between p-3 rounded-xl border border-dashed border-gray-200 bg-white hover:bg-gray-50 transition-all group"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="h-8 w-8 rounded-lg bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                                        <XCircle className="h-4 w-4 text-gray-500" />
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold text-gray-600 text-sm">Manage Blocked Status</div>
+                                        <div className="text-xs text-gray-400">Block yourself from specific meetings sessions</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-[#004aad] transition-colors" />
-                        </button>
+                                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-500 transition-colors" />
+                            </button>
+                        </div>
                     ))}
                 </div>
             </div>
@@ -501,46 +593,60 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                     <p className="mt-1">Check back later for open slots.</p>
                                                 </div>
                                             ) : (
-                                                <div className="space-y-3">
-                                                    {slots.map((slot: any) => (
-                                                        <label
-                                                            key={slot.id}
-                                                            className={`p-4 rounded-xl border-2 transition-all cursor-pointer block ${selectedSlotId === slot.id
-                                                                    ? 'border-[#004aad] bg-[#004aad]/5 shadow-sm'
-                                                                    : 'bg-white border-gray-100 hover:border-gray-300'
-                                                                }`}
-                                                        >
-                                                            <div className="flex items-center gap-3 mb-3">
-                                                                <input
-                                                                    type="radio"
-                                                                    name="meetingSlot"
-                                                                    className="h-4 w-4 accent-[#004aad] flex-none"
-                                                                    checked={selectedSlotId === slot.id}
-                                                                    onChange={() => {
-                                                                        setSelectedSlotId(slot.id);
-                                                                        setSelectedCompanyId('');
-                                                                    }}
-                                                                />
-                                                                <div className="h-8 w-8 rounded-lg bg-[#004aad]/10 flex items-center justify-center">
-                                                                    <Users className="h-4 w-4 text-[#004aad]" />
-                                                                </div>
-                                                                <div>
-                                                                    <span className="font-bold text-gray-800 text-sm">{slot.title}</span>
-                                                                    <span className="text-xs text-gray-500 ml-2">
-                                                                        {formatDate(slot.startTime)} • {formatTime24(slot.startTime)} — {formatTime24(slot.endTime)}
-                                                                    </span>
-                                                                </div>
-                                                                <span className="ml-auto px-2 py-0.5 bg-[#004aad]/10 text-[#004aad] text-[10px] font-bold rounded-md uppercase">
-                                                                    {slot.sessions} sessions
-                                                                </span>
-                                                            </div>
-                                                            <div className="pl-7">
-                                                                <p className="text-xs text-gray-500 font-medium">
-                                                                    Contains {slot.meetingSessions.length} parallel meeting tables.
-                                                                </p>
-                                                            </div>
-                                                        </label>
-                                                    ))}
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                                                    {slots.map((slot: any) => {
+                                                        const is11_27Mar = formatTime24(slot.startTime) === '11:00' && formatDate(slot.startTime).includes('27 Mar');
+                                                        return (
+                                                            <React.Fragment key={slot.id}>
+                                                                {false && is11_27Mar && (
+                                                                    <div className="col-span-full p-4 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-white flex items-center justify-between shadow-sm opacity-90 my-2">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className="h-10 w-10 rounded-lg bg-orange-100/70 flex items-center justify-center">
+                                                                                <Coffee className="h-5 w-5 text-orange-600" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <div className="font-bold text-gray-800 text-sm">Tea Break</div>
+                                                                                <div className="text-xs text-gray-500">27 Mar 2026 • 10:30 — 11:00</div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-lg tracking-wide">
+                                                                            BREAK
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                                <label
+                                                                    className={`relative flex flex-col p-5 rounded-2xl border-2 transition-all cursor-pointer group hover:shadow-md ${selectedSlotId === slot.id
+                                                                        ? 'border-[#004aad] bg-gradient-to-br from-[#004aad]/5 to-white shadow-sm'
+                                                                        : 'bg-white border-gray-100 hover:border-[#004aad]/30'
+                                                                        }`}
+                                                                >
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="meetingSlot"
+                                                                        className="absolute top-4 right-4 h-4 w-4 accent-[#004aad] cursor-pointer"
+                                                                        checked={selectedSlotId === slot.id}
+                                                                        onChange={() => {
+                                                                            setSelectedSlotId(slot.id);
+                                                                            setSelectedCompanyId('');
+                                                                        }}
+                                                                    />
+                                                                    <div className="mb-4">
+                                                                        <div className={`h-12 w-12 rounded-xl flex items-center justify-center transition-colors ${selectedSlotId === slot.id ? 'bg-[#004aad] text-white shadow-lg shadow-blue-900/20' : 'bg-[#004aad]/10 text-[#004aad] group-hover:bg-[#004aad]/20'}`}>
+                                                                            <Users className="h-6 w-6" />
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex-1">
+                                                                        <h4 className="font-bold text-gray-900 text-base mb-1">{slot.title}</h4>
+                                                                        <div className="text-xs font-medium text-gray-500 mb-2">{formatDate(slot.startTime)}</div>
+                                                                        <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 text-gray-700 rounded-lg text-xs font-bold">
+                                                                            <Clock className="h-3.5 w-3.5 text-gray-500" />
+                                                                            {formatTime24(slot.startTime)} — {formatTime24(slot.endTime)}
+                                                                        </div>
+                                                                    </div>
+                                                                </label>
+                                                            </React.Fragment>
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
                                         </div>
@@ -577,7 +683,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                                                 onClick={() => !(!selectedSlotId) && setIsDropdownOpen(!isDropdownOpen)}
                                                                 disabled={!selectedSlotId}
                                                                 className={`w-full h-auto min-h-[48px] py-2 pl-4 pr-10 rounded-xl border text-left flex items-center justify-between transition-colors bg-white ${!selectedSlotId ? 'opacity-50 cursor-not-allowed border-gray-200' :
-                                                                        isDropdownOpen ? 'border-[#004aad] ring-2 ring-[#004aad]/20 shadow-sm' : 'border-gray-200 hover:border-gray-300 shadow-sm'
+                                                                    isDropdownOpen ? 'border-[#004aad] ring-2 ring-[#004aad]/20 shadow-sm' : 'border-gray-200 hover:border-gray-300 shadow-sm'
                                                                     }`}
                                                             >
                                                                 {!selectedSlotId ? (
@@ -767,6 +873,154 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                         <span className={processingId === decliningRequestId ? 'pl-6' : ''}>Confirm Decline</span>
                                     </button>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+            {/* Block Modal */}
+            <AnimatePresence>
+                {showBlockModal && blockEvent && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center"
+                    >
+                        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => !savingBlocks && setShowBlockModal(false)} />
+
+                        <motion.div
+                            initial={{ opacity: 0, y: 30, scale: 0.97 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 30, scale: 0.97 }}
+                            className="relative z-10 w-full max-w-3xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+                        >
+                            <div className="flex-none flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                                <div className="flex items-center gap-4">
+                                    <div className="h-12 w-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+                                        <XCircle className="h-6 w-6 text-gray-500" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold text-gray-900">Manage Blocked Status</h3>
+                                        <p className="text-sm text-gray-500 mt-0.5">{blockEvent.eventName}</p>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => !savingBlocks && setShowBlockModal(false)}
+                                    disabled={savingBlocks}
+                                    className="h-10 w-10 rounded-xl bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors disabled:opacity-50"
+                                >
+                                    <X className="h-5 w-5 text-gray-500" />
+                                </button>
+                            </div>
+
+                            <div className="p-8 overflow-y-auto flex-1">
+                                {loadingSessions ? (
+                                    <div className="py-20 flex flex-col items-center justify-center">
+                                        <Loader2 className="animate-spin h-10 w-10 text-gray-400 mb-4" />
+                                        <p className="text-gray-500 font-medium text-sm">Loading available sessions...</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        <div className="bg-blue-50 text-blue-800 p-4 rounded-xl text-sm border border-blue-100 flex gap-3">
+                                            <div className="mt-0.5"><Users className="h-5 w-5 text-blue-600" /></div>
+                                            <div>
+                                                <p className="font-semibold mb-1">How blocking works:</p>
+                                                <p className="text-blue-700/80">Select any sessions where you are unavailable. When you block a session, your company will be completely hidden from the dropdown menu when other companies try to book one-to-one meetings for that specific timeslot.</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {slots.length === 0 ? (
+                                                <div className="text-sm text-gray-400 py-12 text-center border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50/50">
+                                                    <Clock className="mx-auto h-10 w-10 text-gray-300 mb-3" />
+                                                    <p className="font-semibold text-gray-500">No meeting slots available</p>
+                                                </div>
+                                            ) : (
+                                                slots.map((slot: any) => {
+                                                    const isBlocked = blockingSlots.has(slot.id);
+                                                    const is11_27Mar = formatTime24(slot.startTime) === '11:00' && formatDate(slot.startTime).includes('27 Mar');
+
+                                                    return (
+                                                        <React.Fragment key={slot.id}>
+                                                            {is11_27Mar && (
+                                                                <div className="p-4 rounded-xl border border-orange-100 bg-gradient-to-r from-orange-50 to-white flex items-center justify-between shadow-sm opacity-70">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <div className="h-5 w-5 rounded border border-orange-300 bg-orange-50 flex items-center justify-center">
+                                                                        </div>
+                                                                        <div className="flex-1">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="font-bold text-gray-800 text-base">Tea Break</span>
+                                                                                <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+                                                                                    Break
+                                                                                </span>
+                                                                            </div>
+                                                                            <div className="text-sm text-gray-500 mt-1">
+                                                                                27 Mar 2026 • 10:30 — 11:00
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            <label
+                                                                className={`p-4 rounded-xl border-2 transition-all cursor-pointer block ${isBlocked
+                                                                    ? 'border-red-500 bg-red-50/50 shadow-sm'
+                                                                    : 'bg-white border-gray-100 hover:border-gray-200'
+                                                                    }`}
+                                                            >
+                                                                <div className="flex items-center gap-4">
+                                                                    <input
+                                                                        type="checkbox"
+                                                                        className="h-5 w-5 rounded border-gray-300 text-red-600 focus:ring-red-500 disabled:opacity-50"
+                                                                        checked={isBlocked}
+                                                                        disabled={savingBlocks}
+                                                                        onChange={(e) => {
+                                                                            const newSet = new Set(blockingSlots);
+                                                                            if (e.target.checked) newSet.add(slot.id);
+                                                                            else newSet.delete(slot.id);
+                                                                            setBlockingSlots(newSet);
+                                                                        }}
+                                                                    />
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="font-bold text-gray-800 text-base">{slot.title}</span>
+                                                                            {isBlocked && (
+                                                                                <span className="px-2 py-0.5 bg-red-100 text-red-700 text-[10px] font-bold rounded-md uppercase tracking-wider">
+                                                                                    Blocked
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="text-sm text-gray-500 mt-1">
+                                                                            {formatDate(slot.startTime)} • {formatTime24(slot.startTime)} — {formatTime24(slot.endTime)}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </label>
+                                                        </React.Fragment>
+                                                    );
+                                                })
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end gap-3 flex-none">
+                                <button
+                                    onClick={() => !savingBlocks && setShowBlockModal(false)}
+                                    disabled={savingBlocks}
+                                    className="px-6 py-2.5 rounded-xl font-bold text-gray-600 hover:bg-gray-200 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveBlocks}
+                                    disabled={savingBlocks || loadingSessions}
+                                    className="px-6 py-2.5 rounded-xl bg-gray-900 text-white font-bold hover:bg-black transition-colors disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {savingBlocks && <Loader2 className="h-4 w-4 animate-spin" />}
+                                    Save Blocked Status
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>

@@ -60,6 +60,7 @@ model Company {
   meetingSessionsB      MeetingSession[] @relation("CompanyBMeetings")
   sentMeetingRequests   MeetingRequest[] @relation("SentMeetingRequests")
   receivedMeetingRequests MeetingRequest[] @relation("ReceivedMeetingRequests")
+  blockedMeetingSlots     BlockedMeetingSlot[]
 }
 
 model Service {
@@ -158,6 +159,7 @@ model Event {
   hotels            Hotel[]            @relation("EventHotels")
   meetingSlots      MeetingSlot[]
   meetingRequests   MeetingRequest[]
+  blockedMeetingSlots BlockedMeetingSlot[]
 }
 
 model SponsorType {
@@ -618,6 +620,7 @@ model MeetingSlot {
   event           Event            @relation(fields: [eventId], references: [id], onDelete: Cascade)
   meetingSessions MeetingSession[]
   meetingRequests MeetingRequest[]
+  blockedMeetingSlots BlockedMeetingSlot[]
 
   @@index([eventId])
 }
@@ -664,4 +667,19 @@ enum RequestStatus {
   PENDING
   ACCEPTED
   DECLINED
+}
+
+model BlockedMeetingSlot {
+  id              String       @id @default(cuid())
+  eventId         String
+  meetingSlotId   String
+  companyId       String
+  createdAt       DateTime     @default(now())
+
+  company         Company      @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  event           Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  meetingSlot     MeetingSlot  @relation(fields: [meetingSlotId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, meetingSlotId])
+  @@index([eventId])
 }

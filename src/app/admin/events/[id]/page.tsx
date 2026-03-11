@@ -477,7 +477,7 @@ export default function EventViewPage() {
                             </span>
                           </div>
                           <span className="ml-auto px-2 py-0.5 bg-[#5da765]/10 text-[#5da765] text-[10px] font-bold rounded-md uppercase">
-                            {slot.sessions} sessions
+                            {slot.sessions} tables
                           </span>
                         </div>
                         <div className="space-y-2">
