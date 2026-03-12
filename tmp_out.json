@@ -1,0 +1,72 @@
+{
+  "user": {
+    "id": "cmjwp0vea0006gaxoru3b1mwy",
+    "email": "info@pccpl.com.au",
+    "password": "$2b$10$nTzz9r87P5JBC21bpL/iy.46aR5QnvN257mtP1bJUr/.159XU4s/q",
+    "name": "PENTON CARGO AND CUSTOMS (AUST) PTY LTD\t\t\t\t",
+    "role": "USER",
+    "createdAt": "2026-01-02T09:50:23.219Z",
+    "updatedAt": "2026-01-15T06:10:26.898Z",
+    "isCompleted": true,
+    "phone": "(+61) 393-10-3290\t",
+    "resetToken": null,
+    "resetTokenExpiry": null,
+    "companies": [
+      {
+        "id": "cmkxxomwa0002i91ep94jumr6",
+        "memberId": "IGLA37173",
+        "memberType": "",
+        "name": "PENTON CARGO AND CUSTOMS (AUST) PTY LTD",
+        "website": "http://www.pccpl.com.au/",
+        "established": null,
+        "size": null,
+        "about": "",
+        "memberSince": null,
+        "userId": "cmjwp0vea0006gaxoru3b1mwy",
+        "memberFromYear": null,
+        "createdAt": "2026-01-28T11:20:17.386Z",
+        "updatedAt": "2026-03-12T06:33:37.220Z",
+        "sector": null,
+        "taxNumber": "",
+        "logoUrl": "",
+        "purchasedMembership": "Silver",
+        "isVerified": false,
+        "isActive": true,
+        "status": "LIVE",
+        "zipCode": null,
+        "membershipExpiresAt": null,
+        "purchasedAt": null,
+        "purchasedMembershipId": null,
+        "membershipPlanId": null,
+        "directors": "VISHAL MODI",
+        "designation": "General Manager",
+        "participationYears": "",
+        "scopeOfBusiness": "",
+        "servicesOffered": ""
+      }
+    ]
+  },
+  "locs": [
+    {
+      "id": "cmkxxomwa0003i91egqcrkl3a",
+      "companyId": "cmkxxomwa0002i91ep94jumr6",
+      "email": "info@pccpl.com.au",
+      "companyName": "PENTON CARGO AND CUSTOMS (AUST) PTY LTD"
+    }
+  ],
+  "mCompany": [
+    {
+      "id": "cmjh4i4vf0007jr1e8heh51m8",
+      "name": "Pan pacific shipping & logistics\t\t\t",
+      "userId": "cmkf1w3z3001jgaj0vhr6hmxy"
+    },
+    {
+      "id": "cmkxxomwa0002i91ep94jumr6",
+      "name": "PENTON CARGO AND CUSTOMS (AUST) PTY LTD",
+      "userId": "cmjwp0vea0006gaxoru3b1mwy"
+    }
+  ],
+  "usersWithNoCompanyCount": 125,
+  "matchesCount": 0,
+  "matches": []
+}
