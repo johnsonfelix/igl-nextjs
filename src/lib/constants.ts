@@ -12,5 +12,9 @@ export const DUMMY_COMPANY_NAMES = [
     'ON BOARD LOGISTICS',
     'Tiovia Logistics ',
     'Gulf worldwide Logistics',
-    'REAL LOGISTICS CO., LTD'
+    'REAL LOGISTICS CO., LTD',
+    'True Companion Logistics',
+    'P.T. Chaya',
+    'Fames Freight & Logistics LLC',
+    'Sabelatrans Shipping Global F.Z.E'
 ];
