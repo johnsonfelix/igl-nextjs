@@ -15,6 +15,6 @@ export const DUMMY_COMPANY_NAMES = [
     'REAL LOGISTICS CO., LTD',
     'True Companion Logistics',
     'P.T. Chaya',
-    'Fames Freight & Logistics LLC',
+    'Famex Freight & Logistics LLC',
     'Sabelatrans Shipping Global F.Z.E'
 ];
