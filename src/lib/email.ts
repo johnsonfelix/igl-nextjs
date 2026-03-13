@@ -1,5 +1,19 @@
 import nodemailer from 'nodemailer';
 
+function isDummyEmail(email: string): boolean {
+    if (!email) return true;
+    const lower = email.toLowerCase().trim();
+    // Common patterns for fake/invalid emails that cause SES bounces
+    return (
+        !lower.includes('@') ||
+        lower.includes('test') ||
+        lower.includes('example') ||
+        lower.includes('fake') ||
+        lower.includes('dummy') ||
+        !lower.includes('.')
+    );
+}
+
 export async function sendEmail({
     to,
     subject,
@@ -9,6 +23,12 @@ export async function sendEmail({
     subject: string;
     html: string;
 }) {
+    // Intercept dummy/invalid emails to prevent SES bounces
+    if (isDummyEmail(to)) {
+        console.log(`[EMAIL_SEND_SKIP] Blocked sending to invalid/dummy email: ${to}`);
+        return;
+    }
+
     // If no SMTP credentials, just log (for dev)
     if (!process.env.SMTP_HOST || !process.env.SMTP_USER) {
         console.log('---------------------------------------------------');
