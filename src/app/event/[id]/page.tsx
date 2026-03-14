@@ -684,9 +684,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const totalTicketsSelected = Object.values(ticketQuantities).reduce((a, b) => a + b, 0);
 
   const sponsorsByType = useMemo(() => {
-    if (!eventData?.purchaseOrders) return {};
+    if (!eventData?.purchaseOrders || !eventData?.eventSponsorTypes) return {};
 
     const groups: Record<string, any[]> = {};
+
+    // Helper to normalize strings for comparison
+    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+    const definedSponsorNames = eventData.eventSponsorTypes.map((s: any) => s.sponsorType.name);
 
     eventData.purchaseOrders.forEach((po: any) => {
       if (!po.company || po.status !== 'COMPLETED') return;
@@ -694,20 +699,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       if (Array.isArray(po.items)) {
         po.items.forEach((item: any) => {
           if (item.productType === 'SPONSOR') {
-            const typeName = item.name;
-            if (!groups[typeName]) {
-              groups[typeName] = [];
-            }
-            // Check if company already added to this group (in case of multiple same items? unlikely but good safety)
-            if (!groups[typeName].some(c => c.id === po.company.id)) {
-              groups[typeName].push(po.company);
-            }
+            const itemName = item.name;
+            const normalizedItemName = normalize(itemName);
+
+            // Try to find which defined sponsor types match this item
+            definedSponsorNames.forEach(definedName => {
+              const normalizedDefinedName = normalize(definedName);
+
+              // Match if one contains the other (e.g., "Bags" in "Sponsor Bags/ T shirts")
+              if (normalizedItemName.includes(normalizedDefinedName) || normalizedDefinedName.includes(normalizedItemName)) {
+                if (!groups[definedName]) {
+                  groups[definedName] = [];
+                }
+                if (!groups[definedName].some(c => c.id === po.company.id)) {
+                  groups[definedName].push(po.company);
+                }
+              }
+            });
           }
         });
       }
     });
     return groups;
-  }, [eventData?.purchaseOrders]);
+  }, [eventData?.purchaseOrders, eventData?.eventSponsorTypes]);
+
 
   const handleSponsorQuantityChange = (sponsorTypeId: string, delta: number) => {
     const currentQty = sponsorQuantities[sponsorTypeId] || 0;
@@ -1003,6 +1018,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
 
   const tabs = ["Tickets", "Agenda", "About", "About Venue", "Event Sponsors"];
+
 
   // Helper: determine best applicable offer for a product
   function getBestOfferForItem(
@@ -2023,7 +2039,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 {(() => {
                   const soldSponsors = eventSponsorTypes.filter(s => {
                     const assignedCount = (sponsorsByType[s.sponsorType.name] || []).length;
-                    return assignedCount >= s.quantity && assignedCount > 0;
+                    return assignedCount > 0;
                   });
 
                   if (soldSponsors.length === 0) {

@@ -1,0 +1,164 @@
+{
+  "items": [
+    {
+      "name": "Title Sponsor",
+      "productType": "SPONSOR",
+      "status": "COMPLETED",
+      "company": "Phoenix Logistics India Pvt Ltd"
+    },
+    {
+      "name": "Sponsor Bags/ T shirts",
+      "productType": "SPONSOR",
+      "status": "COMPLETED",
+      "company": "Conturk Shipping Logistik Hizmetleri Ltd Sti"
+    },
+    {
+      "name": "Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Conturk Shipping Logistik Hizmetleri Ltd Sti"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Pan pacific shipping & logistics\t\t\t"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "FAST MOVE"
+    },
+    {
+      "name": "Deluxe (Complimentary)",
+      "productType": "HOTEL",
+      "status": "PENDING",
+      "company": "FAST MOVE"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "Bondex"
+    },
+    {
+      "name": "Hotel - Deluxe (Complimentary)",
+      "productType": "HOTEL",
+      "status": "PENDING",
+      "company": "Bondex"
+    },
+    {
+      "name": "Accompanying Member",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "Bondex"
+    },
+    {
+      "name": "Meeting Package",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "\t512 Doncaster\t"
+    },
+    {
+      "name": "Meeting Package",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "\t512 Doncaster\t"
+    },
+    {
+      "name": "Meeting Package",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "\t512 Doncaster\t"
+    },
+    {
+      "name": "Meeting Package",
+      "productType": "TICKET",
+      "status": "PENDING",
+      "company": "\t512 Doncaster\t"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "SHENZHEN KARRY ON GLOBAL LOGISTICS"
+    },
+    {
+      "name": "Accompanying Member",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "SHENZHEN KARRY ON GLOBAL LOGISTICS"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Marvel Freight Ltd"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Navoka Shipping & Logistics Pvt Ltd\t\t\t"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "PENTON CARGO AND CUSTOMS (AUST) PTY LTD"
+    },
+    {
+      "name": "IGLA 11th Annual Conference Ticket",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Ocean Blitz Shipping\t\t \t\t"
+    },
+    {
+      "name": "Accompanying Member",
+      "productType": "TICKET",
+      "status": "COMPLETED",
+      "company": "Ocean Blitz Shipping\t\t \t\t"
+    },
+    {
+      "name": "Folder & Pen",
+      "productType": "SPONSOR",
+      "status": "COMPLETED",
+      "company": "Phoenix Logistics India Pvt Ltd"
+    }
+  ],
+  "eventSponsorTypes": [
+    {
+      "name": "Tag & ID card",
+      "quantity": 1
+    },
+    {
+      "name": "Folder & Pen",
+      "quantity": 0
+    },
+    {
+      "name": "Breaks",
+      "quantity": 1
+    },
+    {
+      "name": "Bags",
+      "quantity": 0
+    },
+    {
+      "name": "Gala Dinner",
+      "quantity": 1
+    },
+    {
+      "name": "Welcome Cocktail",
+      "quantity": 1
+    },
+    {
+      "name": "T Shirts",
+      "quantity": 0
+    },
+    {
+      "name": "Title Sponsor",
+      "quantity": 1
+    }
+  ]
+}
