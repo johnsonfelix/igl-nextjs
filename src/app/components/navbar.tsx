@@ -122,7 +122,7 @@ export default function Navbar() {
   return (
     <div className="flex flex-col">
       {/* Top Bar - Integrated to be Global */}
-      <div className="bg-[#ceeba3] text-gray-700 py-2 px-4 text-sm font-medium">
+      {/* <div className="bg-[#ceeba3] text-gray-700 py-2 px-4 text-sm font-medium">
         <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
           <div className="font-medium text-black fs-15">
             Early Bird Offer for Members!{" "}
@@ -131,17 +131,13 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="hidden md:flex gap-4 mt-2 md:mt-0 text-black">
-            {/* <a href="tel:+919363027279" className="hover:text-black flex items-center gap-2">
-              <Phone className="w-4 h-4 text-black" />
-              <span className="text-black">+91 93630 27279</span>
-            </a> */}
             <a href="mailto:sales@igla.asia" className="hover:text-black flex items-center gap-2">
               <Mail className="w-4 h-4 text-black" />
               <span className="text-black">sales@igla.asia</span>
             </a>
           </div>
         </div>
-      </div>
+      </div> */}
 
       <header className="bg-white border-b shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">

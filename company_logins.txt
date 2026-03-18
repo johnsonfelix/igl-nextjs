@@ -1,9 +1,9 @@
-﻿Found 88 companies.
+Found 88 companies.
 | Company Name | Login Email | Temporary Password |
 |---|---|---|
 | 	512 Doncaster	                | sheffield@5-1-2.com            | IGL2925 |
 | 	Shasha Logistics	             | ops2@shashalogistics.co.za     | IGL3642 |
-| ALBURAQ INTERNATIONAL SHIPPING CO			 | info@alburaqcargo.co.uk        | IGL1897 |
+| ALBURAQ INTERNATIONAL SHIPPING CO			 | thanoof@buraq.com.sa           | IGL1897 |
 | ANGO INTERNATIONAL LOGISTICS   | aimee@angoair.com              | IGL3273 |
 | ASF Logistics	                 | asfsin@singnet.com.sg          | IGL3803 |
 | Air Market Logistics		         | nicksoon@airmarket.com.sg      | IGL1875 |

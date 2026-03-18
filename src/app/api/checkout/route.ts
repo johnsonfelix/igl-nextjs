@@ -195,7 +195,7 @@ export async function POST(req: NextRequest) {
 
       const updateData: any = {
         totalAmount: finalTotal,
-        status: "COMPLETED",
+        status: body.status || "COMPLETED",
         discountAmount: discountAmount,
       };
 

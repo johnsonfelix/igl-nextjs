@@ -50,6 +50,7 @@ export async function POST(req: NextRequest) {
     billingAddress?: any;
     paymentMethod?: string;
     account?: any; // Define account type
+    status?: string; // Add status to body
   } = body;
 
   // Validation: companyId OR account info
@@ -454,9 +455,10 @@ export async function POST(req: NextRequest) {
         discountAmount: discountAmount,
       };
 
-      // If offline -> keep PENDING, otherwise COMPLETED
-      // (Assuming online payment means instant success for now, as no gateway integration visible here)
-      if (isOffline) {
+      // Use status from body if provided, otherwise determine based on payment method
+      if (body.status) {
+        updateData.status = body.status;
+      } else if (isOffline) {
         updateData.status = "PENDING";
       } else {
         updateData.status = "COMPLETED";
