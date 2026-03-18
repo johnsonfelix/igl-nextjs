@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
@@ -15,73 +15,51 @@ interface SponsorGroup {
   companies: Company[];
 }
 
-export default function SponsorShowcase() {
-  const [eventData, setEventData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchEvent = async () => {
-      try {
-        const response = await fetch("/api/events/cmjn1f6ih0000gad4xa4j7dp3");
-        if (response.ok) {
-          const data = await response.json();
-          setEventData(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch event sponsors:", error);
-      } finally {
-        setLoading(false);
+const HARDCODED_SPONSORS: SponsorGroup[] = [
+  {
+    "tier": "Title Sponsor",
+    "companies": [
+      {
+        "id": "cmk5ez7430000ju1edwz5vjrt",
+        "name": "Phoenix Logistics India Pvt Ltd",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767874909163-29zq7atbv6j-PHENOIX.png"
       }
-    };
+    ]
+  },
+  {
+    "tier": "T Shirts",
+    "companies": [
+      {
+        "id": "cmjh03qwp0000la1eaz44qqvr",
+        "name": "Conturk Shipping Logistik Hizmetleri Ltd Sti",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767341593880-otc5udeirg-download.png"
+      }
+    ]
+  },
+  {
+    "tier": "Bags",
+    "companies": [
+      {
+        "id": "cmjh03qwp0000la1eaz44qqvr",
+        "name": "Conturk Shipping Logistik Hizmetleri Ltd Sti",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767341593880-otc5udeirg-download.png"
+      }
+    ]
+  },
+  {
+    "tier": "Folder & Pen",
+    "companies": [
+      {
+        "id": "cmk5ez7430000ju1edwz5vjrt",
+        "name": "Phoenix Logistics India Pvt Ltd",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767874909163-29zq7atbv6j-PHENOIX.png"
+      }
+    ]
+  }
+];
 
-    fetchEvent();
-  }, []);
-
-  const sponsorsByTier = useMemo(() => {
-    if (!eventData?.purchaseOrders || !eventData?.eventSponsorTypes) return [];
-
-    const groups: Record<string, Company[]> = {};
-    const sponsorTypes = eventData.eventSponsorTypes.map((s: any) => s.sponsorType);
-
-    const sortedTiers = [...sponsorTypes].sort(
-      (a, b) => (a.sortOrder || 0) - (b.sortOrder || 0)
-    );
-
-    const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    eventData.purchaseOrders.forEach((po: any) => {
-      if (!po.company || po.status !== "COMPLETED") return;
-
-      po.items.forEach((item: any) => {
-        if (item.productType === "SPONSOR") {
-          const itemName = normalize(item.name);
-
-          sortedTiers.forEach((tier: any) => {
-            const tierName = normalize(tier.name);
-            if (itemName.includes(tierName) || tierName.includes(itemName)) {
-              if (!groups[tier.name]) groups[tier.name] = [];
-              if (!groups[tier.name].some((c) => c.id === po.company.id)) {
-                groups[tier.name].push({
-                  id: po.company.id,
-                  name: po.company.name,
-                  logoUrl: po.company.logoUrl,
-                });
-              }
-            }
-          });
-        }
-      });
-    });
-
-    return sortedTiers
-      .filter((tier) => groups[tier.name] && groups[tier.name].length > 0)
-      .map((tier) => ({
-        tier: tier.name,
-        companies: groups[tier.name],
-      }));
-  }, [eventData]);
-
-  if (loading || sponsorsByTier.length === 0) return null;
+export default function SponsorShowcase() {
+  const sponsorsByTier = HARDCODED_SPONSORS;
 
   const titleSponsor = sponsorsByTier.find((s) =>
     s.tier.toLowerCase().includes("title")

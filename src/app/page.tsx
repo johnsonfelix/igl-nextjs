@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -34,6 +34,22 @@ import { useAuth } from "@/app/context/AuthContext";
 export default function Home() {
   const { user } = useAuth();
   const [openAccordion, setOpenAccordion] = useState<string | null>("item1");
+  const [nextEvent, setNextEvent] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchNextEvent = async () => {
+      try {
+        const res = await fetch("/api/events/cmjn1f6ih0000gad4xa4j7dp3");
+        if (res.ok) {
+          const data = await res.json();
+          setNextEvent(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch next event:", error);
+      }
+    };
+    fetchNextEvent();
+  }, []);
 
   const toggleAccordion = (id: string) => {
     setOpenAccordion(openAccordion === id ? null : id);
@@ -216,41 +232,43 @@ export default function Home() {
           </div>
 
           {/* Next Event Countdown Section - Moved inside Hero for absolute positioning */}
-          <div className="hidden lg:block lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xs 2xl:max-w-2xl">
-            <div className="bg-[#004aad] rounded-xl p-4 lg:p-3 2xl:p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
-              {/* Background Pattern */}
-              <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
-                <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
-                </svg>
-              </div>
-
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-3 lg:gap-3 2xl:gap-8 text-center md:text-left">
-                <div>
-                  <span className="inline-block py-0.5 px-2 lg:px-2 rounded bg-white/20 text-[9px] lg:text-[9px] 2xl:text-xs font-bold uppercase tracking-widest mb-2 2xl:mb-3 backdrop-blur-sm border border-white/10">
-                    Next Event
-                  </span>
-                  <h3 className="text-lg lg:text-base 2xl:text-3xl font-bold mb-2">
-                    The 20th Global Freight<br />Forwarders Conference
-                  </h3>
-                  <div className="flex items-center justify-center md:justify-start gap-2 text-white/80 text-[10px] lg:text-[10px] 2xl:text-sm">
-                    <MapPin className="w-3 h-3 2xl:w-4 2xl:h-4" /> Shanghai, China
-                  </div>
+          {nextEvent && (
+            <div className="hidden lg:block lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xs 2xl:max-w-2xl">
+              <div className="bg-[#004aad] rounded-xl p-4 lg:p-3 2xl:p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
+                {/* Background Pattern */}
+                <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
+                  <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
+                  </svg>
                 </div>
 
-                <div className="flex flex-col items-center gap-2 2xl:gap-4">
-                  <div className="text-[9px] lg:text-[9px] 2xl:text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
-                  <EventCountdown targetDate="2026-03-25T00:00:00.000Z" size="compact" />
-                  <Link
-                    href="/event/cmjn1f6ih0000gad4xa4j7dp3"
-                    className="mt-2 text-xs lg:text-[10px] 2xl:text-base lg:mt-2 2xl:mt-4 bg-white text-[#004aad] px-4 py-1.5 lg:px-4 lg:py-1.5 2xl:px-8 2xl:py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
-                  >
-                    Register Now
-                  </Link>
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-3 lg:gap-3 2xl:gap-8 text-center md:text-left">
+                  <div>
+                    <span className="inline-block py-0.5 px-2 lg:px-2 rounded bg-white/20 text-[9px] lg:text-[9px] 2xl:text-xs font-bold uppercase tracking-widest mb-2 2xl:mb-3 backdrop-blur-sm border border-white/10">
+                      Next Event
+                    </span>
+                    <h3 className="text-base lg:text-sm 2xl:text-xl font-bold mb-2">
+                       {nextEvent.name}
+                     </h3>
+                    <div className="flex items-center justify-center md:justify-start gap-2 text-white/80 text-[10px] lg:text-[10px] 2xl:text-sm">
+                      <MapPin className="w-3 h-3 2xl:w-4 2xl:h-4" /> {nextEvent.location}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col items-center gap-2 2xl:gap-4">
+                    <div className="text-[9px] lg:text-[9px] 2xl:text-sm uppercase tracking-widest font-bold opacity-80">Event Starts In</div>
+                    <EventCountdown targetDate={nextEvent.startDate} size="compact" />
+                    <Link
+                      href={`/event/${nextEvent.id}`}
+                      className="mt-2 text-xs lg:text-[10px] 2xl:text-base lg:mt-2 2xl:mt-4 bg-white text-[#004aad] px-4 py-1.5 lg:px-4 lg:py-1.5 2xl:px-8 2xl:py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition-colors whitespace-nowrap"
+                    >
+                      Register Now
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          )}
         </section>
 
         <SponsorShowcase />

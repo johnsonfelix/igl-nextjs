@@ -1,0 +1,42 @@
+[
+  {
+    "tier": "Title Sponsor",
+    "companies": [
+      {
+        "id": "cmk5ez7430000ju1edwz5vjrt",
+        "name": "Phoenix Logistics India Pvt Ltd",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767874909163-29zq7atbv6j-PHENOIX.png"
+      }
+    ]
+  },
+  {
+    "tier": "T Shirts",
+    "companies": [
+      {
+        "id": "cmjh03qwp0000la1eaz44qqvr",
+        "name": "Conturk Shipping Logistik Hizmetleri Ltd Sti",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767341593880-otc5udeirg-download.png"
+      }
+    ]
+  },
+  {
+    "tier": "Bags",
+    "companies": [
+      {
+        "id": "cmjh03qwp0000la1eaz44qqvr",
+        "name": "Conturk Shipping Logistik Hizmetleri Ltd Sti",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767341593880-otc5udeirg-download.png"
+      }
+    ]
+  },
+  {
+    "tier": "Folder & Pen",
+    "companies": [
+      {
+        "id": "cmk5ez7430000ju1edwz5vjrt",
+        "name": "Phoenix Logistics India Pvt Ltd",
+        "logoUrl": "https://elasticbeanstalk-ap-south-1-762703128013.s3.ap-south-1.amazonaws.com/admin/1767874909163-29zq7atbv6j-PHENOIX.png"
+      }
+    ]
+  }
+]

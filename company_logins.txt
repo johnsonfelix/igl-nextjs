@@ -46,7 +46,7 @@ Found 88 companies.
 | Longtemps (Taiwan) Supply Chain Technology 			 | ben_chen@longtempsintl.com     | IGL6589 |
 | Marvel Freight Ltd             | saikat@marvelgroupbd.com       | IGL7885 |
 | Metropolitan Logistics Co., Ltd.		 | admin@met-logs.com             | IGL3515 |
-| NBL Logistics	                 | ben@nblog.net.cn               | IGL2146 |
+| NBL Logistics	                 | phungtran@nbl-int.com          | IGL2146 |
 | NYS INTERNATIONAL FREIGHT      | jenny@nys.com.my               | IGL3167 |
 | Navoka Shipping & Logistics Pvt Ltd			 | malinda@navoka.com             | IGL8362 |
 | Neutrinos Cargo Co., Ltd.		 		 | ken.y@neutrinos-cargo.com      | IGL2765 |
