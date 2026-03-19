@@ -36,7 +36,7 @@ export default function PastEventDetailsPage() {
 
     const fetchEvent = async () => {
         try {
-            const res = await fetch(`/api/admin/past-events/${id}`);
+            const res = await fetch(`/api/past-events/${id}`);
             if (res.ok) {
                 const data = await res.json();
                 setEvent(data);
