@@ -35,6 +35,9 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
         if (currency === 'THB') {
             return `฿${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         }
+        if (currency === 'RMB') {
+            return `¥${amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        }
         try {
             return new Intl.NumberFormat('en-US', {
                 style: 'currency',

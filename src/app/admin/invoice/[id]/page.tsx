@@ -226,7 +226,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                                 onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                             >
-                                {["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB"].map(c => <option key={c} value={c}>{c}</option>)}
+                                {["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB", "RMB"].map(c => <option key={c} value={c}>{c}</option>)}
                             </select>
                         </div>
                     </div>

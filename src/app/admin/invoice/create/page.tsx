@@ -241,7 +241,7 @@ export default function CreateInvoicePage() {
         }
     };
 
-    const currencies = ["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB"];
+    const currencies = ["USD", "EUR", "GBP", "AUD", "CAD", "SGD", "INR", "THB", "RMB"];
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
