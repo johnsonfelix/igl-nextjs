@@ -14,20 +14,21 @@ export async function GET(req: Request) {
       where,
       orderBy: { createdAt: "desc" },
       take: 20,
-      select: {
-        id: true,
-        from: true,
-        to: true,
-        companyId: true,
-        commodity: true,
-        cargoType: true,
-        remark: true,
-        shipmentMode: true,
-        createdAt: true,
-        // Add as needed
+      include: {
+        company: {
+          select: {
+            name: true,
+          },
+        },
       },
     });
-    return NextResponse.json({ inquiries });
+
+    const formattedInquiries = inquiries.map((inq) => ({
+      ...inq,
+      companyName: inq.company?.name,
+    }));
+
+    return NextResponse.json({ inquiries: formattedInquiries });
   } catch (e) {
     return NextResponse.json({ error: "Failed to fetch inquiries" }, { status: 500 });
   }

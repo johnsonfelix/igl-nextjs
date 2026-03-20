@@ -14,18 +14,21 @@ export async function GET(req: NextRequest) {
     const inquiries = await prisma.inquiry.findMany({
       where: { companyId },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        from: true,
-        to: true,
-        cargoType: true,
-        commodity: true,
-        shipmentMode: true,
-        remark: true,
-        createdAt: true
-      }
+      include: {
+        company: {
+          select: {
+            name: true,
+          },
+        },
+      },
     })
-    return NextResponse.json(inquiries)
+    
+    const formattedInquiries = inquiries.map((inq) => ({
+      ...inq,
+      companyName: inq.company?.name,
+    }));
+
+    return NextResponse.json(formattedInquiries)
   } catch (err) {
     console.error(err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
