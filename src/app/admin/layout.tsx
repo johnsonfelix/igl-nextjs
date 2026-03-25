@@ -20,7 +20,8 @@ import {
   MessageCircle,
   History,
   FileText,
-  BarChart3
+  BarChart3,
+  MessageSquare
 } from "lucide-react";
 
 const MENU_ITEMS = [
@@ -39,6 +40,7 @@ const MENU_ITEMS = [
   { name: "Testimonials", href: "/admin/testimony", icon: <MessageCircle className="h-5 w-5" /> },
   { name: "Reports", href: "/admin/reports", icon: <AlertTriangle className="h-5 w-5" /> },
   { name: "Invoices", href: "/admin/invoice", icon: <FileText className="h-5 w-5" /> },
+  { name: "Requests", href: "/admin/requests", icon: <MessageSquare className="h-5 w-5" /> },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
