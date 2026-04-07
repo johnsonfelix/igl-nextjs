@@ -18,11 +18,12 @@ import {
   Trash2,
   Image as ImageIcon,
   Users,
+  MessageSquare,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 import { Button } from '@/app/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from '@/app/components/ui/sheet';
+import { Sheet, SheetContent, SheetTrigger, SheetTitle, SheetHeader, SheetDescription } from '@/app/components/ui/sheet';
 import { Input } from '@/app/components/ui/input';
 import { Textarea } from '@/app/components/ui/textarea';
 import { Label } from '@/app/components/ui/label';
@@ -51,6 +52,9 @@ export default function EventViewPage() {
   // State
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [isReviewSheetOpen, setIsReviewSheetOpen] = useState(false);
+  const [selectedReviewId, setSelectedReviewId] = useState<string | null>(null);
   const [isVenueSheetOpen, setIsVenueSheetOpen] = useState(false);
   const [isBoothSheetOpen, setIsBoothSheetOpen] = useState(false);
 
@@ -119,8 +123,19 @@ export default function EventViewPage() {
     }
   }, [isVenueSheetOpen, event?.venue]);
 
+  const fetchReviews = async () => {
+    try {
+      const res = await fetch(`/api/events/${eventId}/reviews`);
+      const data = await res.json();
+      if(Array.isArray(data)) setReviews(data);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  };
+
   useEffect(() => {
     fetchEvent();
+    fetchReviews();
   }, [eventId]);
 
   useEffect(() => {
@@ -365,7 +380,14 @@ export default function EventViewPage() {
                 </div>
               </motion.div>
 
-              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex gap-3">
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }} className="flex flex-wrap items-center justify-end gap-3 w-full max-w-sm ml-auto text-right">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsReviewSheetOpen(true)}
+                  className="bg-white/10 hover:bg-white/20 border-white/20 text-white backdrop-blur-md rounded-xl px-6 h-12 font-bold"
+                >
+                  <MessageSquare size={18} className="mr-2" /> View Reviews ({reviews.length})
+                </Button>
                 <Button
                   onClick={() => router.push(`/admin/events/create?id=${eventId}`)}
                   className="bg-[#5da765] hover:bg-[#4a8a52] text-white shadow-lg shadow-green-900/20 rounded-xl px-6 h-12 font-bold"
@@ -776,8 +798,8 @@ export default function EventViewPage() {
             </motion.section>
           </div>
 
-          {/* Right column */}
           <div className="space-y-8">
+
             {/* TICKETS */}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
@@ -1011,6 +1033,120 @@ export default function EventViewPage() {
           </div>
         </div>
       </div>
+
+      {/* Review Sheet Modal */}
+      <Sheet open={isReviewSheetOpen} onOpenChange={setIsReviewSheetOpen}>
+        <SheetContent className="bg-[#f8f9fa] border-l-0 sm:max-w-xl w-full overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+              <MessageSquare className="text-[#5da765]" /> Event Reviews
+            </SheetTitle>
+            <SheetDescription>
+              Viewing {reviews.length} submitted reviews. Click on a review to see detailed feedback.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="flex flex-col gap-4">
+            {reviews.length === 0 ? (
+              <div className="py-12 text-center text-gray-400 text-sm">No reviews submitted yet</div>
+            ) : (
+              reviews.map((r: any) => {
+                let parsed: any = null;
+                try {
+                  if (r.feedback && r.feedback.includes('"format":"v2"')) {
+                    parsed = JSON.parse(r.feedback);
+                  }
+                } catch (e) {}
+
+                const isExpanded = selectedReviewId === r.id;
+
+                return (
+                  <div 
+                    key={r.id} 
+                    className={`rounded-2xl border transition-all cursor-pointer ${
+                      isExpanded ? 'bg-white border-[#5da765] shadow-md ring-1 ring-[#5da765]/20' : 'bg-white border-gray-200 hover:border-gray-300 shadow-sm'
+                    }`}
+                    onClick={() => setSelectedReviewId(isExpanded ? null : r.id)}
+                  >
+                    <div className="p-4 flex justify-between items-start">
+                      <div>
+                        <div className="font-extrabold text-gray-900 text-base">{r.reviewerName}</div>
+                        <div className="text-xs text-[#004AAD] font-bold uppercase tracking-wider mt-0.5">{r.companyName}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="flex text-amber-500 mb-1 justify-end">
+                          {[...Array(5)].map((_, i) => (
+                            <Star key={i} size={14} className={i < (r.rating || 5) ? "fill-current" : "text-gray-300"} />
+                          ))}
+                        </div>
+                        <div className="text-[10px] text-gray-500 font-medium">{new Date(r.createdAt).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="p-4 pt-0 border-t border-gray-50 bg-gray-50/50 rounded-b-2xl cursor-default" onClick={(e) => e.stopPropagation()}>
+                        {parsed ? (
+                          <div className="mt-4 space-y-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="bg-white p-3 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] uppercase font-bold text-gray-400">1. Arrangements</span>
+                                <span className="font-semibold text-gray-800 text-sm">{parsed.arrangementsRating || 'N/A'}</span>
+                                {parsed.arrangementsComments && <div className="text-xs text-gray-500 mt-1 italic">"{parsed.arrangementsComments}"</div>}
+                              </div>
+                              <div className="bg-white p-3 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] uppercase font-bold text-gray-400">2. Meetings</span>
+                                <span className="font-semibold text-gray-800 text-sm">{parsed.meetingsRating || 'N/A'}</span>
+                                {parsed.meetingsComments && <div className="text-xs text-gray-500 mt-1 italic">"{parsed.meetingsComments}"</div>}
+                              </div>
+                            </div>
+                            
+                            <div className="bg-white p-3 rounded-xl border border-gray-100">
+                              <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">3. Areas to Develop</span>
+                              <div className="flex flex-wrap gap-1.5">
+                                {parsed.areasToDevelop?.map((a:string, i:number) => <span key={i} className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-[10px] font-bold">{a}</span>)}
+                                {parsed.areasOther && <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-medium border border-dashed border-gray-300">Other: {parsed.areasOther}</span>}
+                              </div>
+                            </div>
+
+                            <div className="bg-white p-3 rounded-xl border border-gray-100">
+                              <span className="block text-[10px] uppercase font-bold text-gray-400 mb-1">4. How to Contribute</span>
+                              <div className="flex flex-wrap gap-1.5 mb-1.5">
+                                {parsed.contributeWays?.map((a:string, i:number) => <span key={i} className="px-2 py-0.5 bg-green-50 text-green-700 rounded text-[10px] font-bold">{a}</span>)}
+                                {parsed.contributeOther && <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-[10px] font-medium border border-dashed border-gray-300">Other: {parsed.contributeOther}</span>}
+                              </div>
+                              {parsed.contributeComments && <div className="text-xs text-gray-500 mt-1 italic">"{parsed.contributeComments}"</div>}
+                            </div>
+
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                              <div className="bg-white p-3 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] uppercase font-bold text-gray-400">5. Overall Satisfaction</span>
+                                <span className="font-semibold text-gray-800 text-sm">{parsed.overallSatisfaction || 'N/A'}</span>
+                              </div>
+                              <div className="bg-white p-3 rounded-xl border border-gray-100">
+                                <span className="block text-[10px] uppercase font-bold text-gray-400">6. Preferred Membership</span>
+                                <span className="font-semibold text-gray-800 text-sm">{parsed.preferredMembership || 'N/A'}</span>
+                              </div>
+                            </div>
+
+                            {parsed.suggestions && (
+                              <div className="bg-yellow-50 p-3 rounded-xl border border-yellow-100">
+                                <span className="block text-[10px] uppercase font-bold text-yellow-600 mb-1">7. Suggestions</span>
+                                <div className="text-sm text-gray-800 whitespace-pre-wrap">{parsed.suggestions}</div>
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-gray-600 mt-4 bg-white p-3 rounded-lg border border-gray-100 whitespace-pre-wrap">{r.feedback}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
