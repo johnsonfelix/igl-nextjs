@@ -232,7 +232,7 @@ export default function EventReviewPage() {
               {/* 4. How will you Contribute */}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">4️⃣ How will you Contribute</h3>
-                <p className="text-gray-600 font-medium">How can members contribute to the network’s growth?</p>
+                <p className="text-gray-600 font-medium">How can you contribute to the network’s growth?</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   {['Referrals', 'Sponsorships', 'Promotions / Marketing Support', 'Sharing Business Leads', 'Active Participation in Meetings'].map(label => (
                     <CheckboxItem key={label} label={label} isChecked={contributeWays.includes(label)} onChange={() => toggleArray(contributeWays, setContributeWays, label)} />
