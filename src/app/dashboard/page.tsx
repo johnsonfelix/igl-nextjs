@@ -2,12 +2,13 @@
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import prisma from "@/app/lib/prisma";
 import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 import CompleteProfileButton from "@/app/components/CompleteProfileButton";
 import OrdersTable from "@/app/dashboard/OrdersTable";
 import MeetingRequestSection from "@/app/dashboard/MeetingRequestSection";
-import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag, ShoppingBag } from "lucide-react";
+import { User, Building2, Package, Activity, AlertCircle, ShieldCheck, Tag, ShoppingBag, GitBranch } from "lucide-react";
 
 export default async function DashboardPage() {
   const cookieStore = await cookies();
@@ -31,10 +32,24 @@ export default async function DashboardPage() {
     );
   }
 
-  const company = await prisma.company.findFirst({
+  let company = await prisma.company.findFirst({
     where: { userId: user.id },
     include: { membershipPlan: true, location: true }
   });
+
+  let currentBranch = null;
+
+  // If no direct company found, check if user is a branch user
+  if (!company) {
+    const branch = await prisma.branch.findFirst({
+      where: { userId: user.id },
+      include: { company: { include: { membershipPlan: true, location: true } } }
+    });
+    if (branch) {
+      company = branch.company;
+      currentBranch = branch;
+    }
+  }
 
   if (!company) {
     return (
@@ -89,10 +104,14 @@ export default async function DashboardPage() {
   const conferenceTickets: { eventId: string; eventName: string }[] = [];
 
   if (isEligibleForMeetings) {
-    // Fetch all events that have meeting slots
+    // Fetch all events that have meeting slots and are not over
     const eventsWithSlots = await prisma.event.findMany({
       where: {
-        meetingSlots: { some: {} }
+        meetingSlots: { some: {} },
+        OR: [
+          { endDate: { gte: new Date() } },
+          { endDate: null }
+        ]
       },
       select: { id: true, name: true }
     });
@@ -112,9 +131,20 @@ export default async function DashboardPage() {
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-500 mt-2 text-lg">Welcome back, <span className="text-[#004aad] font-semibold">{user.name || 'Partner'}</span></p>
           </div>
-          <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2 text-sm text-gray-600">
-            <Building2 className="w-4 h-4 text-[#004aad]" />
-            {company.name}
+          <div className="flex flex-wrap items-center gap-3">
+            {!currentBranch && (
+              <Link 
+                href="/dashboard/branches"
+                className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 hover:border-[#004aad]/30 hover:bg-[#004aad]/5 hover:text-[#004aad] transition-colors flex items-center gap-2 text-sm font-medium text-gray-700"
+              >
+                <GitBranch className="w-4 h-4" />
+                Manage Branches
+              </Link>
+            )}
+            <div className="bg-white px-4 py-2 rounded-lg shadow-sm border flex items-center gap-2 text-sm text-gray-600">
+              <Building2 className="w-4 h-4 text-[#004aad]" />
+              {currentBranch ? currentBranch.name : company.name}
+            </div>
           </div>
         </div>
 

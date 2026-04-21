@@ -61,12 +61,32 @@ model Company {
   sentMeetingRequests   MeetingRequest[] @relation("SentMeetingRequests")
   receivedMeetingRequests MeetingRequest[] @relation("ReceivedMeetingRequests")
   blockedMeetingSlots     BlockedMeetingSlot[]
+  branches              Branch[]
 }
 
 model Service {
   id        String    @id @default(cuid())
   type      String
   companies Company[] @relation("CompanyServices")
+}
+
+model Branch {
+  id            String   @id @default(cuid())
+  name          String
+  address       String?
+  city          String?
+  country       String?
+  contactPerson String?
+  phone         String?
+  email         String?
+  companyId     String
+  userId        String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  company       Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user          User?    @relation("BranchUser", fields: [userId], references: [id])
+
+  @@index([companyId])
 }
 
 model Partner {
@@ -133,6 +153,7 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
   companies        Company[] @relation("UserCompanies")
+  branch           Branch?   @relation("BranchUser")
 }
 
 model Event {

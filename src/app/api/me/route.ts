@@ -24,7 +24,18 @@ export async function GET() {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) return NextResponse.json({ error: "User not found" }, { status: 404, headers });
 
-    const company = await prisma.company.findFirst({ where: { userId: user.id } });
+    let company = await prisma.company.findFirst({ where: { userId: user.id } });
+
+    // If no direct company found, check if user is a branch user
+    if (!company) {
+      const branch = await prisma.branch.findFirst({
+        where: { userId: user.id },
+        include: { company: true }
+      });
+      if (branch) {
+        company = branch.company;
+      }
+    }
 
     return NextResponse.json(
       {

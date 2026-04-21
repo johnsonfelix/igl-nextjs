@@ -15,7 +15,18 @@ export async function POST(req: Request) {
   const isMatch = await compare(password, user.password);
   if (!isMatch) return NextResponse.json({ error: 'Invalid credentials.' }, { status: 401 });
 
-  const company = await prisma.company.findFirst({ where: { userId: user.id } });
+  let company = await prisma.company.findFirst({ where: { userId: user.id } });
+
+  // If no direct company found, check if user is a branch user
+  if (!company) {
+    const branch = await prisma.branch.findFirst({
+      where: { userId: user.id },
+      include: { company: true }
+    });
+    if (branch) {
+      company = branch.company;
+    }
+  }
 
   // JWT Generation
   const { sign } = require('jsonwebtoken');

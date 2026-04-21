@@ -588,6 +588,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   // Hotel expansion state
   const [venueGalleryOpen, setVenueGalleryOpen] = useState(false);
+  const [highlightImage, setHighlightImage] = useState<string | null>(null);
+
   const VENUE_IMAGES = [
     "/images/h-Bangkok.jpg",
     "/images/h-Bangkok1.jpg",
@@ -595,6 +597,21 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     "/images/h-Bangkok3.jpg",
     "/images/h-Bangkok4.jpg",
     "/images/h-Bangkok5.jpg"
+  ];
+
+  const HIGHLIGHT_IMAGES = [
+    "/images/event-highlights/DSC02652.jpg",
+    "/images/event-highlights/DSC02670.jpg",
+    "/images/event-highlights/DSC02734.jpg",
+    "/images/event-highlights/DSC02738.jpg",
+    "/images/event-highlights/DSC02793.jpg",
+    "/images/event-highlights/DSC02917.jpg",
+    "/images/event-highlights/DSC02948.jpg",
+    "/images/event-highlights/DSC03158.jpg",
+    "/images/event-highlights/_DSC6677.jpg",
+    "/images/event-highlights/_DSC6921.jpg",
+    "/images/event-highlights/_DSC6965.jpg",
+    "/images/event-highlights/_DSC7011.jpg",
   ];
 
   // --- BOOKING WIZARD STATE ---
@@ -938,6 +955,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     fetchOffers();
   }, [resolvedParams.id, user?.companyId]);
 
+  useEffect(() => {
+    if (eventData && eventData.endDate) {
+      if (new Date(eventData.endDate) < new Date()) {
+        setActiveTab("Highlights");
+      }
+    }
+  }, [eventData]);
+
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center bg-slate-50">
@@ -974,6 +999,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     thumbnail,
     description,
   } = eventData;
+
+  const isEventFinished = endDate ? new Date(endDate) < new Date() : false;
 
   const venue = eventData.venue ?? null;
   const agendaItems = eventData.agendaItems ?? [];
@@ -1017,7 +1044,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
 
 
-  const tabs = ["Tickets", "Agenda", "About", "About Venue", "Event Sponsors"];
+  const tabs = isEventFinished 
+    ? ["Highlights", "Agenda", "About", "About Venue", "Event Sponsors"]
+    : ["Tickets", "Agenda", "About", "About Venue", "Event Sponsors"];
 
 
   // Helper: determine best applicable offer for a product
@@ -1940,6 +1969,37 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
+      {/* --- HIGHLIGHT LIGHTBOX MODAL --- */}
+      {highlightImage && (
+        <div 
+          className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/90 backdrop-blur-md animate-fadeIn" 
+          onClick={() => setHighlightImage(null)}
+        >
+          <button
+            onClick={() => setHighlightImage(null)}
+            className="fixed top-6 right-6 z-[110] bg-white/10 hover:bg-white/20 text-white p-3 rounded-full transition-all backdrop-blur-md border border-white/10 shadow-2xl"
+          >
+            <X size={28} />
+          </button>
+          
+          <div 
+            className="relative w-full max-w-7xl h-full flex items-center justify-center" 
+            onClick={e => e.stopPropagation()}
+          >
+            <img
+              src={highlightImage}
+              alt="Highlight Full Size"
+              className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-scaleUp"
+            />
+            
+            <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white text-center rounded-b-lg">
+              <p className="text-xl font-bold tracking-wide uppercase">IGLA Global Logistics Conference</p>
+              <p className="text-sm text-gray-300">Highlight Moments & Memories</p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* --- HERO SECTION --- */}
       <div className="relative h-[400px] w-full overflow-hidden">
         {id === "cmjn1f6ih0000gad4xa4j7dp3" ? (
@@ -1964,12 +2024,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </Link>
 
           {/* Event Timer */}
-          <div className="absolute top-6 right-4 md:right-12 flex lg:hidden flex-col items-end z-20">
-            <div className="text-[10px] uppercase tracking-widest font-bold text-white/80 mb-1">
-              Event Starts In
+          {!isEventFinished && (
+            <div className="absolute top-6 right-4 md:right-12 flex lg:hidden flex-col items-end z-20">
+              <div className="text-[10px] uppercase tracking-widest font-bold text-white/80 mb-1">
+                Event Starts In
+              </div>
+              <EventCountdown targetDate={startDate} size="compact" />
             </div>
-            <EventCountdown targetDate={startDate} size="compact" />
-          </div>
+          )}
 
           <div className="bg-white/20 backdrop-blur-sm px-4 py-1 rounded-full w-fit mb-4 border border-white/30 text-white text-xs font-bold uppercase tracking-wider">
             {eventData.eventType} Event
@@ -1990,7 +2052,30 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* --- CONTENT LAYOUT --- */}
-      <div className="max-w-7xl mx-auto px-4 py-12 -mt-20 relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {isEventFinished && (
+        <div className="max-w-7xl mx-auto px-4 mt-8 relative z-10 animate-fadeIn">
+          <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-2xl p-1 md:p-1.5 overflow-hidden mb-12 transform hover:scale-[1.01] transition-transform duration-300">
+            <div className="bg-white/95 backdrop-blur-sm rounded-[14px] md:rounded-[12px] p-8 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-400 via-teal-500 to-emerald-400"></div>
+              <div className="absolute -top-10 -right-10 text-emerald-50 opacity-50 z-0">
+                <Check className="w-48 h-48" />
+              </div>
+              <div className="relative z-10">
+                <div className="inline-flex items-center justify-center p-4 bg-emerald-100 rounded-full mb-6 shadow-inner ring-4 ring-emerald-50 animate-bounce">
+                  <Check className="h-10 w-10 text-emerald-600" />
+                </div>
+                <h2 className="text-3xl md:text-5xl font-extrabold text-gray-900 mb-4 tracking-tight">Event Successfully <span className="text-emerald-600">Concluded</span>!</h2>
+                <p className="text-gray-600 max-w-3xl mx-auto text-lg md:text-xl font-medium leading-relaxed">
+                  Thank you to all our attendees, highly-valued sponsors, and incredible partners for making this event a massive global success. 
+                  We look forward to seeing you at the next <span className="font-bold text-[#004aad]">IGLA conference!</span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className={`max-w-7xl mx-auto px-4 ${isEventFinished ? 'py-4' : 'py-12 -mt-20'} relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8`}>
 
         {/* LEFT COLUMN: TABS & CONTENT */}
         <div className="lg:col-span-2 space-y-8">
@@ -2033,6 +2118,37 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 md:p-8 min-h-[500px]">
+
+            {activeTab === "Highlights" && isEventFinished && (
+              <div className="animate-fadeIn space-y-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-3xl font-extrabold text-gray-900 flex items-center gap-3">
+                    <span className="bg-[#004aad] w-2 h-10 rounded-full inline-block"></span>
+                    Highlights & Memories
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {HIGHLIGHT_IMAGES.map((img, idx) => (
+                    <div 
+                      key={idx} 
+                      onClick={() => setHighlightImage(img)}
+                      className={`relative rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 group cursor-pointer h-64 ${
+                        idx === 0 ? 'md:col-span-2 md:row-span-2 md:h-[544px]' : 
+                        idx === 5 ? 'lg:col-span-2' : ''
+                      }`}
+                    >
+                      <img src={img} alt={`Event highlight ${idx + 1}`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-in-out" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent flex items-end p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="text-white transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                          <p className="font-bold text-lg tracking-wide uppercase">IGLA Network</p>
+                          <p className="text-sm text-gray-200">Click to view full size</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {activeTab === "Event Sponsors" && (
               <Section title="Event Sponsors">
@@ -2324,7 +2440,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           </div>
                           <div>
                             <h3 className="text-base font-bold text-gray-800">
-                              {format(parseISO(date), "EEEE, MMMM d, yyyy")}
+                              {/* Use split('T')[0] to avoid timezone shift on the date */}
+                              {format(parseISO(date.split('T')[0]), "EEEE, MMMM d, yyyy")}
                             </h3>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
                               Day {Math.ceil((new Date(date).getTime() - new Date(agendaItems[0].date).getTime()) / (1000 * 60 * 60 * 24)) + 1}
@@ -2338,7 +2455,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row gap-6">
                                 <div className="min-w-[140px] flex-shrink-0">
                                   <div className="inline-flex items-center justify-center bg-blue-50 text-[#004aad] px-3 py-1.5 rounded-lg text-sm font-bold border border-blue-100">
-                                    {format(parseISO(item.startTime), "HH:mm")} - {format(parseISO(item.endTime), "HH:mm")}
+                                    {/* Static time extraction to avoid timezone conversion */}
+                                    {item.startTime.split('T')[1]?.substring(0, 5)} - {item.endTime.split('T')[1]?.substring(0, 5)}
                                   </div>
                                 </div>
                                 <div>
