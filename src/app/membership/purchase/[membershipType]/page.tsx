@@ -306,7 +306,7 @@ const PurchasePage: NextPage = () => {
                   <ShieldCheck className="h-8 w-8 text-blue-500 mr-4" />
                   <div>
                     <p className="font-semibold text-gray-700">{plan.name}</p>
-                    <p className="text-sm text-gray-500">Billed Annually</p>
+                    <p className="text-sm text-gray-500">{plan.name.toLowerCase().includes('diamond') ? 'One Time' : 'Billed Annually'}</p>
                   </div>
                 </div>
                 <p className="font-bold text-lg text-gray-800">${plan.price}</p>

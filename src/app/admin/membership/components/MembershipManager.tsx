@@ -97,7 +97,7 @@ export default function MembershipManager({ initialPlans }: Props) {
                   <ShieldCheck className="h-10 w-10 text-blue-500 mr-4" />
                   <div>
                     <p className="font-semibold text-gray-800 text-lg">{plan.name}</p>
-                    <p className="text-sm text-gray-500">Billed Annually</p>
+                    <p className="text-sm text-gray-500">{plan.name.toLowerCase().includes('diamond') ? 'One Time' : 'Billed Annually'}</p>
                   </div>
                 </div>
 
