@@ -57,6 +57,30 @@ export default function Home() {
 
   const bannerSlides = [
     {
+      id: -1,
+      bgImage: "/images/slider-group-1.jpg",
+      leftImage: "/images/left-carousel-igla.jpg",
+      welcome: "Welcome to IGLA",
+      title1: "11th ANNUAL",
+      title2: "Link Up",
+      title3: "CONFERENCE 2026",
+      desc: "",
+      separator: true,
+      link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
+    },
+    {
+      id: 0,
+      bgImage: "/images/slider-group-2.jpg",
+      leftImage: "/images/demo-green-energy-slider-left-01.jpg",
+      welcome: "Welcome to IGLA",
+      title1: "11th ANNUAL",
+      title2: "Link Up",
+      title3: "CONFERENCE 2026",
+      desc: "",
+      separator: true,
+      link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
+    },
+    {
       id: 1,
       bgImage: "/images/bg-4.jpg",
       leftImage: "/images/left-carousel-igla.jpg",
