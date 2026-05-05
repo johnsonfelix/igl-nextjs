@@ -229,6 +229,8 @@ export default function Home() {
                       className={`object-cover ${// @ts-ignore
                         slide.bgImageMobile ? 'hidden lg:block' : ''}`}
                       priority
+                      quality={100}
+                      unoptimized={true}
                     />
                     { // @ts-ignore
                       slide.bgImageMobile && (
