@@ -19,6 +19,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "User with this email already exists." }, { status: 400 })
     }
 
+    const existingCompany = await prisma.company.findFirst({
+      where: {
+        name: {
+          equals: name.trim(),
+          mode: 'insensitive',
+        },
+      },
+    })
+    if (existingCompany) {
+      return NextResponse.json({ error: "A company with this name already exists." }, { status: 400 })
+    }
+
     const hashedPassword = await hash(password, 10)
 
     const user = await prisma.user.create({

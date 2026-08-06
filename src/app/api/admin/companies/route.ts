@@ -3,8 +3,23 @@ import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
+        const { searchParams } = new URL(request.url);
+        const nameQuery = searchParams.get('checkName');
+
+        if (nameQuery) {
+            const existing = await prisma.company.findFirst({
+                where: {
+                    name: {
+                        equals: nameQuery.trim(),
+                        mode: 'insensitive',
+                    },
+                },
+            });
+            return NextResponse.json({ exists: !!existing });
+        }
+
         const companies = await prisma.company.findMany({
             include: {
                 location: true,
@@ -44,8 +59,28 @@ export async function POST(request: Request) {
         } = body;
 
         // Basic validation
-        if (!name || !memberId) {
-            return NextResponse.json({ error: 'Name and Member ID are required' }, { status: 400 });
+        if (!name || typeof name !== 'string' || name.trim().length === 0) {
+            return NextResponse.json({ error: 'Company Name is required' }, { status: 400 });
+        }
+
+        if (!memberId) {
+            return NextResponse.json({ error: 'Member ID is required' }, { status: 400 });
+        }
+
+        const trimmedName = name.trim();
+
+        // Check if company name already exists (case-insensitive)
+        const existingName = await prisma.company.findFirst({
+            where: {
+                name: {
+                    equals: trimmedName,
+                    mode: 'insensitive',
+                },
+            },
+        });
+
+        if (existingName) {
+            return NextResponse.json({ error: 'A company with this name already exists.' }, { status: 409 });
         }
 
         // Check if memberId exists
@@ -97,7 +132,7 @@ export async function POST(request: Request) {
 
         const newCompany = await prisma.company.create({
             data: {
-                name,
+                name: trimmedName,
                 memberId,
                 memberType,
                 website,

@@ -1,7 +1,43 @@
-// app/api/companies/[id]/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from "@/app/lib/prisma";
 import { cookies } from "next/headers";
+
+function isPaidCompany(company: any): boolean {
+  if (!company) return false;
+
+  // 1. Check membershipPlan relation
+  const planName = company.membershipPlan?.name?.trim().toLowerCase() || "";
+  if (planName && !planName.includes("free") && planName !== "none") {
+    return true;
+  }
+
+  // 2. Check purchasedMembership string field
+  const purchased = company.purchasedMembership?.trim().toLowerCase() || "";
+  if (purchased && !purchased.includes("free") && purchased !== "none") {
+    return true;
+  }
+
+  // 3. Check memberType field
+  const mType = company.memberType?.trim().toLowerCase() || "";
+  if (mType && mType !== "free" && mType !== "unpaid" && mType !== "none") {
+    return true;
+  }
+
+  // 4. Check active membership expiry date
+  if (company.membershipExpiresAt) {
+    const expires = new Date(company.membershipExpiresAt);
+    if (!isNaN(expires.getTime()) && expires > new Date()) {
+      return true;
+    }
+  }
+
+  // 5. Check if membershipPlanId exists and is set
+  if (company.membershipPlanId) {
+    return true;
+  }
+
+  return false;
+}
 
 // GET a single company by ID
 export async function GET(
@@ -26,18 +62,34 @@ export async function GET(
     let canView = false;
 
     if (userId) {
-      // Allow if own company
-      if (company.userId === userId) {
+      // Admin/Moderator override
+      const userObj = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, role: true }
+      });
+
+      if (userObj?.role === 'ADMIN' || userObj?.role === 'MODERATOR') {
+        canView = true;
+      } else if (company.userId === userId) {
         canView = true;
       } else {
-        // Check user's membership
-        const requestor = await prisma.company.findFirst({
+        // Find requesting company (direct or via branch)
+        let requestor = await prisma.company.findFirst({
           where: { userId },
           include: { membershipPlan: true }
         });
 
-        const planName = requestor?.membershipPlan?.name?.toLowerCase() || "";
-        if (planName && !planName.includes("free")) {
+        if (!requestor) {
+          const branch = await prisma.branch.findFirst({
+            where: { userId },
+            include: { company: { include: { membershipPlan: true } } }
+          });
+          if (branch?.company) {
+            requestor = branch.company;
+          }
+        }
+
+        if (requestor && isPaidCompany(requestor)) {
           canView = true;
         }
       }

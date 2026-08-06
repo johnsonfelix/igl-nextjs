@@ -73,6 +73,38 @@ function withProtocol(url?: string | null) {
   return `https://${url}`;
 }
 
+function isPaidCompany(company: any): boolean {
+  if (!company) return false;
+
+  const planName = company.membershipPlan?.name?.trim().toLowerCase() || "";
+  if (planName && !planName.includes("free") && planName !== "none") {
+    return true;
+  }
+
+  const purchased = company.purchasedMembership?.trim().toLowerCase() || "";
+  if (purchased && !purchased.includes("free") && purchased !== "none") {
+    return true;
+  }
+
+  const mType = company.memberType?.trim().toLowerCase() || "";
+  if (mType && mType !== "free" && mType !== "unpaid" && mType !== "none") {
+    return true;
+  }
+
+  if (company.membershipExpiresAt) {
+    const expires = new Date(company.membershipExpiresAt);
+    if (!isNaN(expires.getTime()) && expires > new Date()) {
+      return true;
+    }
+  }
+
+  if (company.membershipPlanId) {
+    return true;
+  }
+
+  return false;
+}
+
 export default function CompanyProfilePage(_props: PageProps) {
   const { id: companyId } = useParams<{ id: string }>();
   const [companyData, setCompanyData] = useState<CompanyDetails | null>(null);
@@ -85,6 +117,11 @@ export default function CompanyProfilePage(_props: PageProps) {
   useEffect(() => {
     // Check if user is logged in and has a paid membership
     const checkAccess = async () => {
+      if (user?.role === 'ADMIN' || user?.role === 'MODERATOR') {
+        setCanViewContact(true);
+        return;
+      }
+
       if (!user?.companyId) {
         setCanViewContact(false);
         return;
@@ -92,15 +129,11 @@ export default function CompanyProfilePage(_props: PageProps) {
 
       try {
         // Fetch current user's company details to check membership
-        const res = await fetch(`/api/companies/${user.companyId}`);
+        const res = await fetch(`/api/companies/${user.companyId}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
-          // Logic: Paid plan if membershipPlan exists and name is NOT 'Free' (or whatever logic defines free)
-          // Adjust based on your actual plan naming. Assuming "Free" is the free plan name.
-          // Or check if discountPercentage > 0, or check plan slug.
-          const planName = data.membershipPlan?.name?.toLowerCase() || "";
-          const isPaid = planName && !planName.includes("free");
-          setCanViewContact(!!isPaid);
+          const isPaid = isPaidCompany(data);
+          setCanViewContact(isPaid);
         }
       } catch (e) {
         console.error("Failed to check membership status", e);

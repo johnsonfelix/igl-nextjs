@@ -52,9 +52,43 @@ export default function AdminCreateCompanyPage() {
         }
     }, []);
 
+    const [nameError, setNameError] = useState<string | null>(null);
+
+    const checkNameUniqueness = async (nameToCheck: string) => {
+        const trimmed = nameToCheck.trim();
+        if (!trimmed) {
+            setNameError(null);
+            return true;
+        }
+        try {
+            const res = await fetch(`/api/admin/companies?checkName=${encodeURIComponent(trimmed)}`);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.exists) {
+                    setNameError('A company with this name already exists. Company names must be unique.');
+                    return false;
+                } else {
+                    setNameError(null);
+                    return true;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to check company name uniqueness:', e);
+        }
+        return true;
+    };
+
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
+
+        if (name === 'name') {
+            if (nameError) setNameError(null);
+        }
+    };
+
+    const handleNameBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        checkNameUniqueness(e.target.value);
     };
 
     // S3 Upload Helper (Reused from sponsors)
@@ -116,8 +150,15 @@ export default function AdminCreateCompanyPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setLoading(true);
-        setUploading(true);
         setError(null);
+
+        const isUnique = await checkNameUniqueness(formData.name);
+        if (!isUnique) {
+            setLoading(false);
+            return;
+        }
+
+        setUploading(true);
 
         try {
             // 1. Upload Logo if exists
@@ -213,8 +254,12 @@ export default function AdminCreateCompanyPage() {
                                     required
                                     value={formData.name}
                                     onChange={handleChange}
-                                    className="w-full rounded-lg border border-gray-300 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500"
+                                    onBlur={handleNameBlur}
+                                    className={`w-full rounded-lg border ${nameError ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'} p-2 text-sm`}
                                 />
+                                {nameError && (
+                                    <p className="mt-1.5 text-xs font-semibold text-red-600">{nameError}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Member ID *</label>
