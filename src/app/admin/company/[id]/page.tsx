@@ -13,7 +13,7 @@ export default function AdminEditCompanyPage() {
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // File Upload & Media States
+    
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
 
@@ -32,8 +32,8 @@ export default function AdminEditCompanyPage() {
         established: '',
         about: '',
         status: 'LIVE',
-        isActive: true, // boolean
-        isVerified: false, // boolean
+        isActive: true, 
+        isVerified: false, 
         address: '',
         city: '',
         state: '',
@@ -61,7 +61,7 @@ export default function AdminEditCompanyPage() {
                 if (!res.ok) throw new Error('Failed to fetch company');
                 const data = await res.json();
 
-                // Format existing date for input[type="date"] (yyyy-MM-dd)
+                
                 let formattedEstablished = '';
                 if (data.established) {
                     formattedEstablished = new Date(data.established).toISOString().split('T')[0];
@@ -119,7 +119,7 @@ export default function AdminEditCompanyPage() {
         }
     };
 
-    // S3 Upload Helper
+    
     const uploadFileToS3 = async (fileToUpload: File) => {
         const params = new URLSearchParams({
             filename: fileToUpload.name,
@@ -174,13 +174,13 @@ export default function AdminEditCompanyPage() {
         setError(null);
 
         try {
-            // 1. Upload new Logo if present
+            
             let finalLogoUrl = formData.logoUrl;
             if (logoFile) {
                 finalLogoUrl = await uploadFileToS3(logoFile);
             }
 
-            // 2. Upload new Media if present
+            
             const newMediaUrls: string[] = [];
             if (newMediaFiles.length > 0) {
                 const promises = newMediaFiles.map(f => uploadFileToS3(f));
@@ -246,7 +246,7 @@ export default function AdminEditCompanyPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Section 1: Basic Info */}
+                    {}
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Basic Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

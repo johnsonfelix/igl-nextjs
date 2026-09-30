@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 
-// Simple UA parser — no dependencies
+
 function parseUserAgent(ua: string) {
     let device = 'Desktop';
     if (/mobile|android.*phone|iphone|ipod/i.test(ua)) device = 'Mobile';
@@ -24,9 +24,9 @@ function parseUserAgent(ua: string) {
     return { device, browser, os };
 }
 
-// Resolve geo from IP using free ip-api.com
+
 async function resolveGeo(ip: string): Promise<{ country: string; city: string } | null> {
-    // Skip local/private IPs
+    
     if (!ip || ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
         return null;
     }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'sessionId and page are required' }, { status: 400 });
         }
 
-        // Get client IP
+        
         const forwarded = req.headers.get('x-forwarded-for');
         const ip = forwarded ? forwarded.split(',')[0].trim() : req.headers.get('x-real-ip') || '';
 
@@ -71,13 +71,13 @@ export async function POST(req: NextRequest) {
             if (existing) {
                 await prisma.siteVisit.update({
                     where: { id: existing.id },
-                    data: { duration: Math.min(duration, 3600) }, // cap at 1 hour
+                    data: { duration: Math.min(duration, 3600) }, 
                 });
                 return NextResponse.json({ ok: true, updated: true });
             }
         }
 
-        // Create new visit record
+        
         await prisma.siteVisit.create({
             data: {
                 sessionId,

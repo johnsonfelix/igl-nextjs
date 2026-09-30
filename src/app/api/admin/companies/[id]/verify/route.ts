@@ -1,4 +1,4 @@
-// app/api/admin/companies/[companyId]/verify/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
@@ -6,17 +6,17 @@ export async function PATCH(
   request: NextRequest,
   ctx: { params: Promise<Record<string, string | string[]>> }
 ) {
-  // Await params to satisfy Next 15 build-time ParamCheck<RouteContext>
+  
   const rawParams = await ctx.params;
 
-  // Normalize possible array values (catch-all or multi-segment) to a single string
+  
   const normalize = (v: string | string[] | undefined) =>
     Array.isArray(v) ? v[0] : v;
 
-  // Support both folder names: [companyId] and [id]
+  
   let companyId = normalize(rawParams.companyId) ?? normalize(rawParams.id);
 
-  // Robust fallback: parse from pathname if params key differs or is missing
+  
   if (!companyId) {
     const parts = request.nextUrl.pathname.split("/").filter(Boolean);
     const idx = parts.findIndex((p) => p === "companies");
@@ -33,7 +33,7 @@ export async function PATCH(
     );
   }
 
-  // Safe body parse (optional)
+  
   let body: any = {};
   try {
     body = await request.json();

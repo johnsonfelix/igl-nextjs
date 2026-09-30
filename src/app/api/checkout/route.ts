@@ -1,5 +1,5 @@
-// /app/api/checkout/route.ts
-// General checkout endpoint for purchases that don't require an event (e.g., memberships)
+
+
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
@@ -44,11 +44,11 @@ export async function POST(req: NextRequest) {
     console.log("--- STARTING GENERAL CHECKOUT TRANSACTION ---");
 
     const result = await prisma.$transaction(async (tx) => {
-      // Create a PurchaseOrder WITHOUT eventId (for memberships and other non-event products)
+      
       const purchaseOrder = await tx.purchaseOrder.create({
         data: {
           companyId,
-          eventId: null, // No event required for membership purchases
+          eventId: null, 
           totalAmount: 0,
           status: "PENDING",
         },
@@ -83,10 +83,10 @@ export async function POST(req: NextRequest) {
           boothSubTypeId: originalItem.boothSubTypeId ?? null,
         };
 
-        // Handle different product types
+        
         switch (productType) {
           case "MEMBERSHIP": {
-            // Verify membership plan exists
+            
             const membershipPlan = await tx.membershipPlan.findUnique({
               where: { id: item.productId },
             });
@@ -95,17 +95,17 @@ export async function POST(req: NextRequest) {
               throw new Error(`Membership plan "${item.name}" not found.`);
             }
 
-            // Update company with membership details
+            
             const now = new Date();
             const expiresAt = new Date(now);
-            expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Default 1 year
+            expiresAt.setFullYear(expiresAt.getFullYear() + 1); 
 
             await tx.company.update({
               where: { id: companyId },
               data: {
                 membershipPlanId: item.productId,
-                purchasedMembership: membershipPlan.name, // Store membership name
-                purchasedMembershipId: item.productId,     // Store membership ID
+                purchasedMembership: membershipPlan.name, 
+                purchasedMembershipId: item.productId,     
                 purchasedAt: now,
                 membershipExpiresAt: expiresAt,
               },
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
           case "SPONSOR":
           case "HOTEL":
           case "BOOTH": {
-            // These require an event - should not be in general checkout
+            
             throw new Error(
               `Product type "${productType}" requires an event. Use event-specific checkout endpoint.`
             );
@@ -136,7 +136,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Create OrderItem for all items
+        
         await tx.orderItem.create({
           data: {
             orderId: purchaseOrder.id,
@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
 
       console.log(`[INFO] Calculated subtotal: ${calculatedTotal}`);
 
-      // COUPON VALIDATION & DISCOUNT calculation
+      
       let discountAmount = 0;
       let couponRecord: any = null;
 

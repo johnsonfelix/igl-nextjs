@@ -1,4 +1,4 @@
-// app/api/admin/companies/flagged/route.ts
+
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
@@ -19,16 +19,16 @@ export async function GET(request: Request) {
     const limit = Math.min(100, Number(params.get('limit') ?? '25'));
     const offset = Math.max(0, Number(params.get('offset') ?? '0'));
 
-    // Base company filters
+    
     const baseWhere: any = {};
-    // show only SUSPENDED or BLOCKLISTED companies
+    
     baseWhere.status = { in: ['SUSPENDED', 'BLOCKLISTED'] };
 
     if (companyName) baseWhere.name = { contains: companyName, mode: 'insensitive' };
     if (memberId) baseWhere.memberId = memberId;
     if (memberType) baseWhere.memberType = memberType;
 
-    // Location filters
+    
     const locationWhere: any = {};
     if (country && country !== 'All') locationWhere.country = { equals: country, mode: 'insensitive' };
     if (city) locationWhere.city = { contains: city, mode: 'insensitive' };
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
 
     if (Object.keys(locationWhere).length > 0) {
       try {
-        // If company has a single 'location' relation
+        
         companies = await prisma.company.findMany({
           where: { ...baseWhere, location: locationWhere },
           include: { location: true, media: true },
@@ -48,7 +48,7 @@ export async function GET(request: Request) {
         });
       } catch (errOne) {
         try {
-          // Fallback to one-to-many 'locations' relation
+          
           companies = await prisma.company.findMany({
             where: { ...baseWhere, locations: { some: locationWhere } },
             include: { media: true },
@@ -68,7 +68,7 @@ export async function GET(request: Request) {
         }
       }
     } else {
-      // No location filters
+      
       try {
         companies = await prisma.company.findMany({
           where: baseWhere,
@@ -78,7 +78,7 @@ export async function GET(request: Request) {
           orderBy: { name: 'asc' },
         });
       } catch (err) {
-        // Fallback if 'location' relation doesn't exist
+        
         companies = await prisma.company.findMany({
           where: baseWhere,
           include: { media: true },

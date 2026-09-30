@@ -68,7 +68,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 lineHeight: '1.4',
             }}
         >
-            {/* Header */}
+            {}
             <div style={{ display: 'flex', border: borderStyle, marginBottom: '16px' }}>
                 <div style={{ width: '33.33%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRight: borderStyle }}>
                     <img src="/images/logo.png" alt="IGLA Logo" style={{ width: '112px', objectFit: 'contain' }} />
@@ -90,9 +90,9 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 </div>
             </div>
 
-            {/* Customer & Invoice Details */}
+            {}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
-                {/* Customer Details */}
+                {}
                 <div style={{ width: '50%', border: borderStyle, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ backgroundColor: darkBlue, padding: '8px 12px', fontWeight: 'bold', fontSize: '15px', color: '#ffffff' }}>
                         Customer Details
@@ -130,7 +130,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                     </div>
                 </div>
 
-                {/* Invoice Details */}
+                {}
                 <div style={{ width: '50%', border: borderStyle, display: 'flex', flexDirection: 'column' }}>
                     <div style={{ backgroundColor: darkBlue, padding: '8px 12px', fontWeight: 'bold', fontSize: '15px', color: '#ffffff' }}>
                         Invoice Details
@@ -169,7 +169,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 </div>
             </div>
 
-            {/* Items Table */}
+            {}
             <table style={{ width: '100%', border: borderStyle, borderCollapse: 'collapse', marginBottom: '16px' }}>
                 <thead>
                     <tr style={{ backgroundColor: darkBlue, color: '#ffffff', fontSize: '13px' }}>
@@ -204,7 +204,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                             <td style={{ padding: '8px', textAlign: 'center', fontWeight: 'bold' }}>{item.total !== 0 ? formatPrice(item.total) : item.total}</td>
                         </tr>
                     ))}
-                    {/* Maintain a few empty rows for structure */}
+                    {}
                     {[...Array(Math.max(0, 3 - items.length))].map((_, i) => (
                         <tr key={`empty-${i}`} style={{ borderBottom: '1px solid #f3f4f6' }}>
                             <td style={{ padding: '8px', borderRight: `1px solid ${blue}`, textAlign: 'center' }}>&nbsp;</td>
@@ -261,7 +261,7 @@ export const InvoiceTemplate = ({ orderId, date, customerDetails, items, totalAm
                 </tfoot>
             </table>
 
-            {/* Footer / Terms */}
+            {}
             <div style={{ border: borderStyle, padding: '16px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', gap: '24px' }}>
                     <div style={{ width: '50%' }}>

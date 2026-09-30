@@ -1,4 +1,4 @@
-// app/company/details/[id]/page.tsx
+
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -17,14 +17,14 @@ import {
   ArrowLeft,
   Phone,
   Mail,
-  MessageCircle, // WeChat usually
-  MessageSquare, // Skype usually
+  MessageCircle, 
+  MessageSquare, 
   Award,
   User,
   Quote,
 } from "lucide-react";
 
-// Accept promise-typed params for Next 15
+
 type PageProps = { params: Promise<{ id: string }> };
 
 interface CompanyDetails {
@@ -115,7 +115,7 @@ export default function CompanyProfilePage(_props: PageProps) {
   const [canViewContact, setCanViewContact] = useState(false);
 
   useEffect(() => {
-    // Check if user is logged in and has a paid membership
+    
     const checkAccess = async () => {
       if (user?.role === 'ADMIN' || user?.role === 'MODERATOR') {
         setCanViewContact(true);
@@ -128,7 +128,7 @@ export default function CompanyProfilePage(_props: PageProps) {
       }
 
       try {
-        // Fetch current user's company details to check membership
+        
         const res = await fetch(`/api/companies/${user.companyId}`, { cache: "no-store" });
         if (res.ok) {
           const data = await res.json();
@@ -158,12 +158,12 @@ export default function CompanyProfilePage(_props: PageProps) {
 
         if (cancelled) return;
 
-        // Parse Services: Prioritize 'servicesOffered', then 'services' array, then 'about' parsing legacy
+        
         let parsedServices: string[] = [];
         if (data.servicesOffered) {
-          // If it's a raw string in servicesOffered, we might split by newlines for list display if desired, 
-          // or just keep it as text in the new UI.
-          // For now, let's keep the legacy `services` array map if it exists too.
+          
+          
+          
         }
 
         const legacyServices = data.services?.map((s: any) => s.type) || [];
@@ -186,7 +186,7 @@ export default function CompanyProfilePage(_props: PageProps) {
 
     fetchCompanyData();
 
-    // Fetch plans for legacy mapping
+    
     fetch('/api/admin/membership-plans')
       .then(res => res.json())
       .then(data => {
@@ -228,7 +228,7 @@ export default function CompanyProfilePage(_props: PageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50 font-sans pb-12">
-      {/* --- HERO SECTION --- */}
+      {}
       <div className="relative bg-gradient-to-r from-slate-900 to-indigo-900 h-64 md:h-80">
         <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'url(/pattern-grid.svg)' }}></div>
         <div className="container mx-auto px-4 h-full relative">
@@ -241,7 +241,7 @@ export default function CompanyProfilePage(_props: PageProps) {
       <div className="container mx-auto px-4 -mt-24 relative z-10">
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 md:p-10 mb-8">
           <div className="flex flex-col md:flex-row items-start md:items-end gap-6">
-            {/* Logo */}
+            {}
             <div className="relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-xl shadow-md border border-gray-100 p-2 flex-shrink-0 -mt-16 md:-mt-20 overflow-hidden">
               {companyData.logoUrl ? (
                 <Image src={companyData.logoUrl} alt={companyData.name} fill className="object-contain p-2" />
@@ -252,7 +252,7 @@ export default function CompanyProfilePage(_props: PageProps) {
               )}
             </div>
 
-            {/* Title & Badge */}
+            {}
             <div className="flex-grow pt-2">
               <div className="flex flex-wrap items-center gap-3 mb-2">
                 <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">{companyData.name}</h1>
@@ -265,7 +265,7 @@ export default function CompanyProfilePage(_props: PageProps) {
                   {(companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name) && (
                     <>
                       {(() => {
-                        // 1. Direct Relation
+                        
                         if (companyData.membershipPlan?.thumbnail) {
                           return (
                             <div className="relative h-8 w-24">
@@ -278,7 +278,7 @@ export default function CompanyProfilePage(_props: PageProps) {
                             </div>
                           );
                         }
-                        // 2. Legacy Mapping
+                        
                         if (companyData.purchasedMembership) {
                           const matched = membershipPlans.find(p => p.name.trim().toLowerCase() === companyData.purchasedMembership?.trim().toLowerCase());
                           if (matched?.thumbnail) {
@@ -294,7 +294,7 @@ export default function CompanyProfilePage(_props: PageProps) {
                             );
                           }
                         }
-                        // 3. Fallback Text Badge
+                        
                         return (
                           <span className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs md:text-sm font-bold px-3 py-1 rounded-full shadow-sm uppercase tracking-wide">
                             {companyData.memberType || companyData.purchasedMembership || companyData.membershipPlan?.name}
@@ -319,7 +319,7 @@ export default function CompanyProfilePage(_props: PageProps) {
               </div>
             </div>
 
-            {/* CTA */}
+            {}
             <div className="flex-shrink-0 w-full md:w-auto mt-4 md:mt-0">
               <a href={withProtocol(companyData.website)} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center w-full md:w-auto gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-semibold shadow-lg shadow-indigo-200 transition-all transform hover:-translate-y-0.5">
                 <Globe className="w-5 h-5" />
@@ -329,13 +329,13 @@ export default function CompanyProfilePage(_props: PageProps) {
           </div>
         </div>
 
-        {/* --- MAIN GRID CONTENT --- */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* LEFT COLUMN (Main Info) */}
+          {}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* About Section */}
+            {}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
                 <Quote className="w-6 h-6 text-indigo-500 mr-3 opacity-50" />
@@ -346,19 +346,19 @@ export default function CompanyProfilePage(_props: PageProps) {
               </div>
             </section>
 
-            {/* Services & Scope */}
+            {}
             <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-6 px-2 border-l-4 border-indigo-500">
                 Capabilities & Services
               </h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Services List */}
-                {/* Services List */}
+                {}
+                {}
                 <div className="md:col-span-2">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 bg-gray-50 inline-block px-3 py-1 rounded-md">Services Offered</h3>
                   {(() => {
-                    // Combine and parse services
+                    
                     const items: string[] = [];
                     if (companyData.servicesOffered) {
                       items.push(...companyData.servicesOffered.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0));
@@ -383,22 +383,22 @@ export default function CompanyProfilePage(_props: PageProps) {
                   })()}
                 </div>
 
-                {/* Scope of Business */}
+                {}
                 <div className="md:col-span-2">
                   <h3 className="text-lg font-semibold text-gray-800 mb-4 bg-gray-50 inline-block px-3 py-1 rounded-md">Scope of Business</h3>
                   {(() => {
                     const items: string[] = [];
                     if (companyData.scopeOfBusiness) {
-                      // Heuristic: if it contains newlines or commas, treat as list. 
-                      // If just a long text without commas, maybe keep as text?
-                      // Given the example "sdfdsf,asdf,asdfd", it is a list.
+                      
+                      
+                      
                       if (companyData.scopeOfBusiness.includes(',') || companyData.scopeOfBusiness.includes('\n')) {
                         items.push(...companyData.scopeOfBusiness.split(/[,;\n]+/).map(s => s.trim()).filter(s => s.length > 0));
                       } else {
-                        // Determine if it's likely a sentence or a single item tag
-                        // For now let's just make it a chip if it's short (< 50 chars)? 
-                        // Or just default to chip if requested "like chip like ui".
-                        // Let's treat as single item if short, or paragraph if long?
+                        
+                        
+                        
+                        
                         if (companyData.scopeOfBusiness.length < 50) {
                           items.push(companyData.scopeOfBusiness.trim());
                         } else {
@@ -423,13 +423,13 @@ export default function CompanyProfilePage(_props: PageProps) {
                     if (!companyData.scopeOfBusiness) {
                       return <p className="text-gray-400 italic">Scope of business details not added.</p>;
                     }
-                    return null; // Should be handled by else block above
+                    return null; 
                   })()}
                 </div>
               </div>
             </section>
 
-            {/* Media Gallery */}
+            {}
             {companyData.media && companyData.media.length > 0 && (
               <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                 <h2 className="text-2xl font-bold text-gray-900 mb-6">Gallery</h2>
@@ -444,10 +444,10 @@ export default function CompanyProfilePage(_props: PageProps) {
             )}
           </div>
 
-          {/* RIGHT COLUMN (Sidebar Stats & Contact) */}
+          {}
           <div className="space-y-6 relative">
 
-            {/* Key Contact Card */}
+            {}
             <div className={`bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl shadow-lg p-6 text-white relative overflow-hidden ${!canViewContact ? 'blur-sm select-none' : ''}`}>
               <div className="absolute top-0 right-0 opacity-10 transform translate-x-4 -translate-y-4">
                 <User className="w-32 h-32" />
@@ -481,7 +481,7 @@ export default function CompanyProfilePage(_props: PageProps) {
               </div>
             </div>
 
-            {/* UPGRADE OVERLAY FOR CONTACT CARD */}
+            {}
             {!canViewContact && (
               <div className="absolute top-0 left-0 w-full h-[300px] flex items-center justify-center z-20">
                 <div className="bg-white/95 backdrop-blur-md p-6 rounded-2xl shadow-2xl border border-indigo-100 text-center max-w-xs mx-auto">
@@ -505,20 +505,12 @@ export default function CompanyProfilePage(_props: PageProps) {
               </div>
             )}
 
-            {/* Wrapper for right column relative positioning */}
+            {}
           </div>
 
-          {/* Actual sidebar container adjustment needed? No, removing the outer div wrapper I just assumed might break layout. 
-               Wait, the original code had  <div className="space-y-6"> as the right column wrapper. 
-               I need to be careful with the overlay positioning. 
-               Let's attach the overlay to the "Key Contact Card" specifically, or replace the card content if restricted?
-               The user requirement: "hide the contact and place a info that show buy a membership".
-               
-               Better approach: 
-               If !canViewContact, render a "Locked Contact Card" component INSTEAD of the real one (or obscure it).
-            */}
+          {}
 
-          {/* Location & Quick Stats */}
+          {}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 relative">
             <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Company Overview</h3>
 
@@ -548,7 +540,7 @@ export default function CompanyProfilePage(_props: PageProps) {
               </li>
 
               <li className="pt-2 relative">
-                {/* CONNECT SECTION LOCK */}
+                {}
                 <h4 className="text-xs uppercase text-gray-400 font-bold mb-2">Connect</h4>
                 {!canViewContact ? (
                   <div className="bg-gray-100 rounded-lg p-3 text-center text-sm text-gray-500 flex flex-col items-center gap-2">
@@ -573,7 +565,7 @@ export default function CompanyProfilePage(_props: PageProps) {
             </ul>
           </div>
 
-          {/* Directors & IGLA */}
+          {}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Board Members</h3>
             {companyData.directors ? (

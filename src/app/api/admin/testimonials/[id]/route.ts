@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET single testimonial
+
 export async function GET(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -29,7 +29,7 @@ export async function GET(
     }
 }
 
-// PUT update testimonial
+
 export async function PUT(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -61,7 +61,7 @@ export async function PUT(
     }
 }
 
-// DELETE testimonial
+
 export async function DELETE(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }

@@ -19,7 +19,7 @@ import {
   CreditCard,
 } from "lucide-react";
 
-// UPDATED: Added "BOOTHS" and "SUBSCRIPTIONS" to OfferScope
+
 type OfferScope =
   | "ALL"
   | "HOTELS"
@@ -50,7 +50,7 @@ interface Offer {
   ticketIds?: string[];
   sponsorTypeIds?: string[];
   boothIds?: string[];
-  membershipPlanIds?: string[]; // NEW
+  membershipPlanIds?: string[]; 
 }
 
 interface SimpleItem {
@@ -91,7 +91,7 @@ export default function CouponsPage() {
   const [tickets, setTickets] = useState<SimpleItem[]>([]);
   const [sponsorTypes, setSponsorTypes] = useState<SimpleItem[]>([]);
   const [booths, setBooths] = useState<SimpleItem[]>([]);
-  const [membershipPlans, setMembershipPlans] = useState<SimpleItem[]>([]); // NEW
+  const [membershipPlans, setMembershipPlans] = useState<SimpleItem[]>([]); 
 
   const [loading, setLoading] = useState(true);
   const [loadingCoupons, setLoadingCoupons] = useState(false);
@@ -419,7 +419,7 @@ export default function CouponsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100 p-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* Header */}
+        {}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
@@ -451,7 +451,7 @@ export default function CouponsPage() {
           </div>
         </div>
 
-        {/* Errors */}
+        {}
         {errorMessage && (
           <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl flex items-center gap-3">
             <AlertCircle size={20} />
@@ -477,7 +477,7 @@ export default function CouponsPage() {
           </div>
         )}
 
-        {/* Tabs */}
+        {}
         <div className="flex gap-1 p-1 bg-slate-100 rounded-xl w-fit">
           {(["coupons", "offers"] as const).map((tab) => (
             <button
@@ -494,7 +494,7 @@ export default function CouponsPage() {
           ))}
         </div>
 
-        {/* Coupons Tab */}
+        {}
         {activeTab === "coupons" && (
           <section>
             {loadingCoupons || loading ? (
@@ -587,7 +587,7 @@ export default function CouponsPage() {
           </section>
         )}
 
-        {/* Offers Tab */}
+        {}
         {activeTab === "offers" && (
           <section>
             {loadingOffers || loading ? (
@@ -735,7 +735,7 @@ export default function CouponsPage() {
           </section>
         )}
 
-        {/* Coupon Modal */}
+        {}
         {couponModalOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
@@ -824,7 +824,7 @@ export default function CouponsPage() {
           </div>
         )}
 
-        {/* Offer Modal */}
+        {}
         {offerModalOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -984,14 +984,14 @@ export default function CouponsPage() {
                   </div>
                 </div>
 
-                {/* Custom scope selection */}
+                {}
                 {offerForm.scope === "CUSTOM" && (
                   <div className="pt-4 border-t border-slate-100">
                     <p className="text-sm font-medium text-slate-700 mb-3">
                       Select specific items for this offer
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                      {/* Hotels */}
+                      {}
                       <div className="p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2 text-slate-700 font-medium text-sm">
                           <Building size={16} />
@@ -1028,7 +1028,7 @@ export default function CouponsPage() {
                           </div>
                         )}
                       </div>
-                      {/* Tickets */}
+                      {}
                       <div className="p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2 text-slate-700 font-medium text-sm">
                           <Ticket size={16} />
@@ -1065,7 +1065,7 @@ export default function CouponsPage() {
                           </div>
                         )}
                       </div>
-                      {/* Sponsors */}
+                      {}
                       <div className="p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2 text-slate-700 font-medium text-sm">
                           <Users size={16} />
@@ -1105,7 +1105,7 @@ export default function CouponsPage() {
                           </div>
                         )}
                       </div>
-                      {/* Booths */}
+                      {}
                       <div className="p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2 text-slate-700 font-medium text-sm">
                           <Briefcase size={16} />
@@ -1142,7 +1142,7 @@ export default function CouponsPage() {
                           </div>
                         )}
                       </div>
-                      {/* Subscriptions */}
+                      {}
                       <div className="p-3 bg-slate-50 rounded-xl">
                         <div className="flex items-center gap-2 mb-2 text-slate-700 font-medium text-sm">
                           <CreditCard size={16} />

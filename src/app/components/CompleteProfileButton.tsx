@@ -17,7 +17,7 @@ import {
 interface CompanyProfileData {
   name: string;
   website: string;
-  established: string; // yyyy-mm-dd
+  established: string; 
   size: string;
   about: string;
   address: string;
@@ -82,7 +82,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
       }
 
       setIsModalOpen(false);
-      router.refresh(); // refresh server components
+      router.refresh(); 
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -112,17 +112,17 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
           role="dialog"
           aria-labelledby="complete-profile-title"
           onClick={(e) => {
-            // close when clicking the dim backdrop (but not the card)
+            
             if (e.target === e.currentTarget) setIsModalOpen(false);
           }}
         >
-          {/* Backdrop */}
+          {}
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fadeIn" />
 
-          {/* Modal card */}
+          {}
           <div className="relative mx-auto flex min-h-full items-center justify-center p-4">
             <div className="w-full max-w-3xl overflow-hidden rounded-2xl bg-white/95 shadow-2xl ring-1 ring-black/5 animate-scaleIn">
-              {/* Header */}
+              {}
               <div className="flex items-start justify-between border-b border-slate-200 px-6 py-4">
                 <div>
                   <h3
@@ -144,10 +144,10 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                 </button>
               </div>
 
-              {/* Body */}
+              {}
               <form onSubmit={handleSubmit} className="px-6 py-5">
                 <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-                  {/* Name */}
+                  {}
                   <div className={fieldWrap}>
                     <label htmlFor="name" className={labelClass}>
                       Your Name
@@ -168,7 +168,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                     />
                   </div>
 
-                  {/* Website */}
+                  {}
                   <div className={fieldWrap}>
                     <label htmlFor="website" className={labelClass}>
                       Company Website
@@ -187,7 +187,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                     />
                   </div>
 
-                  {/* Established */}
+                  {}
                   <div className={fieldWrap}>
                     <label htmlFor="established" className={labelClass}>
                       Date Established
@@ -205,7 +205,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                     />
                   </div>
 
-                  {/* Size */}
+                  {}
                   <div className={fieldWrap}>
                     <label htmlFor="size" className={labelClass}>
                       Company Size
@@ -227,7 +227,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                     </p>
                   </div>
 
-                  {/* Address (full width on md via col-span-2) */}
+                  {}
                   <div className={`md:col-span-2 ${fieldWrap}`}>
                     <label htmlFor="address" className={labelClass}>
                       Full Office Address
@@ -246,7 +246,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                     />
                   </div>
 
-                  {/* About (full width) */}
+                  {}
                   <div className={`md:col-span-2 ${fieldWrap}`}>
                     <label htmlFor="about" className={labelClass}>
                       About Your Company
@@ -272,7 +272,7 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
                   </p>
                 )}
 
-                {/* Footer */}
+                {}
                 <div className="mt-6 flex items-center justify-end gap-3 border-t border-slate-200 pt-4">
                   <button
                     type="button"
@@ -305,11 +305,4 @@ export default function CompleteProfileButton({ companyId }: { companyId: string
   );
 }
 
-/* Tailwind small animations (optional)
-Add these to your globals.css if you want smoother entry animations:
 
-@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
-@keyframes scaleIn { from { opacity: 0; transform: translateY(8px) scale(.98) } to { opacity: 1; transform: translateY(0) scale(1) } }
-.animate-fadeIn { animation: fadeIn .2s ease-out both }
-.animate-scaleIn { animation: scaleIn .2s ease-out both }
-*/

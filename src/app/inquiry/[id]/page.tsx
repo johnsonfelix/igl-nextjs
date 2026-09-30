@@ -21,7 +21,7 @@ import {
     Phone
 } from 'lucide-react';
 
-// --- TYPE DEFINITIONS (Matching your API's include structure) ---
+
 
 type Company = {
     id: string;
@@ -34,7 +34,7 @@ type Company = {
 type InquiryResponse = {
     id: string;
     responder: Company;
-    // Add other response fields like 'rate', 'notes', etc., as needed
+    
 };
 
 type InquiryDetails = {
@@ -46,13 +46,13 @@ type InquiryDetails = {
     commodity: string | null;
     remark: string | null;
     createdAt: string;
-    company: Company; // The company that posted the inquiry
-    responses: InquiryResponse[]; // List of responses
+    company: Company; 
+    responses: InquiryResponse[]; 
 };
 
-// --- UI COMPONENTS ---
 
-// --- UI COMPONENTS ---
+
+
 
 const RouteSection = ({ from, to }: { from: string; to: string }) => (
     <div className="flex items-center p-8 bg-gradient-to-r from-gray-50 to-white rounded-xl mb-6 relative overflow-hidden">
@@ -77,7 +77,7 @@ const RouteSection = ({ from, to }: { from: string; to: string }) => (
             </div>
         </div>
 
-        {/* Decorative background element */}
+        {}
         <div className="absolute right-[-20px] top-[-20px] text-gray-100 opacity-50">
             <MapPin className="h-64 w-64 rotate-12" />
         </div>
@@ -99,7 +99,7 @@ const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType, labe
     );
 };
 
-// NEW: Component to display the inquiring company's details
+
 const InquiringCompanyCard = ({ company }: { company: Company }) => (
     <div className="mt-8">
         <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -138,7 +138,7 @@ const InquiringCompanyCard = ({ company }: { company: Company }) => (
     </div>
 );
 
-// NEW: Component to display the list of responses
+
 const ResponseList = ({ responses }: { responses: InquiryResponse[] }) => {
     if (responses.length === 0) {
         return (
@@ -182,7 +182,7 @@ const ResponseList = ({ responses }: { responses: InquiryResponse[] }) => {
     );
 };
 
-// --- HELPER FUNCTIONS ---
+
 const getShipmentIcon = (mode: string) => {
     if (mode === 'AIR') return Plane;
     if (mode === 'SEA') return Ship;
@@ -190,11 +190,11 @@ const getShipmentIcon = (mode: string) => {
     return Ship;
 };
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function InquiryDetailsPage() {
     const router = useRouter();
     const params = useParams();
-    const { user } = useAuth(); // Assuming useAuth() provides { companyId: string, ... }
+    const { user } = useAuth(); 
     const [inquiry, setInquiry] = useState<InquiryDetails | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -206,13 +206,13 @@ export default function InquiryDetailsPage() {
             const fetchInquiryDetails = async () => {
                 setLoading(true);
                 try {
-                    // Fetch from your existing API endpoint
+                    
                     const response = await fetch(`/api/company/inquiry/${id}`);
                     if (!response.ok) {
                         const errData = await response.json();
                         throw new Error(errData.error || 'Failed to fetch inquiry details.');
                     }
-                    // ADJUSTMENT: The API returns the inquiry object directly
+                    
                     const data = await response.json();
                     setInquiry(data);
                 } catch (err) {
@@ -225,7 +225,7 @@ export default function InquiryDetailsPage() {
         }
     }, [id]);
 
-    // Memoized values to control UI logic for responding
+    
     const isOwner = useMemo(() => user?.companyId === inquiry?.company.id, [user, inquiry]);
     const hasResponded = useMemo(() =>
         inquiry?.responses.some(res => res.responder.id === user?.companyId),
@@ -274,7 +274,7 @@ export default function InquiryDetailsPage() {
 
     return (
         <div className="bg-[#f8f9fa] min-h-screen pb-24 font-sans">
-            {/* Header */}
+            {}
             <header className="bg-white/80 backdrop-blur-md shadow-sm sticky top-0 z-30 border-b border-gray-100">
                 <div className="container mx-auto px-4">
                     <div className="flex items-center justify-between h-16">
@@ -285,14 +285,14 @@ export default function InquiryDetailsPage() {
                             <span className="font-bold text-sm">Back</span>
                         </button>
                         <h1 className="text-lg font-bold text-gray-800 truncate px-2 hidden md:block">Inquiry Details</h1>
-                        <div className="w-20"></div> {/* Spacer */}
+                        <div className="w-20"></div> {}
                     </div>
                 </div>
             </header>
 
             <main className="container mx-auto p-4 md:p-8 max-w-5xl">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Content Info */}
+                    {}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
                             <div className="h-2 bg-[#5da765]"></div>
@@ -312,13 +312,13 @@ export default function InquiryDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Responses Section (Owner Only) */}
+                        {}
                         {isOwner && <ResponseList responses={inquiry.responses} />}
                     </div>
 
-                    {/* Sidebar / Company Info */}
+                    {}
                     <div className="lg:col-span-1">
-                        {/* Status Card or Actions could go here */}
+                        {}
                         <div className="bg-[#5da765] text-white p-6 rounded-2xl shadow-lg mb-6 relative overflow-hidden">
                             <div className="relative z-10">
                                 <p className="text-green-100 text-sm font-medium mb-1">Status</p>
@@ -334,7 +334,7 @@ export default function InquiryDetailsPage() {
                             </div>
                         </div>
 
-                        {/* Show the company that posted if the user is NOT the owner */}
+                        {}
                         {!isOwner && <InquiringCompanyCard company={inquiry.company} />}
 
                         {isOwner && (
@@ -349,7 +349,7 @@ export default function InquiryDetailsPage() {
                     </div>
                 </div>
 
-                {/* Bottom Action Button */}
+                {}
                 {user && !isOwner && !hasResponded && (
                     <div className="mt-8 flex justify-end">
                         <Link

@@ -34,11 +34,11 @@ export async function GET(req: Request) {
   }
 }
 
-// POST /api/inquiry
+
 export async function POST(req: Request) {
   const body = await req.json();
 
-  // Validate minimal fields before proceeding
+  
   if (!body.companyId || !body.from || !body.to || !body.commodity || !body.contactEmail) {
     return NextResponse.json({ error: "Required fields missing" }, { status: 400 });
   }

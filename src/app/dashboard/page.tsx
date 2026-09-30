@@ -1,4 +1,4 @@
-// app/dashboard/page.tsx
+
 
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -39,7 +39,7 @@ export default async function DashboardPage() {
 
   let currentBranch = null;
 
-  // If no direct company found, check if user is a branch user
+  
   if (!company) {
     const branch = await prisma.branch.findFirst({
       where: { userId: user.id },
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
     )
   }
 
-  // Fetch Orders
+  
   const rawOrders = await prisma.purchaseOrder.findMany({
     where: { companyId: company.id },
     include: {
@@ -72,7 +72,7 @@ export default async function DashboardPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  // Attach the full ManualInvoice to each order (so dashboard invoice = admin invoice)
+  
   const orders = await Promise.all(rawOrders.map(async (order) => {
     const details = order.additionalDetails as any;
     const invoiceId = details?.invoiceId;
@@ -93,8 +93,8 @@ export default async function DashboardPage() {
     return { ...order, manualInvoice: manualInvoice as any };
   }));
 
-  // Determine if the company is eligible to send meeting requests
-  // They are eligible if they have ANY completed purchase order OR if they are one of the dummy companies
+  
+  
   const dummyNames = DUMMY_COMPANY_NAMES;
 
   const isEligibleForMeetings =
@@ -104,7 +104,7 @@ export default async function DashboardPage() {
   const conferenceTickets: { eventId: string; eventName: string }[] = [];
 
   if (isEligibleForMeetings) {
-    // Fetch all events that have meeting slots and are not over
+    
     const eventsWithSlots = await prisma.event.findMany({
       where: {
         meetingSlots: { some: {} },
@@ -125,7 +125,7 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-gray-50/50">
       <div className="container mx-auto px-4 py-8 lg:py-12">
-        {/* Header Section */}
+        {}
         <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Dashboard</h1>
@@ -148,7 +148,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* Action Required Banner */}
+        {}
         {!user.isCompleted && (
           <div className="mb-8 p-6 bg-blue-50 border border-blue-100 rounded-xl shadow-sm flex flex-col md:flex-row items-start md:items-center gap-6 animate-fadeIn">
             <div className="p-3 bg-blue-100 rounded-full text-blue-600">
@@ -168,9 +168,9 @@ export default async function DashboardPage() {
           </div>
         )}
 
-        {/* Stats Grid */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {/* Membership Card */}
+          {}
           <div className="bg-white p-6 rounded-2xl shadow-sm border hover:shadow-md transition-shadow">
             <div className="flex items-start justify-between mb-4">
               <div className={`p-3 rounded-xl bg-purple-50`}>
@@ -216,14 +216,14 @@ export default async function DashboardPage() {
           ))}
         </div>
 
-        {/* Meeting Requests Section */}
+        {}
         {conferenceTickets.length > 0 && (
           <div className="mb-12">
             <MeetingRequestSection companyId={company.id} conferenceTickets={conferenceTickets} />
           </div>
         )}
 
-        {/* Orders Section */}
+        {}
         <div className="mb-12">
           <OrdersTable
             orders={orders}

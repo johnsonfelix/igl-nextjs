@@ -90,7 +90,7 @@ export default function MembershipManager({ initialPlans }: Props) {
             className="bg-white p-6 rounded-xl shadow-lg flex flex-col justify-between transition hover:shadow-xl"
             aria-labelledby={`plan-${plan.id}`}
           >
-            {/* Order Summary styled header */}
+            {}
             <div>
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
@@ -121,7 +121,7 @@ export default function MembershipManager({ initialPlans }: Props) {
                 )}
               </div>
 
-              {/* Features */}
+              {}
               <ul className="space-y-2 pt-2 text-gray-600">
                 {(plan.features || []).length === 0 ? (
                   <li className="text-sm italic text-gray-400">No features listed</li>
@@ -136,7 +136,7 @@ export default function MembershipManager({ initialPlans }: Props) {
               </ul>
             </div>
 
-            {/* Footer with total and actions */}
+            {}
             <div className="mt-6 pt-6 border-t flex items-center justify-between">
               <div>
                 <p className="text-lg font-semibold text-gray-800">Total</p>

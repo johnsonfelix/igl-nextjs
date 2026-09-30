@@ -37,14 +37,14 @@ export default function ChatWidget() {
         scrollToBottom();
     }, [messages]);
 
-    // Persist messages to sessionStorage
+    
     useEffect(() => {
         if (hydrated.current) {
             sessionStorage.setItem('chat_messages', JSON.stringify(messages));
         }
     }, [messages]);
 
-    // Persist open/closed state to sessionStorage
+    
     useEffect(() => {
         if (hydrated.current) {
             sessionStorage.setItem('chat_open', String(isOpen));
@@ -105,7 +105,7 @@ export default function ChatWidget() {
 
     return (
         <>
-            {/* Chat Panel */}
+            {}
             <div
                 style={{
                     position: 'fixed',
@@ -126,7 +126,7 @@ export default function ChatWidget() {
                     opacity: isOpen ? 1 : 0,
                 }}
             >
-                {/* Header */}
+                {}
                 <div
                     style={{
                         background: 'linear-gradient(135deg, #004aad 0%, #2ebb79 100%)',
@@ -210,7 +210,7 @@ export default function ChatWidget() {
                     </button>
                 </div>
 
-                {/* Messages Area */}
+                {}
                 <div
                     style={{
                         flex: 1,
@@ -222,7 +222,7 @@ export default function ChatWidget() {
                         background: '#f8f9fb',
                     }}
                 >
-                    {/* Welcome message */}
+                    {}
                     {messages.length === 0 && (
                         <div style={{ textAlign: 'center', padding: '40px 20px' }}>
                             <div
@@ -260,7 +260,7 @@ export default function ChatWidget() {
                             >
                                 I&apos;m your IGLA logistics assistant. Ask me about membership, events, services, or anything about IGLA!
                             </p>
-                            {/* Quick action chips */}
+                            {}
                             <div
                                 style={{
                                     display: 'flex',
@@ -336,7 +336,7 @@ export default function ChatWidget() {
                         </div>
                     )}
 
-                    {/* Chat messages */}
+                    {}
                     {messages.map((msg, idx) => (
                         <div
                             key={idx}
@@ -413,7 +413,7 @@ export default function ChatWidget() {
                         </div>
                     ))}
 
-                    {/* Loading indicator */}
+                    {}
                     {isLoading && (
                         <div
                             style={{
@@ -459,7 +459,7 @@ export default function ChatWidget() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
+                {}
                 <div
                     style={{
                         padding: '12px 16px',
@@ -532,7 +532,7 @@ export default function ChatWidget() {
                 </div>
             </div>
 
-            {/* Floating Toggle Button */}
+            {}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
@@ -565,7 +565,7 @@ export default function ChatWidget() {
                 <MessageCircle size={26} color="#fff" />
             </button>
 
-            {/* Keyframe animation for spinner */}
+            {}
             <style jsx global>{`
         @keyframes spin {
           from { transform: rotate(0deg); }

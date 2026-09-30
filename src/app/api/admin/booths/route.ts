@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET all booths
+
 export async function GET() {
   try {
     const booths = await prisma.booth.findMany({
@@ -17,7 +17,7 @@ export async function GET() {
   }
 }
 
-// POST create new booth
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

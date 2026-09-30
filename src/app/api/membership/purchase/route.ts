@@ -7,7 +7,7 @@ type PaymentPayload = {
   amount?: number;
 };
 
-// keep this in sync with your Prisma OfferScope enum
+
 type OfferScope =
   | "ALL"
   | "HOTELS"
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Fetch company + plan
+    
     const [company, plan] = await Promise.all([
       prisma.company.findUnique({
         where: { id: companyId },
@@ -68,13 +68,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ─────────────────────────────────────────────
-    // 1. LOAD ACTIVE MEMBERSHIP OFFERS
-    // ─────────────────────────────────────────────
+    
+    
+    
     const allOffers = await prisma.offer.findMany({
       where: {
         isActive: true,
-        // scope filter left broad; we filter in code
+        
       },
       include: {
         membershipPlans: { select: { id: true } },
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       return true;
     };
 
-    // Find best offer for this membership plan
+    
     let bestOffer:
       | (typeof allOffers)[number]
       | null = null;
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
       if (scope === "ALL" || scope === "SUBSCRIPTIONS") {
         applies = true;
       } else if (scope === "CUSTOM") {
-        // CUSTOM -> check membershipPlans relation
+        
         const ids = (o.membershipPlans || []).map((m) => m.id);
         if (ids.includes(membershipPlanId)) {
           applies = true;
@@ -118,33 +118,33 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ─────────────────────────────────────────────
-    // 2. CALCULATE DISCOUNTED AMOUNTS
-    // ─────────────────────────────────────────────
+    
+    
+    
     const originalPrice = plan.price;
     const membershipDiscountAmount = bestOffer
       ? (originalPrice * bestOffer.percentage) / 100
       : 0;
 
-    // For now, coupon logic is left as 0 or TODO.
-    // If you want real coupons, validate `coupon` against prisma.coupon here.
-    const couponDiscountAmount = 0; // TODO: implement coupon-based discount if needed
+    
+    
+    const couponDiscountAmount = 0; 
 
     const finalPrice = Math.max(
       0,
       originalPrice - membershipDiscountAmount - couponDiscountAmount
     );
 
-    // If final price is 0, allow basic "FREE" provider bypass
+    
     if (finalPrice > 0 && payment && typeof payment.amount === "number" && payment.amount !== finalPrice) {
-      // Optional: strict check
-      // return NextResponse.json({...}, {status:400})
+      
+      
     }
 
 
-    // ─────────────────────────────────────────────
-    // 3. UPDATE MEMBERSHIP IN A TRANSACTION
-    // ─────────────────────────────────────────────
+    
+    
+    
     const baseStart =
       company.membershipExpiresAt &&
         company.membershipExpiresAt > now
@@ -152,7 +152,7 @@ export async function POST(req: NextRequest) {
         : now;
 
     const expires =
-      durationDays === null // Lifetime
+      durationDays === null 
         ? null
         : typeof durationDays === "number" && durationDays > 0
           ? new Date(
@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
     const { updatedCompany, createdPurchaseOrder } = await prisma.$transaction(async (tx) => {
       let u = company;
 
-      // Only update company membership immediately if NOT offline
+      
       if (!isOffline) {
         console.log("DEBUG: PERFORMING COMPANY UPDATE (Online)");
         u = await tx.company.update({
@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
         console.log("DEBUG: SKIPPING COMPANY UPDATE (Offline)");
       }
 
-      // Create Purchase Order for this membership
+      
       const po = await tx.purchaseOrder.create({
         data: {
           companyId: companyId,
@@ -222,9 +222,9 @@ export async function POST(req: NextRequest) {
       return { updatedCompany: u, createdPurchaseOrder: po };
     });
 
-    // ─────────────────────────────────────────────
-    // 4. RETURN RESULT WITH PRICING & OFFER INFO
-    // ─────────────────────────────────────────────
+    
+    
+    
     return NextResponse.json(
       {
         success: true,

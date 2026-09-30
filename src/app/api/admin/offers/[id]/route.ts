@@ -1,4 +1,4 @@
-// D:\Projects\Logistics\web\backend-api\src\app\api\admin\offers\[id]\route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
@@ -27,14 +27,14 @@ type OfferPayload = {
   membershipPlanIds?: string[];
 };
 
-// helper
+
 function getIdFromRequest(req: NextRequest): string {
   const url = new URL(req.url);
   const parts = url.pathname.split("/").filter(Boolean);
   return parts[parts.length - 1];
 }
 
-// GET /api/admin/offers/[id]
+
 export async function GET(req: NextRequest) {
   const id = getIdFromRequest(req);
 
@@ -79,7 +79,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// PUT /api/admin/offers/[id]
+
 export async function PUT(req: NextRequest) {
   const id = getIdFromRequest(req);
 
@@ -113,7 +113,7 @@ export async function PUT(req: NextRequest) {
     }
     if (body.isActive !== undefined) updateData.isActive = body.isActive;
 
-    // If scope == CUSTOM, replace relations with provided arrays using `set`
+    
     if (body.scope === "CUSTOM") {
       if (Array.isArray(body.hotelIds)) {
         updateData.hotels = {
@@ -141,12 +141,12 @@ export async function PUT(req: NextRequest) {
         };
       }
     } else {
-      // optional: clear relations when scope != CUSTOM
-      // updateData.hotels = { set: [] };
-      // updateData.tickets = { set: [] };
-      // updateData.sponsorTypes = { set: [] };
-      // updateData.booths = { set: [] };
-      // updateData.membershipPlans = { set: [] };
+      
+      
+      
+      
+      
+      
     }
 
     const updated = await prisma.offer.update({
@@ -189,7 +189,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE /api/admin/offers/[id]
+
 export async function DELETE(req: NextRequest) {
   const id = getIdFromRequest(req);
 

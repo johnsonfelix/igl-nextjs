@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { MembershipPlan } from "@prisma/client";
-import { uploadFileToS3 } from "@/app/lib/s3-upload"; // same helper used elsewhere
+import { uploadFileToS3 } from "@/app/lib/s3-upload"; 
 
 type FormProps = {
   plan: MembershipPlan | null;
@@ -107,7 +107,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
       const savedPlan: MembershipPlan = await res.json();
       onSuccess(savedPlan, isEditing ? "update" : "create");
 
-      // Reset after success
+      
       setFile(null);
       setPreviewUrl(null);
     } catch (error) {
@@ -127,7 +127,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Basic Info */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Subscription Name</label>
@@ -153,7 +153,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
             </div>
           </div>
 
-          {/* Price */}
+          {}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-1">Price (USD)</label>
@@ -173,7 +173,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
             </div>
           </div>
 
-          {/* Description */}
+          {}
           <div>
             <label className="block text-sm font-medium mb-1">Description</label>
             <textarea
@@ -210,7 +210,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
             </div>
           </div>
 
-          {/* Thumbnail upload */}
+          {}
           <div>
             <label className="block text-sm font-medium mb-1">Thumbnail</label>
             <input
@@ -221,7 +221,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
                 const f = e.target.files?.[0] ?? null;
                 setFile(f);
                 if (!f) {
-                  // If cleared, revert preview to existing URL in edit mode
+                  
                   setPreviewUrl(thumbnail || null);
                 }
               }}
@@ -236,7 +236,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
             )}
           </div>
 
-          {/* Features */}
+          {}
           <div>
             <label className="block text-sm font-medium mb-1">Features (one per line)</label>
             <textarea
@@ -249,7 +249,7 @@ export default function MembershipPlanForm({ plan, onSuccess, onCancel }: FormPr
             />
           </div>
 
-          {/* Buttons */}
+          {}
           <div className="flex justify-end gap-3">
             <button
               type="button"

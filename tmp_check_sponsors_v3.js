@@ -15,7 +15,7 @@ async function findSponsors() {
       }
     });
 
-    // filter manually to be sure
+    
     const eventItems = items.filter(it => it.order.eventId === eventId);
     
     console.log(`TOTAL ITEMS FOR EVENT: ${eventItems.length}`);

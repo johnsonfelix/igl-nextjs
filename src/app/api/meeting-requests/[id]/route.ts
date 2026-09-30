@@ -7,7 +7,7 @@ function extractRequestId(req: NextRequest): string | null {
     return parts[parts.length - 1] || null;
 }
 
-// PATCH /api/meeting-requests/[id] — accept or decline a meeting request
+
 export async function PATCH(req: NextRequest) {
     try {
         const requestId = extractRequestId(req);
@@ -44,7 +44,7 @@ export async function PATCH(req: NextRequest) {
         }
 
         if (status === 'ACCEPTED') {
-            // Find an open session in the slot
+            
             const sessions = meetingRequest.meetingSlot?.meetingSessions || [];
             const openSession = sessions.find(s => !s.companyId || !s.companyBId);
 
@@ -55,28 +55,28 @@ export async function PATCH(req: NextRequest) {
                 );
             }
 
-            // Determine which slots are free in the session
+            
             let updateData: any = {};
             if (!openSession.companyId && !openSession.companyBId) {
-                // Both slots free — assign fromCompany to A, toCompany to B
+                
                 updateData = {
                     companyId: meetingRequest.fromCompanyId,
                     companyBId: meetingRequest.toCompanyId,
                 };
             } else if (!openSession.companyId) {
-                // Slot A free
+                
                 updateData = { companyId: meetingRequest.fromCompanyId };
             } else if (!openSession.companyBId) {
-                // Slot B free
+                
                 updateData = { companyBId: meetingRequest.toCompanyId };
             }
 
-            // Assign table number based on session index if not already assigned
+            
             if (!openSession.table) {
                 updateData.table = `T${openSession.sessionIndex + 1}`;
             }
 
-            // Update session and request in a transaction
+            
             await prisma.$transaction([
                 prisma.meetingSession.update({
                     where: { id: openSession.id },
@@ -88,7 +88,7 @@ export async function PATCH(req: NextRequest) {
                 }),
             ]);
         } else {
-            // Just decline
+            
             await prisma.meetingRequest.update({
                 where: { id: requestId },
                 data: { status: 'DECLINED', declineReason: declineReason || null },
@@ -112,7 +112,7 @@ export async function PATCH(req: NextRequest) {
     }
 }
 
-// DELETE /api/meeting-requests/[id] — cancel a pending meeting request
+
 export async function DELETE(req: NextRequest) {
     try {
         const requestId = extractRequestId(req);

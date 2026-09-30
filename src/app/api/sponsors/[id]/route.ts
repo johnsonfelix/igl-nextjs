@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET one sponsor (Public)
+
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

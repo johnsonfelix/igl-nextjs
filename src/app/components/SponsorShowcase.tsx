@@ -73,7 +73,7 @@ export default function SponsorShowcase() {
       className="relative overflow-hidden py-12"
       style={{ background: "#ffffff" }}
     >
-      {/* Subtle background orbs */}
+      {}
       <div
         className="pointer-events-none absolute"
         style={{
@@ -100,7 +100,7 @@ export default function SponsorShowcase() {
       />
 
       <div className="relative z-10 mx-auto max-w-5xl px-6">
-        {/* Header */}
+        {}
         <div className="mb-8 text-center">
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -158,7 +158,7 @@ export default function SponsorShowcase() {
           </motion.h2>
         </div>
 
-        {/* Title Sponsor */}
+        {}
         {titleSponsor && (
           <div className="mb-12 flex flex-col items-center">
             <motion.div
@@ -217,7 +217,7 @@ export default function SponsorShowcase() {
                         "0 8px 40px rgba(184,137,42,0.1), 0 2px 12px rgba(0,0,0,0.06)",
                     }}
                   >
-                    {/* Top-left gold corner accent */}
+                    {}
                     <div
                       style={{
                         position: "absolute",
@@ -231,7 +231,7 @@ export default function SponsorShowcase() {
                         pointerEvents: "none",
                       }}
                     />
-                    {/* Glow orb top-right */}
+                    {}
                     <div
                       style={{
                         position: "absolute",
@@ -245,7 +245,7 @@ export default function SponsorShowcase() {
                         pointerEvents: "none",
                       }}
                     />
-                    {/* Badge */}
+                    {}
                     <div
                       style={{
                         position: "absolute",
@@ -264,7 +264,7 @@ export default function SponsorShowcase() {
                       ⚡
                     </div>
 
-                    {/* Logo or name */}
+                    {}
                     {company.logoUrl ? (
                       <Image
                         src={company.logoUrl}
@@ -306,7 +306,7 @@ export default function SponsorShowcase() {
                       {company.name}
                     </p>
 
-                    {/* Bottom gold stripe */}
+                    {}
                     <div
                       style={{
                         position: "absolute",
@@ -328,7 +328,7 @@ export default function SponsorShowcase() {
 
 
 
-        {/* Other Sponsors */}
+        {}
         {otherSponsors.length > 0 && (
           <div className="flex flex-wrap justify-center gap-4">
             {otherSponsors
@@ -364,7 +364,7 @@ export default function SponsorShowcase() {
                     transition: "box-shadow 0.3s, border-color 0.3s, transform 0.3s",
                   }}
                 >
-                  {/* Tier badge */}
+                  {}
                   <div
                     style={{
                       fontSize: 9,
@@ -382,7 +382,7 @@ export default function SponsorShowcase() {
                     {item.tier}
                   </div>
 
-                  {/* Logo area */}
+                  {}
                   <div
                     style={{
                       height: 64,
@@ -418,7 +418,7 @@ export default function SponsorShowcase() {
                     )}
                   </div>
 
-                  {/* Name */}
+                  {}
                   <p
                     style={{
                       marginTop: 10,

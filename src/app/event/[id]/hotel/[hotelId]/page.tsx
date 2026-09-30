@@ -50,7 +50,7 @@ export default function HotelRoomsPage({
   const [error, setError] = useState<string | null>(null);
   const { addToCart } = useCart();
 
-  // Offers
+  
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
 
@@ -89,7 +89,7 @@ export default function HotelRoomsPage({
       try {
         const r = await fetch('/api/admin/offers');
         if (!r.ok) {
-          // don't block page load if offers fail
+          
           console.warn('Failed to load offers', r.status);
           setOffers([]);
           return;
@@ -108,7 +108,7 @@ export default function HotelRoomsPage({
     fetchOffers();
   }, [eventId, hotelId]);
 
-  // determine best offer percent for a given hotelId (checks validity and time windows)
+  
   function getBestOfferPercentForHotel(hId: string): { percent: number | null; name?: string | null } {
     if (!offers || offers.length === 0) return { percent: null };
 
@@ -145,7 +145,7 @@ export default function HotelRoomsPage({
       return;
     }
 
-    // compute best offer for this hotel
+    
     const { percent } = getBestOfferPercentForHotel(hotel!.id);
     const effectivePrice = getDiscountedPrice(room.price, percent ?? null);
 
@@ -154,7 +154,7 @@ export default function HotelRoomsPage({
       productType: 'HOTEL',
       name: `${hotel!.hotelName} - ${room.roomType}`,
       price: effectivePrice,
-      // image: hotel!.image,
+      
       roomTypeId: room.id,
     });
     alert(`Room added to cart at $${effectivePrice.toFixed(2)}${percent ? ` (saved ${percent}%)` : ''}!`);

@@ -1,10 +1,10 @@
-// src/app/components/CartSheet.tsx
+
 'use client';
 
 import React, { useState } from 'react';
 import { X, Loader, Trash2, Plus, Minus } from 'lucide-react';
 import { useCart } from '../event/[id]/CartContext';
-import { useAuth } from '@/app/context/AuthContext'; // keep using your existing auth context
+import { useAuth } from '@/app/context/AuthContext'; 
 import Link from 'next/link';
 
 export const CartSheet = ({ isOpen, onClose, eventId }: { isOpen: boolean; onClose: () => void; eventId: string; }) => {

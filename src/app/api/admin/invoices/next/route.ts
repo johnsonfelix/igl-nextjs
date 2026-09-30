@@ -4,8 +4,8 @@ import { prisma } from "@/app/lib/prisma";
 
 export async function GET() {
     try {
-        // efficient way to find max sequence?
-        // aggregate is best
+        
+        
         const result = await prisma.manualInvoice.aggregate({
             _max: {
                 sequence: true

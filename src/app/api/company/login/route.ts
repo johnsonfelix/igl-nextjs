@@ -17,7 +17,7 @@ export async function POST(req: Request) {
 
   let company = await prisma.company.findFirst({ where: { userId: user.id } });
 
-  // If no direct company found, check if user is a branch user
+  
   if (!company) {
     const branch = await prisma.branch.findFirst({
       where: { userId: user.id },
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // JWT Generation
+  
   const { sign } = require('jsonwebtoken');
   const secret = process.env.JWT_SECRET || 'fallback_secret_do_not_use_in_production';
 
@@ -47,7 +47,7 @@ export async function POST(req: Request) {
     {
       success: true,
       userId: user.id,
-      role: user.role, // Return role for frontend redirect
+      role: user.role, 
       company: company?.id ?? null,
     },
     {
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     }
   );
 
-  // Set userId cookie (keep existing logic)
+  
   res.cookies.set('userId', String(user.id), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
     path: '/',
   });
 
-  // Set JWT cookie
+  
   res.cookies.set('jwt_token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',

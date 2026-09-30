@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 
 export async function POST(req: Request) {
   try {
-    // FIX: Await the cookies() function to resolve the Promise
+    
     const cookieStore = await cookies();
     const userId = cookieStore.get('userId')?.value;
 
@@ -12,7 +12,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Destructure the 'name' field from the request body
+    
     const { companyId, name, website, established, size, about, address } = await req.json();
 
     if (!companyId) {
@@ -23,11 +23,11 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "User name is required." }, { status: 400 });
     }
 
-    // Security Check: Verify ownership of the company profile
+    
     const company = await prisma.company.findFirst({
       where: {
         id: companyId,
-        userId: userId, // Check against the userId from the cookie
+        userId: userId, 
       },
     });
 
@@ -35,9 +35,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Forbidden. You do not own this company profile." }, { status: 403 });
     }
 
-    // Use a transaction for atomic updates to both Company and User models
+    
     const [updatedCompany, updatedUser] = await prisma.$transaction([
-      // 1. Update the Company model
+      
       prisma.company.update({
         where: { id: company.id },
         data: {

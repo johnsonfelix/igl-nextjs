@@ -1,4 +1,4 @@
-// app/api/admin/companies/[companyId]/toggle-active/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
@@ -15,7 +15,7 @@ export async function PATCH(
     );
   }
 
-  // Safe parse body (body is optional)
+  
   let body: any = {};
   try {
     body = await request.json();

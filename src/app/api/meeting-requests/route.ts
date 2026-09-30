@@ -3,7 +3,7 @@ import prisma from '@/app/lib/prisma';
 import { sendEmail } from '@/lib/email';
 import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 
-// POST /api/meeting-requests — create a meeting request
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Cannot request a meeting with yourself' }, { status: 400 });
         }
 
-        // Verify both companies have a COMPLETED purchase order OR are on the dummy list
+        
         const dummyNames = DUMMY_COMPANY_NAMES;
 
         const [fromComp, toComp] = await Promise.all([
@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Verify the slot belongs to this event and has available session space
+        
         const slot = await prisma.meetingSlot.findFirst({
             where: {
                 id: meetingSlotId,
@@ -73,15 +73,15 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'Meeting slot not found for this event' }, { status: 404 });
         }
 
-        // Check if the slot as a whole is already fully booked
-        // i.e., all sessions have both companyId and companyBId assigned
+        
+        
         const hasOpenSession = slot.meetingSessions.some(session => !session.companyId || !session.companyBId);
 
         if (!hasOpenSession && slot.meetingSessions.length > 0) {
             return NextResponse.json({ error: 'All sessions in this time slot are already fully booked' }, { status: 409 });
         }
 
-        // Check for existing request
+        
         const existing = await prisma.meetingRequest.findFirst({
             where: {
                 meetingSlotId,
@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
             },
         });
 
-        // Send Email Notification to Target Company
+        
         const toEmail = meetingRequest.toCompany.location?.email || meetingRequest.toCompany.user?.email;
 
         console.log('[MEETING_REQUEST_POST] Attempting to send email to:', toEmail);
@@ -129,7 +129,7 @@ export async function POST(req: NextRequest) {
             const eventName = meetingRequest.event?.name || 'an upcoming event';
             const sessionTitle = meetingRequest.meetingSlot.title;
 
-            // Format time helper local to block
+            
             const sessionDate = new Date(meetingRequest.meetingSlot.startTime).toLocaleDateString('en-US', {
                 weekday: 'short',
                 year: 'numeric',
@@ -181,7 +181,7 @@ export async function POST(req: NextRequest) {
     }
 }
 
-// GET /api/meeting-requests?companyId=... — list meeting requests for a company
+
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);

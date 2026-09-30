@@ -42,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} ${plusJakartaSans.variable} font-sans`}>
-        {/* Google Tag Manager (noscript) */}
+        {}
         <noscript>
           <iframe
             src="https://www.googletagmanager.com/ns.html?id=GTM-ML3D3SXH"
@@ -51,9 +51,9 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           ></iframe>
         </noscript>
-        {/* End Google Tag Manager (noscript) */}
+        {}
 
-        {/* Meta Pixel Code (noscript) */}
+        {}
         <noscript>
           <img
             height="1"
@@ -62,9 +62,9 @@ export default function RootLayout({
             src="https://www.facebook.com/tr?id=1301664265103979&ev=PageView&noscript=1"
           />
         </noscript>
-        {/* End Meta Pixel Code (noscript) */}
+        {}
 
-        {/* Google Tag Manager */}
+        {}
         <Script id="google-tag-manager" strategy="afterInteractive">
           {`
             (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -74,9 +74,9 @@ export default function RootLayout({
             })(window,document,'script','dataLayer','GTM-ML3D3SXH');
           `}
         </Script>
-        {/* End Google Tag Manager */}
+        {}
 
-        {/* Meta Pixel Code */}
+        {}
         <Script id="meta-pixel" strategy="afterInteractive">
           {`
             !function(f,b,e,v,n,t,s)
@@ -91,7 +91,7 @@ export default function RootLayout({
             fbq('track', 'PageView');
           `}
         </Script>
-        {/* End Meta Pixel Code */}
+        {}
 
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-T7V8EZPCGW"
@@ -107,7 +107,7 @@ export default function RootLayout({
           `}
         </Script>
         <Toaster position="top-center" />
-        {/* 2. Wrap your entire application with AuthProvider */}
+        {}
         <Navbar />
 
         <AuthProvider>

@@ -8,7 +8,7 @@ import { format, parseISO } from 'date-fns';
 import EventCountdown from '../../../components/EventCountdown';
 import PastEventsSection from '../../components/PastEventsSection';
 
-// --- TYPE DEFINITION for an Event ---
+
 interface Event {
   id: string;
   name: string;
@@ -20,11 +20,11 @@ interface Event {
   expectedAudience: string;
 }
 
-// --- EventCard Component ---
+
 const EventCard = ({ event }: { event: Event }) => {
   const { id, name, startDate, endDate, location, thumbnail, eventType, expectedAudience } = event;
 
-  // Format dates for display
+  
   const formattedStartDate = format(parseISO(startDate), 'MMM dd');
   const formattedEndDate = format(parseISO(endDate), 'dd, yyyy');
 
@@ -39,13 +39,13 @@ const EventCard = ({ event }: { event: Event }) => {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity"></div>
 
-        {/* Badge */}
+        {}
         <div className={`absolute top-4 right-4 px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-lg shadow-lg flex items-center gap-1 ${eventType === 'Hot' ? 'bg-rose-600 text-white' : 'bg-[#004aad] text-white'}`}>
           {eventType === 'Hot' && <Star className="w-3 h-3 fill-current" />}
           {eventType}
         </div>
 
-        {/* Date Overlay */}
+        {}
         <div className="absolute bottom-4 left-4 text-white">
           <div className="bg-white/20 backdrop-blur-md border border-white/30 rounded-lg p-3 text-center min-w-[60px]">
             <div className="text-xl font-bold leading-none">
@@ -56,7 +56,7 @@ const EventCard = ({ event }: { event: Event }) => {
           </div>
         </div>
 
-        {/* Countdown Timer */}
+        {}
         <div className="absolute bottom-4 right-4 z-20">
           <EventCountdown targetDate={startDate} />
         </div>
@@ -92,7 +92,7 @@ const EventCard = ({ event }: { event: Event }) => {
   );
 };
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function EventsListPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,14 +103,14 @@ export default function EventsListPage() {
       setLoading(true);
       setError(null);
       try {
-        // Fetch events from API
+        
         const res = await fetch('/api/events');
         let data: Event[] = [];
 
         if (res.ok) {
           data = await res.json();
         } else {
-          // Fallback to mock data if API fails or for demo
+          
           data = [
             { "id": "1", "name": "The 20th Global Freight Forwarders Conference", "startDate": "2026-08-14T00:00:00.000Z", "endDate": "2026-08-30T00:00:00.000Z", "location": "Shanghai, China", "thumbnail": "https://images.unsplash.com/photo-1561489396-888724a1543d?q=80&w=2070&auto=format&fit=crop", "eventType": "Hot", "expectedAudience": "2000+" },
             { "id": "2", "name": "Indonesia Regional Conference 2026", "startDate": "2026-10-23T00:00:00.000Z", "endDate": "2026-10-30T00:00:00.000Z", "location": "Bali, Indonesia", "thumbnail": "https://images.unsplash.com/photo-1537996194471-e657df975ab4?q=80&w=1938&auto=format&fit=crop", "eventType": "New", "expectedAudience": "1200" },
@@ -120,11 +120,11 @@ export default function EventsListPage() {
           ];
         }
 
-        // Filter events
+        
         const now = new Date();
         const upcomingEvents = data.filter(event => parseISO(event.startDate) > now);
 
-        // Sort by date
+        
         upcomingEvents.sort((a, b) => parseISO(a.startDate).getTime() - parseISO(b.startDate).getTime());
 
         setEvents(upcomingEvents);
@@ -140,7 +140,7 @@ export default function EventsListPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Hero Section */}
+      {}
       <header className="relative h-[300px] lg:h-[400px] flex items-center justify-center text-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
@@ -183,7 +183,7 @@ export default function EventsListPage() {
               ))}
             </div>
 
-            {/* Past Events Section from Homepage */}
+            {}
             <div className="mt-24">
               <PastEventsSection />
             </div>

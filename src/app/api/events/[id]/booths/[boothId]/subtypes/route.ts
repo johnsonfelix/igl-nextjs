@@ -5,14 +5,14 @@ const prisma = new PrismaClient();
 
 export async function PUT(request: NextRequest) {
   try {
-    // Parse the eventId and boothId from request.url by splitting:
-    // Example url: http://localhost:3000/api/events/evt123/booths/boo456/subtypes
+    
+    
     const url = new URL(request.url);
-    // The pathname is /api/events/evt123/booths/boo456/subtypes
+    
     const segments = url.pathname.split("/").filter(Boolean);
-    // segments = ["api", "events", "evt123", "booths", "boo456", "subtypes"]
+    
 
-    // Find indices and extract eventId and boothId dynamically or by position:
+    
     const eventIndex = segments.indexOf("events");
     const boothIndex = segments.indexOf("booths");
 
@@ -36,7 +36,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    // Rest of your logic remains same, using extracted eventId and boothId
+    
 
     const current = await prisma.boothSubType.findMany({
       where: { eventId, boothId },

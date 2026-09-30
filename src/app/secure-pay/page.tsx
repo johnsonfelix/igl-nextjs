@@ -9,21 +9,17 @@ export default function SecurePayPage() {
     return (
         <div className="min-h-screen bg-white font-sans">
 
-            {/* Page Title / Hero Section */}
+            {}
             <section className="bg-[#f7f7f7] p-0 overflow-hidden">
                 <div className="container-fluid p-0">
                     <div className="flex flex-col md:flex-row min-h-[400px]">
-                        {/* Left Content with Background */}
+                        {}
                         <div className="w-full md:w-1/2 relative flex flex-col justify-center px-8 py-16 md:px-20 text-center md:text-left text-white">
                             <div
                                 className="absolute inset-0 bg-cover bg-center z-0"
                                 style={{ backgroundImage: "url('/images/left-carousel-igla.jpg')" }}
                             >
-                                {/* Overlay if needed to match design dark overlay? HTML implies it's just the img. 
-                    Checking HTML: class="cover-background text-white". 
-                    Likely the image itself is dark or has overlay in CSS. 
-                    I'll add a slight overlay just in case text is hard to read. 
-                */}
+                                {}
                                 <div className="absolute inset-0 bg-black/30"></div>
                             </div>
                             <div className="relative z-10 animate-fade-in-up">
@@ -36,7 +32,7 @@ export default function SecurePayPage() {
                             </div>
                         </div>
 
-                        {/* Right Image */}
+                        {}
                         <div className="w-full md:w-1/2 relative min-h-[300px] md:min-h-full">
                             <div
                                 className="absolute inset-0 bg-cover bg-center"
@@ -47,11 +43,11 @@ export default function SecurePayPage() {
                 </div>
             </section>
 
-            {/* Financial Protection Section */}
+            {}
             <section className="py-20 md:py-28">
                 <div className="container mx-auto px-4 max-w-7xl">
                     <div className="flex flex-col lg:flex-row items-center gap-12 md:gap-20">
-                        {/* Left Image */}
+                        {}
                         <div className="w-full lg:w-5/12">
                             <div className="relative rounded-lg overflow-hidden shadow-lg">
                                 <Image
@@ -64,7 +60,7 @@ export default function SecurePayPage() {
                             </div>
                         </div>
 
-                        {/* Right Content */}
+                        {}
                         <div className="w-full lg:w-6/12 animate-fade-in-up">
                             <div className="mb-4 flex items-center">
                                 <span className="h-[2px] w-[30px] bg-[#2ebb79] inline-block mr-3"></span>
@@ -81,12 +77,7 @@ export default function SecurePayPage() {
                                 <li className="flex items-start border-b border-gray-100 pb-3">
                                     <span className="text-[#004aad] font-bold text-3xl">Up to USD 20,000</span>
                                 </li>
-                                {/* <li className="flex items-start border-b border-gray-100 pb-3">
-                                    <span className="text-gray-700 font-medium">Gold Members can claim up to USD 5,000 per case</span>
-                                </li>
-                                <li className="flex items-start border-b border-gray-100 pb-3">
-                                    <span className="text-gray-700 font-medium">Multiple claims allowed within the yearly limit, subject to approval</span>
-                                </li> */}
+                                {}
                             </ul>
 
                             <Link
@@ -101,12 +92,12 @@ export default function SecurePayPage() {
                 </div>
             </section>
 
-            {/* Support / Contact Section */}
+            {}
             <section className="py-20 bg-gray-50">
                 <div className="container mx-auto px-4 max-w-7xl">
                     <div className="flex flex-col lg:flex-row gap-12">
 
-                        {/* Introductory Text */}
+                        {}
                         <div className="w-full lg:w-4/12 flex flex-col justify-center">
                             <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6 tracking-tight">
                                 We're Here to Support Your Global Growth
@@ -116,12 +107,12 @@ export default function SecurePayPage() {
                             </p>
                         </div>
 
-                        {/* Contact Form */}
+                        {}
                         <div className="w-full lg:w-7/12 lg:ml-auto">
                             <form className="bg-white p-8 md:p-10 rounded-2xl shadow-sm border border-gray-100">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
 
-                                    {/* Name */}
+                                    {}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Enter your name*</label>
                                         <div className="relative">
@@ -137,7 +128,7 @@ export default function SecurePayPage() {
                                         </div>
                                     </div>
 
-                                    {/* Phone */}
+                                    {}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Phone number</label>
                                         <div className="relative">
@@ -152,7 +143,7 @@ export default function SecurePayPage() {
                                         </div>
                                     </div>
 
-                                    {/* Email */}
+                                    {}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Email address*</label>
                                         <div className="relative">
@@ -168,7 +159,7 @@ export default function SecurePayPage() {
                                         </div>
                                     </div>
 
-                                    {/* Subject */}
+                                    {}
                                     <div>
                                         <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Subject</label>
                                         <div className="relative">
@@ -184,7 +175,7 @@ export default function SecurePayPage() {
                                     </div>
                                 </div>
 
-                                {/* Message */}
+                                {}
                                 <div className="mb-8">
                                     <label className="block text-xs font-bold text-gray-800 uppercase tracking-wider mb-2">Your message</label>
                                     <div className="relative">

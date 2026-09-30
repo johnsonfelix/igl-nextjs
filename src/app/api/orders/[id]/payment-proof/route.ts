@@ -40,7 +40,7 @@ export async function DELETE(
     try {
         const { id } = await params;
 
-        // Get the current order to retrieve the payment proof URL
+        
         const order = await prisma.purchaseOrder.findUnique({
             where: { id },
             select: { paymentProof: true },
@@ -50,12 +50,12 @@ export async function DELETE(
             return NextResponse.json({ error: "Order not found" }, { status: 404 });
         }
 
-        // Delete the file from S3 if it exists
+        
         if (order.paymentProof) {
             await deleteS3Object(order.paymentProof);
         }
 
-        // Remove the payment proof URL from the database
+        
         await prisma.purchaseOrder.update({
             where: { id },
             data: { paymentProof: null },

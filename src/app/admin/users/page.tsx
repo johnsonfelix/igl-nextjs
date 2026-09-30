@@ -38,7 +38,7 @@ export default function AdminUsersPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
-  // Search & Filter
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('ALL');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
@@ -131,20 +131,20 @@ export default function AdminUsersPage() {
     }
   }
 
-  // Filtered users calculation
+  
   const filteredUsers = useMemo(() => {
     return users.filter(user => {
-      // Search term filter
+      
       const term = searchTerm.toLowerCase().trim();
       const nameMatch = user.name?.toLowerCase().includes(term);
       const emailMatch = user.email.toLowerCase().includes(term);
       const companyMatch = user.companies?.some(c => c.name?.toLowerCase().includes(term));
       const searchMatch = !term || nameMatch || emailMatch || companyMatch;
 
-      // Role filter
+      
       const roleMatch = roleFilter === 'ALL' || user.role === roleFilter;
 
-      // Status filter
+      
       const statusMatch =
         statusFilter === 'ALL' ||
         (statusFilter === 'COMPLETED' && user.isCompleted) ||
@@ -154,7 +154,7 @@ export default function AdminUsersPage() {
     });
   }, [users, searchTerm, roleFilter, statusFilter]);
 
-  // Statistics counts
+  
   const stats = useMemo(() => {
     const total = users.length;
     const admins = users.filter(u => u.role === 'ADMIN').length;
@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Stats Summary Cards */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
           <div>
@@ -221,9 +221,9 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
+      {}
       <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex flex-col md:flex-row gap-4 justify-between items-center">
-        {/* Search */}
+        {}
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" />
           <input
@@ -235,7 +235,7 @@ export default function AdminUsersPage() {
           />
         </div>
 
-        {/* Filter dropdowns */}
+        {}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           <div className="flex items-center gap-2 text-xs font-medium text-gray-500">
             <span>Role:</span>
@@ -266,7 +266,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {/* Error state */}
+      {}
       {error && (
         <div className="p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm flex items-center justify-between">
           <span>{error}</span>
@@ -274,7 +274,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Loading state */}
+      {}
       {loading && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm">
           <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-3" />
@@ -282,7 +282,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Empty State */}
+      {}
       {!loading && filteredUsers.length === 0 && (
         <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center shadow-sm space-y-3">
           <div className="h-12 w-12 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mx-auto">
@@ -297,7 +297,7 @@ export default function AdminUsersPage() {
         </div>
       )}
 
-      {/* Users List / Cards */}
+      {}
       {!loading && filteredUsers.length > 0 && (
         <div className="space-y-3">
           {filteredUsers.map(user => {
@@ -309,7 +309,7 @@ export default function AdminUsersPage() {
                 key={user.id}
                 className="bg-white rounded-2xl border border-gray-100 p-5 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4"
               >
-                {/* User Info */}
+                {}
                 <div className="flex items-start gap-4 flex-1">
                   <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center font-bold text-lg shadow-md shadow-blue-100 shrink-0">
                     {initial}
@@ -321,7 +321,7 @@ export default function AdminUsersPage() {
                         {user.name || '(No name set)'}
                       </span>
 
-                      {/* Status Badge */}
+                      {}
                       {user.isCompleted ? (
                         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
                           <CheckCircle2 className="h-3 w-3" /> Completed
@@ -335,7 +335,7 @@ export default function AdminUsersPage() {
 
                     <p className="text-xs font-mono text-gray-500 truncate">{user.email}</p>
 
-                    {/* Companies preview */}
+                    {}
                     <div className="flex items-center gap-1.5 text-xs text-gray-500 pt-1">
                       <Building2 className="h-3.5 w-3.5 text-gray-400" />
                       <span>
@@ -345,9 +345,9 @@ export default function AdminUsersPage() {
                   </div>
                 </div>
 
-                {/* Controls & Actions */}
+                {}
                 <div className="flex flex-wrap items-center gap-3 shrink-0 pt-3 md:pt-0 border-t md:border-t-0 border-gray-100">
-                  {/* Role dropdown selector */}
+                  {}
                   <div className="relative">
                     <select
                       value={user.role}
@@ -361,7 +361,7 @@ export default function AdminUsersPage() {
                     </select>
                   </div>
 
-                  {/* Toggle Completed */}
+                  {}
                   <button
                     onClick={() => handleToggleCompleted(user)}
                     disabled={busy}
@@ -376,7 +376,7 @@ export default function AdminUsersPage() {
                     <span>{user.isCompleted ? 'Incomplete' : 'Complete'}</span>
                   </button>
 
-                  {/* View Details Page Link */}
+                  {}
                   <Link
                     href={`/admin/users/${user.id}`}
                     className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all"
@@ -385,7 +385,7 @@ export default function AdminUsersPage() {
                     View
                   </Link>
 
-                  {/* Delete Button */}
+                  {}
                   <button
                     onClick={() => handleDelete(user.id)}
                     disabled={busy}

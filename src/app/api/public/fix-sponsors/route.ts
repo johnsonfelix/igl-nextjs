@@ -21,8 +21,8 @@ export async function GET() {
         );
 
         if (websiteSponsor) {
-            // Perform delete only if confirmed, but for now let's just see names
-            // await prisma.eventSponsorType.delete(...)
+            
+            
             return NextResponse.json({ found: true, name: websiteSponsor.sponsorType.name, all: names });
         }
 

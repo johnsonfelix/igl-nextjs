@@ -63,7 +63,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form states
+  
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -200,7 +200,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
-      {/* Header with Navigation */}
+      {}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="space-y-1">
           <Link
@@ -241,7 +241,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </div>
 
-      {/* Notifications */}
+      {}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center justify-between">
           <span>{error}</span>
@@ -255,9 +255,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       )}
 
-      {/* Main Grid */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column: Edit Form */}
+        {}
         <div className="lg:col-span-2 space-y-6">
           <form onSubmit={handleSave} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
             <h2 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-4">
@@ -333,7 +333,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               </div>
             </div>
 
-            {/* Profile Completion Switch */}
+            {}
             <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-center justify-between">
               <div>
                 <p className="text-sm font-semibold text-gray-800">Profile Completion Status</p>
@@ -352,7 +352,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               </button>
             </div>
 
-            {/* Change Password Section */}
+            {}
             <div className="space-y-3 pt-2 border-t border-gray-100">
               <label className="block text-xs font-semibold text-gray-600 uppercase tracking-wider">
                 Reset Password (Optional)
@@ -370,7 +370,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
               <p className="text-xs text-gray-400">Leave blank if you do not want to change the password.</p>
             </div>
 
-            {/* Submit */}
+            {}
             <div className="flex justify-end pt-4 border-t border-gray-100">
               <button
                 type="submit"
@@ -384,9 +384,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </form>
         </div>
 
-        {/* Right Column: Meta info & Relations */}
+        {}
         <div className="space-y-6">
-          {/* Metadata Card */}
+          {}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider text-gray-400">
               User Metadata
@@ -442,7 +442,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             </div>
           </div>
 
-          {/* Associated Companies */}
+          {}
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
             <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider text-gray-400 flex items-center justify-between">
               <span>Associated Companies</span>
@@ -480,7 +480,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
             )}
           </div>
 
-          {/* Associated Branch */}
+          {}
           {user?.branch && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
               <h2 className="text-sm font-bold text-gray-900 uppercase tracking-wider text-gray-400">

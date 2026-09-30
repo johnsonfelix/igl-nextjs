@@ -12,12 +12,12 @@ export interface CartItem {
 
   roomTypeId?: string;
 
-  // for booth variant tracking
+  
   boothSubTypeId?: string;
   boothSubTypeName?: string;
   originalPrice?: number;
 
-  // Track complimentary items
+  
   isComplimentary?: boolean;
   linkedSponsorId?: string;
 }
@@ -33,15 +33,12 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-/**
- * CartProvider now takes eventId so the cart is scoped to each event.
- * This prevents cart conflicts across different events.
- */
+
 export const CartProvider = ({ children, eventId }: { children: ReactNode; eventId: string }) => {
-  const STORAGE_KEY = `event-cart-${eventId}`; // event-scoped key
+  const STORAGE_KEY = `event-cart-${eventId}`; 
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // hydrate from localStorage (per event)
+  
   useEffect(() => {
     try {
       const raw = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : null;
@@ -52,10 +49,10 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     } catch (e) {
       console.warn('Failed to hydrate cart', e);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [eventId]); // re-run if eventId ever changes
+    
+  }, [eventId]); 
 
-  // persist whenever cart changes
+  
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(cart));
@@ -64,11 +61,11 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     }
   }, [cart, STORAGE_KEY]);
 
-  // --- Helper to sync cart dependents (Accompanying & Hotels) ---
+  
   const syncCartDependents = (currentCart: CartItem[]) => {
     let nextCart = [...currentCart];
 
-    // 1. Calculate Counts
+    
     let validTicketCount = 0;
     let accompanyingCount = 0;
     let accompanyingIndices: number[] = [];
@@ -87,10 +84,10 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
       }
     });
 
-    // 2. Enforce Accompanying <= Tickets
+    
     if (accompanyingCount > validTicketCount) {
       let removeCount = accompanyingCount - validTicketCount;
-      // Iterate backwards to safely reduce/remove items
+      
       for (let i = accompanyingIndices.length - 1; i >= 0 && removeCount > 0; i--) {
         const idx = accompanyingIndices[i];
         const item = nextCart[idx];
@@ -104,12 +101,12 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
         removeCount -= canRemove;
       }
 
-      // Filter out 0 quantity items
+      
       nextCart = nextCart.filter(i => i.quantity > 0);
       accompanyingCount = validTicketCount;
     }
 
-    // 3. Sync Hotel Rooms
+    
     const neededRooms = Math.max(validTicketCount, accompanyingCount);
     const hotelItems = nextCart.filter(i => i.productType === "HOTEL");
 
@@ -145,7 +142,7 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
         nextCart.push({ ...newItem, quantity });
       }
 
-      // Sync dependencies
+      
       return syncCartDependents(nextCart);
     });
   };
@@ -157,7 +154,7 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
     linkedSponsorId?: string
   ) => {
     setCart(prev => {
-      // Find the item being removed to check if it's a sponsor
+      
       const removedItem = prev.find(
         i =>
           i.productId === productId &&
@@ -166,7 +163,7 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
           i.linkedSponsorId === linkedSponsorId
       );
 
-      // Remove the exact item
+      
       let nextCart = prev.filter(
         i =>
           !(
@@ -177,7 +174,7 @@ export const CartProvider = ({ children, eventId }: { children: ReactNode; event
           )
       );
 
-      // If removing a sponsor, also remove its linked complimentary tickets
+      
       if (removedItem?.productType === "SPONSOR") {
         nextCart = nextCart.filter(i => i.linkedSponsorId !== productId);
       }

@@ -1,4 +1,4 @@
-// server.js (prod entry - runs with node)
+
 const { createServer } = require('http');
 const next = require('next');
 const { Server } = require('socket.io');
@@ -7,9 +7,9 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-// const express = require('express');
-// const appExpress = express();
-// appExpress.get('/health', (_, res) => res.send('OK'));
+
+
+
 
 
 global.serverSocket = { io: null };

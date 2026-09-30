@@ -9,7 +9,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
         }
 
-        // In a transaction, update all items
+        
         await prisma.$transaction(
             items.map((item: { id: string; sortOrder: number }) =>
                 prisma.sponsorType.update({

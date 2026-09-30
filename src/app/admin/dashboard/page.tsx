@@ -4,7 +4,7 @@ import DashboardClient from "./DashboardClient";
 export const dynamic = 'force-dynamic';
 
 export default async function DashboardPage() {
-    // Fetch recent orders with relations
+    
     const ordersRaw = await prisma.purchaseOrder.findMany({
         take: 50,
         orderBy: { createdAt: "desc" },
@@ -33,7 +33,7 @@ export default async function DashboardPage() {
         },
     });
 
-    // Calculate/Fetch Stats
+    
     const totalRevenueResult = await prisma.purchaseOrder.aggregate({
         _sum: { totalAmount: true },
         where: { status: "COMPLETED" }
@@ -53,7 +53,7 @@ export default async function DashboardPage() {
         avgOrderValue
     };
 
-    // Serialize data for Client Component
+    
     const orders = ordersRaw.map(order => ({
         ...order,
         createdAt: order.createdAt.toISOString(),

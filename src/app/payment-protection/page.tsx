@@ -11,7 +11,7 @@ export default function PaymentProtectionPage() {
 
             <div className="space-y-10">
 
-                {/* Conditions */}
+                {}
                 <div className="bg-blue-50 rounded-xl p-6 border border-blue-100">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span className="bg-blue-600 text-white rounded-full p-1"><ShieldCheck size={20} /></span>
@@ -41,7 +41,7 @@ export default function PaymentProtectionPage() {
                     </ul>
                 </div>
 
-                {/* Exclusions */}
+                {}
                 <div className="bg-red-50 rounded-xl p-6 border border-red-100">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span className="bg-red-600 text-white rounded-full p-1"><XCircle size={20} /></span>
@@ -62,7 +62,7 @@ export default function PaymentProtectionPage() {
                     </div>
                 </div>
 
-                {/* Guidelines */}
+                {}
                 <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                     <h3 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
                         <span className="bg-gray-700 text-white rounded-full p-1"><FileText size={20} /></span>

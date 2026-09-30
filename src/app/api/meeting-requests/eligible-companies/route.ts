@@ -2,14 +2,14 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 import { DUMMY_COMPANY_NAMES } from '@/lib/constants';
 
-// GET /api/meeting-requests/eligible-companies?eventId=...&excludeCompanyId=...
-// Returns companies that have a COMPLETED purchase order
+
+
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
         const excludeCompanyId = searchParams.get('excludeCompanyId');
 
-        // Find all companies that have at least one COMPLETED purchase order
+        
         const orders = await prisma.purchaseOrder.findMany({
             where: {
                 status: 'COMPLETED',
@@ -27,7 +27,7 @@ export async function GET(req: NextRequest) {
             },
         });
 
-        // Deduplicate companies (a company might have multiple orders)
+        
         const companyMap = new Map<string, { id: string; name: string; logoUrl: string | null; location?: { city: string; country: string } | null }>();
         for (const order of orders) {
             if (!companyMap.has(order.company.id)) {
@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
             }
         }
 
-        // Force include specific dummy/extra companies
+        
         const dummyNames = DUMMY_COMPANY_NAMES;
 
         const dummyCompanies = await prisma.company.findMany({

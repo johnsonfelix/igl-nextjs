@@ -10,7 +10,7 @@ export async function GET(_req: NextRequest, ctx: any) {
       return NextResponse.json({ error: 'id (eventId) and hotelId are required' }, { status: 400 });
     }
 
-    // verify the hotel is linked to this event
+    
     const eventWithHotel = await prisma.event.findFirst({
       where: { id: eventId, hotels: { some: { id: hotelId } } },
       select: { id: true, name: true },

@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+
 module.exports = {
   content: [
     "./app/**/*.{js,ts,jsx,tsx}",
@@ -20,7 +20,7 @@ module.exports = {
           200: "#c8f0dd",
           300: "#9fe6c1",
           400: "#66d598",
-          500: "#2ebb79", // same as DEFAULT
+          500: "#2ebb79", 
           600: "#248f61",
           700: "#1b6b48",
           800: "#134834",
@@ -30,7 +30,7 @@ module.exports = {
         border: "hsl(240, 5%, 84%)",
         card: "#FFFFFF",
         "card-foreground": "#000000",
-        // Custom colors from style.css
+        
         blue: "#004aad",
         iglagreen: "#ceeba3",
         base: "#2946f3",

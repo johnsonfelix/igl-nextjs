@@ -1,4 +1,4 @@
-// app/lib/s3.ts
+
 import {
   S3Client,
   PutObjectCommand,
@@ -16,13 +16,13 @@ if (!REGION || !BUCKET) {
 }
 
 declare global {
-  // cache in dev to avoid recreation on HMR
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
+  
   var __s3Client__: any | undefined;
 }
 
 const s3Client: S3Client =
-  // @ts-ignore
+  
   global.__s3Client__ ??
   new S3Client({
     region: REGION,
@@ -59,14 +59,11 @@ export async function uploadBufferToS3({
   return { key, publicUrl };
 }
 
-/**
- * deleteS3Object: accepts an S3 key or a full public URL and deletes it.
- * Returns { deleted: boolean, reason?: string, detail?: any }
- */
+
 export async function deleteS3Object(keyOrUrl?: string | null) {
   if (!keyOrUrl) return { deleted: false, reason: "no-key-provided" };
 
-  // normalize to key
+  
   let key = keyOrUrl;
   try {
     if (typeof keyOrUrl === "string" && (keyOrUrl.startsWith("http://") || keyOrUrl.startsWith("https://"))) {
@@ -86,7 +83,7 @@ export async function deleteS3Object(keyOrUrl?: string | null) {
   try {
     console.info(`[S3] deleting object -> Bucket="${BUCKET}" Key="${key}"`);
 
-    // Try HeadObject to see if object exists
+    
     try {
       await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
     } catch (headErr: any) {
@@ -97,18 +94,18 @@ export async function deleteS3Object(keyOrUrl?: string | null) {
       console.warn("[S3] HeadObject error (continuing):", headErr);
     }
 
-    // Standard delete
+    
     try {
       const delRes = await s3Client.send(new DeleteObjectCommand({ Bucket: BUCKET, Key: key }));
       console.info("[S3] DeleteObject sent:", delRes);
     } catch (delErr) {
       console.error("[S3] DeleteObject failed:", delErr);
-      // continue to versioned-delete attempt
+      
     }
 
-    // If bucket has versioning, object may still appear — list versions and delete them.
+    
     try {
-      // re-check existence
+      
       let exists = false;
       try {
         await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
@@ -145,7 +142,7 @@ export async function deleteS3Object(keyOrUrl?: string | null) {
           console.info("[S3] no versions/delete markers found for key:", key);
         }
 
-        // final head check
+        
         try {
           await s3Client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
           console.warn("[S3] after version deletion attempts, object still exists.");
@@ -155,7 +152,7 @@ export async function deleteS3Object(keyOrUrl?: string | null) {
           return { deleted: true };
         }
       } else {
-        // not found after DeleteObject — success
+        
         return { deleted: true };
       }
     } catch (verErr) {

@@ -1,16 +1,11 @@
-// app/api/register/route.ts
+
 import prisma from "@/app/lib/prisma";
 import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import type { NextRequest } from "next/server";
 import { Prisma } from "@prisma/client";
 
-/**
- * Registration endpoint
- * - Validates input
- * - Creates user and company inside a transaction (atomic)
- * - Returns specific errors for common Prisma failures (unique constraint)
- */
+
 
 export async function POST(req: Request) {
   try {
@@ -46,19 +41,19 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "You must agree to the terms." }, { status: 400 });
     }
 
-    // basic email format check
+    
     const emailTrim = String(email).trim();
     if (!/^[^@]+@[^@]+\.[^@]+$/.test(emailTrim)) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    // basic phone check
+    
     const phoneTrim = String(phone).trim();
     if (!/^[\d\+\-\s]{6,20}$/.test(phoneTrim)) {
       return NextResponse.json({ error: "Invalid phone format" }, { status: 400 });
     }
 
-    // --- Check existing by email OR phone (avoid duplicate accounts) ---
+    
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [{ email: emailTrim }, { phone: phoneTrim }],
@@ -74,7 +69,7 @@ export async function POST(req: Request) {
 
     const hashedPassword = await hash(String(password), 10);
 
-    // Use a transaction to ensure both user and company are created atomically.
+    
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -125,18 +120,18 @@ export async function POST(req: Request) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       // P2002 is a unique constraint violation
       if (error.code === "P2002") {
-        // meta.target is the field(s) that caused the issue
+        
         const target = (error.meta as any)?.target ?? error.meta;
         return NextResponse.json(
           { error: `Unique constraint failed: ${JSON.stringify(target)}` },
           { status: 409 }
         );
       }
-      // Other Prisma known errors
+      
       return NextResponse.json({ error: `Database error: ${error.message}` }, { status: 500 });
     }
 
-    // Generic fallback
+    
     return NextResponse.json({ error: "An error occurred during registration" }, { status: 500 });
   }
 }

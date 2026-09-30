@@ -6,7 +6,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { format } from 'date-fns';
 import { Calendar, ChevronRight, Inbox, Plane, Ship, Truck } from 'lucide-react';
 
-// --- TYPE DEFINITION (Matching your API) ---
+
 type MyInquiry = {
     id: string;
     from: string;
@@ -15,10 +15,10 @@ type MyInquiry = {
     cargoType: string;
     shipmentMode: string;
     createdAt: string;
-    // Removed _count as it's not in your API response
+    
 };
 
-// --- UI COMPONENTS ---
+
 
 const InquiryCard = ({ inquiry }: { inquiry: MyInquiry }) => {
     const getShipmentIcon = (mode: string) => {
@@ -68,7 +68,7 @@ const NoInquiriesWidget = () => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function MyInquiriesPage() {
     const { user } = useAuth();
     const [inquiries, setInquiries] = useState<MyInquiry[]>([]);
@@ -81,7 +81,7 @@ export default function MyInquiriesPage() {
                 setLoading(true);
                 setError(null);
                 try {
-                    // Fetch from your specified endpoint
+                    
                     const response = await fetch(`/api/company/my-inquiry?companyId=${user.companyId}`);
                     const data = await response.json();
 

@@ -6,9 +6,9 @@ async function main() {
     const log = [];
     const logIt = (msg) => { console.log(msg); log.push(msg); };
     
-    // Delete DECLINED duplicates - keep the ACCEPTED ones
-    // Group 1: keep cmmemy0cr0001ju1ef7r1l4i8 (ACCEPTED), delete cmmk85rsw0003gatstz0j2o3c (DECLINED)
-    // Group 2: keep cmmem8sm20002ld1ensc8qnk8 (ACCEPTED), delete cmmeenmjv0008gas09daefc95 (DECLINED)
+    
+    
+    
     
     logIt('Deleting DECLINED duplicate records...');
     
@@ -18,7 +18,7 @@ async function main() {
     const del2 = await prisma.$executeRawUnsafe(`DELETE FROM "MeetingRequest" WHERE id = 'cmmeenmjv0008gas09daefc95'`);
     logIt(`  Deleted cmmeenmjv0008gas09daefc95 (DECLINED): ${del2} row(s)`);
     
-    // Now create the unique index
+    
     logIt('Creating unique index...');
     try {
         await prisma.$executeRawUnsafe(`
@@ -30,7 +30,7 @@ async function main() {
         logIt(`  Error: ${e.message}`);
     }
     
-    // Verify
+    
     logIt('\n=== Final verification ===');
     const totalCount = await prisma.$queryRawUnsafe(`SELECT COUNT(*)::int as cnt FROM "MeetingRequest"`);
     logIt(`Total MeetingRequest records: ${totalCount[0].cnt}`);

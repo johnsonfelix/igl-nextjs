@@ -43,7 +43,7 @@ const TESTIMONIALS = [
 export default function TestimonialsSection() {
     return (
         <section className="py-20 bg-gradient-to-br from-[#2d5a4a] via-[#1e3d32] to-[#2d5a4a] relative overflow-hidden">
-            {/* Background Pattern */}
+            {}
             <div className="absolute inset-0 opacity-5">
                 <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
                 <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
@@ -51,7 +51,7 @@ export default function TestimonialsSection() {
 
             <div className="container mx-auto px-4 md:px-8 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-                    {/* Left Side - Text */}
+                    {}
                     <div>
                         <div className="inline-flex items-center gap-2 bg-[#c6ff00] rounded-full px-4 py-2 mb-6">
                             <MessageCircle className="text-gray-800" size={18} />
@@ -64,7 +64,7 @@ export default function TestimonialsSection() {
                         </h2>
                     </div>
 
-                    {/* Right Side - Testimonial Slider */}
+                    {}
                     <div className="relative w-full min-w-0 group">
                         <Swiper
                             modules={[Autoplay, Navigation, Pagination, EffectFade]}
@@ -103,7 +103,7 @@ export default function TestimonialsSection() {
                             ))}
                         </Swiper>
 
-                        {/* Custom Navigation Arrows */}
+                        {}
                         <div className="swiper-button-prev-testimonial absolute -left-8 md:-left-12 top-1/2 -translate-y-1/2 z-20 cursor-pointer text-white hover:text-[#c6ff00] transition-colors hover:scale-110 hidden md:block">
                             <ChevronLeft size={64} strokeWidth={2.5} />
                         </div>

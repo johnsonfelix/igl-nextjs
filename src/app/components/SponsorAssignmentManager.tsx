@@ -63,13 +63,13 @@ export default function SponsorAssignmentManager({
 
     const fetchCompanies = async () => {
         try {
-            // Assuming there's an API to search/list companies. 
-            // If not, we might need to create one or use an existing one.
-            // Based on file list, `api/companies` likely returns a list.
+            
+            
+            
             const res = await fetch("/api/companies");
             if (res.ok) {
                 const data = await res.json();
-                // The API output seen earlier seems to be an array of objects
+                
                 setCompanies(
                     data.map((c: any) => ({
                         id: c.id,
@@ -154,7 +154,7 @@ export default function SponsorAssignmentManager({
                 </div>
             </div>
 
-            {/* Add New Assignment */}
+            {}
             <div className="flex flex-col sm:flex-row gap-3 items-end bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <div className="flex-1 w-full">
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1.5 block">
@@ -183,7 +183,7 @@ export default function SponsorAssignmentManager({
                 </Button>
             </div>
 
-            {/* List Assignments */}
+            {}
             <div className="space-y-3">
                 {loading ? (
                     <div className="py-8 flex justify-center">

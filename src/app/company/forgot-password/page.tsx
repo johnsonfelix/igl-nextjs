@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
 
     return (
         <div className="min-h-screen flex">
-            {/* Left Decoration Side (Same as login) */}
+            {}
             <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
                 <div className="absolute inset-0">
                     <Image src="/images/bg-4.jpg" alt="Background" fill className="object-cover opacity-60" />
@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
                 </div>
             </div>
 
-            {/* Right Form Side */}
+            {}
             <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
                 <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 animate-fadeIn">
                     <Link href="/company/login" className="inline-flex items-center text-gray-500 hover:text-gray-700 mb-6 transition-colors">

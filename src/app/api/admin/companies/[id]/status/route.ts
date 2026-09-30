@@ -1,4 +1,4 @@
-// app/api/admin/companies/[id]/status/route.ts
+
 import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 import type { Prisma } from '@prisma/client';
@@ -25,17 +25,17 @@ export async function PATCH(req: Request, context: any) {
     return NextResponse.json({ error: `Invalid status. Allowed: ${allowed.join(', ')}` }, { status: 400 });
   }
 
-  // --- Build a typed where clause for Prisma ---
-  // Adjust depending on your schema: if Company.id is string (UUID) use string form,
-  // if numeric, convert to number. Using Prisma.CompanyWhereUniqueInput type helps TS.
+  
+  
+  
   const whereClause: Prisma.CompanyWhereUniqueInput = isNaN(Number(id))
-    ? { id: id as string }           // treat as UUID string
-    : ({ id: Number(id) } as any);   // treat as numeric id
+    ? { id: id as string }           
+    : ({ id: Number(id) } as any);   
 
   try {
     const updated = await prisma.company.update({
       where: whereClause,
-      // <-- THIS 'data' is required by Prisma.update
+      
       data: {
         status: body.status,
       },

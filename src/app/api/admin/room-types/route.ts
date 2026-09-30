@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// Get all RoomTypes
+
 export async function GET() {
   try {
     const roomTypes = await prisma.roomType.findMany({
@@ -13,7 +13,7 @@ export async function GET() {
   }
 }
 
-// Create RoomType
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

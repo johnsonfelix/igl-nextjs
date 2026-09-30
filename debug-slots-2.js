@@ -17,15 +17,15 @@ async function main() {
         console.log("No subtypes found for this event.");
     }
 
-    // Check if there are ANY subtypes for these booths, maybe under different event?
-    // First get booths for this event
+    
+    
     const eventBooths = await prisma.eventBooth.findMany({
         where: { eventId },
         include: { booth: true }
     });
 
     if (eventBooths.length === 0) {
-        // Fallback to legacy booths check
+        
         const event = await prisma.event.findUnique({
             where: { id: eventId },
             include: { booths: true }

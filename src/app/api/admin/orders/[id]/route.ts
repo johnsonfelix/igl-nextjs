@@ -38,7 +38,7 @@ export async function GET(
             return NextResponse.json({ error: "Order not found" }, { status: 404 });
         }
 
-        // Structure billing and shipping addresses from separate fields
+        
         const billingAddress = {
             line1: order.billingAddressLine1,
             line2: order.billingAddressLine2,
@@ -57,8 +57,8 @@ export async function GET(
             country: order.shippingCountry,
         };
 
-        // For now, return order with structured addresses
-        // account and additionalDetails will be available once schema is migrated
+        
+        
         return NextResponse.json({
             ...order,
             billingAddress,

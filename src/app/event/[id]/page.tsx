@@ -31,14 +31,14 @@ import { useCart, CartItem } from "./CartContext";
 import { useAuth } from "@/app/context/AuthContext";
 import toast from "react-hot-toast";
 
-// --- TYPE DEFINITIONS ---
+
 
 interface BoothSubType {
   id: string;
   name: string;
   price: number;
   description?: string | null;
-  type?: string | null; // "BOOTH_NUMBER" | "TIME_SLOT" | "CUSTOM"
+  type?: string | null; 
   slotStart?: string | null;
   slotEnd?: string | null;
   isAvailable: boolean;
@@ -51,7 +51,7 @@ interface Booth {
   price: number;
   description: string | null;
   subTypes?: BoothSubType[];
-  quantity?: number; // optional, when derived from eventBooths
+  quantity?: number; 
 }
 
 interface EventBoothJoin {
@@ -137,9 +137,9 @@ interface EventData {
   expectedAudience: string;
   description: string;
 
-  // old shape
+  
   booths?: Booth[];
-  // new shape with join table
+  
   eventBooths?: EventBoothJoin[];
 
   hotels?: HotelData[];
@@ -148,11 +148,11 @@ interface EventData {
   agendaItems?: AgendaItem[];
   venue?: Venue | null;
   roomTypes?: RoomType[];
-  purchaseOrders?: any[]; // Allow any for now to avoid strict type definition hell, or define simpler structure
+  purchaseOrders?: any[]; 
   earlyBird?: boolean;
 }
 
-// Offer shape (matches your API / earlier backend)
+
 interface Offer {
   id: string;
   name: string;
@@ -172,12 +172,12 @@ interface Offer {
   hotelIds?: string[];
   ticketIds?: string[];
   sponsorTypeIds?: string[];
-  boothIds?: string[]; // booths support
+  boothIds?: string[]; 
 }
 
-// --- CONFIG ---
+
 const TICKET_VARIANTS: Record<string, { name: string; price: number }[]> = {
-  // Mapping by ticket name. In a real app, this should be DB driven or ID based.
+  
   "Regular Ticket": [
     { name: "Regular Ticket", price: 850 },
     { name: "Accompanying Member", price: 650 },
@@ -185,7 +185,7 @@ const TICKET_VARIANTS: Record<string, { name: string; price: number }[]> = {
   ],
 };
 
-// --- UI COMPONENTS ---
+
 
 const InfoPill = ({
   icon: Icon,
@@ -215,7 +215,7 @@ const Section = ({
   </div>
 );
 
-// Small badge component for discount
+
 const DiscountBadge = ({
   pct,
   title,
@@ -231,7 +231,7 @@ const DiscountBadge = ({
   </div>
 );
 
-// price helpers
+
 function formatPrice(n: number) {
   return n % 1 === 0 ? n.toLocaleString() : n.toFixed(2);
 }
@@ -240,7 +240,7 @@ function getDiscountedPrice(original: number, percent?: number | null) {
   return Math.max(0, +(original * (1 - percent / 100)).toFixed(2));
 }
 
-// --- Redesigned PriceCard with IGLA Theme ---
+
 const PriceCard = ({
   item,
   productType,
@@ -267,17 +267,17 @@ const PriceCard = ({
   const { addToCart } = useCart();
   const [quantity, setQuantity] = useState(1);
 
-  // item.price is the effective prices (selling price).
-  // item.originalPrice is the higher list price (if any).
+  
+  
   const basePrice = item.price;
   const originalPrice = item.originalPrice;
 
-  // Calculate final price after offer (if any)
+  
   const newPrice = getDiscountedPrice(basePrice, offerPercent);
 
-  // Determine if we show a discount view
+  
   const hasOffer = !!offerPercent && offerPercent > 0;
-  // If originalPrice exists and is greater than basePrice, that's a built-in discount
+  
   const hasListPriceDiscount = !!originalPrice && originalPrice > basePrice;
 
   const discounted = hasOffer || hasListPriceDiscount;
@@ -288,7 +288,7 @@ const PriceCard = ({
     if (onAddToCart) {
       onAddToCart(quantity);
     } else {
-      // Add to cart with the selected quantity
+      
       for (let i = 0; i < quantity; i++) {
         addToCart({
           productId: item.id,
@@ -302,7 +302,7 @@ const PriceCard = ({
       toast.success(`${quantity} x ${item.name} added to cart!`);
     }
 
-    setQuantity(1); // Reset quantity after adding
+    setQuantity(1); 
   };
 
   const incrementQuantity = () => {
@@ -315,7 +315,7 @@ const PriceCard = ({
 
   const isTicket = productType === "TICKET";
 
-  // Savings calculation
+  
   const savings = hasOffer
     ? (basePrice - newPrice)
     : (hasListPriceDiscount ? ((originalPrice || 0) - basePrice) : 0);
@@ -323,10 +323,10 @@ const PriceCard = ({
   const totalSavings = savings * ((isTicket || productType === "SPONSOR") ? quantity : 1);
   const showSavings = savings > 0 && !isSoldOut;
 
-  // Display Price Logic:
-  // 1. Offer active: New Price (Bold) + Base Price (Crossed)
-  // 2. No Offer, List Price Discount: Base Price (Bold) + Original Price (Crossed)
-  // 3. No Discount: Base Price (Bold)
+  
+  
+  
+  
 
   return (
     <div className={`group bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-300 flex flex-col h-full relative ${isSoldOut ? 'opacity-75 grayscale-[0.5]' : ''}`}>
@@ -370,7 +370,7 @@ const PriceCard = ({
       <div className="p-3 flex-grow flex flex-col gap-2">
         <h4 className="text-sm font-bold text-gray-900 leading-tight group-hover:text-[#004aad] transition-colors line-clamp-1">{item.name}</h4>
 
-        {/* Features  */}
+        {}
         {item.features && item.features.length > 0 && (
           <div className="space-y-0.5 mb-2">
             {item.features.slice(0, 3).map((feature: string, idx: number) => (
@@ -389,7 +389,7 @@ const PriceCard = ({
 
         <div className="mt-auto pt-2 border-t border-gray-100 flex flex-col gap-2">
           <div className="flex items-center justify-between">
-            {/* Price section */}
+            {}
             <div className="flex flex-col">
               {discounted && !isSoldOut ? (
                 <div className="flex flex-col leading-none">
@@ -412,7 +412,7 @@ const PriceCard = ({
               )}
             </div>
 
-            {/* Quantity Controls - Compact & Inline */}
+            {}
             {isTicket && !isSoldOut && (
               <div className="flex items-center gap-0 border border-gray-200 rounded overflow-hidden h-7">
                 <button
@@ -432,7 +432,7 @@ const PriceCard = ({
             )}
           </div>
 
-          {/* Show split buttons only for tickets, single button for sponsors */}
+          {}
           {productType === "TICKET" || productType === "SPONSOR" ? (
             <div className="flex flex-col gap-2 w-full">
               <div className="flex items-center gap-2">
@@ -496,7 +496,7 @@ const PriceCard = ({
   );
 };
 
-// --- Helper Components ---
+
 
 const BoothCard = ({
   booth,
@@ -544,7 +544,7 @@ const BoothCard = ({
   );
 };
 
-// --- Main Page Component Wrapper (Next.js route) ---
+
 export default function EventDetailPageWrapper({
   params,
 }: {
@@ -553,7 +553,7 @@ export default function EventDetailPageWrapper({
   return <EventDetailPage params={params} />;
 }
 
-// --- MAIN PAGE COMPONENT ---
+
 function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
@@ -566,11 +566,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const [activeTab, setActiveTab] = useState("Tickets");
   const [isCartOpen, setCartOpen] = useState(false);
 
-  // Offers loaded from backend
+  
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
 
-  // Booth subtype modal state
+  
   const [boothModalOpen, setBoothModalOpen] = useState(false);
   const [selectedBooth, setSelectedBooth] = useState<Booth | null>(null);
   const [boothSubtypes, setBoothSubtypes] = useState<BoothSubType[]>([]);
@@ -586,7 +586,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     name?: string | null;
   }>({ percent: null });
 
-  // Hotel expansion state
+  
   const [venueGalleryOpen, setVenueGalleryOpen] = useState(false);
   const [highlightImage, setHighlightImage] = useState<string | null>(null);
 
@@ -614,15 +614,15 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     "/images/event-highlights/_DSC7011.jpg",
   ];
 
-  // --- BOOKING WIZARD STATE ---
+  
   const [bookingStep, setBookingStep] = useState<"TICKET" | "SPONSOR" | "SUMMARY">("TICKET");
   const [wizardOpen, setWizardOpen] = useState(false);
 
-  // --- SPONSORSHIP POPUP STATE (Buy Now) ---
+  
   const [sponsorshipPopupOpen, setSponsorshipPopupOpen] = useState(false);
   const [selectedSponsorInPopup, setSelectedSponsorInPopup] = useState<string | null>(null);
 
-  // Prevent body scroll when popup is open
+  
   useEffect(() => {
     if (sponsorshipPopupOpen) {
       document.body.style.overflow = 'hidden';
@@ -635,32 +635,32 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   }, [sponsorshipPopupOpen]);
 
 
-  // Selection state
-  // const [wizardSelectedTicket, setWizardSelectedTicket] = useState<{ id: string; name: string; price: number; image: string | null } | null>(null);
-  // const [wizardSelectedVariant, setWizardSelectedVariant] = useState<{ name: string; price: number } | null>(null);
+  
+  
+  
 
-  // NEW: Multi-ticket state
-  // Key: `${ticket.id}__${variant.name}` -> Value: quantity
+  
+  
   const [ticketQuantities, setTicketQuantities] = useState<Record<string, number>>({});
-  // NEW: Sponsor quantities
+  
   const [sponsorQuantities, setSponsorQuantities] = useState<Record<string, number>>({});
 
-  // NEW: Hover/Click focus state for policy preview
+  
   const [focusedTicketName, setFocusedTicketName] = useState<string | null>(null);
 
-  // NEW: Member Level for Pricing
+  
   const [currentUserMembership, setCurrentUserMembership] = useState<string | null>(null);
 
   const [wizardSelectedBooth, setWizardSelectedBooth] = useState<Booth | null>(null);
   const [wizardSelectedBoothSlot, setWizardSelectedBoothSlot] = useState<BoothSubType | null>(null);
 
-  // Helper to manage Ticket Quantities
+  
   const handleTicketQuantityChange = (ticketId: string, variantName: string, delta: number) => {
     const key = `${ticketId}__${variantName}`;
     const currentQty = ticketQuantities[key] || 0;
     const nextQty = Math.max(0, currentQty + delta);
 
-    // Create proposed state
+    
     const nextState = { ...ticketQuantities };
     if (nextQty === 0) {
       delete nextState[key];
@@ -668,7 +668,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       nextState[key] = nextQty;
     }
 
-    // Validate: Accompanying <= Ticket
+    
     let ticketCount = 0;
     let accompanyingCount = 0;
 
@@ -686,7 +686,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     });
 
     if (accompanyingCount > ticketCount) {
-      // Identify which action caused this to give a nice error message
+      
       if (variantName.toLowerCase().includes("accompanying")) {
         toast.error("Accompanying members cannot exceed the number of tickets.");
       } else {
@@ -705,7 +705,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
     const groups: Record<string, any[]> = {};
 
-    // Helper to normalize strings for comparison
+    
     const normalize = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
 
     const definedSponsorNames = eventData.eventSponsorTypes.map((s: any) => s.sponsorType.name);
@@ -719,11 +719,11 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             const itemName = item.name;
             const normalizedItemName = normalize(itemName);
 
-            // Try to find which defined sponsor types match this item
+            
             definedSponsorNames.forEach(definedName => {
               const normalizedDefinedName = normalize(definedName);
 
-              // Match if one contains the other (e.g., "Bags" in "Sponsor Bags/ T shirts")
+              
               if (normalizedItemName.includes(normalizedDefinedName) || normalizedDefinedName.includes(normalizedItemName)) {
                 if (!groups[definedName]) {
                   groups[definedName] = [];
@@ -768,17 +768,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const getTicketSubtotal = () => {
     let total = 0;
     Object.entries(ticketQuantities).forEach(([key, qty]) => {
-      // We need to find the price for this key. 
-      // This is slightly inefficient but safe. 
-      // Ideally we store price in the key or a separate lookup, but looking up in eventTickets is fine.
-      // key format: `${ticketId}__${variantName}`
+      
+      
+      
+      
       const [tId, vName] = key.split('__');
 
-      // Find the ticket parent
+      
       const parent = eventTickets.find(et => et.ticket.id === tId);
       if (!parent) return;
 
-      // Find variant price
+      
       let price = 0;
       const variants = TICKET_VARIANTS[parent.ticket.name];
       if (variants) {
@@ -794,9 +794,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return total;
   };
 
-  // Helper: Get effective ticket price
+  
   const getEffectiveTicketPrice = (ticket: { price: number; sellingPrice?: number | null, id?: string }) => {
-    // Rule: If ticket price is 750 (Standard) OR 850 (Base) -> and user is Paid Member -> 650
+    
     const isStandard = ticket.price === 750 || ticket.price === 850 || ticket.sellingPrice === 750;
     const isPaidMember = currentUserMembership && ["silver", "gold", "platinum", "diamond"].some(m => currentUserMembership.toLowerCase().includes(m));
 
@@ -806,16 +806,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return ticket.sellingPrice ?? ticket.price;
   };
 
-  // Helper: Get effective sponsor price (Early Bird + Member Discount)
+  
   const getEffectiveSponsorPrice = (sponsorType: { id: string; price: number }) => {
     const isPaidMember = currentUserMembership && ["silver", "gold", "platinum", "diamond"].some(m => currentUserMembership.toLowerCase().includes(m));
 
-    // 1. Early Bird Override (50% OFF)
+    
     if (eventData?.earlyBird && isPaidMember) {
       return sponsorType.price * 0.5;
     }
 
-    // 2. Best Offer found
+    
     const best = getBestOfferForItem("SPONSOR", sponsorType.id);
     if (best.percent && best.percent > 0) {
       return getDiscountedPrice(sponsorType.price, best.percent);
@@ -824,7 +824,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return sponsorType.price;
   };
 
-  // Prevent body scroll when wizard is open
+  
   useEffect(() => {
     if (wizardOpen) {
       document.body.style.overflow = 'hidden';
@@ -832,7 +832,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       document.body.style.overflow = 'unset';
     }
 
-    // Cleanup on unmount
+    
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -871,7 +871,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         }
         let data: Offer[] = await r.json();
 
-        // --- INJECT MEMBERSHIP DISCOUNT ---
+        
         if (user?.companyId) {
           try {
             console.log("Fetching company data for companyId:", user.companyId);
@@ -883,18 +883,18 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               let membershipName = null;
               let discount = null;
 
-              // Try new membershipPlan first
+              
               if (compData.membershipPlan?.name) {
                 membershipName = compData.membershipPlan.name;
                 discount = compData.membershipPlan.discountPercentage;
                 console.log("Membership plan name:", membershipName);
               }
-              // Fallback to legacy purchasedMembership field
+              
               else if (compData.purchasedMembership) {
                 membershipName = compData.purchasedMembership;
                 console.log("Legacy membership name:", membershipName);
 
-                // Map legacy membership names to discount percentages
+                
                 const legacyDiscounts: Record<string, number> = {
                   "Silver": 10,
                   "Gold": 15,
@@ -917,7 +917,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
               console.log("Discount percentage:", discount);
               if (discount && discount > 0) {
-                // Create a "Membership Discount" offer that applies to everything
+                
                 const membershipOffer: Offer = {
                   id: "membership-discount",
                   name: `Membership Discount (${discount}%)`,
@@ -926,7 +926,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   isActive: true,
                   description: "Exclusive discount for your membership level",
                 };
-                // Add it to the list. logic below picks best offer, so if this is higher it wins.
+                
                 data = [...data, membershipOffer];
                 console.log("Membership offer added:", membershipOffer);
               }
@@ -1016,14 +1016,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         {
           id: "rt-deluxe-room",
           roomType: "Deluxe Room",
-          price: 150, // Estimate or placeholder
+          price: 150, 
           amenities: "King Bed, City View, Free WiFi, Breakfast Included",
           eventRoomTypes: [{ quantity: 100 }],
         },
         {
           id: "rt-premier-room",
           roomType: "Premier Room",
-          price: 200, // Estimate or placeholder
+          price: 200, 
           amenities: "Spacious Suite, Lounge Access, Free WiFi, Breakfast Included",
           eventRoomTypes: [{ quantity: 50 }],
         }
@@ -1031,7 +1031,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     } as HotelData
   ];
 
-  // booths can come as legacy or via join table
+  
   const boothsList: Booth[] =
     eventData.eventBooths && Array.isArray(eventData.eventBooths)
       ? eventData.eventBooths
@@ -1049,7 +1049,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     : ["Tickets", "Agenda", "About", "About Venue", "Event Sponsors"];
 
 
-  // Helper: determine best applicable offer for a product
+  
   function getBestOfferForItem(
     productType: string,
     productId: string
@@ -1062,9 +1062,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
       if (o.startsAt && new Date(o.startsAt) > now) return false;
       if (o.endsAt && new Date(o.endsAt) < now) return false;
 
-      // Exclude tickets from ALL scope offers (membership discounts)
+      
       if (o.scope === "ALL" && productType === "TICKET") return false;
-      // Exclude sponsors from ALL scope offers (membership discounts) when early bird is active
+      
       if (o.scope === "ALL" && productType === "SPONSOR" && eventData?.earlyBird) return false;
       if (o.scope === "ALL") return true;
       if (productType === "TICKET" && o.scope === "TICKETS") return true;
@@ -1108,7 +1108,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     return { percent: best.percentage, name: best.name };
   }
 
-  // --- Booth subtype modal behaviour ---
+  
 
   const fetchBoothSubtypes = async (boothId: string) => {
     setBoothSubtypesLoading(true);
@@ -1164,14 +1164,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const basePrice = subtype.price;
     const finalPrice = getDiscountedPrice(basePrice, boothOffer.percent);
 
-    // NOTE: make sure CartItem type (and checkout API) support boothSubTypeId
+    
     addToCart({
       productId: selectedBooth.id,
       productType: "BOOTH",
       name: `${selectedBooth.name} - ${subtype.name}`,
       price: finalPrice,
       image: selectedBooth.image || undefined,
-      // @ts-ignore if your CartItem doesn't have this yet
+      
       boothSubTypeId: subtype.id,
       boothSubTypeName: subtype.name,
     });
@@ -1180,17 +1180,17 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     closeBoothModal();
   };
 
-  // --- BUY NOW HANDLER (opens sponsorship popup) ---
+  
   const handleBuyNow = (ticketItem: { id: string, name: string, price: number, originalPrice: number, image: string | null }, quantity: number) => {
-    // Add ticket to cart first
+    
     handleDirectTicketAdd(ticketItem, quantity);
-    // Open sponsorship popup
+    
     setSponsorshipPopupOpen(true);
   };
 
-  // --- DIRECT TICKET ADD HANDLER ---
+  
   const handleDirectTicketAdd = (ticketItem: { id: string, name: string, price: number, originalPrice: number, image: string | null }, quantity: number) => {
-    // 1. Add the Ticket
+    
     for (let i = 0; i < quantity; i++) {
       addToCart({
         productId: ticketItem.id,
@@ -1205,15 +1205,15 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     toast.success(`${quantity} x ${ticketItem.name} added to cart!`);
   };
 
-  // --- BOOKING WIZARD LOGIC ---
+  
 
-  // --- BOOKING WIZARD LOGIC ---
+  
 
   const openBookingWizard = () => {
-    // Reset or Keep? Usually fresh start is better.
+    
     setTicketQuantities({});
-    setWizardSelectedBooth(null); // Reset booth
-    setWizardSelectedBoothSlot(null); // Reset slot
+    setWizardSelectedBooth(null); 
+    setWizardSelectedBoothSlot(null); 
     setBookingStep("TICKET");
     setSponsorQuantities({});
     setFocusedTicketName(null);
@@ -1231,7 +1231,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
   const handleWizardBoothSelect = (booth: Booth) => {
     if (wizardSelectedBooth?.id === booth.id) {
-      // Deselect if already selected
+      
       setWizardSelectedBooth(null);
       setWizardSelectedBoothSlot(null);
       setBoothSubtypes([]);
@@ -1245,7 +1245,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const handleWizardAddToCart = () => {
     if (totalTicketsSelected === 0) return;
 
-    // 1. Add All Selected Tickets
+    
     Object.entries(ticketQuantities).forEach(([key, qty]) => {
       const [tId, vName] = key.split('__');
       const parent = eventTickets.find(et => et.ticket.id === tId);
@@ -1265,12 +1265,12 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         originalPrice = parent.ticket.price;
       }
 
-      // Add each unit
+      
       for (let i = 0; i < qty; i++) {
         addToCart({
           productId: parent.ticket.id,
           productType: "TICKET",
-          name: vName, // Variant name
+          name: vName, 
           price: price,
           originalPrice: originalPrice,
           image: parent.ticket.logo || undefined,
@@ -1279,7 +1279,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
     });
 
 
-    // 2. Add Selected Sponsors
+    
     Object.entries(sponsorQuantities).forEach(([id, qty]) => {
       const sp = eventSponsorTypes.find(s => s.sponsorType.id === id);
       if (sp) {
@@ -1301,18 +1301,18 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
     toast.success("Items added to cart!");
     closeWizard();
-    // Redirect to checkout page
+    
     router.push(`/event/${resolvedParams.id}/checkout`);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* --- SPONSORSHIP POPUP (Buy Now) --- */}
+      {}
       {sponsorshipPopupOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fadeIn overflow-y-auto"
           onClick={() => {
-            // Close popup and go to checkout when clicking outside
+            
             setSponsorshipPopupOpen(false);
             setSelectedSponsorInPopup(null);
             router.push(`/event/${resolvedParams.id}/checkout`);
@@ -1320,9 +1320,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         >
           <div
             className="bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
-            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside
+            onClick={(e) => e.stopPropagation()} 
           >
-            {/* Header */}
+            {}
             <div className="relative p-8 bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 overflow-hidden">
               <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
               <div className="relative z-10">
@@ -1345,7 +1345,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
               </button>
             </div>
 
-            {/* Sponsors Grid */}
+            {}
             <div className="flex-1 overflow-y-auto p-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {eventSponsorTypes.map(({ sponsorType }) => {
@@ -1354,7 +1354,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   const discountPercent = hasDiscount ? Math.round(((sponsorType.price - effectivePrice) / sponsorType.price) * 100) : 0;
                   const isSelected = selectedSponsorInPopup === sponsorType.id;
 
-                  // Determine free tickets
+                  
                   let freeTickets = 0;
                   const sName = sponsorType.name.toLowerCase();
                   if (sName.includes("title sponsor")) freeTickets = 3;
@@ -1650,7 +1650,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             )}
                           </div>
 
-                          {/* Features Badges */}
+                          {}
                           {option.parentTicket?.features && option.parentTicket.features.length > 0 && (
                             <div className="mt-4 space-y-1">
                               {option.parentTicket.features.slice(0, 4).map((feature: string, idx: number) => (
@@ -1669,7 +1669,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             </div>
                           )}
 
-                          {/* Quantity Control */}
+                          {}
                           <div className="mt-6 flex items-center justify-between bg-gray-50 rounded-lg p-1 border border-gray-200">
                             <button
                               onClick={(e) => { e.stopPropagation(); handleTicketQuantityChange(option.id, option.name, -1); }}
@@ -1693,11 +1693,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     })}
                   </div>
 
-                  {/* Policy & Details Section */}
+                  {}
                   <div className="mt-8 bg-blue-50/50 rounded-xl p-6 border border-blue-100">
-                    {/* <h4 className="flex items-center font-bold text-gray-800">
-                      <InfoPill icon={AlertTriangle} text="Important Information" />
-                    </h4> */}
+                    {}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
                       {(() => {
@@ -1705,7 +1703,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         let hasExcluded = false;
                         let isAccompanying = false;
 
-                        // Priority: Focused Ticket -> Selected Quantities
+                        
                         if (focusedTicketName) {
                           const lower = focusedTicketName.toLowerCase();
                           if (lower.includes('meeting package')) hasExcluded = true;
@@ -1718,7 +1716,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             if (qty > 0) {
                               const lower = key.toLowerCase();
                               if (lower.includes('meeting package')) hasExcluded = true;
-                              // Assume others (Ticket, Accompanying) include accommodation
+                              
                               else {
                                 hasIncluded = true;
                                 if (lower.includes('accompanying')) isAccompanying = true;
@@ -1727,10 +1725,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           });
                         }
 
-                        // If nothing focused AND nothing selected, show default (Included)
+                        
                         const noSelection = !hasIncluded && !hasExcluded;
                         const showIncluded = hasIncluded || noSelection;
-                        const showExcluded = hasExcluded; // Only show excluded if explicitly triggered
+                        const showExcluded = hasExcluded; 
 
                         return (
                           <div className="space-y-4">
@@ -1777,7 +1775,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               )}
 
-              {/* STEP 2: SELECT SPONSOR (OPTIONAL) */}
+              {}
               {bookingStep === "SPONSOR" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
@@ -1805,12 +1803,12 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
                       const effectivePrice = getEffectiveSponsorPrice(sponsorType);
                       const hasDiscount = effectivePrice < sponsorType.price;
-                      // Calculate percent for badge
+                      
                       const percentOff = hasDiscount ? ((sponsorType.price - effectivePrice) / sponsorType.price) * 100 : 0;
 
                       return (
                         <div key={sponsorType.id} className={`rounded-xl border-2 p-6 transition-all flex flex-col h-full bg-white relative ${qty > 0 ? 'border-[#004aad] ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200'}`}>
-                          {/* Discount Badge */}
+                          {}
                           {hasDiscount && (
                             <div className="absolute top-3 right-3 z-10 bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
                               {Math.round(percentOff)}% OFF
@@ -1827,7 +1825,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             </div>
                             <h4 className="text-lg font-bold text-gray-900 mb-1">{sponsorType.name}</h4>
 
-                            {/* Price Display with Discount */}
+                            {}
                             {hasDiscount ? (
                               <div className="flex flex-col">
                                 <span className="text-sm text-gray-400 line-through">${sponsorType.price.toLocaleString()}</span>
@@ -1861,7 +1859,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               )}
 
-              {/* STEP 3: SUMMARY */}
+              {}
               {bookingStep === "SUMMARY" && (
                 <div className="space-y-6">
                   <div className="flex justify-between items-center">
@@ -1944,7 +1942,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
-      {/* --- VENUE GALLERY MODAL --- */}
+      {}
       {venueGalleryOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fadeIn" onClick={() => setVenueGalleryOpen(false)}>
           <div className="relative w-full max-w-5xl bg-transparent p-0" onClick={e => e.stopPropagation()}>
@@ -1969,7 +1967,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
-      {/* --- HIGHLIGHT LIGHTBOX MODAL --- */}
+      {}
       {highlightImage && (
         <div 
           className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-12 bg-black/90 backdrop-blur-md animate-fadeIn" 
@@ -2000,7 +1998,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       )}
 
-      {/* --- HERO SECTION --- */}
+      {}
       <div className="relative h-[400px] w-full overflow-hidden">
         {id === "cmjn1f6ih0000gad4xa4j7dp3" ? (
           <div
@@ -2023,7 +2021,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
             <ArrowLeft className="h-4 w-4" /> Back to Events
           </Link>
 
-          {/* Event Timer */}
+          {}
           {!isEventFinished && (
             <div className="absolute top-6 right-4 md:right-12 flex lg:hidden flex-col items-end z-20">
               <div className="text-[10px] uppercase tracking-widest font-bold text-white/80 mb-1">
@@ -2051,7 +2049,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
         </div>
       </div>
 
-      {/* --- CONTENT LAYOUT --- */}
+      {}
       {isEventFinished && (
         <div className="max-w-7xl mx-auto px-4 mt-8 relative z-10 animate-fadeIn">
           <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl shadow-2xl p-1 md:p-1.5 overflow-hidden mb-12 transform hover:scale-[1.01] transition-transform duration-300">
@@ -2077,31 +2075,12 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
       <div className={`max-w-7xl mx-auto px-4 ${isEventFinished ? 'py-4' : 'py-12 -mt-20'} relative z-10 grid grid-cols-1 lg:grid-cols-3 gap-8`}>
 
-        {/* LEFT COLUMN: TABS & CONTENT */}
+        {}
         <div className="lg:col-span-2 space-y-8">
-          {/* Sign In Banner */}
-          {/* {!user && (
-            <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-lg relative overflow-hidden animate-fadeIn">
-              <div className="absolute inset-0 bg-[url('/pattern.svg')] opacity-10"></div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2 flex items-center justify-center md:justify-start gap-2">
-                    <span>💎</span> Sign in to get 50% OFF on Sponsorships
-                  </h3>
-                  <p className="text-white/90">
-                    Exclusive offer for members. Log in now to unlock special pricing and benefits.
-                  </p>
-                </div>
-                <Link href="/company/login">
-                  <button className="bg-white text-teal-700 hover:bg-gray-50 px-8 py-3 rounded-lg font-bold shadow-md transition-all transform hover:scale-105 hover:shadow-xl whitespace-nowrap">
-                    Sign In Now
-                  </button>
-                </Link>
-              </div>
-            </div>
-          )} */}
+          {}
+          {}
 
-          {/* Tabs Navigation */}
+          {}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-2 flex overflow-x-auto gap-2">
             {tabs.map(tab => (
               <button
@@ -2183,7 +2162,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
                           return (
                             <div key={sponsorType.id} className="group flex flex-col md:flex-row items-center bg-white rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-blue-100 transition-all duration-200 overflow-hidden min-h-[180px]">
-                              {/* --- LEFT: Sponsorship Item --- */}
+                              {}
                               <div className="w-full md:w-[40%] p-4 md:p-8 flex items-center gap-4 md:gap-6 h-full border-b md:border-b-0 md:border-r border-gray-100">
                                 <div className="w-20 h-20 md:w-32 md:h-32 bg-white rounded-xl p-2 shadow-sm flex-shrink-0 border border-gray-100 flex items-center justify-center">
                                   <img
@@ -2198,7 +2177,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                 </div>
                               </div>
 
-                              {/* --- MIDDLE: Connection --- */}
+                              {}
                               <div className="hidden md:flex items-center justify-center px-4 md:px-8">
                                 <div className="flex flex-col items-center gap-1">
                                   <div className="text-xs font-bold text-[#004aad] uppercase tracking-widest whitespace-nowrap">Sponsored By</div>
@@ -2206,7 +2185,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                 </div>
                               </div>
 
-                              {/* --- RIGHT: Company --- */}
+                              {}
                               <div className="w-full md:flex-1 p-4 md:p-8 flex items-center justify-between md:justify-end gap-8 h-full">
 
 
@@ -2218,8 +2197,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                   )}
                                 </div>
 
-                                {/* Mobile-only Name (if needed for better layout) */}
-                                {/* Mobile-only Name (Hidden as per request) */}
+                                {}
+                                {}
                                 <div className="hidden">
                                   <h4 className="text-xl font-bold text-gray-900">{sponsorCompany.name}</h4>
                                 </div>
@@ -2236,9 +2215,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "About" && (
               <div className="animate-fadeIn space-y-10">
-                {/* 2. Description Content */}
+                {}
                 <div className="flex flex-col gap-10">
-                  {/* HERO TEXT */}
+                  {}
                   <div className="bg-gradient-to-r from-blue-50 via-white to-blue-50 p-8 rounded-2xl border border-blue-100 text-center">
                     <h2 className="text-3xl font-extrabold text-[#004aad] mb-4">
                       IGLA Global Logistics Conference 2026
@@ -2247,12 +2226,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       Join the <span className="font-bold text-[#004aad]">Innovative Global Logistics Allianz (IGLA)</span> at its prestigious 3-day flagship event in the heart of Bangkok, Thailand.
                       This premier gathering brings together logistics professionals, freight forwarders, supply chain innovators, transport experts, and industry leaders from around the world for immersive learning, collaboration, and business development.
                     </p>
-                    {/* <a href="https://igla.asia" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 mt-6 text-[#004aad] font-bold hover:underline">
-                      Visit igla.asia <ArrowRight size={16} />
-                    </a> */}
+                    {}
                   </div>
 
-                  {/* WHAT TO EXPECT GRID */}
+                  {}
                   <div>
                     <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-3">
                       <div className="bg-[#004aad] p-1.5 rounded-lg"><Check className="text-white h-5 w-5" /></div>
@@ -2260,7 +2237,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Global Networking */}
+                      {}
                       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
                         <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4">
                           <Users className="h-6 w-6" />
@@ -2271,7 +2248,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         </p>
                       </div>
 
-                      {/* Insightful Sessions */}
+                      {}
                       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
                         <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
                           <Info className="h-6 w-6" />
@@ -2282,7 +2259,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         </p>
                       </div>
 
-                      {/* Business Opportunities */}
+                      {}
                       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
                         <div className="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-4">
                           <Check className="h-6 w-6" />
@@ -2293,7 +2270,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         </p>
                       </div>
 
-                      {/* Strategic Venue */}
+                      {}
                       <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all">
                         <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center mb-4">
                           <Hotel className="h-6 w-6" />
@@ -2306,7 +2283,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                     </div>
                   </div>
 
-                  {/* OUTRO */}
+                  {}
                   <div className="bg-[#004aad]/5 border-l-4 border-[#004aad] p-6 rounded-r-xl">
                     <p className="text-gray-700 italic font-medium leading-relaxed">
                       "Whether you’re looking to stay ahead of industry trends, build strategic alliances, or explore new market opportunities, the IGLA Global Logistics Conference 2026 is the place to be for professionals committed to shaping the future of global supply chains."
@@ -2314,9 +2291,9 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   </div>
                 </div>
 
-                {/* 2. Venue Information Section */}
+                {}
                 {(() => {
-                  // Fallback/Override for the specific event reqested by user
+                  
                   const targetId = "cmjn1f6ih0000gad4xa4j7dp3";
                   const showVenue = venue || (id === targetId ? {
                     name: "RADISSON SUITES BANGKOK SUKHUMVIT",
@@ -2332,7 +2309,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   return (
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-xl overflow-hidden animate-fadeIn">
                       <div className="p-0 grid grid-cols-1 lg:grid-cols-3">
-                        {/* LEFT: GOOGLE MAP */}
+                        {}
                         <div className="lg:col-span-1 h-[400px] lg:h-auto min-h-[400px] relative">
                           <iframe
                             title="Venue Map"
@@ -2347,7 +2324,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           />
                         </div>
 
-                        {/* RIGHT: DETAILS LIST */}
+                        {}
                         <div className="lg:col-span-2 p-8 lg:p-10 flex flex-col justify-center">
                           <div className="mb-8 border-b border-gray-100 pb-6">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">{showVenue.name}</h3>
@@ -2372,7 +2349,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           </div>
 
                           <div className="space-y-8">
-                            {/* Airport */}
+                            {}
                             <div className="flex gap-4 items-start">
                               <div className="flex-shrink-0 mt-1">
                                 <Plane className="h-6 w-6 text-[#004aad] fill-blue-50" />
@@ -2385,7 +2362,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               </div>
                             </div>
 
-                            {/* METRO */}
+                            {}
                             <div className="flex gap-4 items-start">
                               <div className="flex-shrink-0 mt-1">
                                 <Train className="h-6 w-6 text-[#004aad] fill-blue-50" />
@@ -2398,7 +2375,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               </div>
                             </div>
 
-                            {/* Nearby / Parking */}
+                            {}
                             <div className="flex gap-4 items-start">
                               <div className="flex-shrink-0 mt-1">
                                 <Coffee className="h-6 w-6 text-[#004aad] fill-blue-50" />
@@ -2440,7 +2417,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           </div>
                           <div>
                             <h3 className="text-base font-bold text-gray-800">
-                              {/* Use split('T')[0] to avoid timezone shift on the date */}
+                              {}
                               {format(parseISO(date.split('T')[0]), "EEEE, MMMM d, yyyy")}
                             </h3>
                             <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
@@ -2455,7 +2432,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                               <div key={item.id} className="p-6 hover:bg-gray-50 transition-colors flex flex-col md:flex-row gap-6">
                                 <div className="min-w-[140px] flex-shrink-0">
                                   <div className="inline-flex items-center justify-center bg-blue-50 text-[#004aad] px-3 py-1.5 rounded-lg text-sm font-bold border border-blue-100">
-                                    {/* Static time extraction to avoid timezone conversion */}
+                                    {}
                                     {item.startTime.split('T')[1]?.substring(0, 5)} - {item.endTime.split('T')[1]?.substring(0, 5)}
                                   </div>
                                 </div>
@@ -2478,13 +2455,13 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "Tickets" && (
               <div className="animate-fadeIn space-y-8">
-                {/* Tickets Section */}
+                {}
                 <div>
                   <h2 className="text-xl font-bold text-gray-800 mb-6">Available Tickets</h2>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {eventTickets
                       .sort((a, b) => {
-                        // Sort by price descending (highest first)
+                        
                         const priceA = a.ticket.sellingPrice ?? a.ticket.price;
                         const priceB = b.ticket.sellingPrice ?? b.ticket.price;
                         return priceB - priceA;
@@ -2588,7 +2565,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
 
 
-            {/* --- Sponsorship Opportunities (Restored) --- */}
+            {}
             {activeTab === "Tickets" && eventSponsorTypes.length > 0 && (
               <div className=" pt-8">
                 <h3 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
@@ -2605,7 +2582,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                       const remainingSlots = quantity - assignedCount;
                       const isSoldOut = remainingSlots <= 0;
 
-                      // Calculate discount percentage for badge display
+                      
                       const hasDiscount = effectivePrice < sponsorType.price;
                       const discountPercent = hasDiscount ? ((sponsorType.price - effectivePrice) / sponsorType.price) * 100 : null;
 
@@ -2619,7 +2596,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         }
                         console.log('handleSponsorAdd called', { sponsorType: sponsorType.name, quantityToAdd });
 
-                        // 1. Add the Sponsor Item itself
+                        
                         for (let i = 0; i < quantityToAdd; i++) {
                           addToCart({
                             productId: sponsorType.id,
@@ -2631,7 +2608,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           });
                         }
 
-                        // 2. Determine Free Tickets
+                        
                         let freeTickets = 0;
                         const sName = sponsorType.name.toLowerCase();
                         console.log('Checking sponsor name:', sName);
@@ -2646,7 +2623,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                         if (freeTickets > 0) {
                           const totalFree = freeTickets * quantityToAdd;
 
-                          // Find a Standard Ticket to add as free
+                          
                           const standardTicket = eventTickets.find(et =>
                             et.ticket.name.toLowerCase().includes("regular") ||
                             et.ticket.name.toLowerCase().includes("standard") ||
@@ -2656,14 +2633,14 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           console.log('Standard ticket found:', standardTicket?.ticket.name);
 
                           if (standardTicket) {
-                            // Add Free Tickets
+                            
                             for (let i = 0; i < totalFree; i++) {
                               addToCart({
                                 productId: standardTicket.ticket.id,
                                 productType: "TICKET",
                                 name: `Hotel - ${standardTicket.ticket.name} (Complimentary)`,
-                                price: 0, // FREE
-                                originalPrice: standardTicket.ticket.price, // Show value
+                                price: 0, 
+                                originalPrice: standardTicket.ticket.price, 
                                 image: standardTicket.ticket.logo || undefined,
                                 isComplimentary: true,
                                 linkedSponsorId: sponsorType.id,
@@ -2682,7 +2659,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           key={sponsorType.id}
                           item={{
                             ...sponsorType,
-                            // Pass original price, let PriceCard handle the discount
+                            
                             price: sponsorType.price,
                             originalPrice: sponsorType.price,
                             features: sponsorType.features,
@@ -2699,8 +2676,8 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                             }
                           }}
                           soldTo={isSoldOut ? (() => {
-                            // Find company that likely bought this
-                            // Logic: sponsorsByType key usually matches sponsorType.name
+                            
+                            
                             const purchasers = sponsorsByType[sponsorType.name];
                             if (purchasers && purchasers.length > 0) {
                               const purchaser = purchasers[0];
@@ -2721,7 +2698,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             {activeTab === "About Venue" && (
               <div className="animate-fadeIn space-y-8">
-                {/* Featured Hotel Header */}
+                {}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                   <div className="relative h-64 md:h-96 w-full">
                     <img
@@ -2751,7 +2728,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                           </p>
                         </div>
 
-                        {/* Image Gallery */}
+                        {}
                         <div>
                           <h3 className="text-xl font-bold text-gray-800 mb-4">Gallery</h3>
                           <div className="grid grid-cols-2 gap-4">
@@ -2809,23 +2786,16 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                   </div>
                 </div>
 
-                {/* Rooms Section */}
+                {}
                 <div>
                   <h3 className="text-2xl font-bold text-gray-800 mb-6">Available Options</h3>
                   {hotels.length > 0 ? (
                     <div className="space-y-6">
                       {hotels.map((hotel) => (
                         <div key={hotel.id} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100">
-                          {/* Only show rooms, hide the hotel header if we act like this IS the hotel page, 
-                             BUT existing logic iterates over hotels. 
-                             If the loop contains Radisson, we might be duplicating the header info if we printed it above.
-                             For now, I'll keep the room listing logic which is inside the loop. 
-                             I'll strip the per-hotel header from the loop to make it look like "Rooms for the above hotel"
-                             assuming the event only has this one hotel or they are all valid options for it. 
-                             If there are multiple hotels, this might be confusing, but the user said "this IS the hotel".
-                         */}
+                          {}
                           <div className="p-4 md:p-6">
-                            {/* Rooms List - Always Visible */}
+                            {}
                             <div className="">
                               <div className="space-y-3">
                                 {hotel.roomTypes.map((rt) => (
@@ -2851,7 +2821,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                                     </div>
                                     <div className="flex flex-col items-end justify-center min-w-[120px] border-t sm:border-t-0 sm:border-l border-gray-100 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
                                       <p className={`font-bold text-xl hidden sm:block mb-2 ${rt.eventRoomTypes[0]?.quantity <= 0 ? 'text-gray-400' : 'text-[#004aad]'}`}>${rt.price}</p>
-                                      {/* Button hidden as requested previously */}
+                                      {}
                                     </div>
                                   </div>
                                 ))}
@@ -2868,24 +2838,22 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: SIDEBAR */}
+        {}
         <div className="lg:col-span-1 space-y-6">
           <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-5 sticky top-[90px] max-h-[calc(100vh-100px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
 
-            {/* Header */}
+            {}
             <div className="text-center mb-6">
               <h3 className="text-lg font-bold text-[#004aad] mb-1 leading-tight">Why Sponsor?</h3>
               <div className="h-1 w-12 bg-gradient-to-r from-emerald-400 to-teal-500 mx-auto rounded-full"></div>
             </div>
 
-            {/* Unified Content Sections */}
+            {}
             <div className="space-y-6">
 
-              {/* Global Reach */}
+              {}
               <div>
-                {/* <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
-                  <MapPin size={14} className="text-[#004aad]" /> Global Reach
-                </h4> */}
+                {}
                 <div className="bg-gradient-to-br from-[#004aad] to-blue-900 rounded-xl p-4 text-white shadow-lg relative overflow-hidden group">
                   <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-10 transition-opacity"></div>
                   <p className="text-xs text-blue-100 text-[15px] leading-relaxed mb-3">
@@ -2898,7 +2866,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
                 </div>
               </div>
 
-              {/* Key Benefits */}
+              {}
               <div>
                 <h4 className="text-sm font-bold uppercase tracking-wider text-gray-700 mb-3 flex items-center gap-2">
                   <Check size={14} className="text-emerald-600" /> Key Benefits
@@ -2923,7 +2891,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
             </div>
 
-            {/* Cart Button */}
+            {}
             <div className="mt-6 pt-4 border-t border-gray-100 sticky bottom-0 bg-white pb-1">
               <button
                 className="w-full bg-[#004aad] text-white font-bold py-3 rounded-xl shadow-lg hover:bg-[#00317a] transition-colors flex items-center justify-center gap-2"
@@ -2945,10 +2913,10 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
 
       </div >
 
-      {/* --- CART FLOATING BUTTON --- */}
+      {}
 
 
-      {/* --- BOOTH MODAL --- */}
+      {}
       {
         boothModalOpen && selectedBooth && (
           <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -3019,7 +2987,7 @@ function EventDetailPage({ params }: { params: Promise<{ id: string }> }) {
   );
 }
 
-// --- CartSheet Component ---
+
 const CartSheet = ({
   isOpen,
   onClose,

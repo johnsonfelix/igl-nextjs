@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
         location: {
           city: {
             equals: city,
-            mode: 'insensitive', // case-insensitive match
+            mode: 'insensitive', 
           },
         },
       },

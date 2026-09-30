@@ -63,12 +63,12 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
     const [assigningSessionId, setAssigningSessionId] = useState<string | null>(null);
     const [assigningField, setAssigningField] = useState<'A' | 'B' | 'table' | null>(null);
 
-    // Edit sessions state
+    
     const [editingSlotId, setEditingSlotId] = useState<string | null>(null);
     const [editSessionCount, setEditSessionCount] = useState(1);
     const [updatingSlot, setUpdatingSlot] = useState(false);
 
-    // Create form
+    
     const [form, setForm] = useState({
         title: 'One-to-One Meeting',
         date: '',
@@ -91,7 +91,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
         return () => document.removeEventListener('keydown', handleEsc);
     }, [onClose]);
 
-    // Prevent body scroll when modal is open
+    
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => { document.body.style.overflow = ''; };
@@ -246,7 +246,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
         }
     };
 
-    // Calculate preview of session durations
+    
     const previewDuration = () => {
         if (!form.date || !form.startTime || !form.endTime || form.sessions < 1) return '';
         const s = new Date(`${form.date}T${form.startTime}:00`);
@@ -279,13 +279,13 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 z-50 flex items-start justify-center"
             >
-                {/* Backdrop */}
+                {}
                 <div
                     className="absolute inset-0 bg-black/50 backdrop-blur-sm"
                     onClick={onClose}
                 />
 
-                {/* Modal */}
+                {}
                 <motion.div
                     initial={{ opacity: 0, y: 40, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -293,7 +293,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                     transition={{ type: 'spring', damping: 25, stiffness: 300 }}
                     className="relative z-10 w-full max-w-5xl mx-4 my-6 max-h-[calc(100vh-48px)] bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col"
                 >
-                    {/* Header */}
+                    {}
                     <div className="flex-none flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-white to-gray-50">
                         <div className="flex items-center gap-4">
                             <div className="h-12 w-12 rounded-2xl bg-[#5da765]/10 flex items-center justify-center">
@@ -314,9 +314,9 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                         </button>
                     </div>
 
-                    {/* Content */}
+                    {}
                     <div className="flex-1 overflow-y-auto p-8 space-y-6">
-                        {/* Create Button / Form */}
+                        {}
                         {!showForm ? (
                             <Button
                                 onClick={() => setShowForm(true)}
@@ -416,7 +416,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                             </motion.div>
                         )}
 
-                        {/* List Meeting Slots */}
+                        {}
                         {loading ? (
                             <div className="py-16 flex justify-center">
                                 <Loader2 className="animate-spin h-10 w-10 text-gray-300" />
@@ -436,7 +436,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                         animate={{ opacity: 1, y: 0 }}
                                         className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
                                     >
-                                        {/* Slot header */}
+                                        {}
                                         <div className="flex items-center justify-between p-5 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
                                             <div className="flex items-center gap-3">
                                                 <div className="h-10 w-10 rounded-xl bg-[#5da765]/10 flex items-center justify-center">
@@ -476,7 +476,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                             </div>
                                         </div>
 
-                                        {/* Edit sessions inline form */}
+                                        {}
                                         {editingSlotId === slot.id && (
                                             <div className="mx-5 mt-4 p-4 rounded-xl bg-amber-50/50 border border-amber-200/50">
                                                 <div className="flex items-center gap-4">
@@ -544,9 +544,9 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                             </div>
                                         )}
 
-                                        {/* Sessions — two company columns + Table */}
+                                        {}
                                         <div className="p-5 space-y-3">
-                                            {/* Column headers */}
+                                            {}
                                             <div className="hidden md:grid grid-cols-[48px_1fr_48px_1fr_120px] gap-3 px-4 pb-2">
                                                 <div />
                                                 <div className="text-xs font-bold text-gray-400 uppercase tracking-wider">
@@ -571,12 +571,12 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                     className="group rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-white hover:border-gray-200 hover:shadow-sm transition-all p-4"
                                                 >
                                                     <div className="grid grid-cols-1 md:grid-cols-[48px_1fr_48px_1fr_120px] gap-3 items-center">
-                                                        {/* Session index badge */}
+                                                        {}
                                                         <div className="hidden md:flex flex-none w-10 h-10 rounded-lg bg-white border border-gray-200 items-center justify-center text-sm font-bold text-gray-600 shadow-sm">
                                                             {idx + 1}
                                                         </div>
 
-                                                        {/* Company A */}
+                                                        {}
                                                         <div>
                                                             <div className="md:hidden text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5">
                                                                 Company A
@@ -606,14 +606,14 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                             </div>
                                                         </div>
 
-                                                        {/* Arrow connector */}
+                                                        {}
                                                         <div className="hidden md:flex items-center justify-center">
                                                             <div className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-50 to-orange-50 border border-gray-100 flex items-center justify-center">
                                                                 <ArrowLeftRight className="h-4 w-4 text-gray-400" />
                                                             </div>
                                                         </div>
 
-                                                        {/* Company B */}
+                                                        {}
                                                         <div>
                                                             <div className="md:hidden text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 mt-3">
                                                                 Company B
@@ -643,7 +643,7 @@ export default function MeetingSlotManager({ eventId, onClose }: MeetingSlotMana
                                                             </div>
                                                         </div>
 
-                                                        {/* Table Assignment */}
+                                                        {}
                                                         <div>
                                                             <div className="md:hidden text-xs font-bold text-gray-400 uppercase tracking-wider mb-1.5 mt-3">
                                                                 Table

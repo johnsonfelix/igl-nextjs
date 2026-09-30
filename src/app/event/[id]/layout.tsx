@@ -11,11 +11,11 @@ export default function EventLayout({
   children: React.ReactNode;
   params: Promise<{ id: string }>;
 }) {
-  // unwrap params (Next.js 14+)
+  
   const { id } = use(params);
 
   return (
-    // pass the event id so the cart is scoped to this event
+    
     <CartProvider eventId={id}>
       {children}
       <CartFloat eventId={id} />
@@ -26,7 +26,7 @@ export default function EventLayout({
 function CartFloat({ eventId }: { eventId: string }) {
   const { itemCount } = useCart();
 
-  // Hide cart for specific event
+  
   if (eventId === 'cmjn1f6ih0000gad4xa4j7dp3') return null;
 
   return (

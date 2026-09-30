@@ -1,11 +1,9 @@
-// app/api/admin/sponsors/[id]/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import { uploadBufferToS3, deleteS3Object } from "@/app/lib/s3";
 
-/**
- * Helper to get id from request url path (last path segment)
- */
+
 function extractIdFromReq(req: NextRequest) {
   const url = new URL(req.url);
   const parts = url.pathname.split("/").filter(Boolean);
@@ -16,13 +14,13 @@ export async function DELETE(req: NextRequest) {
   try {
     const id = extractIdFromReq(req);
 
-    // find existing record to know imageKey or image url
+    
     const existing = await prisma.sponsorType.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Sponsor not found" }, { status: 404 });
     }
 
-    // try to delete S3 object using either imageKey or image URL
+    
     const keyToDelete = existing.imageKey ?? existing.image ?? null;
     if (keyToDelete) {
       try {
@@ -30,7 +28,7 @@ export async function DELETE(req: NextRequest) {
         console.info("[SPONSOR_DELETE] deleteS3Object result:", res);
       } catch (err) {
         console.warn("[SPONSOR_DELETE] failed to remove S3 object:", err);
-        // continue — we still want DB row deletion to succeed
+        
       }
     }
 
@@ -80,7 +78,7 @@ export async function PUT(req: NextRequest) {
 
       const file = formData.get("image") as File | null;
       if (file && file.size && typeof file.arrayBuffer === "function") {
-        // upload new image to S3
+        
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         const filename = (file as any).name || `upload-${Date.now()}.bin`;
@@ -92,7 +90,7 @@ export async function PUT(req: NextRequest) {
           contentType: ctype,
         });
 
-        // delete old S3 object (using old key or URL) if it exists
+        
         const oldKey = imageKey ?? image ?? null;
         if (oldKey) {
           try {
@@ -106,7 +104,7 @@ export async function PUT(req: NextRequest) {
         image = publicUrl;
         imageKey = key;
       } else {
-        // client may provide imageUrl or imageKey fields
+        
         const imageUrlField = formData.get("imageUrl");
         const imageKeyField = formData.get("imageKey");
 
@@ -126,7 +124,7 @@ export async function PUT(req: NextRequest) {
           // if they also provided imageUrl, prefer it
           if (typeof imageUrlField === "string") image = imageUrlField;
         } else if (typeof imageUrlField === "string") {
-          // set a plain image URL (could be external). Attempt to extract key for managed S3 url
+          
           const newImageUrl = imageUrlField === "" ? null : imageUrlField;
           if (newImageUrl === null) {
             // cleared by client
@@ -168,7 +166,7 @@ export async function PUT(req: NextRequest) {
         }
       }
     } else {
-      // JSON body
+      
       const body = await req.json();
 
       if (body.name !== undefined) name = body.name;
@@ -184,7 +182,7 @@ export async function PUT(req: NextRequest) {
         const newImageUrl = body.image ?? image;
 
         if (newKey && newKey !== imageKey) {
-          // delete old object
+          
           const oldKey = imageKey ?? image ?? null;
           if (oldKey) {
             try {
@@ -196,7 +194,7 @@ export async function PUT(req: NextRequest) {
           imageKey = newKey;
           image = newImageUrl ?? null;
         } else if (newKey === null) {
-          // explicit clear
+          
           const oldKey = imageKey ?? image ?? null;
           if (oldKey) {
             try {
@@ -209,9 +207,9 @@ export async function PUT(req: NextRequest) {
           image = body.image ?? null;
         }
       } else if (body.image !== undefined) {
-        // plain image URL provided, not an S3 key
+        
         image = body.image;
-        // attempt to extract a key from the provided URL so future deletes work
+        
         if (typeof body.image === "string" && body.image !== "") {
           try {
             const u = new URL(body.image);

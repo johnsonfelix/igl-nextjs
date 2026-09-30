@@ -10,7 +10,7 @@ export default function AdminCreateCompanyPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // File Upload States
+    
     const [logoFile, setLogoFile] = useState<File | null>(null);
     const [logoPreview, setLogoPreview] = useState<string | null>(null);
     const [mediaFiles, setMediaFiles] = useState<File[]>([]);
@@ -91,20 +91,20 @@ export default function AdminCreateCompanyPage() {
         checkNameUniqueness(e.target.value);
     };
 
-    // S3 Upload Helper (Reused from sponsors)
+    
     const uploadFileToS3 = async (fileToUpload: File) => {
         const params = new URLSearchParams({
             filename: fileToUpload.name,
             contentType: fileToUpload.type || "application/octet-stream",
-            folder: "admin" // or 'company-logos' if backend allows
+            folder: "admin" 
         });
 
-        // 1) Request presign info
+        
         const presignResp = await fetch(`/api/upload-url?${params.toString()}`);
         if (!presignResp.ok) throw new Error(`Failed to get upload URL: ${presignResp.status}`);
         const data = await presignResp.json();
 
-        // 2) PUT or POST
+        
         if (data.post) {
             const fd = new FormData();
             Object.entries(data.post.fields).forEach(([k, v]) => fd.append(k, v as string));
@@ -135,7 +135,7 @@ export default function AdminCreateCompanyPage() {
         if (e.target.files) {
             const files = Array.from(e.target.files);
             setMediaFiles(prev => [...prev, ...files]);
-            // Create previews
+            
             const newPreviews = files.map(f => URL.createObjectURL(f));
             setMediaPreviews(prev => [...prev, ...newPreviews]);
         }
@@ -161,7 +161,7 @@ export default function AdminCreateCompanyPage() {
         setUploading(true);
 
         try {
-            // 1. Upload Logo if exists
+            
             let finalLogoUrl = '';
             if (logoFile) {
                 finalLogoUrl = await uploadFileToS3(logoFile);
@@ -242,7 +242,7 @@ export default function AdminCreateCompanyPage() {
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-8">
-                    {/* Section 1: Basic Info */}
+                    {}
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Basic Information</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -272,7 +272,7 @@ export default function AdminCreateCompanyPage() {
                                     className="w-full rounded-lg border border-gray-300 bg-gray-100 p-2 text-sm focus:ring-indigo-500 focus:border-indigo-500 text-gray-500 cursor-not-allowed"
                                 />
                             </div>
-                            {/* Member Type Hidden */}
+                            {}
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
@@ -344,7 +344,7 @@ export default function AdminCreateCompanyPage() {
                         </div>
                     </div>
 
-                    {/* Section: Scope & Services */}
+                    {}
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Business Scope & Services</h2>
                         <div className="grid grid-cols-1 gap-6">
@@ -373,7 +373,7 @@ export default function AdminCreateCompanyPage() {
                         </div>
                     </div>
 
-                    {/* Section 2: Logo & Media */}
+                    {}
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Media</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -410,11 +410,11 @@ export default function AdminCreateCompanyPage() {
                         </div>
                     </div>
 
-                    {/* Section 3: Contact & Location */}
+                    {}
                     <div>
                         <h2 className="text-xl font-semibold text-gray-900 border-b pb-2 mb-4">Contact & Location</h2>
 
-                        {/* Key Contact Person Details */}
+                        {}
                         <div className="mb-6 bg-gray-50 p-4 rounded-lg border">
                             <h3 className="text-md font-semibold text-gray-800 mb-3">Key Contact Person Details</h3>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

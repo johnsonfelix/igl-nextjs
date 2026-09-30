@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET latest 4 inquiries (public endpoint)
+
 export async function GET() {
     try {
         const inquiries = await prisma.inquiry.findMany({

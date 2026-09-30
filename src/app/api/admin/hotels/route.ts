@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET all hotels
+
 export async function GET() {
   try {
     const hotels = await prisma.hotel.findMany({
       include: {
-        roomTypes: true, // ✅ include linked room types
+        roomTypes: true, 
       },
     });
     return NextResponse.json(hotels);
@@ -16,7 +16,7 @@ export async function GET() {
   }
 }
 
-// CREATE new hotel
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();

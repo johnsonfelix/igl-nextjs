@@ -1,4 +1,4 @@
-// app/api/conversations/route.ts
+
 import { prisma } from '@/app/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       include: { participants: true },
     });
 
-    // Optional: notify participants via WS
+    
     if (global.serverSocket?.io) {
       participantCompanyIds.forEach((id) => {
         global.serverSocket!.io?.to(`company:${id}`).emit('conversation:new', {
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(conversations, { status: 200 });
   } catch (e: any) {
-    // Log the error server-side and respond with a safe JSON error
+    
     console.error('GET /api/conversations error', e);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }

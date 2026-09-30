@@ -96,7 +96,7 @@ export default function BranchManager({ companyId, initialBranches }: BranchMana
 
     try {
       const submitData: any = { ...formData };
-      // Don't send empty password on edit (means no change)
+      
       if (editingBranch && !submitData.password) {
         delete submitData.password;
       }
@@ -228,7 +228,7 @@ export default function BranchManager({ companyId, initialBranches }: BranchMana
                   )}
                 </div>
 
-                {/* Login badge */}
+                {}
                 {branch.user && (
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 px-3 py-1.5 rounded-lg font-medium">
@@ -243,7 +243,7 @@ export default function BranchManager({ companyId, initialBranches }: BranchMana
         </div>
       )}
 
-      {/* Modal */}
+      {}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseModal} />
@@ -337,7 +337,7 @@ export default function BranchManager({ companyId, initialBranches }: BranchMana
                   </div>
                 </div>
 
-                {/* Login Credentials Section */}
+                {}
                 <div className="pt-4 border-t border-gray-100">
                   <div className="flex items-center gap-2 mb-4">
                     <Key className="w-4 h-4 text-[#004aad]" />

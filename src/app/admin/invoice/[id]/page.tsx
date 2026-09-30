@@ -72,7 +72,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     const handleCustomerChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         let { name, value } = e.target;
 
-        // Restrict to numbers only for Phone Number and Postal Code
+        
         if (name === 'phoneNumber' || name === 'postalCode') {
             value = value.replace(/\D/g, '');
         }
@@ -168,7 +168,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
     }
 
     const handleDownload = async () => {
-        // Auto-save before download
+        
         const saved = await handleUpdate(false);
         if (!saved) return;
 
@@ -176,7 +176,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
         if (!element) return;
 
         try {
-            // Dynamic import to avoid SSR issues
+            
             const html2pdf = (await import('html2pdf.js')).default;
 
             const opt = {
@@ -198,7 +198,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
-            {/* --- FORM SECTION --- */}
+            {}
             <div className="w-full lg:w-1/2 overflow-y-auto pr-4 pb-20">
                 <div className="flex items-center gap-4 mb-6">
                     <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
@@ -207,7 +207,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                     <h1 className="text-2xl font-bold text-gray-800">Edit Invoice</h1>
                 </div>
 
-                {/* Invoice Meta */}
+                {}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4 space-y-4">
                     <h3 className="font-bold text-gray-700 border-b pb-2">Invoice Details</h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -232,7 +232,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                     </div>
                 </div>
 
-                {/* Customer Details */}
+                {}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4 space-y-4">
                     <h3 className="font-bold text-gray-700 border-b pb-2">Customer Details</h3>
                     <div className="space-y-3">
@@ -315,7 +315,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Actual Price</label>
                                             <input
                                                 type="number"
-                                                // @ts-ignore
+                                                
                                                 value={item.originalPrice || 0}
                                                 onChange={(e) => handleItemChange(index, 'originalPrice', parseFloat(e.target.value) || 0)}
                                                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-gray-500"
@@ -342,7 +342,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                                         <div className="w-24">
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Total</label>
                                             <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700 flex items-center h-[38px]">
-                                                {/* Display grand total with currency code in edit form */}
+                                                {}
                                                 {(item.quantity * item.price).toFixed(2)}
                                             </div>
                                         </div>
@@ -391,7 +391,7 @@ export default function EditInvoicePage({ params }: { params: Promise<{ id: stri
                 </div>
             </div>
 
-            {/* --- PREVIEW SECTION --- */}
+            {}
             <div className="flex-1 bg-gray-200 rounded-xl overflow-y-auto p-4 md:p-8 flex flex-col items-center">
                 <div className="w-full max-w-[220mm] mb-4 flex justify-end gap-3">
                     <button onClick={() => handleUpdate(true)} disabled={loading} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-50">

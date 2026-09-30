@@ -1,4 +1,4 @@
-// app/api/companies/search/route.ts
+
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
@@ -11,8 +11,8 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const params = url.searchParams;
 
-    // --- query params from client ---
-    const companyName = params.get('name') ?? undefined;       // matches frontend
+    
+    const companyName = params.get('name') ?? undefined;       
     const memberId = params.get('memberId') ?? undefined;
     const memberType = params.get('memberType') ?? undefined;
     const country = params.get('country') ?? undefined;
@@ -22,23 +22,23 @@ export async function GET(request: Request) {
     const limit = Math.min(100, Number(params.get('limit') ?? '25'));
     const offset = Math.max(0, Number(params.get('offset') ?? '0'));
 
-    // NEW: Status controls
+    
     const statusParam = (params.get('status') || '').toUpperCase(); // 'ALL' or ''
-    const statusesCsv = params.get('statuses'); // e.g. "LIVE,BLOCKLISTED"
-    const includeInactive = params.get('includeInactive') === '1';  // if true, don't filter isActive=true
+    const statusesCsv = params.get('statuses'); 
+    const includeInactive = params.get('includeInactive') === '1';  
 
-    // NEW: Newly Registered filter -> changed to Sort by Registration
+    
     const sortByRegistration = params.get('newlyRegistered') === 'true' || params.get('sortByRegistration') === 'true';
 
-    // ------------------ build where ------------------
+    
     const where: any = {};
 
-    // Note: REMOVED the 7-day filter logic as per request.
-    // We now only use this flag to trigger the sort order.
+    
+    
 
-    // Status filter
+    
     if (statusParam === 'ALL') {
-      // no status filter
+      
     } else if (statusesCsv) {
       const list = statusesCsv
         .split(',')
@@ -48,11 +48,11 @@ export async function GET(request: Request) {
         where.status = { in: list };
       }
     } else {
-      // default behavior: LIVE only
+      
       where.status = 'LIVE';
     }
 
-    // isActive filter (default: only active; unless includeInactive=1)
+    
     if (!includeInactive) {
       where.isActive = true;
     }
@@ -61,22 +61,22 @@ export async function GET(request: Request) {
     if (memberId) where.memberId = { contains: memberId, mode: 'insensitive' };
     if (memberType) where.memberType = { equals: memberType, mode: 'insensitive' };
 
-    // location filters
+    
     const locationWhere: any = {};
     if (country && country !== 'All') locationWhere.country = { equals: country, mode: 'insensitive' };
     if (city) locationWhere.city = { contains: city, mode: 'insensitive' };
     if (port) locationWhere.port = { contains: port, mode: 'insensitive' };
 
-    // ------------------ execute query ------------------
+    
     const [total, companies] = await prisma.$transaction([
       prisma.company.count({ where }),
       prisma.company.findMany({
         where,
-        include: { location: true, media: true, membershipPlan: true }, // Default include
+        include: { location: true, media: true, membershipPlan: true }, 
         skip: offset,
         take: limit,
         orderBy: (() => {
-          // If filtering by newly registered, force sort by createdAt desc
+          
           if (sortByRegistration) {
             return { createdAt: 'desc' };
           }

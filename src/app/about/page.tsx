@@ -23,7 +23,7 @@ export default function AboutPage() {
 
     return (
         <div className="min-h-screen bg-[#f8f9fa] font-sans">
-            {/* Hero Section */}
+            {}
             <div className="bg-gradient-to-br from-[#004aad] to-[#4a8a52] text-white relative overflow-hidden">
                 <div className="absolute inset-0 opacity-10">
                     <div className="absolute top-20 left-20 w-64 h-64 bg-white rounded-full blur-3xl"></div>
@@ -41,7 +41,7 @@ export default function AboutPage() {
             </div>
 
             <main className="container mx-auto px-4 py-16 max-w-7xl">
-                {/* Who We Are Section */}
+                {}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
@@ -73,7 +73,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Our Mission Section */}
+                {}
                 <section className="mb-20">
                     <div className="bg-gradient-to-r from-[#004aad] to-[#4a8a52] p-12 rounded-2xl shadow-xl relative overflow-hidden">
                         <div className="absolute top-0 right-0 opacity-10">
@@ -97,7 +97,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Conference Highlights Section */}
+                {}
                 <section className="mb-20 overflow-hidden relative">
                     <div className="flex flex-wrap items-center mb-8 md:mb-12 text-center lg:text-left">
                         <div className="w-full lg:w-5/12 mb-8 md:mb-0">
@@ -107,10 +107,10 @@ export default function AboutPage() {
                             </div>
                         </div>
                         <div className="w-full lg:w-5/12 mb-8 md:mb-0">
-                            {/* Optional: Description can go here if needed later */}
+                            {}
                         </div>
                         <div className="w-full lg:w-2/12 flex justify-center lg:justify-end gap-4">
-                            {/* Swiper Custom Navigation */}
+                            {}
                             <div className="highlight-prev w-12 h-12 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer hover:bg-black hover:text-white hover:border-black transition-all">
                                 <ChevronLeft className="w-6 h-6" />
                             </div>
@@ -166,7 +166,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Core Values Section */}
+                {}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
@@ -206,7 +206,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Why Choose IGLA Section */}
+                {}
                 <section className="mb-20">
                     <div className="flex items-center gap-3 mb-8">
                         <div className="w-1.5 h-10 bg-[#004aad] rounded-full"></div>
@@ -235,7 +235,7 @@ export default function AboutPage() {
                     </div>
                 </section>
 
-                {/* Contact Section */}
+                {}
                 <section className="mb-8">
                     <div className="bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
                         <div className="flex items-center gap-3 mb-8">
@@ -254,15 +254,7 @@ export default function AboutPage() {
                                 </div>
                             </div>
 
-                            {/* <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center shrink-0">
-                                    <Phone size={24} className="text-blue-600" />
-                                </div>
-                                <div>
-                                    <h4 className="font-bold text-gray-800 mb-2">Phone</h4>
-                                    <a href="tel:+1234567890" className="text-gray-600 hover:text-[#004aad]">+91 93630 27279</a>
-                                </div>
-                            </div> */}
+                            {}
 
                             <div className="flex items-start gap-4">
                                 <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center shrink-0">

@@ -1,4 +1,4 @@
-// /app/api/events/[id]/checkout/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 import { hash } from "bcryptjs";
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     shippingAddress,
     billingAddress,
     paymentMethod,
-    account, // Extract account
+    account, 
   }: {
     cartItems: CartItem[];
     companyId: string;
@@ -49,16 +49,16 @@ export async function POST(req: NextRequest) {
     shippingAddress?: any;
     billingAddress?: any;
     paymentMethod?: string;
-    account?: any; // Define account type
-    status?: string; // Add status to body
+    account?: any; 
+    status?: string; 
   } = body;
 
-  // Validation: companyId OR account info
+  
   if ((!incomingCompanyId && (!account || !account.email)) || !cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
     return NextResponse.json({ error: "Missing required fields (cart or account)" }, { status: 400 });
   }
 
-  // Allow eventId to be empty for membership-only purchases
+  
   const finalEventId = eventId && eventId !== 'undefined' ? eventId : null;
 
   try {
@@ -67,22 +67,22 @@ export async function POST(req: NextRequest) {
     const result = await prisma.$transaction(async (tx) => {
       let companyId = incomingCompanyId;
 
-      // Logic to resolve Company ID if not provided (Guest Checkout)
+      
       if (!companyId && account && account.email) {
         const email = String(account.email).toLowerCase().trim();
         const existingUser = await tx.user.findUnique({ where: { email } });
 
         if (existingUser) {
-          // Existing User -> Link to their Company
+          
           const userCompany = await tx.company.findFirst({ where: { userId: existingUser.id } });
           if (userCompany) {
             companyId = userCompany.id;
             console.log(`[INFO] Found existing user ${email}, linking to company ${companyId}`);
           } else {
-            // User exists but has no company? Create one or handle error?
-            // Should ideally verify if they have a company. If not, create one.
-            // For now assuming active users have companies or we create one.
-            // Let's create a company for the existing user if missing (rare case)
+            
+            
+            
+            
             console.log(`[INFO] Found existing user ${email} but no company. Creating company.`);
             const newCompany = await tx.company.create({
               data: {
@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
                   create: {
                     address: account.address1 || "",
                     city: billingAddress?.city || "",
-                    country: billingAddress?.country || "Unknown", // Fallback
+                    country: billingAddress?.country || "Unknown", 
                     contactPersonDesignation: account.designation,
                   }
                 }
@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
             companyId = newCompany.id;
           }
         } else {
-          // New User -> Create User, Company
+          
           console.log(`[INFO] Creating new user for ${email}`);
           const tempPassword = Math.random().toString(36).slice(-8) + "Aa1!";
           const hashedPassword = await hash(tempPassword, 10);
@@ -117,9 +117,9 @@ export async function POST(req: NextRequest) {
             }
           });
 
-          // Send credential email (Fire and forget, or await?)
-          // We await to ensure valid email or catch error, although we don't want to fail valid payment?
-          // Let's await but wrap in try catch to not block order
+          
+          
+          
           await sendEmail({
             to: email,
             subject: "Your Account for IGLA 2026",
@@ -154,12 +154,12 @@ export async function POST(req: NextRequest) {
         }
       }
 
-      // Fallback validation
+      
       if (!companyId) {
         throw new Error("Could not determine or create a company for this order.");
       }
 
-      // Create a PurchaseOrder
+      
       const isOffline = paymentMethod === 'offline';
 
       const purchaseOrder = await tx.purchaseOrder.create({
@@ -168,7 +168,7 @@ export async function POST(req: NextRequest) {
           eventId: finalEventId,
           totalAmount: 0,
           status: "PENDING",
-          // Save address fields
+          
           shippingAddressLine1: shippingAddress?.line1,
           shippingAddressLine2: shippingAddress?.line2,
           shippingCity: shippingAddress?.city,
@@ -182,7 +182,7 @@ export async function POST(req: NextRequest) {
           billingZip: billingAddress?.zip,
           billingCountry: billingAddress?.country,
           offlinePayment: isOffline,
-          // Save comprehensive order details
+          
           account: account || {},
           additionalDetails: body.additionalDetails || {},
           paymentMethod: paymentMethod || "online",
@@ -217,7 +217,7 @@ export async function POST(req: NextRequest) {
           boothSubTypeId: originalItem.boothSubTypeId ?? null,
         };
 
-        // Handle inventory & booking logic
+        
         switch (productType) {
           case "TICKET": {
             if (!finalEventId) {
@@ -347,12 +347,12 @@ export async function POST(req: NextRequest) {
           }
 
           case "MEMBERSHIP": {
-            // For offline payments, we DO NOT activate membership yet.
-            // It will be activated upon admin approval.
+            
+            
             if (isOffline) {
               console.log(`[INFO] Offline payment for membership: ${item.name}. activation deferred.`);
             } else {
-              // Verify membership plan exists
+              
               const membershipPlan = await tx.membershipPlan.findUnique({
                 where: { id: item.productId },
               });
@@ -361,17 +361,17 @@ export async function POST(req: NextRequest) {
                 throw new Error(`Membership plan "${item.name}" not found.`);
               }
 
-              // Update company with membership details
+              
               const now = new Date();
               const expiresAt = new Date(now);
-              expiresAt.setFullYear(expiresAt.getFullYear() + 1); // Default 1 year
+              expiresAt.setFullYear(expiresAt.getFullYear() + 1); 
 
               await tx.company.update({
                 where: { id: companyId },
                 data: {
                   membershipPlanId: item.productId,
-                  purchasedMembership: membershipPlan.name, // Store membership name
-                  purchasedMembershipId: item.productId,     // Store membership ID
+                  purchasedMembership: membershipPlan.name, 
+                  purchasedMembershipId: item.productId,     
                   purchasedAt: now,
                   membershipExpiresAt: expiresAt,
                 },
@@ -393,7 +393,7 @@ export async function POST(req: NextRequest) {
           }
         }
 
-        // Create OrderItem for all items
+        
         await tx.orderItem.create({
           data: {
             orderId: purchaseOrder.id,
@@ -413,7 +413,7 @@ export async function POST(req: NextRequest) {
 
       console.log(`[INFO] Calculated subtotal: ${calculatedTotal}`);
 
-      // COUPON VALIDATION & DISCOUNT calculation
+      
       let discountAmount = 0;
       let couponRecord: any = null;
 
@@ -455,7 +455,7 @@ export async function POST(req: NextRequest) {
         discountAmount: discountAmount,
       };
 
-      // Use status from body if provided, otherwise determine based on payment method
+      
       if (body.status) {
         updateData.status = body.status;
       } else if (isOffline) {
@@ -483,12 +483,12 @@ export async function POST(req: NextRequest) {
 
     console.log("--- CHECKOUT TRANSACTION COMPLETED SUCCESSFULLY ---");
 
-    // --- Send Email Notification ---
+    
     try {
       const finalOrder = result;
       const attendees = body.additionalDetails?.attendees;
 
-      // Determine recipient: Attendee 1's email or fallback to account email
+      
       let recipientEmail = account.email;
       let recipientName = account.name;
 
@@ -518,18 +518,18 @@ export async function POST(req: NextRequest) {
       }
     } catch (emailError) {
       console.error("Failed to send checkout email:", emailError);
-      // We do not fail the request if email fails, as the order is already created
+      
     }
 
     return NextResponse.json(result, { status: 201 });
 
-    // Helper to generate HTML email
+    
     function generateInvoiceEmailHtml({ order, account, attendees, billingAddress }: any) {
       const invoiceNo = order.invoiceNumber ? `IGLA${10000 + order.invoiceNumber}` : order.id.slice(-8).toUpperCase();
       const dateStr = new Date().toLocaleDateString();
       const totalAmount = order.totalAmount;
 
-      // Format Items
+      
       const itemsHtml = order.items.map((item: any) => `
     <tr>
       <td style="padding: 8px; border-bottom: 1px solid #ddd;">${item.name}</td>

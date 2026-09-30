@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "../../../context/AuthContext";
 
-// Accept promise-typed params to satisfy Next 15 PageProps at build time.
-// Do not use it directly in a client component; use useParams instead.
+
+
 type PageProps = { params: Promise<{ id: string }> };
 
 type LocationPayload = {

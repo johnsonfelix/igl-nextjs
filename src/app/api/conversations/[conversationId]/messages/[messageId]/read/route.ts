@@ -1,4 +1,4 @@
-// app/api/messages/[messageId]/read/route.ts
+
 import { prisma } from '@/app/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
@@ -9,11 +9,11 @@ const bodySchema = z.object({
 
 export async function POST(
   req: NextRequest,
-  // Change 1: The 'params' object is now wrapped in a Promise.
+  
   { params }: { params: Promise<{ messageId: string }> }
 ) {
   try {
-    // Change 2: You must 'await' the params to access its properties.
+    
     const { messageId } = await params;
     const body = await req.json();
     const { companyId } = bodySchema.parse(body);

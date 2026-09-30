@@ -142,7 +142,7 @@ function ResetPasswordForm() {
 export default function ResetPasswordPage() {
     return (
         <div className="min-h-screen flex">
-            {/* Left Decoration Side */}
+            {}
             <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
                 <div className="absolute inset-0">
                     <Image src="/images/bg-4.jpg" alt="Background" fill className="object-cover opacity-60" />
@@ -154,7 +154,7 @@ export default function ResetPasswordPage() {
                 </div>
             </div>
 
-            {/* Right Form Side */}
+            {}
             <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
                 <Suspense fallback={<div className="text-[#004aad]">Loading...</div>}>
                     <ResetPasswordForm />

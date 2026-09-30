@@ -9,7 +9,7 @@ function extractEventId(req: NextRequest): string | null {
     return null;
 }
 
-// GET /api/events/[id]/meetings — list all meeting slots with sessions
+
 export async function GET(req: NextRequest) {
     try {
         const eventId = extractEventId(req);
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST /api/events/[id]/meetings — create a meeting slot with sessions
+
 export async function POST(req: NextRequest) {
     try {
         const eventId = extractEventId(req);
@@ -68,7 +68,7 @@ export async function POST(req: NextRequest) {
         const totalMs = end.getTime() - start.getTime();
         const sessionDurationMs = totalMs / sessions;
 
-        // Create the slot and its sessions in a transaction
+        
         const slot = await prisma.meetingSlot.create({
             data: {
                 eventId,

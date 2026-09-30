@@ -31,7 +31,7 @@ export default function EventCountdown({ targetDate, size = 'normal' }: { target
             return { days, hours, minutes, seconds };
         };
 
-        // Initial calculation
+        
         setTimeLeft(calculateTimeLeft());
 
         const timer = setInterval(() => {
@@ -43,7 +43,7 @@ export default function EventCountdown({ targetDate, size = 'normal' }: { target
 
     if (!timeLeft) return null;
 
-    // If even passed
+    
     if (timeLeft.days === 0 && timeLeft.hours === 0 && timeLeft.minutes === 0 && timeLeft.seconds === 0) {
         return null;
     }

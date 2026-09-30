@@ -66,7 +66,7 @@ export default function EventReviewPage() {
     const rating = satMap[overallSatisfaction] || 5;
 
     const feedbackObj = {
-      format: 'v2', // identifier
+      format: 'v2', 
       arrangementsRating,
       arrangementsComments,
       meetingsRating,
@@ -126,7 +126,7 @@ export default function EventReviewPage() {
     );
   }
 
-  // Helper for Radio buttons
+  
   const RadioItem = ({ name, value, current, onChange }: any) => (
     <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors border border-transparent hover:border-gray-100">
       <input type="radio" name={name} value={value} checked={current === value} onChange={() => onChange(value)} className="w-5 h-5 text-[#5da765] focus:ring-[#5da765]" />
@@ -134,7 +134,7 @@ export default function EventReviewPage() {
     </label>
   );
 
-  // Helper for Checkbox buttons
+  
   const CheckboxItem = ({ label, isChecked, onChange }: any) => (
     <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors border border-transparent hover:border-gray-100">
       <input type="checkbox" checked={isChecked} onChange={onChange} className="w-5 h-5 rounded text-[#5da765] focus:ring-[#5da765]" />
@@ -184,7 +184,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 1. Conference Arrangements */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">1️⃣ Conference Arrangements</h3>
                 <p className="text-gray-600 font-medium">How would you rate the overall conference arrangements (venue, logistics, hospitality, etc.)?</p>
@@ -199,7 +199,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 2. Meetings */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">2️⃣ Meetings</h3>
                 <p className="text-gray-600 font-medium">How would you rate the quality and usefulness of the 1-2-1 meetings & Interactions?</p>
@@ -214,7 +214,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 3. Areas We Need to Develop */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">3️⃣ Areas We Need to Develop</h3>
                 <p className="text-gray-600 font-medium">Which areas should we focus on improving?</p>
@@ -229,7 +229,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 4. How will you Contribute */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">4️⃣ How will you Contribute</h3>
                 <p className="text-gray-600 font-medium">How can you contribute to the network’s growth?</p>
@@ -248,7 +248,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 5. Overall Satisfaction */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">5️⃣ Overall Satisfaction</h3>
                 <p className="text-gray-600 font-medium">How satisfied are you with the IGLA Conference overall?</p>
@@ -259,7 +259,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 6. Membership You prefer */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">6️⃣ Membership You prefer</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -269,7 +269,7 @@ export default function EventReviewPage() {
                 </div>
               </div>
 
-              {/* 7. Suggestions & Recommendations */}
+              {}
               <div className="space-y-4">
                 <h3 className="text-xl font-bold text-gray-800 border-b pb-2">7️⃣ Suggestions & Recommendations</h3>
                 <p className="text-gray-600 font-medium">What improvements or suggestions would you like to share for future conferences?</p>

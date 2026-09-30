@@ -30,7 +30,7 @@ export default function SponsorDetailsPage({
     useEffect(() => {
         const fetchSponsor = async () => {
             try {
-                // Fetching from the public endpoint
+                
                 const res = await fetch(`/api/sponsors/${resolvedParams.sponsorId}`);
                 if (!res.ok) throw new Error("Failed to fetch sponsor");
                 const data = await res.json();
@@ -55,11 +55,11 @@ export default function SponsorDetailsPage({
             productType: "SPONSOR",
             name: sponsor.name,
             price: sponsor.price,
-            originalPrice: sponsor.price, // Sponsor discount logic usually handled in cart/context, sending base here
+            originalPrice: sponsor.price, 
             image: sponsor.image || undefined,
         });
 
-        // Check for free tickets logic (client-side simple check for notification, actual logic in context/backend)
+        
         let freeTicketsMsg = "";
         const sName = sponsor.name.toLowerCase();
         if (sName.includes("title sponsor")) freeTicketsMsg = " (Includes 3 Free Tickets!)";
@@ -109,7 +109,7 @@ export default function SponsorDetailsPage({
 
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="grid grid-cols-1 md:grid-cols-2">
-                        {/* Image Section */}
+                        {}
                         <div className="relative h-64 md:h-auto bg-gray-50 p-8 flex items-center justify-center border-r border-gray-100">
                             {sponsor.image ? (
                                 <img
@@ -125,7 +125,7 @@ export default function SponsorDetailsPage({
                             )}
                         </div>
 
-                        {/* Details Section */}
+                        {}
                         <div className="p-8 flex flex-col">
                             <div className="mb-6">
                                 <h1 className="text-3xl font-bold text-gray-900 mb-2">{sponsor.name}</h1>
@@ -165,15 +165,7 @@ export default function SponsorDetailsPage({
                                 </div>
                             )}
 
-                            {/* <div className="mt-auto pt-6 border-t border-gray-100">
-                                <button
-                                    onClick={handleAddToCart}
-                                    className="flex items-center justify-center gap-2 w-full py-4 px-6 bg-[#004aad] text-white font-bold rounded-xl hover:bg-[#00317a] shadow-lg shadow-blue-200 transition-all hover:-translate-y-0.5"
-                                >
-                                    <ShoppingCart size={20} />
-                                    Add Sponsorship to Cart
-                                </button>
-                            </div> */}
+                            {}
                         </div>
                     </div>
                 </div>

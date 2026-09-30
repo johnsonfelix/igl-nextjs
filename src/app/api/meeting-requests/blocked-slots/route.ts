@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-// GET /api/meeting-requests/blocked-slots?companyId=...&eventId=...
+
 export async function GET(req: NextRequest) {
     try {
         const { searchParams } = new URL(req.url);
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
     }
 }
 
-// POST /api/meeting-requests/blocked-slots
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();
@@ -39,10 +39,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: 'companyId, eventId, and an array of meetingSlotIds are required' }, { status: 400 });
         }
 
-        // We'll use a transaction to delete existing blocked slots for this company/event
-        // and insert the new ones.
+        
+        
         await prisma.$transaction(async (tx) => {
-            // Remove existing blocked slots for this company and event
+            
             await tx.blockedMeetingSlot.deleteMany({
                 where: {
                     companyId,
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
                 },
             });
 
-            // Insert new blocked slots
+            
             if (meetingSlotIds.length > 0) {
                 await tx.blockedMeetingSlot.createMany({
                     data: meetingSlotIds.map((slotId: string) => ({

@@ -10,7 +10,7 @@ import { InvoiceTemplate } from "@/app/components/InvoiceTemplate";
 import { Printer } from "lucide-react";
 import toast from "react-hot-toast";
 
-/** ---------- Types ---------- */
+
 
 type Params = { id: string };
 
@@ -28,8 +28,8 @@ type Account = {
 type CouponApplied = {
   id?: string | null;
   code?: string | null;
-  discountAmount: number; // fixed amount
-  discountPercent: number; // %
+  discountAmount: number; 
+  discountPercent: number; 
 };
 
 type OfferScope = "ALL" | "HOTELS" | "TICKETS" | "SPONSORS" | "CUSTOM";
@@ -47,10 +47,10 @@ type Offer = {
   hotelIds?: string[];
   ticketIds?: string[];
   sponsorTypeIds?: string[];
-  boothIds?: string[]; // support booths
+  boothIds?: string[]; 
 };
 
-/** ---------- Small UI helpers ---------- */
+
 
 
 
@@ -102,7 +102,7 @@ function Totals({
   );
 }
 
-/** ---------- Cart summary UI ---------- */
+
 
 function CartSummary({
   cart,
@@ -127,7 +127,7 @@ function CartSummary({
   updateQuantity: (pid: string, qty: number, rtid?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
   removeFromCart: (pid: string, rtid?: string, isComplimentary?: boolean, linkedSponsorId?: string) => void;
 }) {
-  // Group items
+  
   const registrationItems = linesWithOffers.filter(
     (item) => String(item.productType || "").toUpperCase() !== "SPONSOR" && !item.isComplimentary && !item.linkedSponsorId
   );
@@ -178,7 +178,7 @@ function CartSummary({
               <button
                 onClick={() => updateQuantity(item.productId, item.quantity - 1, item.roomTypeId, item.isComplimentary, item.linkedSponsorId)}
                 className="p-1 px-2 text-gray-600 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
-                disabled={item.quantity <= 1 && false} // Let updateQuantity handle removal if qty=0 or handle externally
+                disabled={item.quantity <= 1 && false} 
               >
                 <Minus className="h-3 w-3" />
               </button>
@@ -201,7 +201,7 @@ function CartSummary({
           </div>
         )}
 
-        {/* Price Breakdown */}
+        {}
         <div className="mt-1 text-sm text-slate-500">
           {(item.appliedOfferPercent || (item.original > item.effective && !item.isComplimentary)) ? (
             <>
@@ -249,7 +249,7 @@ function CartSummary({
   );
 }
 
-/** ---------- Checkout Page (main) ---------- */
+
 
 export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const { id: eventId } = use(params);
@@ -290,13 +290,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
     if (accompanyingCount > ticketCount) {
       toast.error("Accompanying members cannot exceed the number of tickets.");
-      return; // Block update
+      return; 
     }
 
     updateQuantity(productId, newQty, roomTypeId, isComplimentary, linkedSponsorId);
   };
 
-  // Calculate total attendees from cart (all TICKET items)
+  
   const totalAttendeeCount = useMemo(() => {
     return cart.reduce((count, item) => {
       const nameLower = (item.name || "").toLowerCase();
@@ -306,7 +306,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       if (nameLower.includes("meeting package")) return count;
       if (productType === "HOTEL") return count;
 
-      // Count all tickets (regular, accompanying, complimentary)
+      
       if (productType === "TICKET" || nameLower.includes("ticket") || nameLower.includes("accompanying")) {
         return count + (Number(item.quantity) || 0);
       }
@@ -315,7 +315,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }, 0);
   }, [cart]);
 
-  // Generate attendee labels (Attendee vs Accompanying Member)
+  
   const attendeeLabels = useMemo(() => {
     const labels: string[] = [];
     let attendeeIndex = 1;
@@ -329,7 +329,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       // Skip meeting packages and hotels
       if (nameLower.includes("meeting package") || productType === "HOTEL") return;
 
-      // Determine if this is an accompanying member ticket
+      
       const isAccompanying = nameLower.includes("accompanying");
 
       for (let i = 0; i < quantity; i++) {
@@ -344,12 +344,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     return labels;
   }, [cart]);
 
-  // Initialize attendees array when count changes
+  
   useEffect(() => {
     setAttendees(prev => {
       const newAttendees: AttendeeDetails[] = [];
       for (let i = 0; i < totalAttendeeCount; i++) {
-        // Preserve existing data or create new with type and label
+        
         newAttendees[i] = prev[i] || {
           name: "",
           designation: "",
@@ -371,14 +371,14 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [orderData, setOrderData] = useState<any>(null);
 
-  // New state for additional info
+  
   const [companyName, setCompanyName] = useState("");
   const [referralSource, setReferralSource] = useState("");
 
   const tshirtOptions = ["S", "M", "L", "XL", "XL1", "XL2", "XL3", "XL4"];
   const referralOptions = ["Social Media", "Word of Mouth", "Website", "Others"];
 
-  // account
+  
   const [account, setAccount] = useState<Account>({
     name: "",
     email: "",
@@ -398,11 +398,11 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     email: string;
     tshirtSize: string;
     type?: string; // "regular" or "accompanying"
-    label?: string; // Display label like "Attendee 1" or "Accompanying Member 1"
+    label?: string; 
   };
   const [attendees, setAttendees] = useState<AttendeeDetails[]>([]);
 
-  // Addresses
+  
   const [billingAddress, setBillingAddress] = useState({
     line1: "",
     line2: "",
@@ -443,12 +443,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [agreePolicies, setAgreePolicies] = useState(false);
 
-  // offers
+  
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
   const [offersError, setOffersError] = useState<string | null>(null);
 
-  // Prefill from company
+  
   useEffect(() => {
     let ignore = false;
     const load = async () => {
@@ -549,7 +549,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
   };
 
   const getOriginalPriceFromCartItem = (item: any): number => {
-    // prefer explicit originalPrice then other fields
+    
     const keys = ["originalPrice", "basePrice", "listPrice", "price"];
     for (const k of keys) {
       const n = toFiniteNumber(item?.[k]);
@@ -623,7 +623,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     }
 
     if (applicable.length === 0) return { offer: null, percent: null };
-    // choose highest percentage
+    
     const best = applicable.reduce((a, b) => (b.pct > a.pct ? b : a), applicable[0]);
     return { offer: best.offer, percent: best.pct };
   }
@@ -633,19 +633,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     return Math.max(0, Number((original * (1 - percent / 100)).toFixed(2)));
   };
 
-  /** ---------- Compose computed lines & totals ----------
-   * Algorithm:
-   *  - For each cart item, determine original price (from known keys).
-   *  - Find best offer (if any) and compute effective price & line total.
-   *  - subtotalBeforeOffers = sum(original * qty)
-   *  - offerDiscountTotal = sum((original - effective) * qty)
-   *  - subtotalAfterOffers = subtotalBeforeOffers - offerDiscountTotal
-   *  - apply coupon (fixed or percent) to subtotalAfterOffers -> couponValue
-   *  - final total = subtotalAfterOffers - couponValue
-   */
+  
 
   const computed = useMemo(() => {
-    // lines with computed fields
+    
     const lines: Array<any> = [];
     let subtotalBeforeOffers = 0;
     let offerDiscountTotal = 0;
@@ -656,14 +647,14 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       const qty = Number.isFinite(Number(i.quantity)) ? Number(i.quantity) : 1;
 
       const displayOriginal = getOriginalPriceFromCartItem(i);
-      const calculationBase = Number(i.price) || 0; // Use the stored price (sellingPrice) as base for offers
+      const calculationBase = Number(i.price) || 0; 
 
       subtotalBeforeOffers += displayOriginal * qty;
 
       const best = getBestOfferForItem(productType, productId);
       const effective = getDiscountedPrice(calculationBase, best.percent ?? null);
 
-      // Savings = difference between what it "was" and what it "is"
+      
       const totalSavingsPerUnit = displayOriginal - effective;
       const lineOfferDiscount = Number((totalSavingsPerUnit * qty).toFixed(2));
       offerDiscountTotal += lineOfferDiscount;
@@ -682,13 +673,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       });
     }
 
-    // Wait, subtotalAfterOffers logic needs to be careful.
-    // subtotalBeforeOffers is sum(original * qty) = e.g. 1000
-    // offerDiscountTotal is sum((original - effective) * qty) = e.g. 200
-    // subtotalAfterOffers = 1000 - 200 = 800. Correct.
+    
+    
+    
+    
     const subtotalAfterOffers = Number((subtotalBeforeOffers - offerDiscountTotal).toFixed(2));
 
-    // coupon calculation is computed later (needs subtotalAfterOffers)
+    
     return {
       lines,
       subtotalBeforeOffers: Number(subtotalBeforeOffers.toFixed(2)),
@@ -697,10 +688,10 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     };
   }, [cart, offers]);
 
-  // coupon calculations: coupon is applied after offers
+  
   const couponDiscountValue = useMemo(() => {
     const subtotal = computed.subtotalAfterOffers ?? 0;
-    if (!appliedCoupon.code) return 0; // Fix: check code existence
+    if (!appliedCoupon.code) return 0; 
     if (appliedCoupon.discountPercent && appliedCoupon.discountPercent > 0) {
       const val = Number((subtotal * (appliedCoupon.discountPercent / 100)).toFixed(2));
       return Math.min(val, subtotal);
@@ -711,11 +702,11 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
   const finalTotal = Math.max(0, Number((computed.subtotalAfterOffers - couponDiscountValue).toFixed(2)));
 
-  // produce a user-facing label for offers in totals:
+  
   const offerLabel = useMemo(() => {
-    // if no offer discount -> null
+    
     if (!computed.offerDiscountTotal || computed.offerDiscountTotal <= 0) return null;
-    // collect unique offer names used
+    
     const used = new Map<string, { id: string; name: string; pct: number }>();
     for (const l of computed.lines) {
       if (l.appliedOffer && l.appliedOffer.id) {
@@ -723,7 +714,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       }
     }
     if (used.size === 0) {
-      // maybe global ALL offer without id? fallback to first line's offer name
+      
       const candidate = computed.lines.find((l) => l.appliedOffer);
       return candidate?.appliedOffer?.name ?? "Offer";
     }
@@ -733,7 +724,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     return "Multiple offers";
   }, [computed.lines, computed.offerDiscountTotal]);
 
-  // Offer payload for checkout: unique offers used
+  
   const appliedOffersPayload = useMemo(() => {
     const map = new Map<string, { id: string; name?: string; percent?: number }>();
     for (const l of computed.lines) {
@@ -744,14 +735,14 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
     return Array.from(map.values());
   }, [computed.lines]);
 
-  /** ---------- Coupon handling (same flow but now uses offers-aware subtotal) ---------- */
+  
 
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     const input = couponCode.trim();
     setCouponBusy(true);
     try {
-      // Attempt server-side event coupon endpoint first
+      
       try {
         const res = await fetch(`/api/events/${eventId}/apply-coupon`, {
           method: "POST",
@@ -874,7 +865,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    // Validate Account
+    
     if (!account.companyName || !billingAddress.line1) {
       alert("Please fill in Company Name and Billing Address.");
       return;
@@ -885,13 +876,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
       return;
     }
 
-    // Validate Referral Source
+    
     if (!referralSource) {
       alert("Please tell us how you heard about us.");
       return;
     }
 
-    // Validate All Attendee Details
+    
     if (totalAttendeeCount > 0) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       for (let i = 0; i < totalAttendeeCount; i++) {
@@ -900,12 +891,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           alert(`Please fill in all details for Attendee ${i + 1}.`);
           return;
         }
-        // Validate email format
+        
         if (!emailRegex.test(attendee.email)) {
           alert(`Please enter a valid email address for Attendee ${i + 1}.`);
           return;
         }
-        // Validate mobile (at least 10 digits)
+        
         const digitsOnly = attendee.mobile.replace(/\D/g, "");
         if (digitsOnly.length < 10) {
           alert(`Please enter a valid mobile number for Attendee ${i + 1} (at least 10 digits).`);
@@ -937,13 +928,13 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         }
       } catch (err) {
         console.error("Email check failed", err);
-        // Fallback: Proceed, backend will handle or fail
+        
       }
     }
 
     setSubmitting(true);
     try {
-      // Populate account with first attendee's details for backend compatibility
+      
       const accountWithDetails = {
         ...account,
         name: attendees[0]?.name || account.name || "",
@@ -978,7 +969,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           productId: String(line.productId),
           productType: String(line.productType ?? "TICKET").toUpperCase(),
           quantity: line.qty,
-          price: line.effective, // ✅ Use effective price (after offers)
+          price: line.effective, 
           name: line.name,
           ...(line.roomTypeId ? { roomTypeId: String(line.roomTypeId) } : {}),
           ...(line.boothSubTypeId ? { boothSubTypeId: String(line.boothSubTypeId) } : {}),
@@ -1004,8 +995,8 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         setOrderData(data);
         setOrderConfirmed(true);
         clearCart();
-        // Don't redirect, show success state with bank details
-        // window.location.href = `/event/${eventId}`;
+        
+        
       } else {
         const e = await res.json().catch(() => ({}));
         alert(e?.error || e?.message || "Checkout failed");
@@ -1025,15 +1016,15 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
         <Link href={`/event/${eventId}`} className="text-indigo-600 hover:underline flex items-center gap-2">
           <ArrowLeft className="w-4 h-4" /> Back to Event
         </Link>
-        {/* <h1 className="text-3xl font-bold text-slate-800">Checkout</h1> */}
+        {}
       </div>
 
       {!orderConfirmed ? (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Form Sections */}
+          {}
           <div className="lg:col-span-2 space-y-8">
 
-            {/* 1. Cart Summary */}
+            {}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">1</span>
@@ -1053,7 +1044,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               />
             </div>
 
-            {/* 2. Account Details */}
+            {}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">2</span>
@@ -1066,7 +1057,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 </div>
               </div>
 
-              {/* Billing Address */}
+              {}
               <h3 className="font-semibold text-slate-800 mt-6 mb-3">Billing Address</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -1141,7 +1132,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               )}
             </div>
 
-            {/* 3. Attendee Details (for all ticket holders) */}
+            {}
             {totalAttendeeCount > 0 && (
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                 <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
@@ -1276,7 +1267,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
             </div>
 
-            {/* 5. Payment Method */}
+            {}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
                 <span className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 grid place-items-center text-sm">{totalAttendeeCount > 0 ? '5' : '4'}</span>
@@ -1305,12 +1296,12 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
 
           </div>
 
-          {/* Right Column: Order Summary (Sticky) */}
+          {}
           <div className="lg:col-span-1">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 sticky top-6">
               <h2 className="text-xl font-bold text-slate-800 mb-4">Order Summary</h2>
 
-              {/* Totals */}
+              {}
               <Totals
                 subtotal={computed.subtotalBeforeOffers}
                 offerLabel={offerLabel}
@@ -1320,7 +1311,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 total={finalTotal}
               />
 
-              {/* Coupon Section */}
+              {}
               <div className="mt-6 pt-4 border-t border-gray-100">
                 <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 block">Discount Code / Membership Code</label>
                 <div className="flex items-center gap-2">
@@ -1354,7 +1345,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 </div>
               </div>
 
-              {/* Terms Checkboxes */}
+              {}
               <div className="space-y-3 mt-6 pt-6 border-t border-gray-100">
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" checked={agreeTerms} onChange={(e) => setAgreeTerms(e.target.checked)} className="mt-1 w-4 h-4 text-indigo-600 rounded" />
@@ -1366,7 +1357,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
                 </label>
               </div>
 
-              {/* Submit Button */}
+              {}
               <button
                 onClick={submitCheckout}
                 disabled={isSubmitting || cart.length === 0}
@@ -1382,7 +1373,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
           </div>
         </div>
       ) : (
-        /* Success State */
+        
         <div className="animate-fadeIn max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6 bg-green-50 p-6 rounded-xl border border-green-200">
             <div className="flex items-center gap-4 text-green-800">
@@ -1395,9 +1386,7 @@ export default function CheckoutPage({ params }: { params: Promise<Params> }) {
               </div>
             </div>
             <div className="flex gap-3">
-              {/* <Link href={`/event/${eventId}`} className="px-5 py-2.5 text-indigo-600 font-semibold hover:bg-white hover:shadow-sm rounded-lg transition-all border border-transparent hover:border-indigo-100">
-                Return to Event
-              </Link> */}
+              {}
               <button
                 onClick={async () => {
                   const element = document.getElementById('invoice-component');

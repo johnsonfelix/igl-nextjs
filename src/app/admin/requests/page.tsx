@@ -93,7 +93,7 @@ export default function RequestsPage() {
 
   return (
     <div className="p-6 space-y-8 max-w-[1600px] mx-auto min-h-screen bg-gray-50/50">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Meeting Requests</h1>
@@ -133,7 +133,7 @@ export default function RequestsPage() {
         </div>
       </div>
 
-      {/* Content */}
+      {}
       {loading ? (
         <div className="space-y-4">
           {[...Array(5)].map((_, i) => (

@@ -10,7 +10,7 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Token and new password are required' }, { status: 400 });
         }
 
-        // Find user with valid token and not expired
+        
         const user = await prisma.user.findFirst({
             where: {
                 resetToken: token,
@@ -24,10 +24,10 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Invalid or expired reset token' }, { status: 400 });
         }
 
-        // Hash new password
+        
         const hashedPassword = await hash(password, 12);
 
-        // Update user
+        
         await prisma.user.update({
             where: { id: user.id },
             data: {

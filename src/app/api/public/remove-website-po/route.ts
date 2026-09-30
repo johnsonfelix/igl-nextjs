@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
     const eventId = 'cmjn1f6ih0000gad4xa4j7dp3';
     try {
-        // Find POs with "Website" item
+        
         const pos = await prisma.purchaseOrder.findMany({
             where: {
                 eventId: eventId,

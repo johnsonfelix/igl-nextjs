@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// ✅ GET all agenda items for an event
+
 export async function GET(req: NextRequest) {
   try {
-    const eventId = req.nextUrl.pathname.split("/")[3]; // correct extraction
+    const eventId = req.nextUrl.pathname.split("/")[3]; 
 
     if (!eventId) {
       return NextResponse.json({ error: "Event ID not found in URL" }, { status: 400 });
@@ -23,12 +23,12 @@ export async function GET(req: NextRequest) {
 }
 
 function normalizeTime(t: string) {
-  // Accept "HH:mm" or "HH:mm:ss" — convert "HH:mm" -> "HH:mm:00"
+  
   if (/^\d{1,2}:\d{2}$/.test(t)) return `${t}:00`;
   return t;
 }
 
-// ✅ CREATE agenda item for an event
+
 export async function POST(req: NextRequest) {
   try {
     const eventId = req.nextUrl.pathname.split('/')[3];
@@ -61,8 +61,8 @@ export async function POST(req: NextRequest) {
       parsedStart = new Date(fullStartTime);
       parsedEnd = new Date(fullEndTime);
     } else {
-      // Build full datetimes from date + time (e.g. "2025-08-21T20:26:00")
-      // NOTE: This assumes server local time or UTC if string has no offset, which causes timezone issues.
+      
+      
       const startIso = `${date}T${normalizeTime(startTime)}`;
       const endIso = `${date}T${normalizeTime(endTime)}`;
       parsedStart = new Date(startIso);
@@ -73,9 +73,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid date/time format provided' }, { status: 400 });
     }
 
-    // Save a date-only value for the `date` column if you use a Date or DateTime in Prisma.
-    // Here we create a Date for midnight of the provided date (server local timezone).
-    const parsedDate = new Date(date); // "YYYY-MM-DD" -> midnight local
+    
+    
+    const parsedDate = new Date(date); 
 
     const agendaItem = await prisma.agendaItem.create({
       data: {

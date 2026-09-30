@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 import bcrypt from 'bcryptjs';
 
-// GET /api/admin/users/[id]
+
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -25,7 +25,7 @@ export async function GET(
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    // Exclude password from response for security
+    
     const { password, ...userWithoutPassword } = user;
     return NextResponse.json(userWithoutPassword);
   } catch (error) {
@@ -34,7 +34,7 @@ export async function GET(
   }
 }
 
-// PATCH /api/admin/users/[id]
+
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -77,14 +77,14 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/admin/users/[id]
+
 export async function DELETE(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
   try {
-    // Delete user
+    
     await prisma.user.delete({
       where: { id },
     });

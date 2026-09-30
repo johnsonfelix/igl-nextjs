@@ -10,7 +10,7 @@ function extractIds(req: NextRequest): { eventId: string | null; slotId: string 
     return { eventId, slotId };
 }
 
-// DELETE /api/events/[id]/meetings/[slotId] — delete a meeting slot
+
 export async function DELETE(req: NextRequest) {
     try {
         const { slotId } = extractIds(req);
@@ -24,7 +24,7 @@ export async function DELETE(req: NextRequest) {
     }
 }
 
-// PATCH /api/events/[id]/meetings/[slotId] — assign/unassign a company to a session
+
 export async function PATCH(req: NextRequest) {
     try {
         const { slotId } = extractIds(req);
@@ -37,7 +37,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: 'sessionId is required' }, { status: 400 });
         }
 
-        // Verify session belongs to this slot
+        
         const session = await prisma.meetingSession.findFirst({
             where: { id: sessionId, meetingSlotId: slotId },
         });
@@ -46,7 +46,7 @@ export async function PATCH(req: NextRequest) {
             return NextResponse.json({ error: 'Session not found in this slot' }, { status: 404 });
         }
 
-        // Build update data based on which fields are provided
+        
         const updateData: any = {};
         if ('companyId' in body) updateData.companyId = companyId || null;
         if ('companyBId' in body) updateData.companyBId = companyBId || null;
@@ -68,7 +68,7 @@ export async function PATCH(req: NextRequest) {
     }
 }
 
-// PUT /api/events/[id]/meetings/[slotId] — update session count (add/remove sessions)
+
 export async function PUT(req: NextRequest) {
     try {
         const { slotId } = extractIds(req);
@@ -81,7 +81,7 @@ export async function PUT(req: NextRequest) {
             return NextResponse.json({ error: 'sessions must be >= 1' }, { status: 400 });
         }
 
-        // Fetch the current slot
+        
         const slot = await prisma.meetingSlot.findUnique({
             where: { id: slotId },
             include: {
@@ -99,7 +99,7 @@ export async function PUT(req: NextRequest) {
         const sessionDurationMs = (end - start) / newSessionCount;
 
         await prisma.$transaction(async (tx) => {
-            // If reducing sessions, delete the excess ones from the end
+            
             if (newSessionCount < currentCount) {
                 const sessionsToDelete = slot.meetingSessions.slice(newSessionCount);
                 await tx.meetingSession.deleteMany({
@@ -107,7 +107,7 @@ export async function PUT(req: NextRequest) {
                 });
             }
 
-            // If increasing sessions, create new ones
+            
             if (newSessionCount > currentCount) {
                 const newSessions = Array.from(
                     { length: newSessionCount - currentCount },
@@ -124,7 +124,7 @@ export async function PUT(req: NextRequest) {
                 await tx.meetingSession.createMany({ data: newSessions });
             }
 
-            // Update all session times to be evenly distributed
+            
             const remainingCount = Math.min(currentCount, newSessionCount);
             for (let i = 0; i < remainingCount; i++) {
                 await tx.meetingSession.update({
@@ -137,14 +137,14 @@ export async function PUT(req: NextRequest) {
                 });
             }
 
-            // Update the slot's session count
+            
             await tx.meetingSlot.update({
                 where: { id: slotId },
                 data: { sessions: newSessionCount },
             });
         });
 
-        // Fetch and return the updated slot
+        
         const updatedSlot = await prisma.meetingSlot.findUnique({
             where: { id: slotId },
             include: {

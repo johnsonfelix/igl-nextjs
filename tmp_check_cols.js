@@ -3,12 +3,12 @@ const fs = require('fs');
 const prisma = new PrismaClient();
 
 async function main() {
-    // Check existing MeetingRequest data
+    
     const existingRequests = await prisma.$queryRawUnsafe(`SELECT * FROM "MeetingRequest" LIMIT 5`);
     console.log('Existing MeetingRequest data count check...');
     fs.writeFileSync('tmp_output.json', JSON.stringify(existingRequests, null, 2));
     
-    // Check if meetingSlotId column already exists
+    
     const hasSlotCol = await prisma.$queryRaw`
         SELECT column_name FROM information_schema.columns 
         WHERE table_name = 'MeetingRequest' AND column_name = 'meetingSlotId'

@@ -15,7 +15,7 @@ import { motion, AnimatePresence } from "framer-motion";
 export default function EventFormPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("id"); // if present, edit mode
+  const eventId = searchParams.get("id"); 
 
   const isEditMode = Boolean(eventId);
   const [loading, setLoading] = useState(false);
@@ -67,7 +67,7 @@ export default function EventFormPage() {
     name: "",
     price: "",
     description: "",
-    type: "BOOTH_NUMBER", // BOOTH_NUMBER | TIME_SLOT | CUSTOM
+    type: "BOOTH_NUMBER", 
     slotStart: "",
     slotEnd: "",
   });
@@ -90,7 +90,7 @@ export default function EventFormPage() {
     }
   };
 
-  // Fetch event data if editing
+  
   const fetchEvent = async () => {
     try {
       setFetching(true);
@@ -238,11 +238,12 @@ export default function EventFormPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Redirect to detail page or list page
+        
         router.push(`/admin/events/${data.id || eventId}`);
       } else {
-        console.error(await res.json());
-        alert("Failed to save event. See console for details.");
+        const errorData = await res.json();
+        console.error(errorData);
+        alert(`Failed to save event: ${errorData.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Error submitting event:", error);
@@ -252,7 +253,7 @@ export default function EventFormPage() {
     }
   };
 
-  // ---- Booth subtype helpers ----
+  
 
   const openSubtypeManager = (booth: any) => {
     if (!eventId) {
@@ -344,7 +345,7 @@ export default function EventFormPage() {
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-8 font-sans">
       <div className="max-w-5xl mx-auto space-y-8">
 
-        {/* HEADER */}
+        {}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">
@@ -366,9 +367,9 @@ export default function EventFormPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* LEFT COLUMN - MAIN DETAILS */}
+          {}
           <div className="lg:col-span-2 space-y-8">
-            {/* BASIC INFO CARD */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100"
@@ -410,7 +411,6 @@ export default function EventFormPage() {
                     >
                       <option value="New">New Event</option>
                       <option value="Hot">Hot Event</option>
-                      <option value="Upcoming">Upcoming</option>
                     </select>
                   </div>
                 </div>
@@ -451,7 +451,7 @@ export default function EventFormPage() {
               </div>
             </motion.div>
 
-            {/* ATTACHMENTS CARD */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100"
@@ -475,7 +475,7 @@ export default function EventFormPage() {
                 </Button>
               </div>
 
-              {/* SELECTED ITEMS SUMMARY GRID */}
+              {}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex flex-col items-center justify-center text-center">
                   <span className="text-2xl font-bold text-gray-800">{selectedBoothIds.length}</span>
@@ -497,9 +497,9 @@ export default function EventFormPage() {
             </motion.div>
           </div>
 
-          {/* RIGHT COLUMN - MEDIA & PREVIEW */}
+          {}
           <div className="space-y-8">
-            {/* THUMBNAIL UPLOAD */}
+            {}
             <motion.div
               initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
               className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-100"
@@ -816,7 +816,7 @@ export default function EventFormPage() {
             )}
           </div>
 
-          {/* ADD FORM */}
+          {}
           <div className="p-5 bg-gray-50 rounded-2xl border border-gray-100 space-y-4">
             <h3 className="font-bold text-gray-900 border-b border-gray-200 pb-2 mb-2">Add New Slot</h3>
 

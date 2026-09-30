@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import { deleteS3Object } from "@/app/lib/s3";
 
-// GET single hotel
+
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// UPDATE hotel
+
 export async function PUT(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -52,7 +52,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE hotel
+
 function extractIdFromReq(req: NextRequest) {
   const url = new URL(req.url);
   const parts = url.pathname.split("/").filter(Boolean);
@@ -63,7 +63,7 @@ export async function DELETE(req: NextRequest) {
   try {
     const id = extractIdFromReq(req);
 
-    // 1) Load hotel + room types so you can clean up external assets if needed
+    
     const existing = await prisma.hotel.findUnique({
       where: { id },
       include: { roomTypes: true },
@@ -72,7 +72,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Hotel not found" }, { status: 404 });
     }
 
-    // 2) Optional: delete room type images from S3
+    
     await Promise.all(
       (existing.roomTypes ?? []).map(async (rt) => {
         const keyOrUrl = (rt as any).imageKey ?? rt.image ?? null;
@@ -86,7 +86,7 @@ export async function DELETE(req: NextRequest) {
       })
     );
 
-    // 3) Optional: delete hotel image from S3
+    
     const hotelKeyOrUrl = (existing as any).imageKey ?? existing.image ?? null;
     if (hotelKeyOrUrl) {
       try {
@@ -96,7 +96,7 @@ export async function DELETE(req: NextRequest) {
       }
     }
 
-    // 4) Delete children then parent in one atomic transaction (if no cascade)
+    
     await prisma.$transaction([
       prisma.roomType.deleteMany({ where: { hotelId: id } }),
       prisma.hotel.delete({ where: { id } }),

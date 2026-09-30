@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-// ✅ GET venue
+
 export async function GET(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -19,14 +19,14 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ✅ POST venue with safety checks
+
 export async function POST(req: NextRequest) {
   try {
     const url = new URL(req.url);
     const pathnameParts = url.pathname.split('/');
     const eventId = pathnameParts[pathnameParts.length - 2];
 
-    // ✅ Ensure the event exists
+    
     const existingEvent = await prisma.event.findUnique({
       where: { id: eventId },
     });
@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Event not found. Cannot create venue.' }, { status: 404 });
     }
 
-    // ✅ Ensure a Venue does not already exist for this event
+    
     const existingVenue = await prisma.venue.findUnique({
       where: { eventId },
     });
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       data: {
         name: body.name,
         description: body.description || null,
-        location: body.location || null, // <-- ADDED
+        location: body.location || null, 
         imageUrls: body.imageUrls || [],
         closestAirport: body.closestAirport || null,
         publicTransport: body.publicTransport || null,
@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// ✅ PUT venue
+
 export async function PUT(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -88,11 +88,11 @@ export async function PUT(req: NextRequest) {
       data: {
         name: body.name,
         description: body.description || null,
-        location: body.location || null, // <-- ADDED
+        location: body.location || null, 
         imageUrls: body.imageUrls || [],
         closestAirport: body.closestAirport || null,
         publicTransport: body.publicTransport || null,
-        nearbyPlaces: body.nearbyPlaces || null, // <-- ADDED for consistency
+        nearbyPlaces: body.nearbyPlaces || null, 
       },
     });
 

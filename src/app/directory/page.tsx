@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Search, MapPin, Building, Award, Star, TrendingUp, CheckCircle } from 'lucide-react';
 
-// --- Type Definitions ---
+
 interface Media { id: number; url: string; }
 interface Location { id: number; address?: string; city?: string; state?: string; country?: string; zipCode?: string; port?: string; }
 interface Company {
@@ -15,7 +15,7 @@ interface Company {
   isVerified: boolean;
   purchasedMembership: string;
   memberSince: string;
-  established?: string; // or Date, depending on how it's serialized
+  established?: string; 
   services?: string[];
   specialties?: string[];
   logoUrl?: string;
@@ -33,7 +33,7 @@ interface MembershipPlan {
   thumbnail: string | null;
 }
 
-// --- Helper Components & Functions ---
+
 const getEstablishedYears = (establishedDate?: string) => {
   if (!establishedDate) return 0;
   const d = new Date(establishedDate);
@@ -65,24 +65,24 @@ const MembershipBadge = ({ type, isVerified }: { type?: string, isVerified?: boo
   if (type && styleMap[type]) {
     style = styleMap[type];
   } else if (type) {
-    // Default style for other specialities
+    
     style = 'bg-cyan-100 text-cyan-800';
   } else {
-    return null; // Don't render a badge if no type is provided
+    return null; 
   }
 
   return <span className={`${baseStyle} ${style}`}>{type}</span>;
 };
 
 
-// --- Main Page Component ---
+
 export default function CompaniesListPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]); // Store plans locally
+  const [membershipPlans, setMembershipPlans] = useState<MembershipPlan[]>([]); 
 
-  // --- Filter States ---
+  
   const [country, setCountry] = useState('All');
   const [city, setCity] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -102,16 +102,16 @@ export default function CompaniesListPage() {
   const tabs = ['Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Company Name');
 
-  // --- Data Fetching ---
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies();
-    }, 400); // Debounce API calls
+    }, 400); 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [country, city, companyName, memberId, port, currentPage]);
 
-  // Fetch membership plans for legacy mapping
+  
   useEffect(() => {
     fetch('/api/admin/membership-plans')
       .then(res => res.json())
@@ -129,11 +129,11 @@ export default function CompaniesListPage() {
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
 
-    // Sorting - Default to Oldest Member First (Ascending Year)
+    
     params.sort = 'memberFromYear';
     params.order = 'asc';
 
-    // Pagination: calculate offset based on page (1-based)
+    
     const limit = 10;
     const offset = (currentPage - 1) * limit;
 
@@ -152,7 +152,7 @@ export default function CompaniesListPage() {
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const response = await res.json();
-      // Handle response structure { data, total, page, totalPages }
+      
       const data = Array.isArray(response) ? response : (response.data || []);
       const total = response.totalPages || 0;
 
@@ -169,7 +169,7 @@ export default function CompaniesListPage() {
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
-    // Clear all filters when switching tabs to ensure exclusive search mode
+    
     setCountry('All');
     setCity('');
     setCompanyName('');
@@ -195,7 +195,7 @@ export default function CompaniesListPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
       <main className="container mx-auto p-4 md:p-8 max-w-7xl">
-        {/* Page Header */}
+        {}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-1.5 h-8 bg-[#004aad] rounded-full"></div>
@@ -204,7 +204,7 @@ export default function CompaniesListPage() {
           <p className="text-gray-500 ml-6">Discover and connect with verified logistics companies worldwide</p>
         </div>
 
-        {/* Search Section */}
+        {}
         <div className="mb-8 p-8 rounded-2xl bg-white border border-gray-100 shadow-lg shadow-gray-200/50">
           <div className="flex border-b border-gray-100 mb-6 -mx-2">
             {tabs.map(t => (
@@ -274,7 +274,7 @@ export default function CompaniesListPage() {
 
               return (
                 <Link key={company.id} href={`/company/details/${company.id}`} className="group flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-[#004aad]/50 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden relative block text-left">
-                  {/* Decorative border on hover */}
+                  {}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#004aad] to-[#4a8a52] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                   <div className="flex-shrink-0 flex md:flex-col items-center gap-3">
@@ -299,7 +299,7 @@ export default function CompaniesListPage() {
                     <div className="flex flex-wrap items-center gap-2 mt-5">
                       {company.isVerified && <MembershipBadge isVerified={true} />}
                       {(() => {
-                        // Priority 1: Relation data
+                        
                         if (company.membershipPlan?.thumbnail) {
                           return (
                             <div className="relative h-8 w-24">
@@ -312,7 +312,7 @@ export default function CompaniesListPage() {
                             </div>
                           );
                         }
-                        // Priority 2: Legacy mapping
+                        
                         if (company.purchasedMembership) {
                           const matchedPlan = membershipPlans.find(p => p.name.trim().toLowerCase() === company.purchasedMembership.trim().toLowerCase());
                           if (matchedPlan?.thumbnail) {
@@ -328,7 +328,7 @@ export default function CompaniesListPage() {
                             );
                           }
                         }
-                        // Fallback: Badge
+                        
                         return <MembershipBadge type={company.purchasedMembership} />;
                       })()}
                       {membershipYears > 0 && (
@@ -355,7 +355,7 @@ export default function CompaniesListPage() {
             })}
           </div>
 
-          {/* Pagination Controls */}
+          {}
           {!loading && companies.length > 0 && (
             <div className="mt-12 flex justify-center items-center gap-2">
               <button
@@ -400,33 +400,7 @@ export default function CompaniesListPage() {
             </div>
           )}
 
-          {/* <aside className="hidden lg:block space-y-6">
-            <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-gray-800 text-white rounded-xl p-3 shadow-md"><TrendingUp size={20} /></div>
-                <h3 className="font-bold text-lg text-gray-800">Global Inquiries</h3>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">Access curated hotlists, market trends, and member inquiries to stay ahead in the industry.</p>
-              <button className="w-full mt-5 rounded-xl bg-gray-800 text-white py-3 text-sm font-bold hover:bg-black transition-all shadow-md hover:shadow-lg hover:translate-y-[-2px]">
-                View Hotlists
-              </button>
-            </div>
-            <div className="rounded-2xl bg-gradient-to-br from-[#004aad] to-[#4a8a52] p-6 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 opacity-10">
-                <Award size={120} />
-              </div>
-              <div className="relative z-10">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="bg-white/20 backdrop-blur-sm rounded-xl p-3 shadow-md"><Award size={20} /></div>
-                  <h3 className="font-bold text-lg">Become Verified</h3>
-                </div>
-                <p className="text-sm text-white/95 leading-relaxed">Increase trust and visibility in the network by getting your profile verified today.</p>
-                <button className="w-full mt-5 rounded-xl bg-white text-[#004aad] py-3 text-sm font-bold hover:bg-gray-50 transition-all shadow-lg hover:shadow-xl hover:translate-y-[-2px]">
-                  Learn More
-                </button>
-              </div>
-            </div>
-          </aside> */}
+          {}
         </div>
       </main>
     </div>

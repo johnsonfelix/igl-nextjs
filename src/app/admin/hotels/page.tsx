@@ -19,7 +19,7 @@ export default function HotelsPage() {
   const [hotels, setHotels] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Hotel form state
+  
   const [formOpen, setFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [savingHotel, setSavingHotel] = useState(false);
@@ -79,7 +79,7 @@ export default function HotelsPage() {
     fetchHotels();
   }, []);
 
-  // Preview URL lifecycle for hotel image
+  
   useEffect(() => {
     if (!hotelFile) {
       setHotelPreviewUrl(formData.image || null);
@@ -90,7 +90,7 @@ export default function HotelsPage() {
     return () => URL.revokeObjectURL(url);
   }, [hotelFile, formData.image]);
 
-  // Preview URL lifecycle for room image
+  
   useEffect(() => {
     if (!roomFile) {
       setRoomPreviewUrl(roomFormData.image || null);
@@ -291,7 +291,7 @@ export default function HotelsPage() {
     return (
       <motion.div variants={itemVariants} className="group flex flex-col h-full">
         <div className="relative overflow-hidden rounded-2xl shadow-sm border border-gray-100 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex-1 flex flex-col">
-          {/* Image Section */}
+          {}
           <div className="relative h-56 overflow-hidden bg-gray-100 group">
             {hotel.image ? (
               <img src={hotel.image} alt={hotel.hotelName} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
@@ -301,10 +301,10 @@ export default function HotelsPage() {
               </div>
             )}
 
-            {/* Overlay Gradient */}
+            {}
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
-            {/* Top Actions Overlay */}
+            {}
             <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               <Button size="icon" className="h-9 w-9 bg-white/90 hover:bg-white text-gray-700 hover:text-emerald-600 rounded-full shadow-lg backdrop-blur-sm transition-colors" onClick={() => openEditForm(hotel)}>
                 <Edit size={16} />
@@ -314,7 +314,7 @@ export default function HotelsPage() {
               </Button>
             </div>
 
-            {/* Bottom Info Overlay */}
+            {}
             <div className="absolute bottom-4 left-4 right-4 text-white">
               <h3 className="text-xl font-bold tracking-tight drop-shadow-md leading-tight mb-1">{hotel.hotelName}</h3>
               <div className="flex items-center gap-1.5 text-white/90 text-sm font-medium drop-shadow-sm">
@@ -325,7 +325,7 @@ export default function HotelsPage() {
           </div>
 
           <CardContent className="p-5 flex-1 flex flex-col gap-4">
-            {/* Contact Details Grid */}
+            {}
             <div className="grid grid-cols-2 gap-y-2 text-sm text-gray-600">
               <div className="flex items-center gap-2" title={hotel.contact}>
                 <Phone size={14} className="text-emerald-500/70" />
@@ -337,7 +337,7 @@ export default function HotelsPage() {
               </div>
             </div>
 
-            {/* Rooms Preview Pucks */}
+            {}
             <div className="flex flex-wrap gap-2 mt-auto pt-4 border-t border-gray-100">
               {hotel.roomTypes && hotel.roomTypes.length > 0 ? (
                 hotel.roomTypes.slice(0, 3).map((r: any) => (
@@ -355,7 +355,7 @@ export default function HotelsPage() {
               )}
             </div>
 
-            {/* Card Footer Actions */}
+            {}
             <div className="grid grid-cols-2 gap-3 mt-2">
               <Button variant="outline" className="w-full border-gray-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200 transition-colors" onClick={() => openRoomForm(hotel.id)}>
                 <Plus size={16} className="mr-2" /> Add Room
@@ -376,7 +376,7 @@ export default function HotelsPage() {
 
   return (
     <div className="p-6 max-w-[1600px] mx-auto space-y-8">
-      {/* Header Section */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight">Hotels</h1>
@@ -405,16 +405,7 @@ export default function HotelsPage() {
 
           <Sheet open={formOpen} onOpenChange={setFormOpen}>
             <SheetTrigger asChild>
-              {/* 
-                     Using onClick to strictly ensure form reset. 
-                     Note: SheetTrigger prevents the default onClick from propagating sometimes, 
-                     so we rely on the manual setFormOpen(true) inside handleOpenAddHotel.
-                     BUT SheetTrigger automatically toggles state. 
-                     We should REMOVE SheetTrigger and just use a Button if we want manual control, 
-                     OR we can keep SheetTrigger and just use onOpenChange to reset if opening.
-                     
-                     Better approach: Remove SheetTrigger, use standard Button + onClick handler.
-                 */}
+              {}
               <div />
             </SheetTrigger>
             <Button onClick={handleOpenAddHotel} className="bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition-all">
@@ -507,7 +498,7 @@ export default function HotelsPage() {
                   </div>
 
                   <div className="pt-4 flex gap-3">
-                    {/* Cancel button now also resets form for good measure */}
+                    {}
                     <Button variant="outline" className="flex-1" onClick={() => {
                       setFormOpen(false);
                       resetHotelForm();
@@ -523,7 +514,7 @@ export default function HotelsPage() {
         </div>
       </div>
 
-      {/* Content Grid */}
+      {}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
           {[...Array(8)].map((_, i) => (
@@ -556,7 +547,7 @@ export default function HotelsPage() {
         </motion.div>
       )}
 
-      {/* Room Form Sheet */}
+      {}
       <Sheet open={roomFormOpen} onOpenChange={setRoomFormOpen}>
         <SheetContent side="right" className="w-full sm:w-[500px] bg-white">
           <div className="py-6 space-y-6 h-full flex flex-col">
@@ -647,7 +638,7 @@ export default function HotelsPage() {
         </SheetContent>
       </Sheet>
 
-      {/* Manage Rooms List Sheet */}
+      {}
       <Sheet open={manageRoomsOpen} onOpenChange={setManageRoomsOpen}>
         <SheetContent side="right" className="w-full sm:w-[500px] overflow-y-auto">
           <div className="py-6 space-y-6">

@@ -6,14 +6,14 @@ const prisma = new PrismaClient();
 export async function GET(_req: NextRequest, ctx: any) {
   try {
     const params = ctx?.params || {};
-    const eventId: string | undefined = params.id;        // <-- event param is [id]
-    const hotelId: string | undefined = params.hotelId;   // <-- hotel param is [hotelId]
+    const eventId: string | undefined = params.id;        
+    const hotelId: string | undefined = params.hotelId;   
 
     if (!eventId || !hotelId) {
       return NextResponse.json({ error: 'id (eventId) and hotelId are required' }, { status: 400 });
     }
 
-    // Make sure the event exists and is linked to the given hotel (defensive check)
+    
     const eventWithHotel = await prisma.event.findFirst({
       where: {
         id: eventId,
@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest, ctx: any) {
       );
     }
 
-    // Fetch basic hotel data
+    
     const hotel = await prisma.hotel.findUnique({
       where: { id: hotelId },
       select: { id: true, hotelName: true, address: true, image: true },
@@ -39,7 +39,7 @@ export async function GET(_req: NextRequest, ctx: any) {
       return NextResponse.json({ error: 'Hotel not found' }, { status: 404 });
     }
 
-    // Fetch room types for the hotel and include per-event availability (EventRoomType)
+    
     const roomTypes = await prisma.roomType.findMany({
       where: { hotelId },
       include: {
@@ -52,7 +52,7 @@ export async function GET(_req: NextRequest, ctx: any) {
     });
 
     return NextResponse.json({
-      event: eventWithHotel, // { id, name }
+      event: eventWithHotel, 
       hotel,
       roomTypes,
     });

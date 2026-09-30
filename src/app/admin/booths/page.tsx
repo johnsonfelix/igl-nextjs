@@ -65,7 +65,7 @@ export default function BoothsPage() {
     try {
       let imageUrl = formData.image;
 
-      // If a new file is selected, upload it to S3
+      
       if (file) {
         imageUrl = await uploadFileToS3(file);
       }
@@ -86,7 +86,7 @@ export default function BoothsPage() {
         });
       }
 
-      // Reset form and state
+      
       setFormData({ name: "", price: "", image: "" });
       setFile(null);
       setPreviewUrl(null);
@@ -129,7 +129,7 @@ export default function BoothsPage() {
 
   return (
     <div className="p-6 space-y-8 max-w-[1600px] mx-auto">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Booths</h1>
@@ -187,7 +187,7 @@ export default function BoothsPage() {
                     />
                   </div>
 
-                  {/* Image Upload Field */}
+                  {}
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Layout / Image</Label>
                     <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer relative group">
@@ -238,7 +238,7 @@ export default function BoothsPage() {
         </div>
       </div>
 
-      {/* Booths List */}
+      {}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(6)].map((_, i) => (

@@ -51,7 +51,7 @@ export default function RegisterCompanyPage() {
         throw new Error(data?.error || 'Something went wrong');
       }
 
-      // ✅ Send user to login (your login page lives at /company/login)
+      
       router.push('/company/login');
       router.refresh();
     } catch (err) {
@@ -66,7 +66,7 @@ export default function RegisterCompanyPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Decoration Side */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
         <div className="absolute inset-0">
           <Image src="/images/bg-2.jpg" alt="Register Background" fill className="object-cover opacity-60" />
@@ -78,17 +78,17 @@ export default function RegisterCompanyPage() {
         </div>
       </div>
 
-      {/* Right Form Side */}
+      {}
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-10 animate-fadeIn">
-          {/* Header */}
+          {}
           <div className="text-center mb-8">
             <h1 className="text-3xl font-extrabold text-gray-800">Register Your Company</h1>
             <p className="text-gray-500 mt-2">Create your company account to get started</p>
           </div>
 
           <form onSubmit={onSubmit} className="space-y-6">
-            {/* Company Name */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Company Name</label>
               <div className="relative">
@@ -106,7 +106,7 @@ export default function RegisterCompanyPage() {
               </div>
             </div>
 
-            {/* Sector */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Sector</label>
               <select
@@ -121,7 +121,7 @@ export default function RegisterCompanyPage() {
               </select>
             </div>
 
-            {/* City & Country */}
+            {}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
@@ -157,7 +157,7 @@ export default function RegisterCompanyPage() {
               </div>
             </div>
 
-            {/* Email */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
               <div className="relative">
@@ -176,7 +176,7 @@ export default function RegisterCompanyPage() {
               </div>
             </div>
 
-            {/* Password */}
+            {}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
               <div className="relative">
@@ -203,7 +203,7 @@ export default function RegisterCompanyPage() {
               <p className="text-xs text-gray-500 mt-1">Use at least 8 characters, with a number and a symbol for best security.</p>
             </div>
 
-            {/* Terms */}
+            {}
             <div className="flex items-start gap-2">
               <input
                 id="agreeToTerms"
@@ -241,7 +241,7 @@ export default function RegisterCompanyPage() {
             </button>
           </form>
 
-          {/* Footer links */}
+          {}
           <div className="mt-8 text-center border-t pt-6">
             <p className="text-gray-600 text-sm">
               Already have an account?{' '}

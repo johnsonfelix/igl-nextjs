@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    // ✅ await is required in Next.js 15+
+    
     const cookieStore = await cookies();
     const userId = cookieStore.get("userId")?.value;
 
@@ -26,7 +26,7 @@ export async function GET() {
 
     let company = await prisma.company.findFirst({ where: { userId: user.id } });
 
-    // If no direct company found, check if user is a branch user
+    
     if (!company) {
       const branch = await prisma.branch.findFirst({
         where: { userId: user.id },

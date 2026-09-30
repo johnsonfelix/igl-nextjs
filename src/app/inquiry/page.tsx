@@ -7,7 +7,7 @@ import { Search, Clock, MapPin, Ship, Plane, Truck, ArrowRight, Package } from '
 import { format } from 'date-fns';
 import { useAuth } from '@/app/context/AuthContext';
 
-// --- TYPE DEFINITION ---
+
 type Inquiry = {
     id: string;
     from: string;
@@ -17,7 +17,7 @@ type Inquiry = {
     createdAt: string;
 };
 
-// --- UI COMPONENTS ---
+
 
 const InquiryFilters = ({ filters, onFilterChange }: { filters: any, onFilterChange: (name: string, value: string) => void }) => {
     return (
@@ -141,7 +141,7 @@ const InquiryGridSkeleton = () => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function InquiryBoardPage() {
     const [allInquiries, setAllInquiries] = useState<Inquiry[]>([]);
     const [loading, setLoading] = useState(true);
@@ -192,7 +192,7 @@ export default function InquiryBoardPage() {
 
     return (
         <div className="bg-white min-h-screen">
-            {/* Hero Section */}
+            {}
             <header className="relative h-[300px] lg:h-[400px] flex items-center justify-center text-center overflow-hidden">
                 <div className="absolute inset-0">
                     <Image
@@ -211,7 +211,7 @@ export default function InquiryBoardPage() {
             </header>
 
             <main className="container mx-auto px-4 pb-20">
-                {/* Search Filters - Overlapping the Hero */}
+                {}
                 <InquiryFilters filters={filters} onFilterChange={handleFilterChange} />
 
                 <div className="mt-16">

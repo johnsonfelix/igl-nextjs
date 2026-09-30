@@ -105,18 +105,18 @@ export default function Home() {
       separator: true,
       link: "/event/cmjn1f6ih0000gad4xa4j7dp3"
     },
-    // {
-    //   id: 3,
-    //   bgImage: "/images/bg-1.jpg",
-    //   leftImage: "/images/demo-green-energy-slider-left-01.jpg", // Reusing potentially same bg for left side based on HTML
-    //   welcome: "Welcome to IGLA",
-    //   title1: "Sponsorship",
-    //   title2: "Forwarders",
-    //   title3: "Opportunity",
-    //   desc: "",
-    //   separator: true,
-    //   link: "/membership/become-member"
-    // }
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
   ];
 
   const teamMembers = [
@@ -126,14 +126,14 @@ export default function Home() {
     { id: 5, img: '/images/Member5.jpg' },
     { id: 6, img: '/images/Member6.png' },
     { id: 7, img: '/images/Member7.png' },
-    // Duplicate 1
+    
     { id: 22, img: '/images/Member2.png' },
     { id: 33, img: '/images/Member3.jpg' },
     { id: 44, img: '/images/Member4.jpg' },
     { id: 55, img: '/images/Member5.jpg' },
     { id: 66, img: '/images/Member6.png' },
     { id: 77, img: '/images/Member7.png' },
-    // Duplicate 2
+    
     { id: 222, img: '/images/Member2.png' },
     { id: 333, img: '/images/Member3.jpg' },
     { id: 444, img: '/images/Member4.jpg' },
@@ -159,7 +159,7 @@ export default function Home() {
     <div className="min-h-screen bg-white text-gray-800 font-sans">
       <PopupAd />
       <main>
-        {/* Banner Section with Swiper */}
+        {}
         <section className="relative overflow-hidden bg-gray-100">
           <Swiper
             modules={[Autoplay, Navigation, Pagination, EffectFade]}
@@ -176,7 +176,7 @@ export default function Home() {
             {bannerSlides.map((slide) => (
               <SwiperSlide key={slide.id}>
                 <div className="h-full w-full flex flex-col-reverse lg:flex-row">
-                  {/* Left Side (Text) - Bottom on mobile */}
+                  {}
                   <div className="w-full lg:w-5/12 relative flex-1 bg-white lg:bg-transparent -mt-8 lg:mt-0 z-10 rounded-t-3xl lg:rounded-none">
                     <div className="absolute inset-0 hidden lg:block">
                       <Image
@@ -193,18 +193,7 @@ export default function Home() {
                       </span>
                       <h1 className="text-3xl md:text-5xl lg:text-7xl font-bold leading-tight mb-6 lg:mb-8">
                         {slide.title1}<br />
-                        {/* <span className="relative">
-                          {slide.title2}
-                          {slide.separator && (
-                            <Image
-                              src="/images/demo-green-energy-highlight-separator.svg"
-                              alt=""
-                              width={200}
-                              height={20}
-                              className="absolute -bottom-2 left-0 w-full -z-10"
-                            />
-                          )}
-                        </span><br /> */}
+                        {}
                         {slide.title3}
                       </h1>
                       <div className="flex flex-col sm:flex-row flex-wrap gap-4">
@@ -212,15 +201,12 @@ export default function Home() {
                           <ThumbsUp className="w-5 h-5" />
                           Register Now
                         </Link>
-                        {/* <Link href="/event/list" className="text-[#004aad] lg:text-white border border-[#004aad]/30 lg:border-white/50 px-6 py-3 lg:px-8 lg:py-4 rounded-full font-bold hover:bg-[#004aad]/5 lg:hover:bg-white/10 flex items-center justify-center gap-2 transition-transform hover:scale-105">
-                          View services
-                          <Box className="w-5 h-5" />
-                        </Link> */}
+                        {}
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Side (Image) - Top on mobile */}
+                  {}
                   <div className="w-full lg:w-7/12 relative h-[50vh] lg:h-full">
                     <Image
                       src={slide.bgImage}
@@ -232,10 +218,10 @@ export default function Home() {
                       quality={100}
                       unoptimized={true}
                     />
-                    { // @ts-ignore
+                    { 
                       slide.bgImageMobile && (
                         <Image
-                          // @ts-ignore
+                          
                           src={slide.bgImageMobile}
                           alt="Banner Image Mobile"
                           fill
@@ -249,7 +235,7 @@ export default function Home() {
             ))}
           </Swiper>
 
-          {/* Custom Navigation Buttons */}
+          {}
           <div className="swiper-button-prev-custom absolute left-4 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-white/70 hover:text-white transition-all hidden md:flex items-center justify-center hover:scale-125">
             <ChevronLeft className="w-10 h-10" />
           </div>
@@ -257,11 +243,11 @@ export default function Home() {
             <ChevronRight className="w-10 h-10" />
           </div>
 
-          {/* Next Event Countdown Section - Moved inside Hero for absolute positioning */}
+          {}
           {nextEvent && (
             <div className="hidden lg:block lg:absolute lg:bottom-10 lg:right-10 z-20 w-full lg:w-auto px-4 lg:px-0 mt-4 lg:mt-0 lg:max-w-xs 2xl:max-w-2xl">
               <div className="bg-[#004aad] rounded-xl p-4 lg:p-3 2xl:p-8 text-white shadow-lg relative overflow-hidden animate-fadeIn">
-                {/* Background Pattern */}
+                {}
                 <div className="absolute right-0 bottom-0 h-full w-1/3 opacity-10 pointer-events-none">
                   <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <path d="M0 100 C 20 0 50 0 100 100 Z" fill="white" />
@@ -299,14 +285,14 @@ export default function Home() {
 
         <SponsorShowcase />
 
-        {/* Sign In Banner */}
+        {}
 
-        {/* Sponsorship Benefits Section */}
+        {}
         <SponsorshipBenefitsSection />
 
-        {/* About Us Section Hidden */}
+        {}
 
-        {/* Why Choose Us Section Hidden */}
+        {}
 
 
 
@@ -314,20 +300,20 @@ export default function Home() {
 
 
 
-        {/* Past Events Section */}
+        {}
         <PastEventsSection />
 
 
 
-        {/* Testimonials Section */}
+        {}
         <TestimonialsSection />
 
-        {/* Latest Inquiries Section */}
+        {}
         <LatestInquiriesSection />
 
 
 
-        {/* Why Choose IGLA Section */}
+        {}
         <section className="py-20">
           <div className="container mx-auto px-4">
             <div className="flex items-center gap-3 mb-8">
@@ -358,7 +344,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Financial Protection Section */}
+        {}
         <section className="py-20 bg-[#f9f9f9]">
           <div className="container mx-auto px-4">
             <div className="grid lg:grid-cols-2 gap-12 mb-12">
@@ -393,7 +379,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Team Members Section */}
+        {}
         <section className="py-20 bg-white" style={{ backgroundImage: "url('/images/demo-it-business-testimonial-bg.png')", backgroundRepeat: 'no-repeat', backgroundPosition: 'center top' }}>
           <div className="container mx-auto px-4 text-center">
             <h2 className="text-3xl font-medium mb-12">Our Team <span className="font-bold border-b-4 border-primary">Members</span></h2>

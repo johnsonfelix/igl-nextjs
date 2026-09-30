@@ -32,7 +32,7 @@ export default function TicketDetailsPage({
     useEffect(() => {
         const fetchTicket = async () => {
             try {
-                // Fetching from the public endpoint
+                
                 const res = await fetch(`/api/tickets/${resolvedParams.ticketId}`);
                 if (!res.ok) throw new Error("Failed to fetch ticket");
                 const data = await res.json();
@@ -116,7 +116,7 @@ export default function TicketDetailsPage({
 
                 <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden transform transition-all hover:shadow-2xl">
                     <div className="grid grid-cols-1 md:grid-cols-2">
-                        {/* Image Section */}
+                        {}
                         <div className="relative h-64 md:h-auto bg-gradient-to-br from-gray-50 to-blue-50/30 p-8 flex items-center justify-center border-b md:border-b-0 md:border-r border-gray-100">
                             {ticket.logo ? (
                                 <img
@@ -137,7 +137,7 @@ export default function TicketDetailsPage({
                             )}
                         </div>
 
-                        {/* Details Section */}
+                        {}
                         <div className="p-8 flex flex-col justify-center">
                             <div className="mb-6">
                                 <h1 className="text-3xl font-bold text-gray-900 mb-2 leading-tight">{ticket.name}</h1>

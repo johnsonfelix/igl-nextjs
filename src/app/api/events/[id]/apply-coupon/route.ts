@@ -13,12 +13,12 @@ export async function POST(req: NextRequest) {
 
         const normalizedCode = code.toString().trim();
 
-        // Find valid coupon
+        
         const coupon = await prisma.coupon.findFirst({
             where: {
                 code: {
                     equals: normalizedCode,
-                    mode: 'insensitive', // Case insensitive search
+                    mode: 'insensitive', 
                 },
             },
         });
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Invalid coupon code" }, { status: 404 });
         }
 
-        // Return coupon details
+        
         return NextResponse.json({
             id: coupon.id,
             code: coupon.code,

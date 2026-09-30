@@ -1,11 +1,7 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-/**
- * GET /api/events/[id]/booth-status
- * Uses OrderItem.boothSubTypeId (no Prisma relation) to fetch BoothSubType
- * and returns company + subtype date/time for Flutter.
- */
+
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
@@ -17,7 +13,7 @@ export async function GET(
   }
 
   try {
-    // 1) Fetch all BOOTH order items with a non-null boothSubTypeId for this event
+    
     const items = await prisma.orderItem.findMany({
       where: {
         productType: 'BOOTH',
@@ -50,7 +46,7 @@ export async function GET(
       return NextResponse.json([], { status: 200 });
     }
 
-    // 2) Collect unique boothSubTypeIds
+    
     const subtypeIds = Array.from(
       new Set(
         items
@@ -60,11 +56,11 @@ export async function GET(
     );
 
     if (subtypeIds.length === 0) {
-      // Nothing to match, so nothing to show
+      
       return NextResponse.json([], { status: 200 });
     }
 
-    // 3) Fetch BoothSubType rows for those ids
+    
     const subTypes = await prisma.boothSubType.findMany({
       where: {
         id: { in: subtypeIds },
@@ -84,13 +80,13 @@ export async function GET(
       },
     });
 
-    // 4) Build a map: subtypeId -> subtype
+    
     const subtypeMap = new Map<string, (typeof subTypes)[number]>();
     for (const st of subTypes) {
       subtypeMap.set(st.id, st);
     }
 
-    // 5) Join items + subtypes and build response
+    
     const result = items
       .map((item) => {
         const subTypeId = item.boothSubTypeId;
@@ -99,15 +95,15 @@ export async function GET(
         const sub = subtypeMap.get(subTypeId);
         const companyName = item.order.company?.name;
 
-        // If no subtype or no company, we skip (as you requested)
+        
         if (!sub || !companyName) return null;
 
         return {
-          // For older UI compatibility
+          
           boothName: item.name,
           companyName,
 
-          // ✅ For Flutter BoothStatusScreen (you already read these keys)
+          
           boothSubType: {
             id: sub.id,
             name: sub.name,

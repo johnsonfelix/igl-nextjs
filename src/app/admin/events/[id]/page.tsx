@@ -32,7 +32,7 @@ import SponsorAssignmentManager from '@/app/components/SponsorAssignmentManager'
 import MeetingSlotManager from '@/app/components/MeetingSlotManager';
 import { uploadFileToS3 } from '@/app/lib/s3-upload';
 
-// Helpers
+
 const formatDate = (date?: string) =>
   date
     ? new Date(date).toLocaleDateString('en-GB', {
@@ -173,7 +173,7 @@ export default function EventViewPage() {
         await fetchEvent();
         setIsVenueSheetOpen(false);
       } else {
-        // Handle error
+        
       }
     } catch (error) {
       console.error(error);
@@ -182,7 +182,7 @@ export default function EventViewPage() {
     }
   };
 
-  // Agenda: open new
+  
   const openNewAgenda = () => {
     setEditingAgenda(null);
     setAgendaForm({ date: '', startTime: '', endTime: '', title: '', description: '' });
@@ -202,7 +202,7 @@ export default function EventViewPage() {
     return `${y}-${m}-${day}`;
   }
 
-  // convert ISO / Date-like value to "HH:MM" for <input type="time">
+  
   function toTimeInputValue(value?: string | Date | null) {
     if (!value) return '';
     // if already in HH:MM or HH:MM:SS -> extract HH:MM
@@ -249,7 +249,7 @@ export default function EventViewPage() {
         const sDate = new Date(`${dateStr}T${startStr}:00`);
         const eDate = new Date(`${dateStr}T${endStr}:00`);
 
-        // If end time is earlier than start time, assume it rolls over to next day
+        
         if (eDate < sDate) {
           eDate.setDate(eDate.getDate() + 1);
         }
@@ -278,7 +278,7 @@ export default function EventViewPage() {
         await fetchEvent();
         setIsAgendaSheetOpen(false);
       } else {
-        // handle error (toast)
+        
       }
     } catch (error) {
       console.error(error);
@@ -287,7 +287,7 @@ export default function EventViewPage() {
     }
   };
 
-  // Agenda: delete
+  
   const handleDeleteAgenda = async (id: string) => {
     if (!confirm('Delete this agenda item?')) return;
     try {
@@ -327,7 +327,7 @@ export default function EventViewPage() {
     purchaseOrders = [],
   } = event;
 
-  // Count assigned sponsors per sponsor type from completed purchase orders
+  
   const assignedCountByType: Record<string, number> = {};
   purchaseOrders.forEach((po: any) => {
     if (po.status === 'COMPLETED' && Array.isArray(po.items)) {
@@ -342,7 +342,7 @@ export default function EventViewPage() {
   return (
     <div className="min-h-screen bg-[#f8f9fa] p-4 sm:p-8 font-sans">
       <div className="max-w-7xl mx-auto space-y-8">
-        {/* HERO */}
+        {}
         <section className="relative rounded-3xl overflow-hidden shadow-xl bg-white border border-gray-100 group">
           <div className="relative w-full h-80">
             {thumbnail ? (
@@ -404,72 +404,12 @@ export default function EventViewPage() {
         </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left column */}
+          {}
           <div className="lg:col-span-2 space-y-8">
-            {/* BOOTHS - Currently Hidden */}
-            {/* <motion.section
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.05 }}
-              className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100"
-            >
-              <HeaderWithAction
-                title="Exhibitor Booths"
-                buttonLabel="Manage Booths"
-                icon={<Boxes size={24} className="text-[#5da765]" />}
-                onAction={() => setIsBoothSheetOpen(true)}
-              />
+            {}
+            {}
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6">
-                {booths.length === 0 ? (
-                  <div className="col-span-full py-12 text-center rounded-2xl border border-dashed border-gray-200 bg-gray-50/50">
-                    <Boxes size={40} className="mx-auto text-gray-300 mb-3" />
-                    <p className="text-gray-500 font-medium">No booths configured yet</p>
-                  </div>
-                ) : (
-                  booths.map((booth: any) => (
-                    <motion.div
-                      key={booth.id}
-                      whileHover={{ y: -4 }}
-                      className="group rounded-2xl overflow-hidden bg-white border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300"
-                    >
-                      <div className="relative h-48 w-full overflow-hidden">
-                        <img src={booth.image} alt={booth.name} className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500" />
-                        <div className="absolute top-3 right-3 bg-white/95 backdrop-blur rounded-lg px-3 py-1.5 text-sm font-bold text-gray-800 shadow-sm">
-                          ${booth.price}
-                        </div>
-                      </div>
-                      <div className="p-5">
-                        <h3 className="font-bold text-lg text-gray-800 mb-2">{booth.name}</h3>
-                        <p className="text-sm text-gray-500 line-clamp-2 mb-4">{booth.description}</p>
-
-                        {booth.subTypes && booth.subTypes.length > 0 && (
-                          <div className="pt-4 border-t border-gray-50 flex flex-wrap gap-2">
-                            {booth.subTypes.map((sub: any) => (
-                              <span
-                                key={sub.id}
-                                className="px-2.5 py-1 rounded-md bg-gray-50 text-gray-600 text-xs font-semibold border border-gray-100"
-                              >
-                                {sub.name} <span className="text-[#5da765]">${sub.price}</span>
-                              </span>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </motion.div>
-                  ))
-                )}
-              </div>
-
-              <Sheet open={isBoothSheetOpen} onOpenChange={setIsBoothSheetOpen}>
-                <SheetContent side="right" className="w-full sm:w-[680px] max-w-[95vw] p-6">
-                  <SheetTitle className="sr-only">Manage Booth Sub-types</SheetTitle>
-                  <BoothSubTypeManager eventId={eventId} eventBooths={booths} refreshEvent={fetchEvent} />
-                </SheetContent>
-              </Sheet>
-            </motion.section> */}
-
-            {/* ONE-TO-ONE MEETINGS */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -546,23 +486,8 @@ export default function EventViewPage() {
                 )}
               </div>
 
-              {/* DUMMY COMPANIES DISPLAY */}
-              {/* <div className="mt-8 pt-6 border-t border-gray-100">
-                <h4 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-amber-400"></span>
-                  Configured Dummy Companies
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {DUMMY_COMPANY_NAMES.map((name: string, i: number) => (
-                    <span key={i} className="px-2.5 py-1 bg-amber-50 text-amber-700 text-xs font-bold rounded-lg border border-amber-200 uppercase">
-                      {name}
-                    </span>
-                  ))}
-                </div>
-                <p className="text-[10px] text-gray-400 mt-3 font-medium uppercase tracking-wider">
-                  Editable in <code className="bg-gray-100 px-1 py-0.5 rounded text-gray-600">src/lib/constants.ts</code>
-                </p>
-              </div> */}
+              {}
+              {}
 
               {isMeetingSheetOpen && (
                 <MeetingSlotManager
@@ -575,7 +500,7 @@ export default function EventViewPage() {
               )}
             </motion.section>
 
-            {/* AGENDA */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -718,7 +643,7 @@ export default function EventViewPage() {
 
 
 
-            {/* SPONSORS */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -753,7 +678,7 @@ export default function EventViewPage() {
                             size="sm"
                             className="h-8 text-xs"
                             onClick={() => {
-                              // Store the sponsorType along with the quantity (limit)
+                              
                               setSelectedSponsorType({ ...es.sponsorType, maxSlots: es.quantity });
                               setIsAssignmentSheetOpen(true);
                             }}
@@ -785,11 +710,11 @@ export default function EventViewPage() {
                       eventId={eventId}
                       sponsorTypeId={selectedSponsorType.id}
                       sponsorTypeName={selectedSponsorType.name}
-                      // If selectedSponsorType refers to the 'sponsorType' inside 'eventSponsorType' object from map,
-                      // we need to pass the quantity from the parent object.
-                      // I will update the logic above to set the whole object or pass quantity correctly.
-                      // Wait, I planned to change the selection logic.
-                      // Let's assume I fix the onClick handler in this same file to store the whole 'es' object instead of 'es.sponsorType'.
+                      
+                      
+                      
+                      
+                      
                       maxSlots={selectedSponsorType.maxSlots || 999}
                     />
                   )}
@@ -800,7 +725,7 @@ export default function EventViewPage() {
 
           <div className="space-y-8">
 
-            {/* TICKETS */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -831,7 +756,7 @@ export default function EventViewPage() {
               </div>
             </motion.section>
 
-            {/* HOTELS */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -886,7 +811,7 @@ export default function EventViewPage() {
               </div>
             </motion.section>
 
-            {/* VENUE */}
+            {}
             <motion.section
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -976,7 +901,7 @@ export default function EventViewPage() {
                       </div>
                     ))}
 
-                    {/* Image Upload UI */}
+                    {}
                     <div className="space-y-2">
                       <Label className="text-gray-700 font-semibold mb-1.5 block">Venue Image</Label>
                       <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 hover:bg-emerald-50/50 hover:border-emerald-200 transition-all text-center relative group">
@@ -1034,7 +959,7 @@ export default function EventViewPage() {
         </div>
       </div>
 
-      {/* Review Sheet Modal */}
+      {}
       <Sheet open={isReviewSheetOpen} onOpenChange={setIsReviewSheetOpen}>
         <SheetContent className="bg-[#f8f9fa] border-l-0 sm:max-w-xl w-full overflow-y-auto">
           <SheetHeader className="mb-6">

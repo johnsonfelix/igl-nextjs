@@ -12,21 +12,21 @@ export async function markOrderAsPaid(orderId: string) {
                 where: { id: orderId },
                 data: {
                     status: "COMPLETED",
-                    offlinePayment: true, // Assuming this flag denotes it was handled offline/manually if not already set, 
-                    // though it could be online payment verified manually.
+                    offlinePayment: true, 
+                    
                 },
                 include: {
                     items: true,
                     company: {
                         include: {
-                            location: true, // to get email from location if needed
-                            user: true // to get email from user
+                            location: true, 
+                            user: true 
                         }
                     },
                 }
             });
 
-            // If eventId is not set, try to determine it from the order items
+            
             if (!updatedOrder.eventId) {
                 let eventId: string | undefined;
                 for (const item of updatedOrder.items) {
@@ -54,12 +54,12 @@ export async function markOrderAsPaid(orderId: string) {
                         where: { id: orderId },
                         data: { eventId },
                     });
-                    // Update the local object so stock reduction can use it
+                    
                     (updatedOrder as any).eventId = eventId;
                 }
             }
 
-            // Handle Stock Reduction for Event Items
+            
             if (updatedOrder.eventId) {
                 for (const item of updatedOrder.items) {
                     const eventId = updatedOrder.eventId;
@@ -98,11 +98,11 @@ export async function markOrderAsPaid(orderId: string) {
                 }
             }
 
-            // Check if this order contains a membership purchase
+            
             const membershipItem = updatedOrder.items.find(item => item.productType === "MEMBERSHIP");
 
             if (membershipItem && membershipItem.productId) {
-                // Activate membership for the company
+                
                 const plan = await tx.membershipPlan.findUnique({
                     where: { id: membershipItem.productId }
                 });
@@ -135,7 +135,7 @@ export async function markOrderAsPaid(orderId: string) {
             return updatedOrder;
         });
 
-        // Send Email Notification outside transaction
+        
         if (result) {
             const recipientEmail = result.company.location?.email || result.company.user?.email;
             const companyName = result.company.name;

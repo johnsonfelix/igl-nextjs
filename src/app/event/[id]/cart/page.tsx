@@ -38,12 +38,12 @@ export default function CartPage({
   const companyId = user?.companyId;
   const [shouldShake, setShouldShake] = useState(false);
 
-  // offers state
+  
   const [offers, setOffers] = useState<Offer[]>([]);
   const [offersLoading, setOffersLoading] = useState(false);
   const [offersError, setOffersError] = useState<string | null>(null);
 
-  // fetch offers once
+  
   useEffect(() => {
     let mounted = true;
     const load = async () => {
@@ -76,7 +76,7 @@ export default function CartPage({
     };
   }, []);
 
-  // helpers
+  
   function toFiniteNumber(value: any): number | null {
     if (value === null || value === undefined) return null;
     if (typeof value === "number") {
@@ -115,7 +115,7 @@ export default function CartPage({
     return Math.max(0, Number(discounted.toFixed(2)));
   }
 
-  // Find best offer for given product
+  
   function getBestOfferForItem(
     productType: string,
     productId: string
@@ -198,7 +198,7 @@ export default function CartPage({
     return { percent: best.pct, name: best.offer?.name ?? null };
   }
 
-  // Compute totals using offers (do not mutate cart)
+  
   const computed = React.useMemo(() => {
     let subTotal = 0;
     const lines = cart.map((item: any) => {
@@ -287,7 +287,7 @@ export default function CartPage({
                       {item.name}
                     </p>
 
-                    {/* 👇 Booth subtype label */}
+                    {}
                     {String(item.productType || "").toUpperCase() === "BOOTH" &&
                       item.boothSubTypeId && (
                         <p className="text-xs text-slate-500 mt-0.5">
@@ -298,7 +298,7 @@ export default function CartPage({
                         </p>
                       )}
 
-                    {/* original vs discounted price */}
+                    {}
                     <div className="mt-1">
                       {(item.appliedOfferPercent || item.original > item.effective) ? (
                         <div className="flex items-baseline gap-3">
@@ -317,7 +317,7 @@ export default function CartPage({
                       )}
                     </div>
 
-                    {/* Hide controls for HOTEL items as requested */}
+                    {}
                     {String(item.productType || "").toUpperCase() !==
                       "HOTEL" && (
                         <div className="flex items-center gap-2 mt-2">
@@ -351,7 +351,7 @@ export default function CartPage({
                         </div>
                       )}
 
-                    {/* Show read-only quantity for disabled items if you want, or just hide controls */}
+                    {}
                     {String(item.productType || "").toUpperCase() ===
                       "HOTEL" && (
                         <div className="mt-2 text-sm text-gray-500 font-medium">

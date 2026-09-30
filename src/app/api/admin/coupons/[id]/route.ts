@@ -3,7 +3,7 @@ import prisma from "@/app/lib/prisma";
 
 export async function PUT(req: NextRequest) {
   try {
-    // Extract the 'id' from the request URL's pathname
+    
     const id = req.nextUrl.pathname.split("/").pop();
 
     if (!id) {
@@ -31,7 +31,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(updatedCoupon, { status: 200 });
   } catch (error) {
-    console.error("Failed to update coupon:", error); // Log error for debugging
+    console.error("Failed to update coupon:", error); 
     return NextResponse.json(
       { message: "Failed to update coupon" },
       { status: 500 }
@@ -41,7 +41,7 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    // Extract the 'id' from the request URL's pathname
+    
     const id = req.nextUrl.pathname.split("/").pop();
 
     if (!id) {
@@ -57,7 +57,7 @@ export async function DELETE(req: NextRequest) {
       { status: 200 }
     );
   } catch (error) {
-    console.error("Failed to delete coupon:", error); // Log error for debugging
+    console.error("Failed to delete coupon:", error); 
     return NextResponse.json(
       { message: "Failed to delete coupon" },
       { status: 500 }

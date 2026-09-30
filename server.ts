@@ -1,4 +1,4 @@
-// server.ts (dev entry - runs with ts-node)
+
 import { createServer } from 'http';
 import next from 'next';
 import { Server } from 'socket.io';
@@ -7,9 +7,9 @@ const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-// Expose socket.io to route handlers if you want to emit from API
+
 declare global {
-  // eslint-disable-next-line no-var
+  
   var serverSocket: { io: Server | null } | undefined;
 }
 global.serverSocket = { io: null };
@@ -23,7 +23,7 @@ app.prepare().then(() => {
   });
 
   io.use((socket, nextFn) => {
-    // Replace with JWT validation
+    
     const companyId =
       (socket.handshake.auth as any)?.companyId ??
       (socket.handshake.query as any)?.companyId;
@@ -37,7 +37,7 @@ app.prepare().then(() => {
   io.on('connection', (socket) => {
     const companyId = (socket.data as any).companyId as string;
 
-    // Per-company room for list updates
+    
     socket.join(`company:${companyId}`);
 
     socket.on('conversation:join', (conversationId: string) => {

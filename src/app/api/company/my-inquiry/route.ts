@@ -1,7 +1,7 @@
-// app/api/inquiries/route.ts
+
 
 import { NextRequest, NextResponse } from 'next/server'
-import prisma from '@/app/lib/prisma' // Your Prisma client import
+import prisma from '@/app/lib/prisma' 
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)

@@ -1,4 +1,4 @@
-// D:\Projects\Logistics\web\backend-api\src\app\api\admin\offers\route.ts
+
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
@@ -24,7 +24,7 @@ type OfferPayload = {
   ticketIds?: string[];
   sponsorTypeIds?: string[];
   boothIds?: string[];
-  membershipPlanIds?: string[]; // NEW
+  membershipPlanIds?: string[]; 
 };
 
 export async function GET() {
@@ -36,7 +36,7 @@ export async function GET() {
         tickets: { select: { id: true, name: true } },
         sponsorTypes: { select: { id: true, name: true } },
         booths: { select: { id: true, name: true } },
-        membershipPlans: { select: { id: true, name: true } }, // NEW
+        membershipPlans: { select: { id: true, name: true } }, 
       },
     });
 
@@ -54,7 +54,7 @@ export async function GET() {
       ticketIds: (o.tickets || []).map((t) => t.id),
       sponsorTypeIds: (o.sponsorTypes || []).map((s) => s.id),
       boothIds: (o.booths || []).map((b) => b.id),
-      membershipPlanIds: (o.membershipPlans || []).map((m) => m.id), // NEW
+      membershipPlanIds: (o.membershipPlans || []).map((m) => m.id), 
     }));
 
     return NextResponse.json(result);
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
       isActive: body.isActive ?? true,
     };
 
-    // Only connect many-to-many targets if CUSTOM scope
+    
     if (body.scope === "CUSTOM") {
       if (Array.isArray(body.hotelIds) && body.hotelIds.length > 0) {
         data.hotels = { connect: body.hotelIds.map((id) => ({ id })) };
@@ -130,7 +130,7 @@ export async function POST(req: Request) {
         tickets: true,
         sponsorTypes: true,
         booths: true,
-        membershipPlans: true, // NEW -> fixes TS error
+        membershipPlans: true, 
       },
     });
 
@@ -148,7 +148,7 @@ export async function POST(req: Request) {
       ticketIds: (created.tickets || []).map((t) => t.id),
       sponsorTypeIds: (created.sponsorTypes || []).map((s) => s.id),
       boothIds: (created.booths || []).map((b) => b.id),
-      membershipPlanIds: (created.membershipPlans || []).map((m) => m.id), // NEW
+      membershipPlanIds: (created.membershipPlans || []).map((m) => m.id), 
     });
   } catch (err) {
     console.error("POST /api/admin/offers error:", err);

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET all testimonials (admin)
+
 export async function GET() {
     try {
         const testimonials = await prisma.testimonial.findMany({
@@ -17,7 +17,7 @@ export async function GET() {
     }
 }
 
-// POST create new testimonial
+
 export async function POST(req: NextRequest) {
     try {
         const body = await req.json();

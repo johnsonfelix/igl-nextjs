@@ -48,7 +48,7 @@ export default function LatestInquiriesSection() {
     return (
         <section className="py-5 bg-gray-50">
             <div className="container mx-auto px-4">
-                {/* Section Header */}
+                {}
                 <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                     <div>
                         <div className="flex items-center gap-2 mb-2">
@@ -66,7 +66,7 @@ export default function LatestInquiriesSection() {
                     </Link>
                 </div>
 
-                {/* Inquiry Cards Grid */}
+                {}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                     {inquiries.map((inquiry) => (
                         <Link

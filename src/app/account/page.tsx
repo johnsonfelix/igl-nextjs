@@ -106,7 +106,7 @@ export default function CompanyProfilePage() {
 
 
 
-  // Small helpers
+  
   const getYear = (dateStr?: string | null) => {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
@@ -130,7 +130,7 @@ export default function CompanyProfilePage() {
   const normalizedWebsite = (w?: string | null) =>
     w ? (/^https?:\/\//i.test(w) ? w : `https://${w}`) : null;
 
-  // UI: Loading skeleton
+  
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -147,7 +147,7 @@ export default function CompanyProfilePage() {
     );
   }
 
-  // Error state
+  
   if (error) {
     return (
       <div className="container mx-auto p-6">
@@ -159,7 +159,7 @@ export default function CompanyProfilePage() {
     );
   }
 
-  // No profile (user not associated with company)
+  
   if (!company) {
     return (
       <div className="container mx-auto p-6">
@@ -176,17 +176,17 @@ export default function CompanyProfilePage() {
     );
   }
 
-  // Main profile UI
+  
   return (
     <div className="container mx-auto p-6 bg-gray-50 min-h-screen">
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {/* Header: cover + logo */}
+        {}
         <div className="relative h-40 bg-gradient-to-r from-indigo-700 to-cyan-600">
-          {/* Logo */}
+          {}
           <div className="absolute left-6 bottom-[-36px]">
             <div className="h-28 w-28 rounded-xl bg-white p-2 shadow-lg flex items-center justify-center overflow-hidden">
               {company.logoUrl ? (
-                // using <img> avoids next.config change — swap to next/image if desired
+                
                 <img src={company.logoUrl} alt={`${company.name} logo`} className="object-contain h-full w-full" />
               ) : (
                 <Building2 className="h-12 w-12 text-indigo-600" />
@@ -220,7 +220,7 @@ export default function CompanyProfilePage() {
 
         <div className="px-6 pt-16 pb-8">
           <div className="flex flex-col md:flex-row md:items-start gap-6">
-            {/* Left: title + meta */}
+            {}
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-slate-900">{company.name}</h1>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-slate-600">
@@ -269,7 +269,7 @@ export default function CompanyProfilePage() {
                 </div>
               </div>
 
-              {/* Membership Details */}
+              {}
               <div className="mt-6 rounded-md border p-4 bg-indigo-50 border-indigo-100">
                 <h4 className="text-sm font-bold text-indigo-900 mb-2">Membership Status</h4>
                 <div className="flex items-center justify-between">
@@ -298,7 +298,7 @@ export default function CompanyProfilePage() {
 
             </div>
 
-            {/* Right column: contact / location card */}
+            {}
             <aside className="w-full md:w-72">
               <div className="rounded-md border p-4 bg-white sticky top-6">
                 <h4 className="text-sm font-semibold text-slate-700 mb-2">Location & Contact</h4>
@@ -318,7 +318,7 @@ export default function CompanyProfilePage() {
             </aside>
           </div>
 
-          {/* Media gallery */}
+          {}
           {company.media && company.media.length > 0 && (
             <div className="mt-8">
               <h3 className="text-lg font-semibold text-slate-800 mb-4">Media</h3>
@@ -329,7 +329,7 @@ export default function CompanyProfilePage() {
                       <img src={m.url} alt={m.altText ?? company.name} className="w-full h-48 object-cover" />
                     ) : (
                       <div className="h-48 flex items-center justify-center bg-slate-100 text-slate-500">
-                        {/* video placeholder */}
+                        {}
                         <span>Media: {m.type}</span>
                       </div>
                     )}

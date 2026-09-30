@@ -1,4 +1,4 @@
-// app/become-member/page.tsx
+
 import React from "react";
 import BecomeMemberClient from "./BecomeMemberClient";
 import prisma from "@/app/lib/prisma";

@@ -13,7 +13,7 @@ const CityAutocompleteField = ({ value, onChange, label, placeholder }: CityAuto
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isFocused, setIsFocused] = useState(false);
     const containerRef = useRef<HTMLDivElement>(null);
-    const apiKey = "613b9f155fbb4d35ad580f50b55ea9fa"; // Your Geoapify API key
+    const apiKey = "613b9f155fbb4d35ad580f50b55ea9fa"; 
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -43,7 +43,7 @@ const CityAutocompleteField = ({ value, onChange, label, placeholder }: CityAuto
                     `${item.city || item.name || ''}${item.country ? `, ${item.country}` : ''}`
                 ).filter(name => name.trim().length > 0);
                 
-                setSuggestions([...new Set(results)]); // Remove duplicates
+                setSuggestions([...new Set(results)]); 
             }
         } catch (error) {
             console.error("Failed to fetch city suggestions:", error);

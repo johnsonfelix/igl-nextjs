@@ -24,7 +24,7 @@ export default function SiteTracker() {
     const lastPathRef = useRef<string>(pathname);
     const [consentGiven, setConsentGiven] = useState(false);
 
-    // Listen for consent changes
+    
     useEffect(() => {
         setConsentGiven(hasConsent());
 
@@ -36,7 +36,7 @@ export default function SiteTracker() {
         return () => window.removeEventListener('cookie-consent-change', handleConsentChange);
     }, []);
 
-    // Send duration for the previous page
+    
     const sendDuration = (page: string) => {
         if (!hasConsent()) return;
         const duration = Math.round((Date.now() - startRef.current) / 1000);
@@ -51,25 +51,25 @@ export default function SiteTracker() {
         }
     };
 
-    // Track page view
+    
     useEffect(() => {
-        // Skip if no consent or admin pages
+        
         if (!consentGiven) return;
         if (pathname.startsWith('/admin')) return;
 
         const sid = getSessionId();
         if (!sid) return;
 
-        // Send duration for the previous page if path changed
+        
         if (lastPathRef.current !== pathname) {
             sendDuration(lastPathRef.current);
         }
 
-        // Reset timer
+        
         startRef.current = Date.now();
         lastPathRef.current = pathname;
 
-        // Fire page-view
+        
         fetch('/api/analytics/track', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -80,17 +80,17 @@ export default function SiteTracker() {
             }),
         }).catch(() => { });
 
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, [pathname, consentGiven]);
 
-    // Send duration on page unload
+    
     useEffect(() => {
         const handleUnload = () => {
             sendDuration(lastPathRef.current);
         };
         window.addEventListener('beforeunload', handleUnload);
         return () => window.removeEventListener('beforeunload', handleUnload);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        
     }, []);
 
     return null;

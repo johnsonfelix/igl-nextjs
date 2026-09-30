@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
-// GET single company for Admin (includes detailed info)
+
 export async function GET(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -30,7 +30,7 @@ export async function GET(
     }
 }
 
-// UPDATE company
+
 export async function PATCH(
     request: Request,
     { params }: { params: Promise<{ id: string }> }
@@ -51,23 +51,23 @@ export async function PATCH(
             status,
             isActive,
             isVerified,
-            // New fields
+            
             directors,
             designation,
             participationYears,
-            newMedia, // Array of strings (URLs) to add
-            deleteMediaIds, // Array of strings (IDs) to delete
-            purchasedMembership, // <--- Added this
+            newMedia, 
+            deleteMediaIds, 
+            purchasedMembership, 
             memberFromYear,
             taxNumber,
-            // New fields for capabilities
+            
             scopeOfBusiness,
             servicesOffered,
         } = body;
 
         console.log("Location received:", JSON.stringify(location, null, 2));
 
-        // Location upsert
+        
         let locationUpdate = {};
         if (location) {
             locationUpdate = {
@@ -114,7 +114,7 @@ export async function PATCH(
             ? { id: { in: deleteMediaIds } }
             : undefined;
 
-        // Construct the update data
+        
         const updateData: any = {
             name,
             memberId,
@@ -129,8 +129,8 @@ export async function PATCH(
             directors,
             designation,
             participationYears,
-            purchasedMembership, // <--- Added this
-            memberFromYear, // New Int field
+            purchasedMembership, 
+            memberFromYear, 
             taxNumber,
             scopeOfBusiness,
             servicesOffered,
@@ -140,11 +140,11 @@ export async function PATCH(
             }
         };
 
-        // Changing established to null if explicitly cleared? 
-        // The previous implementation handles undefined.
+        
+        
 
-        // If we have deletes, we might need a separate delete op or use 'deleteMany' in nested update if supported for collection relation
-        // DeleteMany is supported for relations.
+        
+        
 
         if (mediaDeletes) {
             updateData.media.deleteMany = mediaDeletes;
@@ -166,7 +166,7 @@ export async function PATCH(
     }
 }
 
-// DELETE company
+
 export async function DELETE(
     request: Request,
     { params }: { params: Promise<{ id: string }> }

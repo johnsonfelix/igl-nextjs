@@ -5,25 +5,25 @@ import { cookies } from "next/headers";
 function isPaidCompany(company: any): boolean {
   if (!company) return false;
 
-  // 1. Check membershipPlan relation
+  
   const planName = company.membershipPlan?.name?.trim().toLowerCase() || "";
   if (planName && !planName.includes("free") && planName !== "none") {
     return true;
   }
 
-  // 2. Check purchasedMembership string field
+  
   const purchased = company.purchasedMembership?.trim().toLowerCase() || "";
   if (purchased && !purchased.includes("free") && purchased !== "none") {
     return true;
   }
 
-  // 3. Check memberType field
+  
   const mType = company.memberType?.trim().toLowerCase() || "";
   if (mType && mType !== "free" && mType !== "unpaid" && mType !== "none") {
     return true;
   }
 
-  // 4. Check active membership expiry date
+  
   if (company.membershipExpiresAt) {
     const expires = new Date(company.membershipExpiresAt);
     if (!isNaN(expires.getTime()) && expires > new Date()) {
@@ -31,7 +31,7 @@ function isPaidCompany(company: any): boolean {
     }
   }
 
-  // 5. Check if membershipPlanId exists and is set
+  
   if (company.membershipPlanId) {
     return true;
   }
@@ -39,7 +39,7 @@ function isPaidCompany(company: any): boolean {
   return false;
 }
 
-// GET a single company by ID
+
 export async function GET(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -56,13 +56,13 @@ export async function GET(
       return NextResponse.json({ error: 'Company not found' }, { status: 404 });
     }
 
-    // --- SECURITY CHECK ---
+    
     const cookieStore = await cookies();
     const userId = cookieStore.get("userId")?.value;
     let canView = false;
 
     if (userId) {
-      // Admin/Moderator override
+      
       const userObj = await prisma.user.findUnique({
         where: { id: userId },
         select: { id: true, role: true }
@@ -73,7 +73,7 @@ export async function GET(
       } else if (company.userId === userId) {
         canView = true;
       } else {
-        // Find requesting company (direct or via branch)
+        
         let requestor = await prisma.company.findFirst({
           where: { userId },
           include: { membershipPlan: true }
@@ -113,7 +113,7 @@ export async function GET(
   }
 }
 
-// PUT (update) a company by ID
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -123,14 +123,14 @@ export async function PUT(
     return NextResponse.json({ error: 'Missing company id' }, { status: 400 });
   }
 
-  // --- SECURITY CHECK ---
+  
   const cookieStore = await cookies();
   const userId = cookieStore.get("userId")?.value;
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Ensure user owns this company
+  
   const owningCompany = await prisma.company.findFirst({
     where: { id: companyId, userId: userId }
   });

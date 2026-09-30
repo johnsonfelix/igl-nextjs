@@ -189,7 +189,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
 
                                                         setUploading({ ...uploading, [order.id]: true });
                                                         try {
-                                                            // Upload to S3
+                                                            
                                                             const formData = new FormData();
                                                             formData.append("file", file);
 
@@ -204,7 +204,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
 
                                                             const { url } = await uploadRes.json();
 
-                                                            // Save URL to order
+                                                            
                                                             const saveRes = await fetch(`/api/orders/${order.id}/payment-proof`, {
                                                                 method: "POST",
                                                                 headers: { "Content-Type": "application/json" },
@@ -253,12 +253,12 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                 </div>
             </div>
 
-            {/* Invoice Modal */}
+            {}
             {selectedOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print:p-0 print:bg-white print:static">
                     <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-none print:max-h-none print:w-full">
 
-                        {/* Modal Header */}
+                        {}
                         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10 print:hidden">
                             <h3 className="text-lg font-bold text-gray-900">Invoice Details</h3>
                             <div className="flex gap-2">
@@ -267,7 +267,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                         const element = document.getElementById('invoice-component');
                                         if (!element) return;
 
-                                        // Dynamic import
+                                        
                                         const html2pdf = (await import('html2pdf.js')).default;
 
                                         const opt = {
@@ -326,7 +326,7 @@ export default function OrdersTable({ orders, companyName, companyEmail, company
                                         />
                                     );
                                 }
-                                // Fallback: derive from company data (for orders without a linked manual invoice)
+                                
                                 return (
                                     <InvoiceTemplate
                                         orderId={selectedOrder.invoiceNumber ? `IGLA${10000 + selectedOrder.invoiceNumber}` : selectedOrder.id}

@@ -19,7 +19,7 @@ interface Booth {
 
 interface BoothSubTypeManagerProps {
   eventId: string;
-  eventBooths: Booth[]; // Each booth has at least: id, name, subTypes[]
+  eventBooths: Booth[]; 
   refreshEvent: () => Promise<void> | void;
 }
 
@@ -28,7 +28,7 @@ export default function BoothSubTypeManager({
   eventBooths,
   refreshEvent,
 }: BoothSubTypeManagerProps) {
-  // State: Which booth is selected for managing subtypes
+  
   const [selectedBoothId, setSelectedBoothId] = useState(
     eventBooths.length > 0 ? eventBooths[0].id : ""
   );
@@ -66,7 +66,7 @@ export default function BoothSubTypeManager({
     return <div className="text-gray-500 text-lg">No booths are attached to this event.</div>;
   }
 
-  // CRUD Handlers
+  
   const handleSubTypeChange = (
     idx: number,
     field: keyof Omit<BoothSubType, "id">,

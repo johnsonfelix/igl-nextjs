@@ -1,9 +1,9 @@
-// app/api/membership-plans/route.ts
+
 
 import { NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-// GET all membership plans
+
 export async function GET() {
   try {
     const plans = await prisma.membershipPlan.findMany({
@@ -31,13 +31,13 @@ export async function GET() {
   }
 }
 
-// POST a new membership plan
+
 export async function POST(request: Request) {
   try {
     const data = await request.json();
     const { name, slug, price, description, thumbnail, paymentProtection, discountPercentage, features } = data;
 
-    // Basic validation
+    
     if (!name || typeof price !== 'number' || !Array.isArray(features)) {
       return NextResponse.json({ message: 'Invalid data provided' }, { status: 400 });
     }

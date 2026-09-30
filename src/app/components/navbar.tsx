@@ -111,7 +111,7 @@ export default function Navbar() {
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
-  // Filter nav items: Hide "Admin" unless user is ADMIN
+  
   const displayNavItems = navItems.filter((item) => {
     if (item.name === "Admin") {
       return user?.role === 'ADMIN';
@@ -121,27 +121,12 @@ export default function Navbar() {
 
   return (
     <div className="flex flex-col">
-      {/* Top Bar - Integrated to be Global */}
-      {/* <div className="bg-[#ceeba3] text-gray-700 py-2 px-4 text-sm font-medium">
-        <div className="container mx-auto flex flex-col md:flex-row justify-between items-center">
-          <div className="font-medium text-black fs-15">
-            Early Bird Offer for Members!{" "}
-            <Link href="/event/cmjn1f6ih0000gad4xa4j7dp3" className="underline font-bold text-[#004aad]">
-              Grab now
-            </Link>
-          </div>
-          <div className="hidden md:flex gap-4 mt-2 md:mt-0 text-black">
-            <a href="mailto:sales@igla.asia" className="hover:text-black flex items-center gap-2">
-              <Mail className="w-4 h-4 text-black" />
-              <span className="text-black">sales@igla.asia</span>
-            </a>
-          </div>
-        </div>
-      </div> */}
+      {}
+      {}
 
       <header className="bg-white border-b shadow-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-          {/* Logo */}
+          {}
           <Link href="/">
             <Image
               src="/images/logo.png"
@@ -152,7 +137,7 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Desktop Navigation */}
+          {}
           <nav className="hidden lg:flex gap-6 font-medium text-gray-700 items-center">
             {displayNavItems.map((item) => (
               <div
@@ -180,26 +165,16 @@ export default function Navbar() {
             ))}
           </nav>
 
-          {/* Right Side Actions */}
+          {}
           <div className="hidden sm:flex items-center gap-4">
-            {/* Secure Pay - Only on Home */}
-            {/* Secure Pay - Only on Home (Hidden as per request) */}
-            {/* <Link
-              href="/secure-pay"
-              className="flex items-center gap-2 font-medium text-[16px] text-gray-700"
-            >
-              <span className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
-                🛡️
-              </span>
-              <span className="hidden xl:inline">SecurePay</span>
-            </Link> */}
+            {}
+            {}
+            {}
 
-            {/* Download App - Global */}
-            {/* <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-6 py-2 rounded-full font-medium text-[16px] shadow-lg flex items-center gap-2">
-              <Download className="w-4 h-4" /> Download the App
-            </button> */}
+            {}
+            {}
 
-            {/* Account Menu (Desktop) */}
+            {}
             {user ? (
               <div className="relative hidden md:block" ref={menuRef}>
                 <button
@@ -229,8 +204,8 @@ export default function Navbar() {
                 )}
               </div>
             ) : (
-              // Login Button - Shown if user is not filtered out or specific location requested, here it is standard auth logic
-              // If user is not logged in, show a login button
+              
+              
               <div className="hidden md:block relative">
                 <Link href="/company/login">
                   <button className="bg-gradient-to-r from-[#2ebb79] to-[#12ade8] hover:opacity-90 text-white px-6 py-2 rounded-md font-medium text-[16px] transition-all shadow-md flex items-center gap-2">
@@ -238,20 +213,20 @@ export default function Navbar() {
                   </button>
                 </Link>
 
-                {/* Sign In Banner Popup */}
+                {}
                 {showSignInBanner && (
                   <div className="absolute top-full right-0 mt-4 w-[320px] 2xl:w-[400px] z-50 animate-fadeIn select-none filter drop-shadow-2xl">
-                    {/* Triangle pointer */}
+                    {}
                     <div className="absolute -top-2 right-10 w-4 h-4 bg-[#004aad] transform rotate-45 z-0"></div>
 
-                    {/* Back Card (Orange) */}
+                    {}
                     <div className="bg-gradient-to-br from-[#2ebb79] to-[#004aad] rounded-2xl p-5 pb-24 2xl:p-6 2xl:pb-28 shadow-lg relative text-white">
-                      {/* Decorative Pattern */}
+                      {}
                       <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }}></div>
 
-                      {/* Front Card (Cream/Message Bubble) */}
+                      {}
                       <div className="absolute -bottom-0 left-4 right-4 bg-white text-gray-800 rounded-xl p-3 2xl:p-4 shadow-xl border border-teal-100 flex items-start gap-3 transform transition-transform hover:-translate-y-1 z-20">
-                        {/* Tail for bubble effect */}
+                        {}
                         <div className="absolute -top-2 left-8 w-4 h-4 bg-white transform rotate-45 border-t border-l border-teal-100"></div>
 
                         <div className="flex-1">
@@ -276,7 +251,7 @@ export default function Navbar() {
                           <h3 className="text-xl 2xl:text-2xl font-extrabold mb-4 drop-shadow-sm text-[#ceeba3] leading-none">50% OFF on Sponsorships</h3>
                         </div>
 
-                        {/* Decorative Elements */}
+                        {}
                         <div className="absolute right-0 top-0 opacity-90 pointer-events-none transform scale-75 origin-top-right">
                           <div className="relative transform rotate-12 bg-white/20 backdrop-blur-sm p-3 rounded-2xl border border-white/30 shadow-xl">
                             <span className="text-4xl filter drop-shadow-lg">🎁</span>
@@ -296,9 +271,9 @@ export default function Navbar() {
           </div>
 
 
-          {/* Mobile Menu Toggle & Account (Mobile) */}
+          {}
           <div className="lg:hidden flex items-center gap-2">
-            {/* Account User Mobile */}
+            {}
             {user && (
               <div className="relative" ref={menuRef}>
                 <button
@@ -337,7 +312,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile Navigation Menu (expanded) */}
+        {}
         {menuOpen && (
           <div className="lg:hidden bg-white border-t shadow">
             <nav className="flex flex-col space-y-1 p-4">
@@ -354,12 +329,9 @@ export default function Navbar() {
                   {item.name}
                 </Link>
               ))}
-              {/* Mobile Actions */}
+              {}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t">
-                {/* <Link href="/secure-pay" className="flex items-center gap-2 font-medium text-[16px] text-gray-700 p-2">
-                  <span className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center text-green-600">🛡️</span>
-                  SecurePay
-                </Link> */}
+                {}
                 <button onClick={handleDownloadClick} className="bg-gradient-to-r from-[#77a1d3] via-[#79cbca] to-[#77a1d3] bg-[length:200%_auto] hover:bg-right transition-all duration-500 text-white px-4 py-2 rounded-lg font-medium text-[16px] w-full flex items-center justify-center gap-2">
                   <Download className="w-4 h-4" /> Download App
                 </button>

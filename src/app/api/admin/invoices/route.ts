@@ -1,6 +1,6 @@
 
 import { NextResponse } from "next/server";
-import { prisma } from "@/app/lib/prisma"; // Assuming prisma client instance export
+import { prisma } from "@/app/lib/prisma"; 
 
 export async function GET(request: Request) {
     try {
@@ -18,21 +18,21 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { invoiceNumber, date, customerDetails, items, totalAmount, companyId } = body;
 
-        // 1. Create Manual Invoice (Always)
+        
         const invoice = await prisma.manualInvoice.create({
             data: {
                 invoiceNumber,
                 date: new Date(date),
-                customerDetails, // Json
-                items, // Json
+                customerDetails, 
+                items, 
                 totalAmount,
-                currency: body.currency || "USD" // Default to USD if not provided
+                currency: body.currency || "USD" 
             }
         });
 
-        // 2. Conditionally Create Purchase Order (If Company ID exists)
+        
         if (companyId) {
-            // Determine eventId from product associations
+            
             let eventId: string | undefined;
 
             for (const item of items) {
@@ -43,14 +43,14 @@ export async function POST(request: Request) {
                 const pType = (item.productType || "").toUpperCase();
 
                 if (pType === "TICKET") {
-                    // Look up event via EventTicket join table
+                    
                     const eventTicket = await prisma.eventTicket.findFirst({
                         where: { ticketId: pid },
                         select: { eventId: true },
                     });
                     if (eventTicket) eventId = eventTicket.eventId;
                 } else if (pType === "SPONSOR") {
-                    // Look up event via EventSponsorType join table
+                    
                     const eventSponsor = await prisma.eventSponsorType.findFirst({
                         where: { sponsorTypeId: pid },
                         select: { eventId: true },
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
                 }
             }
 
-            // Map items to OrderItem structure with normalized productType
+            
             const orderItems = items.map((item: any) => ({
                 name: item.name,
                 productId: item.productId || "MANUAL_ITEM",
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
                 data: {
                     companyId: companyId,
                     totalAmount: totalAmount,
-                    status: "COMPLETED", // Invoices are created after payment is received
+                    status: "COMPLETED", 
                     ...(eventId ? { eventId } : {}),
                     billingAddressLine1: customerDetails.address,
                     billingCity: customerDetails.city,

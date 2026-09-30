@@ -3,15 +3,15 @@ import prisma from '@/app/lib/prisma'
 
 export async function GET(
   req: NextRequest,
-  // Change 1: The 'params' object is now wrapped in a Promise.
+  
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    // Change 2: You must 'await' the params to get the resolved object.
+    
     const resolvedParams = await params;
 
     const inquiry = await prisma.inquiry.findUnique({
-      // Change 3: Use the 'id' from the resolved params object.
+      
       where: { id: resolvedParams.id },
       include: {
         company: true,

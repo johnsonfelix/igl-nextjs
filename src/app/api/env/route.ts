@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-// Ensure Node runtime for access to process.env (NOT 'edge')
+
 export const runtime = 'nodejs';
 
 export async function GET() {
@@ -11,7 +11,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     envPresent: result,
-    // Optional: show the runtime so you know you’re not on edge
+    
     runtime,
   });
 }

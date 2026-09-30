@@ -39,9 +39,9 @@ export default function SponsorshipBenefitsSection() {
     return (
         <section className="hidden md:block py-20 bg-white">
             <div className="container mx-auto px-4">
-                {/* Main Content Grid */}
+                {}
                 <div className="grid lg:grid-cols-2 gap-12 items-center mb-16">
-                    {/* Left Side - Headline */}
+                    {}
                     <div>
                         <span className="text-sm text-gray-500 uppercase tracking-wider mb-4 block">
                             Partnership Opportunity
@@ -55,7 +55,7 @@ export default function SponsorshipBenefitsSection() {
                             ?
                         </h2>
 
-                        {/* Regions Targeted */}
+                        {}
                         <div className="bg-[#f0f9f3] rounded-xl p-6 mb-6">
                             <p className="font-bold text-gray-800 mb-3 flex items-center gap-2">
                                 <MapPin className="h-5 w-5 text-[#004aad]" />
@@ -82,7 +82,7 @@ export default function SponsorshipBenefitsSection() {
                         </p>
                     </div>
 
-                    {/* Right Side - Benefits List */}
+                    {}
                     <div className="space-y-4">
                         {benefits.map((benefit, idx) => {
                             const Icon = benefit.icon;
@@ -109,7 +109,7 @@ export default function SponsorshipBenefitsSection() {
                     </div>
                 </div>
 
-                {/* Statistics Section */}
+                {}
                 <div className="border-t border-gray-200 pt-12">
                     <div className="text-center mb-8">
                         <h3 className="text-2xl font-bold text-gray-900 mb-2">
@@ -132,7 +132,7 @@ export default function SponsorshipBenefitsSection() {
                     </div>
                 </div>
 
-                {/* CTA Button */}
+                {}
                 <div className="text-center mt-12">
                     <Link
                         href="/event/cmjn1f6ih0000gad4xa4j7dp3"

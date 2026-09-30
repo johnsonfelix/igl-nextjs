@@ -42,7 +42,7 @@ export default function PastEventDetailsPage() {
                 setEvent(data);
             } else {
                 console.error("Failed to fetch event");
-                // router.push("/404"); // Optional: Redirect to 404
+                
             }
         } catch (error) {
             console.error("Error fetching event:", error);
@@ -72,7 +72,7 @@ export default function PastEventDetailsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 font-sans">
-            {/* Header / Hero Section */}
+            {}
             <div className="relative h-[60vh] w-full bg-gray-900">
                 <Image
                     src={event.mainImage}
@@ -111,9 +111,9 @@ export default function PastEventDetailsPage() {
 
             <main className="container mx-auto px-4 py-16">
                 <div className="grid lg:grid-cols-3 gap-12">
-                    {/* Main Content */}
+                    {}
                     <div className="lg:col-span-2 space-y-12">
-                        {/* Description */}
+                        {}
                         <section className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
                             <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
                                 <span className="w-1 h-8 bg-blue-600 rounded-full"></span>
@@ -124,7 +124,7 @@ export default function PastEventDetailsPage() {
                             </div>
                         </section>
 
-                        {/* Gallery */}
+                        {}
                         {event.carouselImages && event.carouselImages.length > 0 && (
                             <section>
                                 <h2 className="text-2xl font-bold text-gray-900 mb-8 flex items-center gap-2">
@@ -161,7 +161,7 @@ export default function PastEventDetailsPage() {
                                     ))}
                                 </Swiper>
 
-                                {/* Grid View for detailed look */}
+                                {}
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                                     {event.carouselImages.slice(0, 6).map((img, idx) => (
                                         <div key={idx} className="relative aspect-square rounded-xl overflow-hidden cursor-pointer hover:opacity-90 transition-opacity">
@@ -183,9 +183,9 @@ export default function PastEventDetailsPage() {
                         )}
                     </div>
 
-                    {/* Sidebar */}
+                    {}
                     <div className="space-y-8">
-                        {/* Event Quick Facts */}
+                        {}
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-8">
                             <h3 className="text-lg font-bold text-gray-900 mb-6">Event Highlights</h3>
 

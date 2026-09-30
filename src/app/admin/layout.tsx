@@ -48,7 +48,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50 text-gray-800 font-sans">
-      {/* Sidebar */}
+      {}
       <aside className="w-72 bg-white border-r border-gray-100 flex flex-col shadow-sm z-10 sticky top-0 h-screen overflow-y-auto">
         <div className="p-6 pb-8 border-b border-gray-50">
           <Link
@@ -104,7 +104,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main content */}
+      {}
       <main className="flex-1 p-8 overflow-y-auto w-full">
         {children}
       </main>

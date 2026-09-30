@@ -5,9 +5,9 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 
 interface BoothSubType {
-  id?: string; // optional, if tracked in DB
+  id?: string; 
   name: string;
-  price: string;       // price held as string in form state
+  price: string;       
   description: string;
 }
 
@@ -108,7 +108,7 @@ export function BoothSettings({
         ? `/api/events/${eventId}/booths/${editingBooth.id}`
         : `/api/events/${eventId}/booths`;
 
-      // Clean subTypes before sending
+      
       const cleanedSubTypes = boothForm.subTypes
         .filter((st) => st.name.trim() !== "")
         .map((st) => ({
@@ -174,7 +174,7 @@ export function BoothSettings({
     <div>
       <h2 className="text-2xl font-semibold mb-6">Booth Settings</h2>
 
-      {/* Booth List */}
+      {}
       <div className="mb-6 max-h-[300px] overflow-auto border rounded-md p-4">
         {eventBooths?.length > 0 ? (
           <ul className="space-y-4">
@@ -207,13 +207,13 @@ export function BoothSettings({
         )}
       </div>
 
-      {/* Add/Edit Booth Form */}
+      {}
       <div className="p-6 border border-gray-300 rounded-lg shadow-sm bg-white max-w-3xl mx-auto">
         <h3 className="text-xl font-semibold mb-4">
           {editingBooth ? "Edit Booth" : "Add Booth"}
         </h3>
 
-        {/* Main Booth Fields */}
+        {}
         <div className="mb-4">
           <Label>Name</Label>
           <Input
@@ -258,7 +258,7 @@ export function BoothSettings({
           />
         </div>
 
-        {/* Sub-Types Section */}
+        {}
         <div className="mb-6">
           <Label className="text-lg font-semibold mb-2 block">
             Sub-Types (e.g., 1A, 1B)
@@ -315,7 +315,7 @@ export function BoothSettings({
           </Button>
         </div>
 
-        {/* Save & Cancel Buttons */}
+        {}
         <div className="flex space-x-4">
           <Button
             onClick={handleSaveBooth}

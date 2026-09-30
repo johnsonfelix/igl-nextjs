@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// UPDATE RoomType
+
 export async function PUT(req: NextRequest) {
   try {
     const url = new URL(req.url);
@@ -29,7 +29,7 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-// DELETE RoomType
+
 export async function DELETE(req: NextRequest) {
   try {
     const url = new URL(req.url);

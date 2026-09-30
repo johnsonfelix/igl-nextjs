@@ -14,7 +14,7 @@ async function main() {
 
   let fixedCount = 0;
   for (const u of usersWithNoCompany) {
-    // case insensitive match
+    
     const loc = allLocations.find(l => l.email && l.email.toLowerCase().trim() === u.email.toLowerCase().trim());
     if (loc) {
       console.log(`Linking user ${u.email} to company ${loc.company.name}`);
@@ -24,9 +24,9 @@ async function main() {
       });
       fixedCount++;
     } else {
-      // try to match company direct email if it exists although location is main
-      // or match by name if user.name matches somewhat?
-      // For now we rely on email match.
+      
+      
+      
     }
   }
 

@@ -17,7 +17,7 @@ async function main() {
   } else {
     console.log('User NOT found with email:', email);
     
-    // Let's search for similar emails or just list some users to see the format
+    
     const similarUsers = await prisma.user.findMany({
         where: {
             email: {

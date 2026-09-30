@@ -1,4 +1,4 @@
-// src/app/api/admin/sponsor-types/route.ts
+
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 

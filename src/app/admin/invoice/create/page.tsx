@@ -50,7 +50,7 @@ export default function CreateInvoicePage() {
             })
             .catch(err => console.error("Failed to fetch next invoice ID", err));
 
-        // Fetch companies for dropdown
+        
         fetch('/api/admin/companies')
             .then(res => res.json())
             .then(data => {
@@ -60,7 +60,7 @@ export default function CreateInvoicePage() {
             })
             .catch(err => console.error("Failed to fetch companies", err));
 
-        // Fetch products (Tickets & Sponsors)
+        
         Promise.all([
             fetch('/api/admin/tickets').then(r => r.json()),
             fetch('/api/admin/sponsor-types').then(r => r.json())
@@ -245,7 +245,7 @@ export default function CreateInvoicePage() {
 
     return (
         <div className="flex flex-col lg:flex-row gap-8 h-[calc(100vh-100px)]">
-            {/* --- FORM SECTION --- */}
+            {}
             <div className="w-full lg:w-1/2 overflow-y-auto pr-4 pb-20">
                 <div className="flex items-center gap-4 mb-6">
                     <button onClick={() => router.back()} className="p-2 hover:bg-gray-100 rounded-full">
@@ -254,7 +254,7 @@ export default function CreateInvoicePage() {
                     <h1 className="text-2xl font-bold text-gray-800">New Invoice</h1>
                 </div>
 
-                {/* Company Selection */}
+                {}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4">
                     <div className="flex justify-between items-center mb-2">
                         <label className="text-sm font-bold text-gray-700">Auto-fill from Company</label>
@@ -282,7 +282,7 @@ export default function CreateInvoicePage() {
                     )}
                 </div>
 
-                {/* Invoice Meta */}
+                {}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4 space-y-4">
                     <h3 className="font-bold text-gray-700 border-b pb-2">Invoice Details</h3>
                     <div className="grid grid-cols-2 gap-4">
@@ -312,7 +312,7 @@ export default function CreateInvoicePage() {
                     </div>
                 </div>
 
-                {/* Customer Details */}
+                {}
                 <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm mb-4 space-y-4">
                     <h3 className="font-bold text-gray-700 border-b pb-2">Customer Details</h3>
                     <div className="space-y-3">
@@ -458,7 +458,7 @@ export default function CreateInvoicePage() {
                                                         autoFocus
                                                     />
                                                     <button
-                                                        // @ts-ignore
+                                                        
                                                         onClick={() => handleItemChange(index, 'isCustom', false)}
                                                         className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500"
                                                         title="Search Product"
@@ -507,7 +507,7 @@ export default function CreateInvoicePage() {
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Actual Price</label>
                                             <input
                                                 type="number"
-                                                // @ts-ignore
+                                                
                                                 value={item.originalPrice || 0}
                                                 onChange={(e) => handleItemChange(index, 'originalPrice', parseFloat(e.target.value) || 0)}
                                                 className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-gray-50 text-gray-500"
@@ -534,7 +534,7 @@ export default function CreateInvoicePage() {
                                         <div className="w-24">
                                             <label className="text-[10px] text-gray-400 font-bold uppercase">Total</label>
                                             <div className="w-full bg-gray-50 border rounded-lg p-2 text-sm font-bold text-gray-700 flex items-center h-[38px]">
-                                                {/* Display grand total with currency code in edit form */}
+                                                {}
                                                 {(item.quantity * item.price).toFixed(2)}
                                             </div>
                                         </div>
@@ -579,7 +579,7 @@ export default function CreateInvoicePage() {
                 </div>
             </div>
 
-            {/* --- PREVIEW SECTION --- */}
+            {}
             <div className="flex-1 bg-gray-200 rounded-xl overflow-y-auto p-4 md:p-8 flex flex-col items-center">
                 <div className="w-full max-w-[220mm] mb-4 flex justify-end gap-3">
                     <button onClick={() => handleSave(true)} disabled={loading} className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-full font-bold shadow-lg transition-transform hover:scale-105 active:scale-95 disabled:opacity-50">

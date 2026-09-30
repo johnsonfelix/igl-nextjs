@@ -13,7 +13,7 @@ const client = new BedrockRuntimeClient({
     },
 });
 
-// ---------- helpers to build dynamic context ----------
+
 
 async function getKnowledgeContext(): Promise<string> {
     try {
@@ -92,7 +92,7 @@ async function getKnowledgeContext(): Promise<string> {
 
         const sections: string[] = [];
 
-        // Membership Plans
+        
         if (membershipPlans.length > 0) {
             sections.push('=== MEMBERSHIP PLANS ===');
             for (const plan of membershipPlans) {
@@ -105,10 +105,10 @@ async function getKnowledgeContext(): Promise<string> {
             }
         }
 
-        // Member Network
+        
         sections.push(`\n=== NETWORK SIZE ===\nIGLA currently has ${memberCount} active member companies worldwide.`);
 
-        // Upcoming Events
+        
         if (upcomingEvents.length > 0) {
             sections.push('\n=== UPCOMING EVENTS ===');
             for (const evt of upcomingEvents) {
@@ -121,7 +121,7 @@ async function getKnowledgeContext(): Promise<string> {
                 if (evt.description) lines.push(`  Description: ${evt.description}`);
                 if (evt.venue) lines.push(`  Venue: ${evt.venue.name}${evt.venue.location ? ' — ' + evt.venue.location : ''}`);
 
-                // Tickets
+                
                 if (evt.eventTickets.length > 0) {
                     lines.push('  Tickets:');
                     for (const et of evt.eventTickets) {
@@ -131,7 +131,7 @@ async function getKnowledgeContext(): Promise<string> {
                     }
                 }
 
-                // Sponsorship types
+                
                 if (evt.eventSponsorTypes.length > 0) {
                     lines.push('  Sponsorship Opportunities:');
                     for (const es of evt.eventSponsorTypes) {
@@ -140,7 +140,7 @@ async function getKnowledgeContext(): Promise<string> {
                     }
                 }
 
-                // Booths
+                
                 if (evt.eventBooths.length > 0) {
                     lines.push('  Booths:');
                     for (const eb of evt.eventBooths) {
@@ -148,7 +148,7 @@ async function getKnowledgeContext(): Promise<string> {
                     }
                 }
 
-                // Hotels
+                
                 if (evt.hotels.length > 0) {
                     lines.push('  Hotels:');
                     for (const hotel of evt.hotels) {
@@ -159,7 +159,7 @@ async function getKnowledgeContext(): Promise<string> {
                     }
                 }
 
-                // Agenda highlights
+                
                 if (evt.agendaItems.length > 0) {
                     lines.push('  Agenda Highlights:');
                     for (const ai of evt.agendaItems.slice(0, 5)) {
@@ -172,7 +172,7 @@ async function getKnowledgeContext(): Promise<string> {
             }
         }
 
-        // Past Events
+        
         if (pastEvents.length > 0) {
             sections.push('\n=== PAST EVENTS ===');
             for (const pe of pastEvents) {
@@ -180,7 +180,7 @@ async function getKnowledgeContext(): Promise<string> {
             }
         }
 
-        // Testimonials
+        
         if (testimonials.length > 0) {
             sections.push('\n=== MEMBER TESTIMONIALS ===');
             for (const t of testimonials) {
@@ -195,7 +195,7 @@ async function getKnowledgeContext(): Promise<string> {
     }
 }
 
-// ---------- static knowledge ----------
+
 
 const STATIC_KNOWLEDGE = `About IGLA:
 - IGLA (Innovative Global Logistics Allianz) is a premier network of independent freight forwarders and logistics companies worldwide, established in 2012.
@@ -230,7 +230,7 @@ Why Join IGLA:
 4. Free payment tools (IGLAPay) for fee-free, instant payments between members
 5. Annual conferences for networking and business development`;
 
-// ---------- handler ----------
+
 
 interface ChatMessage {
     role: 'user' | 'assistant';
@@ -249,7 +249,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Fetch live data from the database
+        
         const dynamicContext = await getKnowledgeContext();
 
         const systemPrompt = `You are ZARA — IGLA's friendly, knowledgeable AI assistant for the IGLA website. Your name is ZARA.

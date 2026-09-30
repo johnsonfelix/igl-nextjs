@@ -23,14 +23,14 @@ export default function LoginPage() {
       const res = await fetch('/api/company/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',                 // important
+        credentials: 'include',                 
         body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
 
       if (res.ok) {
-        // success — navigate based on role or redirect param
+        
         const params = new URLSearchParams(window.location.search);
         const redirectUrl = params.get('redirect');
 
@@ -58,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left Decoration Side */}
+      {}
       <div className="hidden lg:flex lg:w-1/2 relative bg-gray-900 text-white items-center justify-center">
         <div className="absolute inset-0">
           <Image src="/images/bg-4.jpg" alt="Login Background" fill className="object-cover opacity-60" />
@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Form Side */}
+      {}
       <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
         <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-10 animate-fadeIn">
           <div className="text-center mb-8">

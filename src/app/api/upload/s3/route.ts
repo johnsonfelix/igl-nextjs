@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "No file provided" }, { status: 400 });
         }
 
-        // Validate file type
+        
         if (!file.type.startsWith("image/")) {
             return NextResponse.json(
                 { error: "Only image files are allowed" },
@@ -18,11 +18,11 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // Convert file to buffer
+        
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        // Upload to S3 using existing helper
+        
         const { publicUrl } = await uploadBufferToS3({
             buffer,
             filename: file.name,

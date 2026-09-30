@@ -39,7 +39,7 @@ export async function createBranch(companyId: string, data: {
       return { success: false, error: "Password is required for branch login" };
     }
 
-    // Check if email already exists
+    
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return { success: false, error: "A user with this email already exists" };
@@ -47,13 +47,13 @@ export async function createBranch(companyId: string, data: {
 
     const hashedPassword = await hash(password, 12);
 
-    // Fetch parent company name for context
+    
     const parentCompany = await prisma.company.findUnique({
       where: { id: companyId },
       select: { name: true }
     });
 
-    // Create User and Branch in a transaction
+    
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -108,7 +108,7 @@ export async function updateBranch(id: string, data: {
       return { success: false, error: "Branch not found" };
     }
 
-    // If email changed, check for duplicates (excluding own user)
+    
     if (email && existingBranch.user && email !== existingBranch.user.email) {
       const existingUser = await prisma.user.findUnique({ where: { email } });
       if (existingUser && existingUser.id !== existingBranch.userId) {
@@ -117,7 +117,7 @@ export async function updateBranch(id: string, data: {
     }
 
     const result = await prisma.$transaction(async (tx) => {
-      // Update the linked user if exists
+      
       if (existingBranch.userId) {
         const userUpdate: any = {};
         if (email) userUpdate.email = email;
@@ -154,10 +154,10 @@ export async function deleteBranch(id: string) {
     const branch = await prisma.branch.findUnique({ where: { id } });
 
     await prisma.$transaction(async (tx) => {
-      // Delete branch first (to remove FK on userId)
+      
       await tx.branch.delete({ where: { id } });
 
-      // Then delete the linked user if exists
+      
       if (branch?.userId) {
         await tx.user.delete({ where: { id: branch.userId } });
       }

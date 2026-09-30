@@ -12,7 +12,7 @@ export default function PopupAd() {
     const EVENT_ID = "cmjn1f6ih0000gad4xa4j7dp3";
 
     useEffect(() => {
-        // Fetch event status
+        
         const checkEventStatus = async () => {
             try {
                 const res = await fetch(`/api/events/${EVENT_ID}`);
@@ -33,7 +33,7 @@ export default function PopupAd() {
     useEffect(() => {
         if (!shouldShow) return;
 
-        // Show every 5 minutes (300,000 ms)
+        
         const timer = setInterval(() => {
             setIsVisible(true);
         }, 300000);
@@ -70,9 +70,9 @@ export default function PopupAd() {
                 </button>
                 <div onClick={handleAdClick} className="cursor-pointer">
                     <picture>
-                        <source media="(max-width: 768px)" srcSet="/images/popup-ad.png" />
+                        <source media="(max-width: 768px)" srcSet="/images/popup2027.jpeg" />
                         <img
-                            src="/images/popup.jpg"
+                            src="/images/popup2027.jpeg"
                             alt="Special Offer"
                             className="max-w-[80vw] max-h-[75vh] w-auto h-auto object-contain rounded-2xl"
                         />

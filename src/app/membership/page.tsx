@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { ShieldCheck, ArrowRight, ChevronsRight } from 'lucide-react';
 
-// small type for the API plan shape
+
 type ApiPlan = {
   id: string;
   name: string;
@@ -20,7 +20,7 @@ type ApiPlan = {
   updatedAt?: string;
 };
 
-// Helper: normalize slug/name into a URL segment (kebab-case)
+
 const toUrlSegment = (s?: string) =>
   (s || '')
     .toString()
@@ -39,9 +39,9 @@ const Section = ({ children, className = '' }: { children: React.ReactNode; clas
 // --- Sub-Components for the Membership Page ---
 // They'll receive `plans` as props when needed
 
-// 1. Hero Section Component (Updated with Links)
+
 const HeroSection = ({ plans }: { plans: ApiPlan[] }) => {
-  // build membership items from plans; fall back to some common labels if empty
+  
   const membershipItems =
     plans && plans.length > 0
       ? plans.map((p) => ({ name: p.name, path: `/membership/purchase/${toUrlSegment(p.slug || p.name)}` }))
@@ -75,7 +75,7 @@ const HeroSection = ({ plans }: { plans: ApiPlan[] }) => {
   );
 };
 
-// 2. "Why Choose Us" Section Component (unchanged content)
+
 const WhyChooseSection = () => {
   const reasons = [
     {
@@ -130,9 +130,9 @@ const WhyChooseSection = () => {
   );
 };
 
-// 3. Membership Tiers Section - now driven by plans
+
 const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
-  // Show all plans
+  
   const displayPlans = plans || [];
 
   return (
@@ -148,7 +148,7 @@ const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
             <div className="col-span-full text-center text-gray-400">Loading plans...</div>
           ) : (
             displayPlans.map((p, idx) => {
-              // Determine card styling based on plan name
+              
               let borderColor = "border-white border-opacity-20";
               let textColor = "text-white";
               let btnColor = "bg-white text-gray-900";
@@ -227,13 +227,13 @@ const MembershipTiers = ({ plans }: { plans: ApiPlan[] }) => {
   );
 };
 
-// 4. Specialty Membership Section - Removed as per new requirement focusing on 5 specific tiers.
-// kept as null component or removed.
+
+
 const SpecialtyMembership = ({ plans }: { plans: ApiPlan[] }) => {
   return null;
 };
 
-// 5. Success Stories Section (unchanged)
+
 const SuccessStories = () => (
   <Section className="bg-gray-50">
     <div className="container mx-auto px-4">
@@ -242,10 +242,10 @@ const SuccessStories = () => (
         {[1, 2, 3].map((i) => (
           <div key={i} className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="h-48 bg-gray-200 w-full flex items-center justify-center text-gray-400">
-              {/* Placeholder for image */}
+              {}
               [Story Image {i}]
             </div>
-            {/* <img src={`/path/to/story-${i}.jpg`} alt={`Success Story ${i}`} className="w-full h-48 object-cover" /> */}
+            {}
             <div className="p-6">
               <h3 className="font-bold text-lg mb-2">IGLA & Partner Success Story...</h3>
               <div className="flex items-center text-sm text-gray-500">
@@ -262,7 +262,7 @@ const SuccessStories = () => (
   </Section>
 );
 
-// 6. Members Logo Wall (unchanged)
+
 const MembersWall = () => (
   <Section>
     <div className="container mx-auto px-4">
@@ -270,14 +270,14 @@ const MembersWall = () => (
       <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-8 items-center">
         {[...Array(12)].map((_, i) => (
           <div key={i} className="h-12 bg-gray-100 rounded flex items-center justify-center text-xs text-gray-400">Logo {i + 1}</div>
-          // <img key={i} src={`/path/to/logo-${i + 1}.png`} alt="Member Logo" className="h-12 w-auto mx-auto" />
+          
         ))}
       </div>
     </div>
   </Section>
 );
 
-// --- Main Page Component ---
+
 const MembershipPage: NextPage = () => {
   const [plans, setPlans] = useState<ApiPlan[]>([]);
   const [loading, setLoading] = useState(true);
@@ -294,7 +294,7 @@ const MembershipPage: NextPage = () => {
         if (!res.ok) throw new Error(`Failed to load plans (${res.status})`);
         const data: ApiPlan[] = await res.json();
         if (!mounted) return;
-        // sort by price ascending
+        
         data.sort((a, b) => (a.price || 0) - (b.price || 0));
         setPlans(data);
       } catch (err) {
@@ -315,7 +315,7 @@ const MembershipPage: NextPage = () => {
   return (
     <div className="bg-white">
       <main>
-        {/* Loading / Error UI */}
+        {}
         {loading ? (
           <div className="py-32 text-center">
             <div className="mx-auto max-w-xl animate-pulse">
@@ -340,8 +340,8 @@ const MembershipPage: NextPage = () => {
             <WhyChooseSection />
             <MembershipTiers plans={plans} />
             <SpecialtyMembership plans={plans} />
-            {/* <SuccessStories /> */}
-            {/* <MembersWall /> */}
+            {}
+            {}
           </>
         )}
       </main>

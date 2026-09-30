@@ -1,9 +1,9 @@
-// D:\Projects\Logistics\web\backend-api\src\app\api\events\[id]\route.ts
+
 import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-// Helper to extract eventId from URL
+
 function extractEventId(req: NextRequest): string | null {
   try {
     const pathname = new URL(req.url).pathname;
@@ -27,21 +27,21 @@ export async function GET(req: NextRequest) {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
-        // include eventBooths (with quantities) and the nested booth (and booth.subTypes filtered for this event)
+        
         eventBooths: {
           include: {
             booth: {
               include: {
-                // include subTypes but only those tied to this event (BoothSubType uses eventId)
+                
                 subTypes: {
-                  where: { eventId }, // only relevant subtypes for this event
+                  where: { eventId }, 
                 },
               },
             },
           },
         },
 
-        // hotels with roomTypes and their eventRoomTypes (only for this event)
+        
         hotels: {
           include: {
             roomTypes: {
@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ✅ CREATE event
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -130,11 +130,11 @@ export async function POST(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      booths = [],         // now expected as array of { id: string, quantity: number }
+      booths = [],         
       hotels = [],
-      tickets = [],        // array of { id, quantity }
-      sponsorTypes = [],   // array of { id, quantity }
-      roomTypes = [],      // array of { id, quantity }
+      tickets = [],        
+      sponsorTypes = [],   
+      roomTypes = [],      
       earlyBird,
     } = body;
 
@@ -244,16 +244,16 @@ export async function PUT(req: NextRequest) {
         expectedAudience: expectedAudience || "",
         earlyBird: earlyBird ?? false,
 
-        // Replace eventBooths: remove existing and create new entries with quantity
+        
         eventBooths: {
-          deleteMany: {}, // remove all existing eventBooths for this event
+          deleteMany: {}, 
           create: (booths || []).map(({ id: boothId, quantity }: { id: string; quantity?: number }) => ({
             booth: { connect: { id: boothId } },
             quantity: quantity ?? 1,
           })),
         },
 
-        // hotels set
+        
         hotels: {
           set: (hotels || []).map((hId: string) => ({ id: hId })),
         },

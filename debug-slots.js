@@ -14,7 +14,7 @@ async function main() {
     console.log(JSON.stringify(subtypes, null, 2));
 
     const booths = await prisma.booth.findMany({
-        include: { subTypes: true } // Check if relation exists generally
+        include: { subTypes: true } 
     });
     console.log("Checking all booths and their subtypes count:");
     booths.forEach(b => {

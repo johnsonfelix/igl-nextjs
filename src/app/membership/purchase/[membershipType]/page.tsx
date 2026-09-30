@@ -4,7 +4,7 @@ import type { NextPage } from 'next';
 import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { ShieldCheck, CreditCard, Calendar, Lock, Building, Check, LockKeyhole, Loader, LogIn, Printer, Download } from 'lucide-react';
-import { useAuth } from '@/app/context/AuthContext'; // Your authentication context
+import { useAuth } from '@/app/context/AuthContext'; 
 import Link from 'next/link';
 import { InvoiceTemplate } from '@/app/components/InvoiceTemplate';
 
@@ -48,7 +48,7 @@ const PurchasePage: NextPage = () => {
   const [orderConfirmed, setOrderConfirmed] = useState(false);
   const [invoiceData, setInvoiceData] = useState<any>(null);
 
-  // Fetch membership plans from API
+  
   useEffect(() => {
     let mounted = true;
     const fetchPlans = async () => {
@@ -63,7 +63,7 @@ const PurchasePage: NextPage = () => {
         if (!mounted) return;
         setPlans(data);
 
-        // find matched plan robustly by comparing normalized membershipType to normalized slug or name
+        
         const normalizedParam = normalize(membershipType);
         const matched = data.find((p) => {
           return normalize(p.slug) === normalizedParam || normalize(p.name) === normalizedParam;
@@ -87,7 +87,7 @@ const PurchasePage: NextPage = () => {
     };
   }, [membershipType]);
 
-  // --- Fetch the user's single company name ---
+  
   useEffect(() => {
     const loadCompanyName = async (companyId: string) => {
       if (!companyId) {
@@ -165,14 +165,14 @@ const PurchasePage: NextPage = () => {
       if (responseData.purchaseOrder) {
         setInvoiceData(responseData.purchaseOrder);
       }
-      // Removed auto-redirect to show bank details
+      
     } catch (error) {
       setStatus('error');
       setErrorMessage(error instanceof Error ? error.message : 'Failed to process payment.');
     }
   };
 
-  // Loading / error states
+  
   if (loadingPlans || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -236,7 +236,7 @@ const PurchasePage: NextPage = () => {
                 const element = document.getElementById('invoice-component');
                 if (!element) return;
 
-                // Dynamic import
+                
                 const html2pdf = (await import('html2pdf.js')).default;
 
                 const opt = {
@@ -254,7 +254,7 @@ const PurchasePage: NextPage = () => {
               <Download className="w-5 h-5" /> Download Invoice PDF
             </button>
 
-            {/* The Invoice Component */}
+            {}
             <div className="border shadow-2xl print:shadow-none print:border-none printable-area overflow-auto max-h-[800px] lg:max-h-none w-full flex justify-center bg-gray-100 p-8 rounded-lg">
               <div className="scale-90 origin-top">
                 <InvoiceTemplate
@@ -334,7 +334,7 @@ const PurchasePage: NextPage = () => {
             </div>
           </div>
 
-          {/* Right Side: Payment Form */}
+          {}
           <div className="order-1 lg:order-2">
             {!user ? (
               <div className="bg-white p-8 rounded-xl shadow-lg text-center h-full flex flex-col items-center justify-center">
@@ -358,7 +358,7 @@ const PurchasePage: NextPage = () => {
               <div className="bg-white p-8 rounded-xl shadow-lg">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Complete Your Purchase</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Company Display */}
+                  {}
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Purchase For</label>
                     <div className="relative">
@@ -371,11 +371,11 @@ const PurchasePage: NextPage = () => {
                     </div>
                   </div>
 
-                  {/* Payment Selection */}
+                  {}
                   <div>
                     <h3 className="text-sm font-semibold text-gray-700 mb-3">Select Payment Method</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Offline */}
+                      {}
                       <label className={`relative cursor-pointer border rounded-xl p-4 flex flex-col gap-2 transition-all ${paymentMethod === 'offline' ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600' : 'border-gray-200 hover:border-gray-300'}`}>
                         <input
                           type="radio"
@@ -394,7 +394,7 @@ const PurchasePage: NextPage = () => {
                         <p className="text-xs text-gray-500">Bank Transfer. Details shown after confirmation.</p>
                       </label>
 
-                      {/* Online (Disabled) */}
+                      {}
                       <label className="relative cursor-not-allowed border rounded-xl p-4 flex flex-col gap-2 border-gray-100 bg-gray-50 opacity-60">
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-gray-400">Online Payment</span>
@@ -405,7 +405,7 @@ const PurchasePage: NextPage = () => {
                     </div>
                   </div>
 
-                  {/* Terms */}
+                  {}
                   <div className="space-y-3 pt-2 border-t">
                     <div className="flex items-start gap-2">
                       <input

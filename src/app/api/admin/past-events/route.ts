@@ -21,7 +21,7 @@ export async function POST(request: Request) {
         const body = await request.json();
         const { title, place, date, membersAttended, description, mainImage, carouselImages } = body;
 
-        // Basic validation
+        
         if (!title || !place || !date || !membersAttended || !description || !mainImage) {
             return NextResponse.json(
                 { error: "Missing required fields" },

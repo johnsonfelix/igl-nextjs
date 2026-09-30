@@ -6,7 +6,7 @@ import { format } from 'date-fns';
 import { MapPin, Calendar, Inbox, Ship, Plane, Truck, ShoppingBag, MessageSquare, DollarSign } from 'lucide-react';
 import Link from 'next/link';
 
-// --- TYPE DEFINITIONS ---
+
 type InquiryStub = {
     id: string;
     from: string;
@@ -23,7 +23,7 @@ type MyResponse = {
     inquiry: InquiryStub;
 };
 
-// --- UI COMPONENTS ---
+
 
 const InfoChip = ({ icon: Icon, label }: { icon: React.ElementType, label: string }) => (
     <div className="flex items-center gap-1.5 bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full text-xs font-medium">
@@ -38,7 +38,7 @@ const ResponseCard = ({ response }: { response: MyResponse }) => {
 
     return (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            {/* Original Inquiry Section */}
+            {}
             <div className="p-4">
                 <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                     <span>ORIGINAL INQUIRY</span>
@@ -55,7 +55,7 @@ const ResponseCard = ({ response }: { response: MyResponse }) => {
                 </div>
             </div>
 
-            {/* Your Response Section */}
+            {}
             <div className="bg-orange-50/50 p-4 border-t border-orange-200">
                 <p className="text-sm font-bold text-orange-700 mb-2">YOUR RESPONSE</p>
                 <div className="space-y-3">
@@ -79,7 +79,7 @@ const ResponseCard = ({ response }: { response: MyResponse }) => {
     );
 };
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function MyResponsesPage() {
     const { user } = useAuth();
     const [responses, setResponses] = useState<MyResponse[]>([]);

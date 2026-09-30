@@ -13,7 +13,7 @@ import {
   Gift,
 } from "lucide-react";
 
-// Match OfferScope used in admin offers
+
 type OfferScope =
   | "ALL"
   | "HOTELS"
@@ -81,7 +81,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
   const { user, refreshUser } = useAuth();
   const router = useRouter();
 
-  // --- companyId resolution (auto-detect or fallback input) ---
+  
   const inferredCompanyId = useMemo(() => {
     if (!user) return null;
     if ((user as any).companyId) return (user as any).companyId as string;
@@ -97,7 +97,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
   const [companyId, setCompanyId] = useState<string | null>(inferredCompanyId);
   useEffect(() => setCompanyId(inferredCompanyId), [inferredCompanyId]);
 
-  // --- selection & form state ---
+  
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(
     plans?.[0]?.id ?? null
   );
@@ -145,7 +145,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
           }[]
         >("/api/admin/offers");
 
-        // Only keep scopes relevant to membership
+        
         const membershipOffers = (data || []).filter((o) =>
           ["ALL", "SUBSCRIPTIONS", "CUSTOM"].includes(o.scope)
         );
@@ -161,7 +161,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     loadOffers();
   }, []);
 
-  // Helper: is offer active now (date + isActive)
+  
   const isOfferActive = (o: MembershipOffer): boolean => {
     if (!o.isActive) return false;
     const now = new Date();
@@ -176,7 +176,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     return true;
   };
 
-  // Helper: compute best offer & discounted price FOR A GIVEN PLAN
+  
   const getBestOfferForPlan = (
     plan: Plan | null
   ): {
@@ -225,7 +225,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     return { offer: best, discountAmount, finalPrice };
   };
 
-  // Selected plan: compute best offer and discounted price (for summary + payment)
+  
   const {
     offer: bestOfferForSelected,
     discountAmount: membershipDiscountAmount,
@@ -235,10 +235,10 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     [selectedPlan, offers]
   );
 
-  // Base price
+  
   const previewPrice = selectedPlan ? selectedPlan.price : 0;
 
-  // Coupon logic (demo)
+  
   const applyCoupon = () => {
     setError(null);
     setCouponApplied(null);
@@ -269,20 +269,20 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     selectedPlanPriceAfterOffer - couponDiscount
   );
 
-  // Determine duration based on plan name (Diamond/Lifetime logic)
+  
   const durationDays = useMemo(() => {
-    if (selectedPlan?.name?.toLowerCase().includes("diamond")) return null; // Lifetime
-    return 365; // Default 1 year
+    if (selectedPlan?.name?.toLowerCase().includes("diamond")) return null; 
+    return 365; 
   }, [selectedPlan]);
 
 
-  // --- simple color mapping for plan cards ---
+  
   const planColor = (name: string) => {
-    // As per request: All cards should be grey
+    
     return "from-slate-50 to-slate-200 text-slate-900";
   };
 
-  // --- submit handler ---
+  
   async function handleSubmit() {
     setError(null);
     setSuccessCompany(null);
@@ -293,9 +293,9 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
     }
 
     if (!companyId) {
-      // Try refreshing user to see if company was just added
+      
       await refreshUser();
-      // If still no company, prompt to create
+      
       setError("Company profile required. Redirecting to registration...");
       setTimeout(() => router.push("/company/register"), 1500);
       return;
@@ -314,7 +314,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
       const payment: PaymentPayload = {
         provider: finalPrice === 0 ? "FREE" : paymentMethod,
         transactionId: account ?? undefined,
-        amount: finalPrice, // includes membership offer + coupon
+        amount: finalPrice, 
       };
 
       const res = await fetch("/api/membership/purchase", {
@@ -326,7 +326,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
           payment,
           coupon: couponApplied?.code ?? null,
           account: account || null,
-          durationDays, // Passed explicitly (null for lifetime)
+          durationDays, 
         }),
       });
 
@@ -364,7 +364,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
 
   return (
     <div className="space-y-8">
-      {/* Header / summary */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <p className="mt-1 text-slate-600">
@@ -387,7 +387,7 @@ export default function BecomeMemberClient({ plans }: { plans: Plan[] }) {
         </div>
       </div>
 
-      {/* Membership grid */}
+      {}
       <section>
         <h2 className="text-lg font-semibold mb-4">Choose membership</h2>
 
@@ -429,7 +429,7 @@ function PlanCard({
       className={`relative overflow-hidden rounded-2xl p-4 cursor-pointer transition-transform transform hover:-translate-y-1 shadow-sm hover:shadow-md bg-white border border-slate-100 flex flex-col`}
       role="button"
     >
-      {/* offer badge */}
+      {}
       {offer && (
         <div className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-100 text-emerald-700 text-xs font-semibold">
           <Gift className="h-3 w-3" />
@@ -437,7 +437,7 @@ function PlanCard({
         </div>
       )}
 
-      {/* top gradient / thumbnail */}
+      {}
       <div
         className={`rounded-xl overflow-hidden p-3 bg-gradient-to-br ${planColor(
           plan.name
@@ -453,7 +453,7 @@ function PlanCard({
               />
             ) : (
               <div className="text-xl font-bold text-white/90">
-                {/* Short initial or icon if no image */}
+                {}
                 {plan.name.charAt(0)}
               </div>
             )}
@@ -490,7 +490,7 @@ function PlanCard({
         </div>
       </div>
 
-      {/* content body */}
+      {}
       <div className="mt-3 flex-grow flex flex-col">
         {plan.paymentProtection && (
           <div className="mb-2 text-xs font-semibold text-blue-800 bg-blue-100 px-2 py-1 rounded inline-block self-start">

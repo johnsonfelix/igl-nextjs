@@ -12,7 +12,7 @@ export function DropdownMenu() {
 
   return (
     <div className="relative inline-block">
-      {/* Trigger Button */}
+      {}
       <Button
         onClick={toggleDropdown}
         className="flex items-center gap-1"
@@ -22,7 +22,7 @@ export function DropdownMenu() {
         Menu <ChevronDown className={cn("h-4 w-4 transition", isOpen && "rotate-180")} />
       </Button>
 
-      {/* Dropdown Content */}
+      {}
       {isOpen && (
         <div 
           className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white border z-50"

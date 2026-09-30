@@ -6,7 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Search, MapPin, Building, Award, Star, TrendingUp, CheckCircle } from 'lucide-react';
 
-// --- Type Definitions ---
+
 interface Media { id: number; url: string; }
 interface Location { id: number; address?: string; city?: string; state?: string; country?: string; zipCode?: string; port?: string; }
 interface Company {
@@ -19,10 +19,10 @@ interface Company {
   services?: string[];
   specialties?: string[];
   media?: Media[];
-  status?: 'LIVE' | 'SUSPENDED' | 'BLOCKLISTED' | string; // add status
+  status?: 'LIVE' | 'SUSPENDED' | 'BLOCKLISTED' | string; 
 }
 
-// --- Helper Components & Functions ---
+
 const getMembershipYears = (memberSince: string) => {
   const d = new Date(memberSince);
   if (isNaN(d.getTime())) return 0;
@@ -53,16 +53,16 @@ const MembershipBadge = ({ type, isVerified }: { type?: string, isVerified?: boo
   if (type && styleMap[type]) {
     style = styleMap[type];
   } else if (type) {
-    // Default style for other specialities
+    
     style = 'bg-cyan-100 text-cyan-800';
   } else {
-    return null; // Don't render a badge if no type is provided
+    return null; 
   }
 
   return <span className={`${baseStyle} ${style}`}>{type}</span>;
 };
 
-// --- Status Seal Component ---
+
 const StatusSeal = ({ status }: { status?: string }) => {
   if (!status) return null;
 
@@ -70,14 +70,14 @@ const StatusSeal = ({ status }: { status?: string }) => {
   const isSuspended = status.toUpperCase() === 'SUSPENDED';
   if (!isBlocked && !isSuspended) return null;
 
-  // Colors and text for the big watermark and the small pill
+  
   const watermarkBg = isBlocked ? 'bg-red-800/10' : 'bg-amber-700/10';
   const watermarkTextColor = isBlocked ? 'text-red-800' : 'text-amber-700';
   const pillBg = isBlocked ? 'bg-red-600 text-white' : 'bg-amber-500 text-white';
 
   return (
     <>
-      {/* large diagonal watermark */}
+      {}
       <div
         aria-hidden
         className={`absolute inset-0 pointer-events-none flex items-center justify-center ${watermarkBg}`}
@@ -92,7 +92,7 @@ const StatusSeal = ({ status }: { status?: string }) => {
         </div>
       </div>
 
-      {/* small pill top-right */}
+      {}
       <div className={`absolute top-3 right-3 z-20 ${pillBg} px-3 py-1 rounded-full text-xs font-semibold shadow-md`}>
         {status}
       </div>
@@ -100,13 +100,13 @@ const StatusSeal = ({ status }: { status?: string }) => {
   );
 };
 
-// --- Main Page Component ---
+
 function CompaniesListContent() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // --- Filter States ---
+  
   const [country, setCountry] = useState('All');
   const [city, setCity] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -124,7 +124,7 @@ function CompaniesListContent() {
   const tabs = ['Location', 'Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Location');
 
-  // --- Data Fetching ---
+  
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -136,9 +136,9 @@ function CompaniesListContent() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies();
-    }, 400); // Debounce API calls
+    }, 400); 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [country, city, companyName, memberId, port]);
 
   const buildQuery = () => {
@@ -148,7 +148,7 @@ function CompaniesListContent() {
     if (companyName) params.name = companyName;
     if (memberId) params.memberId = memberId;
     if (port) params.port = port;
-    // you're calling your flagged endpoint — keep that unless you want to reuse /api/companies with a status param
+    
     return `/api/companies/flagged/search?${new URLSearchParams(params).toString()}`;
   };
 
@@ -162,7 +162,7 @@ function CompaniesListContent() {
       const data = await res.json();
       setCompanies(data || []);
 
-      // Fetch simplified company list for report dropdown if not already fetched
+      
       if (reportCompanies.length === 0) {
         fetch('/api/companies/list')
           .then(res => res.json())
@@ -205,7 +205,7 @@ function CompaniesListContent() {
   return (
     <div className="min-h-screen bg-[#f8f9fa] font-sans">
       <main className="container mx-auto p-4 md:p-8 max-w-7xl">
-        {/* Page Header */}
+        {}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-1.5 h-8 bg-red-600 rounded-full"></div>
@@ -214,7 +214,7 @@ function CompaniesListContent() {
           <p className="text-gray-500 ml-6">Review flagged, suspended, and blocklisted companies for risk assessment</p>
         </div>
 
-        {/* Search Section */}
+        {}
         <div className="mb-8 p-8 rounded-2xl bg-white border border-gray-100 shadow-lg shadow-gray-200/50">
           <div className="flex border-b border-gray-100 mb-6 -mx-2">
             {tabs.map(t => (
@@ -282,10 +282,10 @@ function CompaniesListContent() {
 
               return (
                 <div key={company.id} className="group relative flex flex-col md:flex-row gap-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm hover:shadow-xl hover:border-red-200 hover:translate-y-[-2px] transition-all duration-300 overflow-hidden">
-                  {/* Status Seal (big watermark + small pill) */}
+                  {}
                   <StatusSeal status={company.status} />
 
-                  {/* Decorative border on hover */}
+                  {}
                   <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-red-600 to-orange-600 opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
                   <div className="flex-shrink-0 flex md:flex-col items-center gap-3">
@@ -338,16 +338,7 @@ function CompaniesListContent() {
           </div>
 
           <aside className="hidden lg:block space-y-6">
-            {/* <div className="rounded-2xl bg-white p-6 shadow-sm border border-gray-100 hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="bg-red-600 text-white rounded-xl p-3 shadow-md"><TrendingUp size={20} /></div>
-                <h3 className="font-bold text-lg text-gray-800">Risk Alerts</h3>
-              </div>
-              <p className="text-sm text-gray-600 leading-relaxed">Monitor flagged companies and receive alerts about potential risks in your network.</p>
-              <button className="w-full mt-5 rounded-xl bg-red-600 text-white py-3 text-sm font-bold hover:bg-red-700 transition-all shadow-md hover:shadow-lg hover:translate-y-[-2px]">
-                View Alerts
-              </button>
-            </div> */}
+            {}
             <div className="rounded-2xl bg-gradient-to-br from-gray-800 to-gray-900 p-6 text-white shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 opacity-10">
                 <Award size={120} />
@@ -370,7 +361,7 @@ function CompaniesListContent() {
         </div>
       </main>
 
-      {/* Report Modal */}
+      {}
       {isReportModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">

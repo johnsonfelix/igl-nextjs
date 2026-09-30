@@ -13,7 +13,7 @@ export default function CookieConsent() {
     useEffect(() => {
         const consent = localStorage.getItem(COOKIE_CONSENT_KEY);
         if (!consent) {
-            // Small delay so the banner slides in after page load
+            
             const timer = setTimeout(() => setVisible(true), 800);
             return () => clearTimeout(timer);
         }
@@ -21,9 +21,9 @@ export default function CookieConsent() {
 
     const handleChoice = (choice: 'accepted' | 'declined') => {
         localStorage.setItem(COOKIE_CONSENT_KEY, choice);
-        // Dispatch custom event so SiteTracker can react immediately
+        
         window.dispatchEvent(new CustomEvent('cookie-consent-change', { detail: choice }));
-        // Animate out then hide
+        
         setAnimateOut(true);
         setTimeout(() => setVisible(false), 400);
     };

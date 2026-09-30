@@ -2,8 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/app/lib/prisma';
 
-// ✅ GET all events
-// ✅ GET all events
+
+
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
@@ -12,12 +12,12 @@ export async function GET(req: NextRequest) {
     const events = await prisma.event.findMany({
       include: isFull
         ? {
-          // eventBooths contains { eventId, boothId, quantity } and we include the nested booth
+          
           eventBooths: {
             include: {
               booth: {
                 include: {
-                  // include subTypes (all); if you want to filter per-event you'll do that in single-event GET
+                  
                   subTypes: true,
                 },
               },
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   }
 }
 
-// ✅ CREATE event
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -59,12 +59,13 @@ export async function POST(req: NextRequest) {
       eventType,
       expectedAudience,
       description,
-      // now expecting booths: array of { id: string, quantity?: number }
-      booths = [],          // array of { id: string, quantity?: number }
-      hotels = [],          // array of hotel IDs
-      tickets = [],         // array of { id: string, quantity?: number }
-      sponsorTypes = [],    // array of { id: string, quantity?: number }
-      roomTypes = [],       // array of { id: string, quantity?: number }
+      earlyBird = false,
+      
+      booths = [],          
+      hotels = [],          
+      tickets = [],         
+      sponsorTypes = [],    
+      roomTypes = [],       
     } = body;
 
     if (!name || !startDate || !endDate || !location) {
@@ -81,6 +82,7 @@ export async function POST(req: NextRequest) {
         thumbnail: thumbnail || "",
         eventType,
         expectedAudience: expectedAudience || "",
+        earlyBird,
 
         // Create eventBooths entries (join model) with quantity
         eventBooths: {
@@ -131,9 +133,9 @@ export async function POST(req: NextRequest) {
     });
 
     return NextResponse.json(event);
-  } catch (error) {
+  } catch (error: any) {
     console.error('[EVENTS_POST]', error);
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Internal error' }, { status: 500 });
   }
 }
 
@@ -175,21 +177,21 @@ export async function PUT(req: NextRequest) {
         eventType,
         expectedAudience: expectedAudience || "",
 
-        // Replace eventBooths: delete existing join rows and create the new ones with quantities
+        
         eventBooths: {
-          deleteMany: {}, // remove existing eventBooth rows for this event
+          deleteMany: {}, 
           create: (booths || []).map(({ id: boothId, quantity }: { id: string; quantity?: number }) => ({
             booth: { connect: { id: boothId } },
             quantity: quantity ?? 1,
           })),
         },
 
-        // Replace hotels many-to-many
+        
         hotels: {
           set: (hotels || []).map((hId: string) => ({ id: hId })),
         },
 
-        // Replace tickets join model entries
+        
         eventTickets: {
           deleteMany: {},
           create: (tickets || []).map(({ id: ticketId, quantity }: { id: string; quantity?: number }) => ({
@@ -198,7 +200,7 @@ export async function PUT(req: NextRequest) {
           })),
         },
 
-        // Replace sponsorTypes join model entries
+        
         eventSponsorTypes: {
           deleteMany: {},
           create: (sponsorTypes || []).map(({ id: sponsorTypeId, quantity }: { id: string; quantity?: number }) => ({
@@ -207,7 +209,7 @@ export async function PUT(req: NextRequest) {
           })),
         },
 
-        // Replace roomTypes join model entries
+        
         eventRoomTypes: {
           deleteMany: {},
           create: (roomTypes || []).map(({ id: roomTypeId, quantity }: { id: string; quantity?: number }) => ({
@@ -226,8 +228,8 @@ export async function PUT(req: NextRequest) {
     });
 
     return NextResponse.json(updatedEvent);
-  } catch (error) {
+  } catch (error: any) {
     console.error('[EVENTS_PUT]', error);
-    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
+    return NextResponse.json({ error: error?.message || 'Internal error' }, { status: 500 });
   }
 }

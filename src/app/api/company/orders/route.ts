@@ -17,13 +17,13 @@ export async function GET(req: NextRequest) {
         const user = await prisma.user.findUnique({ where: { id: userId } });
         if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-        // Check for company
+        
         const company = await prisma.company.findFirst({ where: { userId: user.id } });
         if (!company) {
             return NextResponse.json({ error: "Company not found" }, { status: 404 });
         }
 
-        // Use company.id for the query
+        
         const orders = await prisma.purchaseOrder.findMany({
             where: {
                 companyId: company.id,

@@ -50,7 +50,7 @@ function timeAgo(dateStr: string): string {
     return `${Math.floor(hrs / 24)}d ago`;
 }
 
-// Simple bar chart using CSS
+
 function BarChartSimple({ data, color = '#3b82f6' }: { data: { label: string; value: number }[]; color?: string }) {
     const max = Math.max(...data.map(d => d.value), 1);
     return (
@@ -76,7 +76,7 @@ function BarChartSimple({ data, color = '#3b82f6' }: { data: { label: string; va
     );
 }
 
-// Sparkline-style area chart using SVG
+
 function AreaChart({ data }: { data: { date: string; count: number }[] }) {
     if (data.length < 2) return <div className="h-48 flex items-center justify-center text-gray-400 text-sm">Not enough data yet</div>;
 
@@ -104,21 +104,21 @@ function AreaChart({ data }: { data: { date: string; count: number }[] }) {
                         <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
                     </linearGradient>
                 </defs>
-                {/* Grid lines */}
+                {}
                 {[0, 0.25, 0.5, 0.75, 1].map(pct => (
                     <line key={pct} x1={padding} y1={padding + chartH * (1 - pct)} x2={width - padding} y2={padding + chartH * (1 - pct)}
                         stroke="#f0f0f0" strokeWidth="1" />
                 ))}
-                {/* Area */}
+                {}
                 <path d={areaPath} fill="url(#areaGrad)" />
-                {/* Line */}
+                {}
                 <path d={linePath} fill="none" stroke="#3b82f6" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                {/* Dots */}
+                {}
                 {points.map((p, i) => (
                     <circle key={i} cx={p.x} cy={p.y} r="3" fill="#3b82f6" stroke="#fff" strokeWidth="2" />
                 ))}
             </svg>
-            {/* X-axis labels */}
+            {}
             <div className="flex justify-between px-8 text-xs text-gray-400 -mt-1">
                 {data.filter((_, i) => i % Math.max(1, Math.floor(data.length / 6)) === 0 || i === data.length - 1).map(d => (
                     <span key={d.date}>{new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
@@ -128,7 +128,7 @@ function AreaChart({ data }: { data: { date: string; count: number }[] }) {
     );
 }
 
-// Donut chart
+
 function DonutChart({ data }: { data: { label: string; value: number }[] }) {
     const total = data.reduce((sum, d) => sum + d.value, 0) || 1;
     const radius = 60;
@@ -191,7 +191,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
 
     useEffect(() => { fetchStats(); }, [days]);
 
-    // Auto-refresh every 30 seconds
+    
     useEffect(() => {
         const interval = setInterval(() => fetchStats(true), 30000);
         return () => clearInterval(interval);
@@ -206,7 +206,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
 
     return (
         <div className="min-h-screen space-y-6">
-            {/* Header */}
+            {}
             <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                     <div className="w-1.5 h-8 bg-blue-600 rounded-full" />
@@ -216,7 +216,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    {/* Date range selector */}
+                    {}
                     <div className="flex bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
                         {[7, 30, 90].map(d => (
                             <button key={d} onClick={() => setDays(d)}
@@ -245,7 +245,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                 </div>
             ) : stats ? (
                 <>
-                    {/* KPI Cards */}
+                    {}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                         {kpis.map(kpi => (
                             <div key={kpi.label} className={`bg-white rounded-2xl p-6 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5`}>
@@ -258,7 +258,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                         ))}
                     </div>
 
-                    {/* Visits Over Time */}
+                    {}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                         <div className="flex items-center gap-2 mb-6">
                             <BarChart3 size={20} className="text-blue-600" />
@@ -268,9 +268,9 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                         <AreaChart data={stats.visitsOverTime} />
                     </div>
 
-                    {/* Two-column layout */}
+                    {}
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        {/* Top Pages */}
+                        {}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-6">
                                 <ArrowUpRight size={20} className="text-emerald-600" />
@@ -283,7 +283,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                             )}
                         </div>
 
-                        {/* Top Countries */}
+                        {}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                             <div className="flex items-center gap-2 mb-6">
                                 <Globe size={20} className="text-blue-600" />
@@ -297,9 +297,9 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                         </div>
                     </div>
 
-                    {/* Three-column breakdown */}
+                    {}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Device */}
+                        {}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <Monitor size={18} className="text-blue-500" /> Devices
@@ -307,7 +307,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                             <DonutChart data={stats.deviceBreakdown.map(d => ({ label: d.device, value: d.count }))} />
                         </div>
 
-                        {/* Browser */}
+                        {}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <Globe size={18} className="text-emerald-500" /> Browsers
@@ -315,7 +315,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                             <DonutChart data={stats.browserBreakdown.map(b => ({ label: b.browser, value: b.count }))} />
                         </div>
 
-                        {/* OS */}
+                        {}
                         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                             <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
                                 <Tablet size={18} className="text-amber-500" /> Operating Systems
@@ -324,7 +324,7 @@ export default function StatisticsClient({ initialTotalVisits }: { initialTotalV
                         </div>
                     </div>
 
-                    {/* Recent Visits Table */}
+                    {}
                     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
                         <div className="p-6 border-b border-gray-50">
                             <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">

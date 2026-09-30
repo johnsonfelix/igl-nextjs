@@ -1,11 +1,9 @@
-// app/api/admin/sponsors/route.ts
+
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 import { uploadBufferToS3 } from "@/app/lib/s3";
 
-/**
- * extractKeyFromUrl: try to extract the S3 key portion from a public URL or custom domain.
- */
+
 function extractKeyFromUrl(urlStr?: string | null): string | null {
   if (!urlStr) return null;
   try {
@@ -38,7 +36,7 @@ export async function GET() {
   }
 }
 
-// POST create new sponsor
+
 export async function POST(req: Request) {
   try {
     const contentType = req.headers.get("content-type") || "";
@@ -77,7 +75,7 @@ export async function POST(req: Request) {
         if (imageKeyField) imageKey = imageKeyField;
       }
 
-      // Handle features from FormData
+      
       const featuresField = formData.get("features") as string | null;
       if (featuresField) {
         try {

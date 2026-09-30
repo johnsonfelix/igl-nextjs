@@ -41,24 +41,24 @@ export async function POST(request: Request) {
         const body = await request.json();
         const {
             name,
-            memberId, // unique
+            memberId, 
             memberType,
             website,
             logoUrl,
-            established, // string or date
+            established, 
             about,
-            location, // { address, city, ... }
+            location, 
             status,
-            // New fields
+            
             directors,
             participationYears,
             scopeOfBusiness,
             servicesOffered,
             taxNumber,
-            media, // Array of strings (URLs) for gallery
+            media, 
         } = body;
 
-        // Basic validation
+        
         if (!name || typeof name !== 'string' || name.trim().length === 0) {
             return NextResponse.json({ error: 'Company Name is required' }, { status: 400 });
         }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
 
         const trimmedName = name.trim();
 
-        // Check if company name already exists (case-insensitive)
+        
         const existingName = await prisma.company.findFirst({
             where: {
                 name: {
@@ -83,7 +83,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'A company with this name already exists.' }, { status: 409 });
         }
 
-        // Check if memberId exists
+        
         const existing = await prisma.company.findUnique({
             where: { memberId },
         });
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Member ID already exists' }, { status: 409 });
         }
 
-        // Handle Location creation if provided
+        
         let locationData = {};
         if (location) {
             locationData = {
@@ -121,13 +121,13 @@ export async function POST(request: Request) {
                 media: {
                     create: media.map((url: string) => ({
                         url,
-                        type: 'IMAGE', // Default to IMAGE for now
+                        type: 'IMAGE', 
                     }))
                 }
             };
         }
 
-        // Convert established to Date if provided
+        
         const establishedDate = established ? new Date(established) : null;
 
         const newCompany = await prisma.company.create({

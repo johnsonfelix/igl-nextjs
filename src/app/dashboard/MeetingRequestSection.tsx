@@ -166,17 +166,17 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                         if (session.companyBId) {
                             busySet.add(typeof session.companyBId === 'string' ? session.companyBId : session.companyBId.id || session.companyBId);
                         }
-                        // Also from company objects if populated
+                        
                         if ((session as any).company?.id) busySet.add((session as any).company.id);
                         if ((session as any).companyB?.id) busySet.add((session as any).companyB.id);
                     }
 
-                    // Track explicit blocks
+                    
                     for (const block of slot.blockedMeetingSlots || []) {
                         if (block.companyId) busySet.add(block.companyId);
                     }
 
-                    // Track pending/accepted requests
+                    
                     for (const req of slot.meetingRequests || []) {
                         if (req.fromCompanyId) busySet.add(req.fromCompanyId);
                         if (req.toCompanyId) busySet.add(req.toCompanyId);
@@ -185,7 +185,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 setBusyMap(newBusyMap);
             }
 
-            // Fetch companies that bought tickets for this event (excluding current company)
+            
             const compRes = await fetch(`/api/meeting-requests/eligible-companies?eventId=${ticket.eventId}&excludeCompanyId=${companyId}`);
             if (compRes.ok) {
                 setCompanies(await compRes.json());
@@ -205,14 +205,14 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
         setLoadingSessions(true);
 
         try {
-            // Fetch available sessions for this event
+            
             const sessRes = await fetch(`/api/events/${ticket.eventId}/meetings`);
             if (sessRes.ok) {
                 const fetchedSlots = await sessRes.json();
                 setSlots(fetchedSlots);
             }
 
-            // Fetch explicitly blocked slots for this company
+            
             const blockRes = await fetch(`/api/meeting-requests/blocked-slots?companyId=${companyId}&eventId=${ticket.eventId}`);
             if (blockRes.ok) {
                 const blockedSlotIds = await blockRes.json();
@@ -375,7 +375,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
 
     return (
         <div className="space-y-6">
-            {/* Request Meeting Buttons */}
+            {}
             <div className="bg-white rounded-2xl shadow-sm border p-6">
                 <div className="flex items-center gap-3 mb-5">
                     <div className="p-2.5 rounded-xl bg-[#004aad]/10">
@@ -426,7 +426,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 </div>
             </div>
 
-            {/* Meeting Requests List */}
+            {}
             {(incomingRequests.length > 0 || outgoingRequests.length > 0) && (
                 <div className="bg-white rounded-2xl shadow-sm border p-6">
                     <div className="flex items-center gap-3 mb-5">
@@ -436,7 +436,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                         <h3 className="text-lg font-bold text-gray-900">Meeting Requests</h3>
                     </div>
 
-                    {/* Incoming */}
+                    {}
                     {incomingRequests.length > 0 && (
                         <div className="mb-6">
                             <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Received</h4>
@@ -537,7 +537,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 </div>
             )}
 
-            {/* Request Modal */}
+            {}
             <AnimatePresence>
                 {showModal && selectedEvent && (
                     <motion.div
@@ -554,7 +554,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                             exit={{ opacity: 0, y: 30, scale: 0.97 }}
                             className="relative z-10 w-full max-w-5xl mx-4 bg-white rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
                         >
-                            {/* Header */}
+                            {}
                             <div className="flex-none flex items-center justify-between px-8 py-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                                 <div className="flex items-center gap-4">
                                     <div className="h-12 w-12 rounded-2xl bg-[#004aad]/10 flex items-center justify-center">
@@ -570,7 +570,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                 </button>
                             </div>
 
-                            {/* Content */}
+                            {}
                             <div className="p-8 overflow-y-auto flex-1">
                                 {loadingSessions ? (
                                     <div className="py-20 flex flex-col items-center justify-center">
@@ -579,7 +579,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
-                                        {/* Left Side: Select Session (takes 3 cols on large screens) */}
+                                        {}
                                         <div className="lg:col-span-3 space-y-5">
                                             <div className="flex items-center gap-2 mb-2">
                                                 <div className="h-8 w-8 rounded-full bg-[#004aad]/10 text-[#004aad] flex items-center justify-center font-bold text-sm">1</div>
@@ -814,7 +814,7 @@ export default function MeetingRequestSection({ companyId, conferenceTickets }: 
                 )}
             </AnimatePresence>
 
-            {/* Decline Modal */}
+            {}
             <AnimatePresence>
                 {decliningRequestId && (
                     <motion.div

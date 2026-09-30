@@ -9,7 +9,7 @@ async function main() {
     const allEmails = [
         ...users.map(u => u.email),
         ...locations.map(l => l.email)
-    ].filter(e => e); // remove null/undefined
+    ].filter(e => e); 
 
     const invalidOrDummy = allEmails.filter(e => {
         const lower = e.toLowerCase();
@@ -26,7 +26,7 @@ async function main() {
     console.log(`Potentially invalid/dummy emails found: ${invalidOrDummy.length}`);
     console.log("Samples of invalid/dummy emails:", invalidOrDummy.slice(0, 10));
 
-    // Group by domain to see if there are many dummy domains.
+    
     const domains = {};
     for (const email of allEmails) {
         let domain = email.split('@')[1];
@@ -37,7 +37,7 @@ async function main() {
     }
 
     const sortedDomains = Object.entries(domains)
-        .sort((a, b) => b[1] - a[1]) // Sort descending by count
+        .sort((a, b) => b[1] - a[1]) 
         .slice(0, 15);
     
     console.log("\nTop 15 email domains:");

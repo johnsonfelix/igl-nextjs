@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/app/lib/prisma";
 
-// GET active testimonials (public endpoint)
+
 export async function GET() {
     try {
         const testimonials = await prisma.testimonial.findMany({

@@ -14,7 +14,7 @@ async function main() {
   console.log('Updated User:', JSON.stringify(updatedUser, null, 2));
 
   console.log('\n--- Checking and Updating Locations ---');
-  // Find locations associated with the company that have the old email
+  
   const company = await prisma.company.findFirst({
     where: {
       user: { id: updatedUser.id }
@@ -42,7 +42,7 @@ async function main() {
     console.log('No company found for the updated user.');
   }
 
-  // Double check if any other user has this email (shouldn't happen, but good to check)
+  
   const otherUsers = await prisma.user.findMany({
     where: { email: oldEmail }
   });

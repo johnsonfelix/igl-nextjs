@@ -31,7 +31,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-// --- Components ---
+
 
 interface SponsorCardProps {
   sponsor: any;
@@ -96,7 +96,7 @@ function SponsorCard({ sponsor, onEdit, onDelete, isOverlay }: SponsorCardProps)
             {sponsor.name}
           </h3>
         </div>
-        {/* Features badges */}
+        {}
         {sponsor.features && sponsor.features.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-3">
             {sponsor.features.slice(0, 3).map((feature: string, idx: number) => (
@@ -153,7 +153,7 @@ function SortableSponsorItem({ sponsor, onEdit, onDelete }: SponsorCardProps) {
   );
 }
 
-// --- Main Page Component ---
+
 
 export default function SponsorsPage() {
   const [sponsors, setSponsors] = useState<any[]>([]);
@@ -204,7 +204,7 @@ export default function SponsorsPage() {
     try {
       const res = await fetch("/api/admin/sponsors");
       const data = await res.json();
-      // Ensure specific sorting if needed, usually backend returns sorted
+      
       setSponsors(data);
     } catch (error) {
       console.error("Failed to fetch sponsors:", error);
@@ -397,7 +397,7 @@ export default function SponsorsPage() {
 
   return (
     <div className="p-8 space-y-8 max-w-7xl mx-auto min-h-screen">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Sponsors</h1>
@@ -471,7 +471,7 @@ export default function SponsorsPage() {
                     />
                   </div>
 
-                  {/* Features Field */}
+                  {}
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Features</Label>
                     <div className="space-y-2">
@@ -583,7 +583,7 @@ export default function SponsorsPage() {
         </div>
       </div>
 
-      {/* Sponsors List */}
+      {}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(8)].map((_, i) => (
@@ -606,7 +606,7 @@ export default function SponsorsPage() {
           )}
         </div>
       ) : searchQuery ? (
-        // Search results - no drag and drop
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredSponsors.map((sponsor) => (
             <SponsorCard
@@ -618,7 +618,7 @@ export default function SponsorsPage() {
           ))}
         </div>
       ) : (
-        // Drag and Drop Grid
+        
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

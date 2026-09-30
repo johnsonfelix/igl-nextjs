@@ -47,7 +47,7 @@ export default function InvoiceListPage() {
 
     return (
         <div className="space-y-6">
-            {/* ... header ... */}
+            {}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-800">Invoices</h1>
@@ -99,11 +99,11 @@ export default function InvoiceListPage() {
                                         <td className="px-6 py-4 font-bold text-gray-800">{inv.invoiceNumber}</td>
                                         <td className="px-6 py-4 text-gray-600">{format(new Date(inv.date), 'MMM d, yyyy')}</td>
                                         <td className="px-6 py-4 font-medium text-gray-800">
-                                            {/* @ts-ignore */}
+                                            {}
                                             {inv.customerDetails?.name || 'N/A'}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600">
-                                            {/* @ts-ignore */}
+                                            {}
                                             {inv.customerDetails?.companyName || '-'}
                                         </td>
                                         <td className="px-6 py-4 text-right font-bold text-gray-800">

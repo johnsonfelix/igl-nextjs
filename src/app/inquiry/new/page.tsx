@@ -8,18 +8,18 @@ import {
     AlertTriangle, CheckCircle, Send, Package, Anchor, Plane, Truck, Calendar, User, Mail, Phone, Hash, FileText, Receipt, ClipboardList
 } from 'lucide-react';
 
-// --- Type Definition for FormInput props ---
+
 type FormInputProps = {
     label: string;
     value: string;
     onChange: (e: ChangeEvent<HTMLInputElement>) => void;
     icon: React.ElementType;
     required?: boolean;
-    [key: string]: any; // To allow other props like 'type', 'placeholder'
+    [key: string]: any; 
 };
 
 
-// --- Reusable Form Input Component ---
+
 const FormInput = ({ label, value, onChange, icon: Icon, required = false, ...props }: FormInputProps) => (
     <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -35,12 +35,12 @@ const FormInput = ({ label, value, onChange, icon: Icon, required = false, ...pr
 );
 
 
-// --- Main Page Component ---
+
 export default function NewInquiryPage() {
     const router = useRouter();
     const { user } = useAuth();
 
-    // Form state - Expanded to match your API
+    
     const [from, setFrom] = useState('');
     const [to, setTo] = useState('');
     const [commodity, setCommodity] = useState('');

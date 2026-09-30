@@ -5,9 +5,9 @@ import { hash } from "bcryptjs";
 
 export async function POST() {
     try {
-        // 1. Find all companies that:
-        //    - Have no userId (not linked to a user account)
-        //    - Have a location with an email address
+        
+        
+        
         const companies = await prisma.company.findMany({
             where: {
                 userId: null,
@@ -43,13 +43,13 @@ export async function POST() {
             }
 
             try {
-                // Check if user already exists
+                
                 let user = await prisma.user.findUnique({
                     where: { email }
                 });
 
                 if (!user) {
-                    // Create new user
+                    
                     user = await prisma.user.create({
                         data: {
                             email,
@@ -62,7 +62,7 @@ export async function POST() {
                     });
                 }
 
-                // Link company to user
+                
                 await prisma.company.update({
                     where: { id: company.id },
                     data: { userId: user.id }

@@ -1,4 +1,4 @@
-// app/api/register/route.ts
+
 import prisma from "@/app/lib/prisma"
 import { NextResponse } from "next/server"
 import { hash } from "bcryptjs"
@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       data: {
         name,
         sector,
-        memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`, // Custom memberId format
+        memberId: `MEM-${Math.floor(100000 + Math.random() * 900000)}`, 
         memberType: "FREE",
         memberSince: new Date(),
         userId: user.id,

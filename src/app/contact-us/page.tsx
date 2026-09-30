@@ -8,9 +8,9 @@ import Link from "next/link";
 export default function ContactUs() {
     return (
         <div className="bg-white text-gray-800 font-sans min-h-screen">
-            {/* 1. HERO SECTION */}
+            {}
             <section className="relative h-[400px] w-full overflow-hidden flex items-center justify-center">
-                {/* Background Image/Overlay */}
+                {}
                 <div className="absolute inset-0">
                     <Image
                         src="/images/left-carousel-igla.jpg"
@@ -23,7 +23,7 @@ export default function ContactUs() {
                     <div className="absolute inset-0 bg-black/40"></div>
                 </div>
 
-                {/* Content */}
+                {}
                 <div className="relative z-10 text-center px-4 max-w-4xl mx-auto text-white animate-fadeIn">
                     <span className="block text-emerald-300 font-bold tracking-wider uppercase text-sm mb-4">
                         Get in touch
@@ -37,12 +37,12 @@ export default function ContactUs() {
                 </div>
             </section>
 
-            {/* 2. MAIN CONTACT CARDS (Overlapping Hero) */}
+            {}
             <section className="relative z-20 -mt-16 px-4 pb-16">
                 <div className="container mx-auto max-w-6xl">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 
-                        {/* Card 1: Direct Contact */}
+                        {}
                         <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
                             <div className="w-14 h-14 bg-blue-50 text-[#004aad] rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Phone className="h-6 w-6" />
@@ -50,16 +50,14 @@ export default function ContactUs() {
                             <h3 className="text-xl font-bold text-gray-900 mb-2">Talk to Us</h3>
                             <p className="text-gray-500 text-sm mb-6">Support available during business hours</p>
                             <div className="space-y-3">
-                                {/* <a href="tel:9363027279" className="block text-lg font-bold text-[#004aad] hover:underline">
-                                    +91 93630 27279
-                                </a> */}
+                                {}
                                 <a href="mailto:sales@igla.asia" className="block text-gray-700 font-medium hover:text-[#004aad]">
                                     sales@igla.asia
                                 </a>
                             </div>
                         </div>
 
-                        {/* Card 2: HQ Location */}
+                        {}
                         <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
                             <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <MapPin className="h-6 w-6" />
@@ -72,7 +70,7 @@ export default function ContactUs() {
                             </p>
                         </div>
 
-                        {/* Card 3: Social & WeChat */}
+                        {}
                         <div className="bg-white rounded-2xl p-8 shadow-xl border border-gray-100 text-center hover:-translate-y-1 transition-transform duration-300">
                             <div className="w-14 h-14 bg-purple-50 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <Globe className="h-6 w-6" />
@@ -93,7 +91,7 @@ export default function ContactUs() {
                 </div>
             </section>
 
-            {/* 3. REGIONAL TEAM GRID */}
+            {}
             <section className="py-16 bg-gray-50/50">
                 <div className="container mx-auto px-4 max-w-6xl">
                     <div className="text-center mb-16">
@@ -103,7 +101,7 @@ export default function ContactUs() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {/* Regional Card Component */}
+                        {}
                         <RegionalCard
                             region="Europe"
                             name="Mr. Fabian"
@@ -147,7 +145,7 @@ export default function ContactUs() {
         </div>
     );
 }
-// Interactive WeChat Badge with click-to-reveal animation
+
 function WeChatBadge() {
     const [revealed, setRevealed] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -177,28 +175,28 @@ function WeChatBadge() {
                 inline-flex items-center gap-2.5 group
             `}
         >
-            {/* WeChat icon */}
+            {}
             <svg viewBox="0 0 24 24" className={`transition-all duration-500 ${revealed ? "w-5 h-5 text-[#07C160]" : "w-4 h-4 text-gray-400 group-hover:text-[#07C160]"}`} fill="currentColor">
                 <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 01.213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 00.167-.054l1.903-1.114a.864.864 0 01.717-.098 10.16 10.16 0 002.837.403c.276 0 .543-.027.811-.05a6.127 6.127 0 01-.253-1.736c0-3.64 3.45-6.592 7.7-6.592.268 0 .527.018.789.04C17.105 4.773 13.265 2.188 8.691 2.188zm-2.79 4.39a1.09 1.09 0 110-2.18 1.09 1.09 0 010 2.18zm5.618 0a1.09 1.09 0 110-2.18 1.09 1.09 0 010 2.18z" />
                 <path d="M23.058 14.907c0-3.26-3.26-5.905-7.281-5.905-4.022 0-7.282 2.645-7.282 5.905s3.26 5.905 7.282 5.905c.87 0 1.71-.124 2.487-.35a.69.69 0 01.575.079l1.527.893a.26.26 0 00.134.043.236.236 0 00.233-.236c0-.058-.023-.115-.039-.17l-.313-1.188a.472.472 0 01.171-.533c1.472-1.083 2.406-2.685 2.406-4.443zm-9.585-1.09a.876.876 0 110-1.752.876.876 0 010 1.751zm4.608 0a.876.876 0 110-1.752.876.876 0 010 1.751z" />
             </svg>
 
-            {/* Label */}
+            {}
             <span className={`font-bold uppercase tracking-wider transition-all duration-300 ${revealed ? "text-[11px] text-[#07C160]" : "text-xs text-gray-500 group-hover:text-gray-700"}`}>
                 WeChat
             </span>
 
-            {/* Reveal hint arrow (before click) */}
+            {}
             {!revealed && (
                 <svg className="w-3 h-3 text-gray-400 group-hover:text-[#07C160] group-hover:translate-x-0.5 transition-all" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                 </svg>
             )}
 
-            {/* Divider (after click) */}
+            {}
             <span className={`inline-block w-px h-5 bg-[#07C160]/30 transition-all duration-500 ${revealed ? "opacity-100 scale-100" : "opacity-0 scale-0 w-0"}`} />
 
-            {/* Revealed ID */}
+            {}
             <span
                 onClick={revealed ? handleCopy : undefined}
                 className={`
@@ -220,7 +218,7 @@ function WeChatBadge() {
 function RegionalCard({ region, name, email, mapImage }: { region: string, name: string, email: string, mapImage: string }) {
     return (
         <div className="group bg-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 flex flex-col">
-            {/* Map Header */}
+            {}
             <div className="h-40 relative bg-gray-50 overflow-hidden">
                 <Image
                     src={mapImage}
@@ -230,7 +228,7 @@ function RegionalCard({ region, name, email, mapImage }: { region: string, name:
                 />
             </div>
 
-            {/* Content */}
+            {}
             <div className="p-6 flex flex-col flex-1 items-center text-center">
                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">{region}</span>
                 <h3 className="text-2xl font-bold text-gray-900 mb-6">{name}</h3>

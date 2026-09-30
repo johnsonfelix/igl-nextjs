@@ -5,9 +5,9 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
 import { MessageSquare, DollarSign, Link as LinkIcon, FileText, Send, ChevronLeft, CheckCircle, AlertTriangle, UploadCloud, Loader2, X } from 'lucide-react';
 
-// --- UI COMPONENTS ---
 
-// Replicates the input fields from your Flutter form
+
+
 const FormInput = ({ id, label, value, onChange, type = 'text', placeholder, icon: Icon, required = false }: any) => (
     <div className="group">
         <label htmlFor={id} className="block text-sm font-bold text-gray-700 mb-2 group-focus-within:text-[#004aad] transition-colors">
@@ -67,12 +67,12 @@ const FormFileUpload = ({ id, label, value, onChange, required = false }: any) =
         setUploadError(null);
 
         try {
-            // 1. Get presigned URL
+            
             const res = await fetch(`/api/upload-url?filename=${encodeURIComponent(file.name)}&contentType=${encodeURIComponent(file.type)}&folder=misc`);
             if (!res.ok) throw new Error('Failed to get upload URL');
             const { post, publicUrl } = await res.json();
 
-            // 2. Upload to S3
+            
             const formData = new FormData();
             Object.entries(post.fields).forEach(([k, v]) => formData.append(k, v as string));
             formData.append('file', file);
@@ -84,7 +84,7 @@ const FormFileUpload = ({ id, label, value, onChange, required = false }: any) =
 
             if (!uploadRes.ok) throw new Error('Upload failed');
 
-            // 3. Update parent state with public URL
+            
             onChange({ target: { name: id, value: publicUrl } });
 
         } catch (err) {
@@ -148,7 +148,7 @@ const FormFileUpload = ({ id, label, value, onChange, required = false }: any) =
     );
 };
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function InquiryResponsePage() {
     const router = useRouter();
     const params = useParams();
@@ -205,7 +205,7 @@ export default function InquiryResponsePage() {
             }
 
             setSuccess('Your response has been sent successfully!');
-            // Clear form
+            
             setMessage('');
             setOfferPrice('');
             setAttachment('');
@@ -235,7 +235,7 @@ export default function InquiryResponsePage() {
                             <span className="font-bold text-sm">Cancel</span>
                         </button>
                         <h1 className="text-lg font-bold text-gray-800">Submit Quote</h1>
-                        <div className="w-20"></div> {/* Spacer */}
+                        <div className="w-20"></div> {}
                     </div>
                 </div>
             </header>

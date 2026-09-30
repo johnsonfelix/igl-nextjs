@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 export async function GET() {
     try {
         const plans = await prisma.membershipPlan.findMany({
-            orderBy: { price: 'asc' }, // or name
+            orderBy: { price: 'asc' }, 
         });
         return NextResponse.json(plans);
     } catch (error) {

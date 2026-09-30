@@ -18,7 +18,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 
-// -------------------- Types --------------------
+
 interface Media { id: string; url: string; }
 interface Location {
   id?: string;
@@ -48,16 +48,16 @@ interface Company {
   logoUrl?: string | null;
   isVerified: boolean;
   isActive: boolean;
-  createdAt?: string; // <-- Added
-  status?: CompanyStatus; // <-- NEW
-  services?: string[];      // adapt to your real types if needed
+  createdAt?: string; 
+  status?: CompanyStatus; 
+  services?: string[];      
   partners?: string[];
   certificates?: string[];
   media?: Media[];
   activities?: string[];
 }
 
-// -------------------- Helpers / Subcomponents --------------------
+
 const getMembershipYears = (memberSince?: string | null) => {
   if (!memberSince) return 0;
   const d = new Date(memberSince);
@@ -98,16 +98,16 @@ const StatusBadge = ({ status }: { status?: CompanyStatus }) => {
   }
 };
 
-// -------------------- Main Component --------------------
+
 export default function AdminCompaniesListPage() {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // action loading keyed by company id (string)
+  
   const [actionLoading, setActionLoading] = useState<Record<string, boolean>>({});
 
-  // Filters & UI state
+  
   const [country, setCountry] = useState('All');
   const [city, setCity] = useState('');
   const [companyName, setCompanyName] = useState('');
@@ -121,7 +121,7 @@ export default function AdminCompaniesListPage() {
   const tabs = ['Company Name', 'Member ID'];
   const [activeTab, setActiveTab] = useState<string>('Company Name');
 
-  // Membership Update State
+  
   const [showMemberModal, setShowMemberModal] = useState(false);
   const [selectedCompanyForUpdate, setSelectedCompanyForUpdate] = useState<Company | null>(null);
   const [membershipPlans, setMembershipPlans] = useState<any[]>([]);
@@ -137,7 +137,7 @@ export default function AdminCompaniesListPage() {
       .catch(err => console.error('Failed to load plans', err));
   }, []);
 
-  // Add Company link
+  
   const renderAddButton = () => (
     <Link
       href="/admin/company/create"
@@ -150,12 +150,12 @@ export default function AdminCompaniesListPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchCompanies();
-    }, 400); // debounce
+    }, 400); 
     return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    
   }, [country, city, companyName, memberId, port, sortByDate, currentPage]);
 
-  // Reset to page 1 when filters change (excluding currentPage)
+  
   useEffect(() => {
     setCurrentPage(1);
   }, [country, city, companyName, memberId, port, sortByDate]);
@@ -170,12 +170,12 @@ export default function AdminCompaniesListPage() {
     if (port) params.port = port;
     if (sortByDate) params.sortByRegistration = 'true';
 
-    // Pagination
+    
     params.limit = String(itemsPerPage);
     params.offset = String((currentPage - 1) * itemsPerPage);
 
-    // 👇 force backend to return everything
-    // params.status = 'ALL'; // Use explicit statuses to be sure
+    
+    
     params.statuses = 'LIVE,BLOCKLISTED,SUSPENDED';
     params.includeInactive = '1';
 
@@ -188,10 +188,10 @@ export default function AdminCompaniesListPage() {
     setError(null);
     try {
       const url = buildQuery();
-      const res = await fetch(url, { cache: 'no-store' }); // Ensure fresh data
+      const res = await fetch(url, { cache: 'no-store' }); 
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const json = await res.json();
-      // Handle response format which includes pagination data
+      
       const data = Array.isArray(json) ? json : (json.data || []);
       setCompanies(data);
       if (json.totalPages) {
@@ -211,9 +211,9 @@ export default function AdminCompaniesListPage() {
     setActionLoading(prev => ({ ...prev, [companyId]: val }));
   };
 
-  // -------------------- Actions --------------------
+  
 
-  // Toggle verify: merge response to preserve nested fields if backend returns partial object
+  
   async function handleToggleVerify(company: Company) {
     const companyId = company.id;
     setCompanyActionLoading(companyId, true);
@@ -246,10 +246,10 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // Toggle active/disabled (soft-disable)
+  
   async function handleToggleActive(company: Company) {
     const companyId = company.id;
-    // optional confirmation
+    
     const confirmMsg = company.isActive ? 'Deactivate this company? It will remain in the system but become inactive.' : 'Enable this company?';
     if (!confirm(confirmMsg)) return;
 
@@ -283,7 +283,7 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // Delete company
+  
   async function handleDeleteCompany(company: Company) {
     if (!confirm(`Are you sure you want to DELETE "${company.name}"? This action cannot be undone.`)) return;
 
@@ -297,7 +297,7 @@ export default function AdminCompaniesListPage() {
         const txt = await res.text().catch(() => `Delete failed: ${res.status}`);
         throw new Error(txt);
       }
-      // Remove from state
+      
       setCompanies(prev => prev.filter(c => c.id !== companyId));
       alert('Company deleted successfully.');
     } catch (err) {
@@ -306,7 +306,7 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // Open Membership Modal
+  
   function openMembershipModal(company: Company) {
     setSelectedCompanyForUpdate(company);
     setNewMembershipType(company.purchasedMembership || '');
@@ -339,7 +339,7 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // Change company status (LIVE | BLOCKLISTED | SUSPENDED)
+  
   async function handleChangeStatus(company: Company, newStatus: CompanyStatus) {
     const companyId = company.id;
     setCompanyActionLoading(companyId, true);
@@ -372,7 +372,7 @@ export default function AdminCompaniesListPage() {
     }
   }
 
-  // -------------------- UI rendering helpers --------------------
+  
   const renderSearchInputs = () => {
     const inputClass = "w-full rounded-lg border-gray-300 p-3 text-sm focus:ring-teal-500 focus:border-teal-500 transition shadow-sm";
     switch (activeTab) {
@@ -385,7 +385,7 @@ export default function AdminCompaniesListPage() {
     }
   };
 
-  // -------------------- Render --------------------
+  
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="container mx-auto p-4 md:p-8">
@@ -394,7 +394,7 @@ export default function AdminCompaniesListPage() {
           {renderAddButton()}
         </div>
 
-        {/* Search Section */}
+        {}
         <div className="mb-8 p-6 rounded-2xl bg-gradient-to-br from-teal-50 via-cyan-50 to-light-blue-50 border border-gray-200 shadow-sm">
           <div className="flex border-b border-gray-200 mb-4">
             {tabs.map(t => (
@@ -627,7 +627,7 @@ export default function AdminCompaniesListPage() {
                 {membershipPlans.map(plan => (
                   <option key={plan.id} value={plan.name}>{plan.name} ({plan.price ? `$${plan.price}` : 'Free'})</option>
                 ))}
-                {/* Fallback options if no plans found */}
+                {}
                 {membershipPlans.length === 0 && (
                   <>
                     <option value="IGLA Elite">IGLA Elite</option>

@@ -19,7 +19,7 @@ import {
 } from "@/app/components/ui/sheet";
 import { Separator } from "@/app/components/ui/separator";
 
-// Define strict types based on the Prisma schema structure we expect
+
 interface OrderItem {
     id: string;
     name: string;
@@ -35,8 +35,8 @@ interface Order {
     createdAt: Date | string;
     company: {
         name: string;
-        email?: string; // Derived or direct
-        logoUrl?: string; // Optional
+        email?: string; 
+        logoUrl?: string; 
         memberId?: string;
         designation?: string;
         address?: string;
@@ -45,7 +45,7 @@ interface Order {
         name: string;
     } | null;
     items: OrderItem[];
-    // Billing info directly from PO model
+    
     billingAddressLine1?: string | null;
     billingCity?: string | null;
     billingCountry?: string | null;
@@ -99,7 +99,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
             });
 
             if (res.ok) {
-                // Optimistic update
+                
                 setOrdersList(prev => prev.filter(o => o.id !== orderId));
                 toast.success("Order deleted successfully!");
             } else {
@@ -139,7 +139,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
 
     return (
         <div className="p-6 md:p-8 max-w-[1600px] mx-auto space-y-8 min-h-screen bg-gray-50/50">
-            {/* Header Section */}
+            {}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Orders Dashboard</h1>
@@ -155,7 +155,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                 </div>
             </div>
 
-            {/* Stats Overview */}
+            {}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: "Total Orders", value: stats.totalOrders, icon: ShoppingBag, color: "text-purple-600", bg: "bg-purple-50" },
@@ -175,7 +175,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                 ))}
             </div>
 
-            {/* Orders Table Section */}
+            {}
             <Card className="border-gray-100 shadow-sm overflow-hidden bg-white">
                 <CardHeader className="border-b border-gray-50 px-6 py-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
@@ -298,7 +298,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                         </SheetHeader>
 
                                                         <div className="space-y-8">
-                                                            {/* Customer Info */}
+                                                            {}
                                                             <div>
                                                                 <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                                                                     <User size={16} /> Customer Details
@@ -308,7 +308,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                                         <span className="text-gray-500 text-sm">Company</span>
                                                                         <span className="font-medium text-gray-900">{order.company.name}</span>
                                                                     </div>
-                                                                    {/* Assuming we might have user details later, currently using company as primary */}
+                                                                    {}
                                                                     <Separator className="bg-gray-200" />
                                                                     <div className="flex justify-between">
                                                                         <span className="text-gray-500 text-sm">Billing City</span>
@@ -317,7 +317,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                                 </div>
                                                             </div>
 
-                                                            {/* Order Items */}
+                                                            {}
                                                             <div>
                                                                 <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-4 flex items-center gap-2">
                                                                     <ShoppingBag size={16} /> Order Items
@@ -355,18 +355,18 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                                                 </div>
                                                             </div>
 
-                                                            {/* Actions */}
+                                                            {}
                                                             <div className="flex flex-col gap-3">
                                                                 {order.status === "PENDING" ? (
                                                                     <Button
                                                                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
                                                                         onClick={async () => {
                                                                             await import("./actions").then(mod => mod.markOrderAsPaid(order.id));
-                                                                            // Optimistic update or wait for revalidate
-                                                                            // Since we are inside a client component without useTransition for this simple call, 
-                                                                            // we might want to close sheet or just wait. 
-                                                                            // A reload or state update would be better but let's stick to simple first.
-                                                                            window.location.reload(); // Simple refresh to fetch new server data
+                                                                            
+                                                                            
+                                                                            
+                                                                            
+                                                                            window.location.reload(); 
                                                                         }}
                                                                     >
                                                                         <CheckCircle size={16} className="mr-2" /> Approve Payment
@@ -398,7 +398,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                 </div>
             </Card>
 
-            {/* Order Details Modal */}
+            {}
             <AnimatePresence>
                 {showDetailsModal && detailsOrder && (
                     <motion.div
@@ -429,7 +429,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                             </div>
 
                             <div className="p-6 space-y-8">
-                                {/* Order Info */}
+                                {}
                                 <div>
                                     <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">Order Information</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -454,7 +454,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                     </div>
                                 </div>
 
-                                {/* Company Info */}
+                                {}
                                 <div>
                                     <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">Company Information</h3>
                                     <div className="bg-gray-50 p-4 rounded-lg space-y-2">
@@ -470,7 +470,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                     </div>
                                 </div>
 
-                                {/* Attendee Details */}
+                                {}
                                 {detailsOrder.additionalDetails?.attendees && detailsOrder.additionalDetails.attendees.length > 0 && (
                                     <div>
                                         <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">Attendee Details</h3>
@@ -509,7 +509,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                     </div>
                                 )}
 
-                                {/* Cart Items */}
+                                {}
                                 {detailsOrder.items && detailsOrder.items.length > 0 && (
                                     <div>
                                         <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">Cart Items</h3>
@@ -549,7 +549,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                     </div>
                                 )}
 
-                                {/* Billing & Shipping */}
+                                {}
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
                                         <h3 className="text-sm font-bold text-gray-700 uppercase mb-4">Billing Address</h3>
@@ -604,11 +604,11 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                     </motion.div>
                 )}
             </AnimatePresence>
-            {/* Invoice Viewer Modal */}
+            {}
             {viewInvoiceOrder && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 print:p-0 print:bg-white print:static">
                     <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto print:shadow-none print:max-w-none print:max-h-none print:w-full">
-                        {/* Modal Header */}
+                        {}
                         <div className="sticky top-0 bg-white border-b px-6 py-4 flex justify-between items-center z-10 print:hidden">
                             <h3 className="text-lg font-bold text-gray-900">Invoice Details</h3>
                             <div className="flex gap-2">
@@ -617,7 +617,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
                                         const element = document.getElementById('invoice-component');
                                         if (!element) return;
 
-                                        // Dynamic import
+                                        
                                         const html2pdf = (await import('html2pdf.js')).default;
 
                                         const opt = {
@@ -645,7 +645,7 @@ export default function DashboardClient({ orders = [], stats }: DashboardClientP
 
                         <div className="p-8 print:p-0 printable-area">
                             <InvoiceTemplate
-                                orderId={viewInvoiceOrder.id.slice(-8).toUpperCase()} // Or use proper invoice number if available
+                                orderId={viewInvoiceOrder.id.slice(-8).toUpperCase()} 
                                 date={viewInvoiceOrder.createdAt}
                                 customerDetails={{
                                     name: viewInvoiceOrder.company.name,

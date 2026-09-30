@@ -1,11 +1,11 @@
-'use client'; // This directive is needed for components that use hooks like useState
+'use client'; 
 
 import type { NextPage } from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ChevronsDown, BarChart3, Star, BookUser } from 'lucide-react';
 
-// Helper component for consistent section layout
+
 const Section = ({ children, className = '' }: { children: React.ReactNode; className?: string }) => {
   return <section className={`py-12 md:py-20 ${className}`}>{children}</section>;
 };
@@ -45,7 +45,7 @@ const HeroSection = () => (
   </div>
 );
 
-// 2. Member Benefits Section with Tabs
+
 const MemberBenefits = () => {
   const [activeTab, setActiveTab] = useState('Business');
   
@@ -61,7 +61,7 @@ const MemberBenefits = () => {
       <div className="container mx-auto px-4">
         <h2 className="text-3xl font-bold text-center mb-12">Member Benefits</h2>
         
-        {/* Tab Buttons */}
+        {}
         <div className="flex justify-center flex-wrap gap-4 mb-8">
           {tabs.map(tab => (
             <button 
@@ -78,10 +78,10 @@ const MemberBenefits = () => {
           ))}
         </div>
 
-        {/* Tab Content */}
+        {}
         <div className="bg-white p-8 md:p-12 rounded-2xl shadow-xl flex flex-col md:flex-row gap-8">
           <div className="md:w-1/4">
-            {/* Sidebar for Sub-categories */}
+            {}
             <div className="space-y-2">
                 {['Company Directory', 'Shop', 'Inquiry Board', 'Customer Success'].map(item => (
                     <button key={item} className="w-full text-left font-semibold p-3 rounded-lg bg-yellow-100 text-yellow-800">
@@ -110,13 +110,13 @@ const MemberBenefits = () => {
 };
 
 
-// 3. Welcome to IGLA Elite Section
+
 const WelcomeSection = () => (
   <Section className="bg-white">
     <div className="container mx-auto px-4">
       <h2 className="text-3xl font-bold text-center mb-12">Welcome to IGLA Elite</h2>
       <div className="flex flex-col md:flex-row gap-8 items-stretch">
-        {/* Company Profile */}
+        {}
         <div className="md:w-1/2 bg-stone-800 text-white p-8 rounded-3xl relative">
             <span className="absolute top-8 left-8 text-8xl font-serif text-stone-700 opacity-80">“</span>
             <div className="relative z-10">
@@ -126,7 +126,7 @@ const WelcomeSection = () => (
                 </p>
             </div>
         </div>
-        {/* Featured Member */}
+        {}
         <div className="md:w-1/2 flex flex-col gap-4">
             <div className="bg-white p-6 rounded-3xl shadow-lg flex-grow flex items-center">
                 <img src="/path/to/one-hundred-logo.png" alt="One Hundred Logistics" className="w-48"/>
@@ -150,7 +150,7 @@ const WelcomeSection = () => (
   </Section>
 );
 
-// 4. Apply Banner Section
+
 const ApplyBanner = () => (
     <div className="bg-yellow-500 text-black py-4 whitespace-nowrap overflow-hidden">
         <div className="animate-marquee flex items-center">
@@ -164,12 +164,12 @@ const ApplyBanner = () => (
 );
 
 
-// --- Main Page Component ---
+
 const IGLAElitePage: NextPage = () => {
   return (
     <div className="bg-white">
-      {/* A global Header would be in your layout.tsx file */}
-      {/* <Header /> */}
+      {}
+      {}
       
       <main>
         <HeroSection />
@@ -178,8 +178,8 @@ const IGLAElitePage: NextPage = () => {
         <ApplyBanner />
       </main>
 
-      {/* A global Footer would be in your layout.tsx file */}
-      {/* <Footer /> */}
+      {}
+      {}
     </div>
   );
 };

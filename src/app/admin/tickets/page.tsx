@@ -52,10 +52,10 @@ export default function TicketsPage() {
     fetchtickets();
   }, []);
 
-  // Create or update preview when file changes
+  
   useEffect(() => {
     if (!file) {
-      // When clearing the file, fall back to existing logo for preview (edit mode)
+      
       setPreviewUrl(formData.logo || null);
       return;
     }
@@ -69,7 +69,7 @@ export default function TicketsPage() {
       alert("Please fill out name and price before saving.");
       return;
     }
-    // Require an image either via selected file or an existing logo when editing
+    
     if (!file && !formData.logo) {
       alert("Please select an image to upload.");
       return;
@@ -77,10 +77,10 @@ export default function TicketsPage() {
 
     setSaving(true);
     try {
-      // Upload only if a new file is selected
+      
       let logoUrl = formData.logo;
       if (file) {
-        logoUrl = await uploadFileToS3(file); // returns public S3 URL
+        logoUrl = await uploadFileToS3(file); 
       }
 
       const url = editingId ? `/api/admin/tickets/${editingId}` : "/api/admin/tickets";
@@ -144,7 +144,7 @@ export default function TicketsPage() {
 
   return (
     <div className="p-6 space-y-8 max-w-[1600px] mx-auto">
-      {/* Header */}
+      {}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Tickets</h1>
@@ -212,7 +212,7 @@ export default function TicketsPage() {
                     </div>
                   </div>
 
-                  {/* Description Field */}
+                  {}
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Description (Optional)</Label>
                     <Textarea
@@ -223,7 +223,7 @@ export default function TicketsPage() {
                     />
                   </div>
 
-                  {/* Features Field */}
+                  {}
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Features</Label>
                     <div className="space-y-2">
@@ -285,7 +285,7 @@ export default function TicketsPage() {
                     </div>
                   </div>
 
-                  {/* Logo Upload Field */}
+                  {}
                   <div className="space-y-2">
                     <Label className="text-gray-700 font-medium">Ticket Image / Logo</Label>
                     <div className="border-2 border-dashed border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors text-center cursor-pointer relative group">
@@ -336,7 +336,7 @@ export default function TicketsPage() {
         </div>
       </div>
 
-      {/* Tickets List */}
+      {}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {[...Array(6)].map((_, i) => (
@@ -403,14 +403,14 @@ export default function TicketsPage() {
                   <h3 className="font-bold text-gray-900 text-lg line-clamp-1 group-hover:text-emerald-600 transition-colors" title={ticket.name}>{ticket.name}</h3>
                 </div>
 
-                {/* Description */}
+                {}
                 {ticket.description && (
                   <p className="text-sm text-gray-500 mb-3 whitespace-pre-wrap line-clamp-3">
                     {ticket.description}
                   </p>
                 )}
 
-                {/* Features badges */}
+                {}
                 {ticket.features && ticket.features.length > 0 && (
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {ticket.features.slice(0, 3).map((feature: string, idx: number) => (

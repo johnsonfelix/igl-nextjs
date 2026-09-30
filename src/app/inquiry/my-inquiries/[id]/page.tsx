@@ -19,7 +19,7 @@ import {
     DollarSign
 } from 'lucide-react';
 
-// --- TYPE DEFINITIONS ---
+
 
 type Company = {
     id: string;
@@ -47,7 +47,7 @@ type InquiryDetails = {
     responses: InquiryResponse[];
 };
 
-// --- UI COMPONENTS ---
+
 
 const DetailRow = ({ icon: Icon, label, value }: { icon: React.ElementType, label: string, value: string | null }) => {
     if (!value) return null;
@@ -108,7 +108,7 @@ const NoResponsesWidget = () => (
 );
 
 
-// --- MAIN PAGE COMPONENT ---
+
 export default function MyInquiryDetailsPage() {
     const router = useRouter();
     const params = useParams();
@@ -162,7 +162,7 @@ export default function MyInquiryDetailsPage() {
                         <span className="font-semibold">Back</span>
                     </button>
                     <h1 className="text-lg font-bold text-gray-800">My Inquiry Details</h1>
-                    <div className="w-20"></div> {/* Spacer */}
+                    <div className="w-20"></div> {}
                 </div>
             </header>
 

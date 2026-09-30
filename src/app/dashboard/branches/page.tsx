@@ -18,14 +18,14 @@ export default async function BranchesPage() {
     where: { userId },
   });
 
-  // If no direct company found, check if user is a branch user
+  
   if (!company) {
     const branch = await prisma.branch.findFirst({
       where: { userId },
       include: { company: true }
     });
     
-    // Branch users cannot manage branches, so redirect them
+    
     if (branch) {
       redirect('/dashboard');
     }
@@ -41,7 +41,7 @@ export default async function BranchesPage() {
   return (
     <main className="min-h-screen bg-gray-50/50">
       <div className="container mx-auto px-4 py-8 lg:py-12">
-        {/* Header Section */}
+        {}
         <div className="mb-10">
           <Link href="/dashboard" className="inline-flex items-center gap-2 text-sm text-[#004aad] hover:underline mb-4 font-medium">
             <ArrowLeft className="w-4 h-4" />
