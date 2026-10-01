@@ -135,7 +135,7 @@ export default function SponsorshipBenefitsSection() {
                 {}
                 <div className="text-center mt-12">
                     <Link
-                        href="/event/cmjn1f6ih0000gad4xa4j7dp3"
+                        href="/event/cmuo6weqr0000gaskiwbbkqsb"
                         className="inline-flex items-center gap-2 bg-[#004aad] hover:bg-[#003882] text-white px-8 py-4 rounded-full font-bold text-lg shadow-lg transition-all hover:scale-105"
                     >
                         <Award className="h-5 w-5" />
