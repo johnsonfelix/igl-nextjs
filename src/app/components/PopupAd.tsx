@@ -9,7 +9,7 @@ export default function PopupAd() {
     const [isVisible, setIsVisible] = useState(false);
     const [shouldShow, setShouldShow] = useState(false);
     const router = useRouter();
-    const EVENT_ID = "cmjn1f6ih0000gad4xa4j7dp3";
+    const EVENT_ID = "cmuo6weqr0000gaskiwbbkqsb";
 
     useEffect(() => {
         

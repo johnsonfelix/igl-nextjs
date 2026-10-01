@@ -52,7 +52,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { name: "Home", href: "/" },
   { name: "Membership", href: "/membership/become-member" },
-  { name: "Event", href: "/event/cmjn1f6ih0000gad4xa4j7dp3" },
+  { name: "Event", href: "/event/cmuo6weqr0000gaskiwbbkqsb" },
   { name: "Company Directory", href: "/directory" },
   { name: "Inquiry", href: "/inquiry" },
   { name: "Risk Protection", href: "/secure-pay" },
