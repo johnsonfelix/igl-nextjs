@@ -55,7 +55,8 @@ export async function POST(req) {
     }
 
     
-    const accessToken = sign(payload, secret, { expiresIn: '1d' }); 
+    // Long-lived token (365 days) so mobile app users remain logged in until manual logout
+    const accessToken = sign(payload, secret, { expiresIn: '365d' }); 
 
     
     

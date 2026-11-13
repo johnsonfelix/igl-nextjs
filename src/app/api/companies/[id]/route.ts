@@ -124,8 +124,27 @@ export async function PUT(
   }
 
   
+  let userId: string | undefined;
   const cookieStore = await cookies();
-  const userId = cookieStore.get("userId")?.value;
+  userId = cookieStore.get("userId")?.value;
+
+  if (!userId) {
+    const authHeader = req.headers.get("authorization");
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.substring(7);
+      try {
+        const { verify } = require("jsonwebtoken");
+        const secret = process.env.JWT_SECRET;
+        if (secret) {
+          const decoded: any = verify(token, secret);
+          userId = decoded.userId;
+        }
+      } catch (err) {
+        console.error("JWT verification failed in PUT /api/companies/[id]:", err);
+      }
+    }
+  }
+
   if (!userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
@@ -173,14 +192,18 @@ export async function PUT(
       });
 
       if (location) {
+        const locAddress = location.address || "N/A";
+        const locCity = location.city || "N/A";
+        const locCountry = location.country || "N/A";
+
         if (location.id) {
           await tx.location.upsert({
             where: { id: location.id },
             create: {
-              address: location.address ?? null,
-              city: location.city ?? null,
+              address: locAddress,
+              city: locCity,
               state: location.state ?? null,
-              country: location.country ?? null,
+              country: locCountry,
               zipCode: location.zipCode ?? null,
               phone: location.phone ?? null,
               fax: location.fax ?? null,
@@ -188,10 +211,10 @@ export async function PUT(
               companyId: companyId,
             },
             update: {
-              address: location.address ?? null,
-              city: location.city ?? null,
+              address: locAddress,
+              city: locCity,
               state: location.state ?? null,
-              country: location.country ?? null,
+              country: locCountry,
               zipCode: location.zipCode ?? null,
               phone: location.phone ?? null,
               fax: location.fax ?? null,
@@ -204,10 +227,10 @@ export async function PUT(
             await tx.location.update({
               where: { id: existing.id },
               data: {
-                address: location.address ?? null,
-                city: location.city ?? null,
+                address: locAddress,
+                city: locCity,
                 state: location.state ?? null,
-                country: location.country ?? null,
+                country: locCountry,
                 zipCode: location.zipCode ?? null,
                 phone: location.phone ?? null,
                 fax: location.fax ?? null,
@@ -217,10 +240,10 @@ export async function PUT(
           } else {
             await tx.location.create({
               data: {
-                address: location.address ?? null,
-                city: location.city ?? null,
+                address: locAddress,
+                city: locCity,
                 state: location.state ?? null,
-                country: location.country ?? null,
+                country: locCountry,
                 zipCode: location.zipCode ?? null,
                 phone: location.phone ?? null,
                 fax: location.fax ?? null,

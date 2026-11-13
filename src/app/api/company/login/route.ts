@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       companyId: company?.id ?? null
     },
     secret,
-    { expiresIn: '1d' }
+    { expiresIn: '365d' }
   );
 
   const res = NextResponse.json(
