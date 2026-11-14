@@ -28,7 +28,6 @@ import SponsorshipBenefitsSection from "./components/SponsorshipBenefitsSection"
 import PastEventsSection from "./components/PastEventsSection";
 import ScrollingTextSection from "./components/ScrollingTextSection";
 import PopupAd from "./components/PopupAd";
-import SponsorShowcase from "./components/SponsorShowcase";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function Home() {
@@ -283,11 +282,6 @@ export default function Home() {
           )}
         </section>
 
-        <SponsorShowcase />
-
-        { }
-
-        { }
         <SponsorshipBenefitsSection />
 
         { }
